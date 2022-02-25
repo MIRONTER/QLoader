@@ -1,0 +1,377 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Reactive.Concurrency;
+using System.Reactive.Linq;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using CliWrap;
+using CliWrap.Buffered;
+using CliWrap.Exceptions;
+using FileHelpers;
+using Newtonsoft.Json;
+using QSideloader.Helpers;
+using QSideloader.Models;
+using Serilog;
+
+namespace QSideloader.Services;
+
+public class DownloaderService
+{
+    private static readonly SemaphoreSlim MirrorListSemaphoreSlim = new(1, 1);
+    private static readonly SemaphoreSlim GameListSemaphoreSlim = new(1, 1);
+    private static readonly SemaphoreSlim DownloadSemaphoreSlim = new(1, 1);
+
+    public DownloaderService()
+    {
+        Task.Run(() => EnsureGameListAvailableAsync());
+    }
+
+    private string MirrorName { get; set; } = "";
+    private List<string> MirrorList { get; set; } = new();
+    private bool IsMirrorListInitialized { get; set; }
+    private HttpClient HttpClient { get; } = new();
+
+    private static List<string> GetMirrorList()
+    {
+        // regex pattern to parse mirror names from rclone output
+        const string mirrorPattern = @"(FFA-\d+):";
+        List<string> mirrorList = new();
+        var result = Cli.Wrap(PathHelper.RclonePath)
+            .WithArguments("listremotes")
+            .ExecuteBufferedAsync()
+            .GetAwaiter().GetResult();
+        var matches = Regex.Matches(result.StandardOutput, mirrorPattern);
+        foreach (Match match in matches) mirrorList.Add(match.Groups[1].ToString());
+
+        return mirrorList;
+    }
+
+    // TODO: allow selecting specific mirror
+    private void SwitchMirror()
+    {
+        if (!string.IsNullOrEmpty(MirrorName))
+        {
+            MirrorListSemaphoreSlim.Wait();
+            try
+            {
+                Log.Information("Excluding mirror {MirrorName} for this session", MirrorName);
+                MirrorList.Remove(MirrorName);
+                MirrorName = "";
+            }
+            finally
+            {
+                MirrorListSemaphoreSlim.Release();
+            }
+        }
+
+        if (MirrorList.Count == 0)
+            throw new DownloaderServiceException("Global mirror list exhausted");
+        var random = new Random();
+        MirrorName = MirrorList[random.Next(MirrorList.Count)];
+        Log.Information("Selected mirror: {MirrorName}", MirrorName);
+    }
+
+    private void SwitchMirror(IList<string> mirrorList)
+    {
+        if (!string.IsNullOrEmpty(MirrorName))
+        {
+            Log.Information("Excluding mirror {MirrorName} for this download", MirrorName);
+            mirrorList.Remove(MirrorName);
+            MirrorName = "";
+        }
+
+        if (mirrorList.Count == 0)
+            throw new DownloaderServiceException("Local mirror list exhausted");
+        var random = new Random();
+        MirrorName = mirrorList[random.Next(mirrorList.Count)];
+        Log.Information("Selected mirror: {MirrorName}", MirrorName);
+    }
+
+    private void EnsureMirrorSelected()
+    {
+        MirrorListSemaphoreSlim.Wait();
+        try
+        {
+            EnsureMirrorListInitialized();
+
+            if (!string.IsNullOrEmpty(MirrorName)) return;
+            SwitchMirror();
+        }
+        finally
+        {
+            MirrorListSemaphoreSlim.Release();
+        }
+    }
+
+    private void EnsureMirrorListInitialized()
+    {
+        if (IsMirrorListInitialized) return;
+        MirrorList = GetMirrorList();
+        if (MirrorList.Count == 0)
+            throw new DownloaderServiceException("Failed to load mirror list");
+        IsMirrorListInitialized = true;
+    }
+
+    private void ExecuteDownload(string source, string destination, string additionalArgs = "",
+        CancellationToken ct = default)
+    {
+        try
+        {
+            EnsureMirrorSelected();
+            Cli.Wrap(PathHelper.RclonePath)
+                .WithArguments($"copy --retries 1 \"{MirrorName}:{source}\" \"{destination}\" {additionalArgs}")
+                .ExecuteBufferedAsync(ct)
+                .GetAwaiter().GetResult();
+        }
+        catch (Exception e)
+        {
+            switch (e)
+            {
+                case OperationCanceledException or TaskCanceledException:
+                    throw;
+                case CommandExecutionException when e.Message.Contains("downloadQuotaExceeded"):
+                    throw new DownloadQuotaExceededException($"Quota exceeded on mirror {MirrorName}", e, MirrorName,
+                        source);
+            }
+
+            throw new DownloaderServiceException("Error executing rclone download", e);
+        }
+    }
+
+    // TODO: offline mode
+    public async Task EnsureGameListAvailableAsync(bool refresh = false)
+    {
+        if (Globals.AvailableGames is not null && !refresh)
+            return;
+
+        await GameListSemaphoreSlim.WaitAsync();
+        try
+        {
+            EnsureMirrorSelected();
+
+            string? gameListPath;
+            var notesPath = PathHelper.NotesPath;
+            if (Globals.AvailableGames is not null && !refresh)
+                return;
+            Log.Information("Downloading game list");
+            while (true)
+            {
+                if (TryDownloadGameList(out gameListPath))
+                    break;
+                Log.Warning("Quota exceeded on all game lists on mirror {MirrorName}", MirrorName);
+                SwitchMirror();
+            }
+            /*if (!Directory.Exists("metadata"))
+                Directory.CreateDirectory("metadata");
+
+
+            using HttpRequestMessage gameListRequestMessage =
+                    new(HttpMethod.Get, "https://qsideloader.1592630.xyz/FFA.txt"),
+                notesRequestMessage = new(HttpMethod.Get, "https://qsideloader.1592630.xyz/notes.json");
+
+            if (File.Exists(gameListPath))
+            {
+                var lastUpdate = File.GetLastWriteTimeUtc(gameListPath);
+                gameListRequestMessage.Headers.IfModifiedSince = lastUpdate;
+            }
+
+            if (File.Exists(notesPath))
+            {
+                var lastUpdate = File.GetLastWriteTimeUtc(notesPath);
+                notesRequestMessage.Headers.IfModifiedSince = lastUpdate;
+            }
+
+            var gameListTask = HttpClient.SendAsync(gameListRequestMessage);
+            var notesTask = HttpClient.SendAsync(notesRequestMessage);
+            await Task.WhenAll(gameListTask, notesTask);
+            var gameListResponse = await gameListTask;
+            var notesResponse = await notesTask;
+
+            if (gameListResponse.StatusCode == HttpStatusCode.OK)
+            {
+                Log.Information("Game list changed on server, updating");
+                await using var stream = await gameListResponse.Content.ReadAsStreamAsync();
+                await using FileStream outputStream = new(gameListPath, FileMode.Create);
+                await stream.CopyToAsync(outputStream);
+            }
+            else if (gameListResponse.StatusCode != HttpStatusCode.NotModified)
+                Log.Error($"Unexpected http response: {gameListResponse.ReasonPhrase}");
+
+            if (notesResponse.StatusCode == HttpStatusCode.OK)
+            {
+                Log.Information("Notes changed on server, updating");
+                await using var stream = await notesResponse.Content.ReadAsStreamAsync();
+                await using FileStream outputStream = new(notesPath, FileMode.Create);
+                await stream.CopyToAsync(outputStream);
+            }
+            else if (notesResponse.StatusCode != HttpStatusCode.NotModified)
+                Log.Error($"Unexpected http response: {notesResponse.ReasonPhrase}");*/
+
+
+            var csvEngine = new FileHelperEngine<Game>();
+            Globals.AvailableGames = csvEngine.ReadFile(gameListPath);
+            Log.Information("Loaded {Count} games", Globals.AvailableGames.Length);
+
+            if (!File.Exists(notesPath)) return;
+            var notesJson = await File.ReadAllTextAsync(notesPath);
+            var notesJsonDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(notesJson);
+            if (notesJsonDictionary is null) return;
+            foreach (var game in Globals.AvailableGames)
+            {
+                if (!notesJsonDictionary.TryGetValue(game.ReleaseName!, out var note)) continue;
+                game.IsNoteAvailable = true;
+                game.Note = note;
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Error downloading game list");
+        }
+        finally
+        {
+            GameListSemaphoreSlim.Release();
+        }
+
+        bool TryDownloadGameList(out string gameListPath)
+        {
+            string[] gameListNames = {"FFA.txt", "FFA2.txt", "FFA3.txt", "FFA4.txt"};
+            foreach (var gameListName in gameListNames)
+                try
+                {
+                    ExecuteDownload($"Quest Games/{gameListName}", "./metadata/");
+                    gameListPath = "metadata" + Path.DirectorySeparatorChar + gameListName;
+                    return true;
+                }
+                catch (DownloadQuotaExceededException)
+                {
+                    Log.Debug("Quota exceeded on list {GameList} on mirror {MirrorName}",
+                        gameListName, MirrorName);
+                }
+
+            gameListPath = "";
+            return false;
+        }
+    }
+
+    public string DownloadGame(Game game, CancellationToken ct = default)
+    {
+        var stopWatch = Stopwatch.StartNew();
+        var srcPath = $"Quest Games/{game.ReleaseName}";
+        var dstPath = $"downloads/{game.ReleaseName}/";
+        try
+        {
+            Log.Information("Downloading release {ReleaseName}", game.ReleaseName);
+            var localMirrorList = MirrorList.ToList();
+            var downloadSuccess = false;
+            while (!downloadSuccess)
+                try
+                {
+                    ExecuteDownload(srcPath, dstPath,
+                        "--progress --drive-acknowledge-abuse --rc --drive-stop-on-download-limit", ct);
+                    downloadSuccess = true;
+                }
+                catch (DownloadQuotaExceededException)
+                {
+                    Log.Warning("Quota exceeded on mirror {MirrorName}", MirrorName);
+                    SwitchMirror(localMirrorList);
+                    Log.Information("Retrying download");
+                }
+
+            stopWatch.Stop();
+            Log.Debug("Rclone download took {TotalSeconds} seconds", Math.Round(stopWatch.Elapsed.TotalSeconds, 2));
+            Log.Information("Release {ReleaseName} downloaded", game.ReleaseName);
+            return dstPath;
+        }
+        catch (Exception e)
+        {
+            stopWatch.Stop();
+            if (e is OperationCanceledException or TaskCanceledException)
+                throw;
+            Log.Error(e, "Error downloading release");
+            throw new DownloaderServiceException("Error downloading release", e);
+        }
+    }
+    
+    public static async Task TakeDownloadLockAsync(CancellationToken ct = default)
+    {
+        await DownloadSemaphoreSlim.WaitAsync(ct);
+    }
+
+    public static void ReleaseDownloadLock()
+    {
+        if (DownloadSemaphoreSlim.CurrentCount < 1)
+            DownloadSemaphoreSlim.Release();
+    }
+
+    public IObservable<DownloadStats> PollStats(TimeSpan interval, IScheduler scheduler)
+    {
+        return Observable.Create<DownloadStats>(observer =>
+        {
+            return scheduler.ScheduleAsync(async (ctrl, ct) =>
+            {
+                while (!ct.IsCancellationRequested)
+                {
+                    var result = await GetRcloneDownloadStats();
+                    observer.OnNext(result);
+                    await ctrl.Sleep(interval, ct);
+                }
+            });
+        });
+    }
+
+    private async Task<DownloadStats> GetRcloneDownloadStats()
+    {
+        try
+        {
+            var response = await HttpClient.PostAsync("http://127.0.0.1:5572/core/stats", null);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var results = JsonConvert.DeserializeObject<dynamic>(responseContent);
+            if (results is null || results["transferring"] is null) return new DownloadStats();
+            float downloadSpeedBytes = results.speed.ToObject<float>();
+            double downloadedBytes = results.bytes.ToObject<double>();
+            return new DownloadStats(downloadSpeedBytes, downloadedBytes);
+        }
+        catch
+        {
+            return new DownloadStats();
+        }
+    }
+}
+
+public class DownloaderServiceException : Exception
+{
+    public DownloaderServiceException(string message)
+        : base(message)
+    {
+    }
+
+    public DownloaderServiceException(string message, Exception inner)
+        : base(message, inner)
+    {
+    }
+}
+
+public class DownloadQuotaExceededException : DownloaderServiceException
+{
+    public DownloadQuotaExceededException(string message, string? mirrorName, string? path)
+        : base(message)
+    {
+        MirrorName = mirrorName;
+        Path = path;
+    }
+
+    public DownloadQuotaExceededException(string message, Exception inner, string? mirrorName, string? path)
+        : base(message, inner)
+    {
+        MirrorName = mirrorName;
+        Path = path;
+    }
+
+    public string? MirrorName { get; }
+    public string? Path { get; }
+}

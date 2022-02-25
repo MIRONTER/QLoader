@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AvaloniaProject">
+    <option name="projectPerEditor">
+      <map>
+        <entry key="QSideloader/App.axaml" value="QSideloader/QSideloader.csproj" />
+        <entry key="QSideloader/Views/AvailableGamesView.axaml" value="QSideloader/QSideloader.csproj" />
+        <entry key="QSideloader/Views/DeviceInfoView.axaml" value="QSideloader/QSideloader.csproj" />
+        <entry key="QSideloader/Views/InstalledGamesView.axaml" value="QSideloader/QSideloader.csproj" />
+        <entry key="QSideloader/Views/MainWindow.axaml" value="QSideloader/QSideloader.csproj" />
+        <entry key="QSideloader/Views/SettingsView.axaml" value="QSideloader/QSideloader.csproj" />
+        <entry key="QSideloader/Views/TaskView.axaml" value="QSideloader/QSideloader.csproj" />
+      </map>
+    </option>
+  </component>
+</project>

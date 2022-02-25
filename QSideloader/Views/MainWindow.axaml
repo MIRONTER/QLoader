@@ -1,0 +1,85 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:QSideloader.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ui="using:FluentAvalonia.UI.Controls"
+        xmlns:views="clr-namespace:QSideloader.Views"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="QSideloader.Views.MainWindow"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="Loader"
+        MinHeight="760"
+        MinWidth="700"
+        WindowStartupLocation="CenterScreen"
+        Opened="Window_OnOpened">
+    <!--TransparencyLevelHint="AcrylicBlur"
+        Background="Transparent"
+        TransparencyBackgroundFallback="Black"-->
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel />
+    </Design.DataContext>
+
+    <ui:NavigationView
+        x:Name="NavigationView"
+        ExpandedModeThresholdWidth="1252"
+        OpenPaneLength="200"
+        SelectionChanged="NavigationView_OnSelectionChanged"
+        IsSettingsVisible="True">
+        <ui:NavigationView.MenuItems>
+            <ui:NavigationViewItem Icon="AllApps" Content="Installed Games" Tag="InstalledGamesView" />
+            <ui:NavigationViewItem Icon="Download" Content="Available Games" Tag="AvailableGamesView" />
+        </ui:NavigationView.MenuItems>
+        <Grid RowDefinitions="*,Auto">
+            <ui:Frame x:Name="ContentFrame" Grid.Row="0" />
+            <views:DeviceInfoView Grid.Row="1" />
+            <ui:InfoBar Grid.Row="0" x:Name="MainInfoBar"
+                        Severity="Informational"
+                        Margin="12"
+                        VerticalAlignment="Bottom"
+                        HorizontalAlignment="Right"
+                        IsIconVisible="False"
+                        IsOpen="False"
+                        Background="#202020"
+                        IsClosable="False"
+                        Title="Status"
+                        Message="" />
+            <Border Grid.Row="0" Grid.RowSpan="2"
+                    MaxHeight="203"
+                    Width="302"
+                    VerticalAlignment="Bottom"
+                    HorizontalAlignment="Right"
+                    CornerRadius="6"
+                    Background="#1F1F1F"
+                    Margin="0,0,4,4"
+                    IsVisible="{Binding TaskList.Count}">
+                <StackPanel>
+                    <TextBlock HorizontalAlignment="Left" Margin="4,0">Tasks</TextBlock>
+                    <!--<ListView x:Name="TaskListView" 
+                              MaxHeight="180"
+                              Items="{Binding TaskList}"
+                              ItemClick="TaskListView_OnItemClick">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <views:TaskView Margin="0,4"/>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>-->
+                    <ListBox x:Name="TaskListBox"
+                             MaxHeight="180"
+                             VirtualizationMode="None"
+                             Items="{Binding TaskList}"
+                             SelectionChanged="TaskListBox_OnSelectionChanged">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <views:TaskView Margin="0,4" />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </ui:NavigationView>
+
+</Window>

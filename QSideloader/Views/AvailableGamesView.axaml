@@ -1,0 +1,54 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:aura="using:Aura.UI.Controls"
+             xmlns:vm="using:QSideloader.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="QSideloader.Views.AvailableGamesView">
+    <Design.DataContext>
+        <vm:AvailableGamesViewModel />
+    </Design.DataContext>
+    <Grid RowDefinitions="Auto,*">
+        <StackPanel Grid.Row="0"
+                    Orientation="Horizontal"
+                    Spacing="12" Margin="8"
+                    HorizontalAlignment="Right">
+            <Button Command="{Binding Install}">Install Selected</Button>
+            <Button Command="{Binding Refresh}">Refresh</Button>
+        </StackPanel>
+        <aura:ProgressRing Grid.Row="1" x:Name="AvailableGamesPageProgressRing"
+                           IsIndeterminate="{Binding IsBusy}"
+                           IsVisible="{Binding IsBusy}" />
+        <DataGrid Grid.Row="1" x:Name="AvailableGamesDataGrid"
+                  Items="{Binding AvailableGames}"
+                  AutoGenerateColumns="False"
+                  DoubleTapped="AvailableGamesDataGrid_OnDoubleTapped">
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Width="52"
+                                        IsReadOnly="False"
+                                        CanUserResize="False"
+                                        IsVisible="{Binding MultiSelectEnabled}">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="x:Boolean">
+                            <CheckBox IsChecked="{Binding IsSelected}" Margin="16,0,0,0" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Binding="{Binding GameName}" Header="Game Name" Width="auto" IsReadOnly="True"
+                                    IsVisible="False" />
+                <DataGridTextColumn Binding="{Binding ReleaseName}" Header="Release Name" Width="auto"
+                                    IsReadOnly="True" />
+                <DataGridTextColumn Binding="{Binding LastUpdated}" Header="Last Updated" Width="auto"
+                                    IsReadOnly="True" />
+                <DataGridTextColumn Binding="{Binding GameSize}" Header="Size (MB)" Width="auto" IsReadOnly="True" />
+            </DataGrid.Columns>
+            <DataGrid.Resources>
+                <!-- ReSharper disable once Xaml.RedundantResource -->
+                <SolidColorBrush x:Key="DataGridCellFocusVisualPrimaryBrush">Transparent</SolidColorBrush>
+                <!-- ReSharper disable once Xaml.RedundantResource -->
+                <SolidColorBrush x:Key="DataGridCellFocusVisualSecondaryBrush">Transparent</SolidColorBrush>
+            </DataGrid.Resources>
+        </DataGrid>
+    </Grid>
+</UserControl>
