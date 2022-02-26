@@ -7,52 +7,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="700"
              x:Class="QSideloader.Views.SettingsView">
     <StackPanel Orientation="Vertical" IsEnabled="False">
-        <Border BorderBrush="#454545"
-                BorderThickness="2"
-                CornerRadius="6"
-                Padding="8"
-                Margin="8">
-            <StackPanel Orientation="Vertical">
-                <TextBlock FontSize="16" FontWeight="DemiBold" Margin="0,0,0,8">Quest Settings</TextBlock>
-                <StackPanel Orientation="Horizontal">
-                    <ComboBox Margin="0,0,0,0" PlaceholderText="Refresh rate">
-                        <ComboBoxItem>Default</ComboBoxItem>
-                        <ComboBoxItem>72Hz</ComboBoxItem>
-                        <ComboBoxItem>90Hz</ComboBoxItem>
-                        <ComboBoxItem>120Hz</ComboBoxItem>
-                    </ComboBox>
-                    <ComboBox Margin="8,0,0,0" PlaceholderText="GPU level">
-                        <ComboBoxItem>Default</ComboBoxItem>
-                        <ComboBoxItem>0</ComboBoxItem>
-                        <ComboBoxItem>1</ComboBoxItem>
-                        <ComboBoxItem>2</ComboBoxItem>
-                        <ComboBoxItem>3</ComboBoxItem>
-                        <ComboBoxItem>4</ComboBoxItem>
-                    </ComboBox>
-                    <ComboBox Margin="8,0,0,0" PlaceholderText="CPU level">
-                        <ComboBoxItem>Default</ComboBoxItem>
-                        <ComboBoxItem>0</ComboBoxItem>
-                        <ComboBoxItem>1</ComboBoxItem>
-                        <ComboBoxItem>2</ComboBoxItem>
-                        <ComboBoxItem>3</ComboBoxItem>
-                        <ComboBoxItem>4</ComboBoxItem>
-                    </ComboBox>
-                    <TextBox Margin="8,0,0,0" MinWidth="100" Watermark="Resolution (leave empty for default)"
-                             IsEnabled="False" />
-                    <Button Margin="16,0,0,0">Apply</Button>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                    <Button>Mount Quest as System Drive</Button>
-                    <Button Margin="8,0,0,0">Open Quest Hidden Settings</Button>
-                </StackPanel>
-            </StackPanel>
-        </Border>
-        <Border BorderBrush="#454545"
-                BorderThickness="2"
-                CornerRadius="6"
-                Padding="8"
-                Margin="8">
-            <views:SideloaderSettingsView />
-        </Border>
+        <views:DeviceSettingsView />
+        <views:SideloaderSettingsView />
     </StackPanel>
 </UserControl>

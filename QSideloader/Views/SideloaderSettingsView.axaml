@@ -8,23 +8,29 @@
     <Design.DataContext>
         <viewModels:SideloaderSettingsViewModel />
     </Design.DataContext>
-    <StackPanel Orientation="Vertical">
-        <Grid Margin="0,0,0,8" ColumnDefinitions="Auto,*,Auto">
-            <TextBlock Grid.Column="0" FontSize="16" FontWeight="DemiBold">Sideloader Settings</TextBlock>
-            <Button Grid.Column="2" HorizontalAlignment="Right" Command="{Binding RestoreDefaults}">Restore Defaults</Button>
-        </Grid>
-        <StackPanel Orientation="Horizontal" IsEnabled="False">
-            <ToggleSwitch IsChecked="{Binding CheckUpdatesOnLaunch, Mode=TwoWay}">Check for updates on launch</ToggleSwitch>
-            <Button VerticalAlignment="Bottom" Margin="20,0,0,8">Check Now</Button>
+    <Border BorderBrush="#454545"
+            BorderThickness="2"
+            CornerRadius="6"
+            Padding="8"
+            Margin="8">
+        <StackPanel Orientation="Vertical">
+            <Grid Margin="0,0,0,8" ColumnDefinitions="Auto,*,Auto">
+                <TextBlock Grid.Column="0" FontSize="16" FontWeight="DemiBold">Sideloader Settings</TextBlock>
+                <Button Grid.Column="2" HorizontalAlignment="Right" Command="{Binding RestoreDefaults}">Restore Defaults</Button>
+            </Grid>
+            <StackPanel Orientation="Horizontal" IsEnabled="False">
+                <ToggleSwitch IsChecked="{Binding CheckUpdatesOnLaunch, Mode=TwoWay}">Check for updates on launch</ToggleSwitch>
+                <Button VerticalAlignment="Bottom" Margin="20,0,0,8">Check Now</Button>
+            </StackPanel>
+            <TextBlock Margin="0,8,0,0">Downloads location</TextBlock>
+            <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
+                <TextBox MinWidth="250" Padding="10,5,10,6"
+                         Text="{Binding DownloadsLocationTextBoxText, Mode=TwoWay}" />
+                <Button Margin="4,0,0,0" VerticalAlignment="Top" IsEnabled="False">Browse</Button>
+                <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding SetDownloadLocation}">Set</Button>
+            </StackPanel>
+            <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding DeleteAfterInstall}" IsEnabled="False">Delete files after install</ToggleSwitch>
+            <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding EnableDebugConsole}" IsVisible="{Binding IsWindows}">Show debug console (relaunch to apply)</ToggleSwitch>
         </StackPanel>
-        <TextBlock Margin="0,8,0,0">Downloads location</TextBlock>
-        <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
-            <TextBox MinWidth="250" Padding="10,5,10,6"
-                     Text="{Binding DownloadsLocationTextBoxText, Mode=TwoWay}" />
-            <Button Margin="4,0,0,0" VerticalAlignment="Top" IsEnabled="False">Browse</Button>
-            <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding SetDownloadLocation}">Set</Button>
-        </StackPanel>
-        <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding DeleteAfterInstall}" IsEnabled="False">Delete files after install</ToggleSwitch>
-        <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding EnableDebugConsole}" IsVisible="{Binding IsWindows}">Show debug console (relaunch to apply)</ToggleSwitch>
-    </StackPanel>
+    </Border>
 </UserControl>
