@@ -34,7 +34,7 @@ public class ADBService
 
     private bool FirstDeviceSearch { get; set; } = true;
 
-    private ADB ADBServerClient { get; } = new();
+    private ADBServerClient ADB { get; } = new();
     public ADBDevice? Device { get; private set; }
     private DeviceMonitor? Monitor { get; set; }
 
@@ -52,7 +52,7 @@ public class ADBService
         {
             if (logCommand)
                 Log.Debug("Running shell command: {Command}", command);
-            ADBServerClient.AdbClient.ExecuteRemoteCommand(command, device, receiver);
+            ADB.AdbClient.ExecuteRemoteCommand(command, device, receiver);
         }
         catch
         {
@@ -117,7 +117,7 @@ public class ADBService
             AdbServerSemaphoreSlim.Wait();
             try
             {
-                var adbServerStatus = ADBServerClient.AdbServer.GetStatus();
+                var adbServerStatus = ADB.AdbServer.GetStatus();
                 if (adbServerStatus.IsRunning)
                 {
                     var requiredAdbVersion = new Version("1.0.40");
@@ -169,14 +169,14 @@ public class ADBService
                 return;
             }
 
-            if (!ADBServerClient.AdbServer.GetStatus().IsRunning)
+            if (!ADB.AdbServer.GetStatus().IsRunning)
             {
                 Log.Error("Failed to start ADB server");
                 //throw new ADBServiceException("Failed to start ADB server");
                 return;
             }
 
-            ADBServerClient.AdbClient.Connect("127.0.0.1:62001");
+            ADB.AdbClient.Connect("127.0.0.1:62001");
             Log.Information("Started ADB server");
             StartDeviceMonitor(true);
         }
@@ -253,7 +253,7 @@ public class ADBService
             foundDevice = Device;
             return true;
         }
-        List<DeviceData> deviceList = ADBServerClient.AdbClient.GetDevices();
+        List<DeviceData> deviceList = ADB.AdbClient.GetDevices();
         if (deviceList.Count > 0)
         {
             foreach (var device in deviceList)
@@ -297,7 +297,7 @@ public class ADBService
         SideloadSemaphoreSlim.Release();
     }
 
-    private class ADB
+    private class ADBServerClient
     {
         public AdvancedAdbClient AdbClient { get; } = new();
         public AdbServer AdbServer { get; } = new();
@@ -329,9 +329,9 @@ public class ADBService
             };
 
             ADBService = adbService;
-            ADBServerClient = adbService.ADBServerClient;
+            ADB = adbService.ADB;
             HashedId = hashedId;
-            PackageManager = new PackageManager(ADBServerClient.AdbClient, this, true);
+            PackageManager = new PackageManager(ADB.AdbClient, this, true);
             RefreshProps();
         }
 
@@ -391,7 +391,7 @@ public class ADBService
 
         private void RefreshProps()
         {
-            DeviceProps = ADBServerClient.AdbClient.GetProperties(this);
+            DeviceProps = ADB.AdbClient.GetProperties(this);
         }
 
         public List<InstalledGame> GetInstalledGames()
@@ -423,7 +423,7 @@ public class ADBService
         private void PushFile(string localPath, string remotePath)
         {
             Log.Debug("Pushing file: \"{LocalPath}\" -> \"{RemotePath}\"", localPath, remotePath);
-            using var syncService = new SyncService(ADBServerClient.AdbClient, this);
+            using var syncService = new SyncService(ADB.AdbClient, this);
             using var file = File.OpenRead(localPath);
             syncService.Push(file, remotePath, 771, DateTime.Now, null, CancellationToken.None);
         }
@@ -479,7 +479,7 @@ public class ADBService
                             observer.OnNext("Installing APK");
                             //using var stream = File.OpenRead(apkPath);
                             // BUG: installation hangs rarely
-                            //ADBServerClient.AdbClient.Install(this, stream, "-g");
+                            //ADB.AdbClient.Install(this, stream, "-g");
                             // TODO: monitor for installation hang issues
                             InstallPackage(apkPath, false, true);
                         }
@@ -541,7 +541,7 @@ public class ADBService
                                 var grantRuntimePermissions = args.Contains("-g");
                                 var apkPath = Path.Combine(gamePath, args.First(x => x.EndsWith(".apk")));
                                 //using var stream = File.OpenRead(apkPath);
-                                //ADBServerClient.AdbClient.Install(this, stream, pmArgs);
+                                //ADB.AdbClient.Install(this, stream, pmArgs);
                                 InstallPackage(apkPath, reinstall, grantRuntimePermissions);
                                 break;
                             }
@@ -602,7 +602,7 @@ public class ADBService
             Log.Information("Uninstalling package {PackageName}", packageName);
             try
             {
-                ADBServerClient.AdbClient.UninstallPackage(this, packageName);
+                ADB.AdbClient.UninstallPackage(this, packageName);
             }
             catch (PackageInstallationException e)
             {
@@ -629,7 +629,7 @@ public class ADBService
         private List<string> InstalledPackages { get; set; } = new();
         public string FriendlyName { get; }
         private string HashedId { get; }
-        private ADB ADBServerClient { get; }
+        private ADBServerClient ADB  { get; }
         private ADBService ADBService { get; }
 
         #endregion
