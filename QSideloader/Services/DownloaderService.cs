@@ -117,7 +117,7 @@ public class DownloaderService
         IsMirrorListInitialized = true;
     }
 
-    private void ExecuteDownload(string source, string destination, string additionalArgs = "",
+    private void Download(string source, string destination, string additionalArgs = "",
         CancellationToken ct = default)
     {
         try
@@ -243,7 +243,7 @@ public class DownloaderService
             foreach (var gameListName in gameListNames)
                 try
                 {
-                    ExecuteDownload($"Quest Games/{gameListName}", "./metadata/");
+                    Download($"Quest Games/{gameListName}", "./metadata/");
                     gameListPath = "metadata" + Path.DirectorySeparatorChar + gameListName;
                     return true;
                 }
@@ -271,7 +271,7 @@ public class DownloaderService
             while (!downloadSuccess)
                 try
                 {
-                    ExecuteDownload(srcPath, dstPath,
+                    Download(srcPath, dstPath,
                         "--progress --drive-acknowledge-abuse --rc --drive-stop-on-download-limit", ct);
                     downloadSuccess = true;
                 }

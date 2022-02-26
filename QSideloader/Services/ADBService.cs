@@ -434,7 +434,7 @@ public class ADBService
                 remotePath += "/";
             var localDir = new DirectoryInfo(localPath).Name;
             Log.Debug("Pushing directory: \"{LocalPath}\" -> \"{RemotePath}\"",
-                localPath, remotePath + localPath);
+                localPath, remotePath + localPath.Replace("\\", "/"));
             var dirList = Directory.GetDirectories(localPath, "*", SearchOption.AllDirectories).ToList();
             var relativeDirList = dirList.Select(dirPath => Path.GetRelativePath(localPath, dirPath));
 
@@ -463,13 +463,13 @@ public class ADBService
                     {
                         observer.OnNext("Performing custom install");
                         Log.Information("Starting running commands from install.txt");
-                        HandleInstallScript(gamePath + "install.txt");
+                        RunInstallScript(gamePath + "install.txt");
                     }
                     else if (File.Exists(gamePath + "Install.txt"))
                     {
                         observer.OnNext("Performing custom install");
                         Log.Information("Starting running commands from Install.txt");
-                        HandleInstallScript(gamePath + "Install.txt");
+                        RunInstallScript(gamePath + "Install.txt");
                     }
                     else
                         // install APKs, copy OBB dir
@@ -477,9 +477,6 @@ public class ADBService
                         foreach (var apkPath in Directory.EnumerateFiles(gamePath, "*.apk"))
                         {
                             observer.OnNext("Installing APK");
-                            //using var stream = File.OpenRead(apkPath);
-                            // BUG: installation hangs rarely
-                            //ADB.AdbClient.Install(this, stream, "-g");
                             // TODO: monitor for installation hang issues
                             InstallPackage(apkPath, false, true);
                         }
@@ -504,7 +501,7 @@ public class ADBService
             });
         }
 
-        private void HandleInstallScript(string scriptPath)
+        private void RunInstallScript(string scriptPath)
         {
             try
             {
@@ -520,7 +517,7 @@ public class ADBService
                 {
                     if (string.IsNullOrWhiteSpace(rawCommand) || rawCommand.StartsWith("#")) continue;
                     var command = rawCommand.Replace(" > NUL 2>&1", "");
-                    Log.Information("install.txt: Executing command: \"{Command}\"", command);
+                    Log.Information("install.txt: Running command: \"{Command}\"", command);
                     var args = Regex.Matches(command, argsPattern)
                         .Select(x => x.Value.Trim('"'))
                         .ToList();
@@ -532,16 +529,9 @@ public class ADBService
                         {
                             case "install":
                             {
-                                /*var pmArgs = "";
-                            if (args.Contains("-g"))
-                                pmArgs += "-g ";
-                            if (args.Contains("-r"))
-                                pmArgs += "-r";*/
                                 var reinstall = args.Contains("-r");
                                 var grantRuntimePermissions = args.Contains("-g");
                                 var apkPath = Path.Combine(gamePath, args.First(x => x.EndsWith(".apk")));
-                                //using var stream = File.OpenRead(apkPath);
-                                //ADB.AdbClient.Install(this, stream, pmArgs);
                                 InstallPackage(apkPath, reinstall, grantRuntimePermissions);
                                 break;
                             }
@@ -580,7 +570,7 @@ public class ADBService
             }
             catch (Exception e)
             {
-                throw new ADBServiceException("Failed to execute install script", e);
+                throw new ADBServiceException("Failed to run install script", e);
             }
         }
 
@@ -595,6 +585,7 @@ public class ADBService
             _ = PackageManager ?? throw new InvalidOperationException("PackageManager must be initialized");
             Log.Information("Installing APK: {ApkFileName}", Path.GetFileName(apkPath));
             PackageManager.InstallPackage(apkPath, reinstall, grantRuntimePermissions);
+            Log.Information("Package installed");
         }
 
         private void UninstallPackage(string packageName)

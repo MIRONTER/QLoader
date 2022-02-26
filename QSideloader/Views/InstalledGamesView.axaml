@@ -43,6 +43,10 @@
                                     IsReadOnly="True" />
             </DataGrid.Columns>
             <DataGrid.Resources>
+                <!-- ReSharper disable once Xaml.RedundantResource -->
+                <SolidColorBrush x:Key="DataGridCellFocusVisualPrimaryBrush">Transparent</SolidColorBrush>
+                <!-- ReSharper disable once Xaml.RedundantResource -->
+                <SolidColorBrush x:Key="DataGridCellFocusVisualSecondaryBrush">Transparent</SolidColorBrush>
             </DataGrid.Resources>
         </DataGrid>
     </Grid>
