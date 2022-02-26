@@ -9,5 +9,5 @@ public static class Globals
 
     public static MainWindowViewModel? MainWindowViewModel { get; set; }
 
-    public static SettingsViewModel Settings { get; } = new();
+    public static SideloaderSettingsViewModel SideloaderSettings { get; } = new();
 }

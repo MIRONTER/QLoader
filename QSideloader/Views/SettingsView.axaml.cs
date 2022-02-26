@@ -1,18 +1,12 @@
-﻿using Avalonia.Markup.Xaml;
-using Avalonia.ReactiveUI;
-using QSideloader.Helpers;
-using QSideloader.ViewModels;
-using ReactiveUI;
+﻿using Avalonia.Controls;
+using Avalonia.Markup.Xaml;
 
 namespace QSideloader.Views;
 
-public partial class SettingsView : ReactiveUserControl<SettingsViewModel>
+public partial class SettingsView : UserControl
 {
     public SettingsView()
     {
-        ViewModel = Globals.Settings;
-        DataContext = ViewModel;
-        this.WhenActivated(disposables => { });
         InitializeComponent();
     }
 

@@ -17,9 +17,9 @@ using Serilog;
 namespace QSideloader.ViewModels;
 
 [JsonObject(MemberSerialization.OptIn)]
-public class SettingsViewModel : ViewModelBase, IActivatableViewModel
+public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
 {
-    public SettingsViewModel()
+    public SideloaderSettingsViewModel()
     {
         Activator = new ViewModelActivator();
         SaveSettings = ReactiveCommand.CreateFromObservable(SaveSettingsImpl);

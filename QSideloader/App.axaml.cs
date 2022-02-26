@@ -59,7 +59,7 @@ public class App : Application
             File.Delete("debug_log.json");
 
 
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Globals.Settings.EnableDebugConsole)
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Globals.SideloaderSettings.EnableDebugConsole)
         {
             AllocConsole();
             Console.Title = $"{Assembly.GetExecutingAssembly().GetName().Name} debug console";
