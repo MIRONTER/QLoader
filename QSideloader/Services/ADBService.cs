@@ -63,8 +63,6 @@ public class ADBService
         if (!logCommand) return result;
         if (!string.IsNullOrWhiteSpace(result))
             Log.Debug("Command returned: {Result}", result);
-        else
-            Log.Debug("Command finished");
         return result;
     }
 
