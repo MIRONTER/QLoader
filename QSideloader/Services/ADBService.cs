@@ -37,7 +37,6 @@ public class ADBService
     private ADB ADBServerClient { get; } = new();
     public ADBDevice? Device { get; private set; }
     private DeviceMonitor? Monitor { get; set; }
-    public string Status { get; private set; } = "";
 
     public event EventHandler? DeviceOnline;
 
@@ -45,7 +44,6 @@ public class ADBService
 
     // TODO: make use of DeviceUnauthorized event
     public event EventHandler? DeviceUnauthorized;
-    public event EventHandler? StatusChanged;
 
     private string? RunShellCommand(DeviceData device, string command, bool logCommand = false)
     {
@@ -168,7 +166,6 @@ public class ADBService
             {
                 // TODO: handle failures
                 Log.Error(e, "Failed to start ADB server");
-                SetStatus("Failed to start server");
                 //throw new ADBServiceException("Failed to start ADB server", e);
                 return;
             }
@@ -176,14 +173,12 @@ public class ADBService
             if (!ADBServerClient.AdbServer.GetStatus().IsRunning)
             {
                 Log.Error("Failed to start ADB server");
-                SetStatus("Failed to start server");
                 //throw new ADBServiceException("Failed to start ADB server");
                 return;
             }
 
             ADBServerClient.AdbClient.Connect("127.0.0.1:62001");
             Log.Information("Started ADB server");
-            SetStatus("Ready");
             StartDeviceMonitor(true);
         }
         finally
@@ -231,7 +226,6 @@ public class ADBService
     private void OnDeviceOffline(EventArgs e)
     {
         Log.Information("Device Disconnected");
-        SetStatus("Device Disconnected");
         DeviceOffline?.Invoke(null, e);
         Device = null;
     }
@@ -239,7 +233,6 @@ public class ADBService
     private void OnDeviceOnline(DeviceDataEventArgs e)
     {
         Log.Information("Device Connected");
-        SetStatus("Ready");
         Device = new ADBDevice(e.Device, this, GetHashedId(e.Device.Serial));
         if (!FirstDeviceSearch)
             DeviceOnline?.Invoke(null, e);
@@ -280,7 +273,6 @@ public class ADBService
         else
         {
             Log.Warning("No ADB devices found");
-            SetStatus("No devices found");
         }
 
         return null;
@@ -290,13 +282,7 @@ public class ADBService
     {
         return device.Product is "hollywood" or "monterey";
     }
-
-    private void SetStatus(string status)
-    {
-        Status = status;
-        StatusChanged?.Invoke(this, EventArgs.Empty);
-    }
-
+    
     public static async Task TakeSideloadLockAsync(CancellationToken ct = default)
     {
         await SideloadSemaphoreSlim.WaitAsync(ct);
@@ -469,7 +455,6 @@ public class ADBService
                     Log.Information("Sideloading game {GameName}", game.GameName);
 
 
-                    ADBService.SetStatus("Installing game " + game.GameName);
                     if (File.Exists(gamePath + "install.txt"))
                     {
                         observer.OnNext("Performing custom install");
@@ -503,7 +488,6 @@ public class ADBService
                     }
 
                     Log.Information("Installed game {GameName}", game.GameName);
-                    ADBService.SetStatus($"Installed game {game.GameName}");
                     observer.OnCompleted();
                 }
                 catch (Exception e)
