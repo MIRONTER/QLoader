@@ -92,8 +92,7 @@ public class ADBService
             try
             {
                 EnsureADBRunning();
-                var foundDevice = FindDevice();
-                if (foundDevice is not null) connectionStatus = RunShellCommand(foundDevice, "echo 1")?.Trim() == "1";
+                if (TryFindDevice(out var foundDevice)) connectionStatus = RunShellCommand(foundDevice!, "echo 1")?.Trim() == "1";
 
                 if (Device is null && connectionStatus)
                     OnDeviceOnline(new DeviceDataEventArgs(foundDevice));
@@ -247,10 +246,13 @@ public class ADBService
         return hashedId;
     }
 
-    private DeviceData? FindDevice()
+    private bool TryFindDevice(out DeviceData? foundDevice)
     {
         if (Device is {State: DeviceState.Online})
-            return Device;
+        {
+            foundDevice = Device;
+            return true;
+        }
         List<DeviceData> deviceList = ADBServerClient.AdbClient.GetDevices();
         if (deviceList.Count > 0)
         {
@@ -261,7 +263,8 @@ public class ADBService
                 {
                     //Log.Information("Found Oculus Quest device. SN: " + device.Serial);
                     Log.Information("Found Oculus Quest device. Hashed ID: {HashedDeviceId}", hashedDeviceId);
-                    return device;
+                    foundDevice = device;
+                    return true;
                 }
 
                 if (device.State == DeviceState.Unauthorized)
@@ -275,7 +278,8 @@ public class ADBService
             Log.Warning("No ADB devices found");
         }
 
-        return null;
+        foundDevice = null;
+        return false;
     }
 
     private static bool IsOculusQuest(DeviceData device)
