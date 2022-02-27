@@ -32,8 +32,8 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 IsDeviceConnected = true;
                 RefreshRates = ServiceContainer.ADBService.Device!.Product switch
                 {
-                    "hollywood" => new List<string> {"Default", "72", "90", "120"},
-                    "monterey" => new List<string> {"Default", "60", "72"},
+                    "hollywood" => new List<string> {"Auto", "72", "90", "120"},
+                    "monterey" => new List<string> {"Auto", "60", "72"},
                     _ => RefreshRates
                 };
 #pragma warning disable CS4014
@@ -49,9 +49,9 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] public bool IsDeviceConnected { get; private set; }
     [Reactive] public List<string> RefreshRates { get; private set; } = new();
     [Reactive] public string? SelectedRefreshRate { get; set; }
-    public List<string> GpuLevels { get; } = new() {"Default", "0", "1", "2", "3", "4"};
+    public List<string> GpuLevels { get; } = new() {"Auto", "0", "1", "2", "3", "4"};
     [Reactive] public string? SelectedGpuLevel { get; set; }
-    public List<string> CpuLevels { get; } = new() {"Default", "0", "1", "2", "3", "4"};
+    public List<string> CpuLevels { get; } = new() {"Auto", "0", "1", "2", "3", "4"};
     [Reactive] public string? SelectedCpuLevel { get; set; }
     [Reactive] public string ResolutionTextBoxText { get; set; } = "";
     public ReactiveCommand<Unit, Unit> ApplySettings { get; }
@@ -100,11 +100,11 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         return Observable.Start(() =>
         {
             if (!ServiceContainer.ADBService.ValidateDeviceConnection()) return;
-            if (string.IsNullOrEmpty(SelectedRefreshRate) || SelectedRefreshRate == "Default")
+            if (string.IsNullOrEmpty(SelectedRefreshRate) || SelectedRefreshRate == "Auto")
             {
                 ServiceContainer.ADBService.Device!.RunShellCommand(
                     $"setprop debug.oculus.refreshRate \"\"", true);
-                Log.Information("Reset refresh rate to default");
+                Log.Information("Reset refresh rate to Auto");
             }
             else if (int.TryParse(SelectedRefreshRate, out var refreshRate))
             {
@@ -112,11 +112,11 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                     $"setprop debug.oculus.refreshRate {refreshRate}", true);
                 Log.Information("Set refresh rate: {RefreshRate} Hz", refreshRate);
             }
-            if (string.IsNullOrEmpty(SelectedGpuLevel) || SelectedGpuLevel == "Default")
+            if (string.IsNullOrEmpty(SelectedGpuLevel) || SelectedGpuLevel == "Auto")
             {
                 ServiceContainer.ADBService.Device!.RunShellCommand(
                     $"setprop debug.oculus.gpuLevel \"\"", true);
-                Log.Information("Reset GPU level to default");
+                Log.Information("Reset GPU level to Auto");
             }
             else if (int.TryParse(SelectedGpuLevel, out var gpuLevel))
             {
@@ -124,11 +124,11 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                     $"setprop debug.oculus.gpuLevel {gpuLevel}", true);
                 Log.Information("Set GPU level: {GpuLevel}", gpuLevel);
             }
-            if (string.IsNullOrEmpty(SelectedCpuLevel) || SelectedCpuLevel == "Default")
+            if (string.IsNullOrEmpty(SelectedCpuLevel) || SelectedCpuLevel == "Auto")
             {
                 ServiceContainer.ADBService.Device!.RunShellCommand(
                     $"setprop debug.oculus.cpuLevel \"\"", true);
-                Log.Information("Reset CPu level to default");
+                Log.Information("Reset CPU level to Auto");
             }
             else if (int.TryParse(SelectedCpuLevel, out var cpuLevel))
             {
@@ -143,7 +143,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                     $"setprop debug.oculus.textureWidth \"\"", true);
                 ServiceContainer.ADBService.Device!.RunShellCommand(
                     $"setprop debug.oculus.textureHeight \"\"", true);
-                Log.Information("Reset render resolution to default");
+                Log.Information("Reset render resolution to Auto");
             }
             if (TryParseResolutionString(ResolutionTextBoxText, out var width, out var height))
             {

@@ -34,7 +34,7 @@
                           SelectedItem="{Binding SelectedCpuLevel}">
                     <ToolTip.Tip>CPU level</ToolTip.Tip>
                 </ComboBox>
-                <TextBox Margin="8,0,0,0" MinWidth="240" Watermark="Resolution (leave empty for default)"
+                <TextBox Margin="8,0,0,0" MinWidth="224" Watermark="Resolution (leave empty for auto)"
                          Text="{Binding ResolutionTextBoxText, Mode=TwoWay}">
                     <ToolTip.Tip>Resolution (leave empty for default)</ToolTip.Tip>
                 </TextBox>
