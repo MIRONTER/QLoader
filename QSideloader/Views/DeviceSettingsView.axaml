@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:QSideloader.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="834" d:DesignHeight="200"
              x:Class="QSideloader.Views.DeviceSettingsView">
     <Design.DataContext>
         <viewModels:DeviceSettingsViewModel />
@@ -42,8 +42,8 @@
                 <TextBlock Margin="4,4,0,0" VerticalAlignment="Top" Opacity="0.7">(not recommended)</TextBlock>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                <Button>Mount Quest as System Drive</Button>
-                <Button Margin="8,0,0,0">Open Quest Hidden Settings</Button>
+                <Button Command="{Binding MountStorage}">Mount Quest as System Drive</Button>
+                <Button Margin="8,0,0,0" Command="{Binding LaunchHiddenSettings}">Open Quest Hidden Settings</Button>
             </StackPanel>
         </StackPanel>
     </Border>

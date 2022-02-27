@@ -20,6 +20,8 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     {
         Activator = new ViewModelActivator();
         ApplySettings = ReactiveCommand.CreateFromObservable(ApplySettingsImpl, this.IsValid());
+        MountStorage = ReactiveCommand.CreateFromObservable(MountStorageImpl);
+        LaunchHiddenSettings = ReactiveCommand.CreateFromObservable(LaunchHiddenSettingsImpl);
         this.ValidationRule(viewModel => viewModel.ResolutionTextBoxText,
             x => (TryParseResolutionString(x, out _, out _) || string.IsNullOrEmpty(x)), "Invalid input format");
         this.WhenActivated(disposables =>
@@ -34,7 +36,9 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                     "monterey" => new List<string> {"Default", "60", "72"},
                     _ => RefreshRates
                 };
+#pragma warning disable CS4014
                 LoadCurrentSettings();
+#pragma warning restore CS4014
             }
             Disposable
                 .Create(() => { })
@@ -51,6 +55,8 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] public string? SelectedCpuLevel { get; set; }
     [Reactive] public string ResolutionTextBoxText { get; set; } = "";
     public ReactiveCommand<Unit, Unit> ApplySettings { get; }
+    public ReactiveCommand<Unit, Unit> MountStorage { get; }
+    public ReactiveCommand<Unit, Unit> LaunchHiddenSettings { get; }
     public ViewModelActivator Activator { get; }
 
     private async Task LoadCurrentSettings()
