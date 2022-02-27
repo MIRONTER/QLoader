@@ -22,7 +22,6 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     {
         PerformTask = ReactiveCommand.CreateFromTask(PerformTaskImpl);
         Activator = new ViewModelActivator();
-        this.WhenActivated((CompositeDisposable disposables) => { });
     }
 
     public ReactiveCommand<Unit, Unit> PerformTask { get; }

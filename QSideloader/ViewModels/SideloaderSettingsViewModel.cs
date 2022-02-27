@@ -33,12 +33,6 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
             Directory.Exists,
             "Invalid path");
         AutoSaveDelayTimer.Elapsed += (_, _) => SaveSettings.Execute().Subscribe();
-        this.WhenActivated(disposables =>
-        {
-            Disposable
-                .Create(() => { })
-                .DisposeWith(disposables);
-        });
     }
 
     [JsonProperty] private byte ConfigVersion { get; } = 1;

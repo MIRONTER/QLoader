@@ -11,7 +11,6 @@ public partial class DeviceSettingsView : ReactiveUserControl<DeviceSettingsView
     {
         ViewModel = new DeviceSettingsViewModel();
         DataContext = ViewModel;
-        this.WhenActivated(disposables => { });
 
         
         InitializeComponent();

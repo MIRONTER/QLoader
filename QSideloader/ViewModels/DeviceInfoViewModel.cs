@@ -24,8 +24,15 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         SetRefreshTimer(true);
         this.WhenActivated(disposables =>
         {
-            HandleActivation(disposables);
-            Disposable.Create(HandleDispose).DisposeWith(disposables);
+            ServiceContainer.ADBService.DeviceOnline += OnDeviceOnline;
+            ServiceContainer.ADBService.DeviceOffline += OnDeviceOffline;
+            ServiceContainer.ADBService.PackageListChanged += OnPackageListChanged;
+            Disposable.Create(() =>
+            {
+                ServiceContainer.ADBService.DeviceOnline -= OnDeviceOnline;
+                ServiceContainer.ADBService.DeviceOffline -= OnDeviceOffline;
+                ServiceContainer.ADBService.PackageListChanged -= OnPackageListChanged;
+            }).DisposeWith(disposables);
         });
     }
 
@@ -42,37 +49,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] public string DownloaderStatus { get; set; } = "Loading";
     [Reactive] public string ADBStatus { get; set; } = "Starting";
     public ViewModelActivator Activator { get; }
-
-    private void HandleActivation(CompositeDisposable disposables)
-    {
-        /*var deviceOnline = Observable.FromEventPattern(
-            handler => ServiceContainer.ADBService.DeviceOnline += handler,
-            handler => ServiceContainer.ADBService.DeviceOnline -= handler);
-        var deviceOffline = Observable.FromEventPattern(
-            handler => ServiceContainer.ADBService.DeviceOffline += handler,
-            handler => ServiceContainer.ADBService.DeviceOffline -= handler);
-        var adbStatusChanged = Observable.FromEventPattern(
-            handler => ServiceContainer.ADBService.StatusChanged += handler,
-            handler => ServiceContainer.ADBService.StatusChanged -= handler);
-        var downloaderStatusChanged = Observable.FromEventPattern(
-            handler => ServiceContainer.DownloaderService.StatusChanged += handler,
-            handler => ServiceContainer.DownloaderService.StatusChanged -= handler);
-        deviceOnline.Subscribe(_ => OnDeviceOnline()).DisposeWith(disposables);
-        deviceOffline.Subscribe(_ => OnDeviceOffline()).DisposeWith(disposables);
-        adbStatusChanged.Subscribe(_ => ADBStatus = ServiceContainer.ADBService.Status)
-            .DisposeWith(disposables);
-        downloaderStatusChanged.Subscribe(_ => DownloaderStatus = ServiceContainer.DownloaderService.Status)
-            .DisposeWith(disposables);*/
-        ServiceContainer.ADBService.DeviceOnline += OnDeviceOnline;
-        ServiceContainer.ADBService.DeviceOffline += OnDeviceOffline;
-    }
-
-    private void HandleDispose()
-    {
-        ServiceContainer.ADBService.DeviceOnline -= OnDeviceOnline;
-        ServiceContainer.ADBService.DeviceOffline -= OnDeviceOffline;
-    }
-
+    
     private void OnDeviceOnline(object? sender, EventArgs e)
     {
         Refresh.Execute().Subscribe();
@@ -83,6 +60,11 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     {
         IsDeviceConnected = false;
         SetRefreshTimer(false);
+    }
+    
+    private void OnPackageListChanged(object? sender, EventArgs e)
+    {
+        Refresh.Execute().Subscribe();
     }
 
     private IObservable<Unit> RefreshImpl()

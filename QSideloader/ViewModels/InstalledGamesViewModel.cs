@@ -28,16 +28,21 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
         Update = ReactiveCommand.CreateFromObservable(UpdateImpl);
         Uninstall = ReactiveCommand.CreateFromObservable(UninstallImpl);
+        // Placing refresh outside of WhenActivated may cause the data to be outdated
+        // But I think it's better than refreshing every time (refresh takes 1-1.5s)
         Refresh.Execute().Subscribe();
         this.WhenActivated(disposables =>
         {
-            ServiceContainer.ADBService.DeviceOnline += ADBService_DeviceOnline;
-            ServiceContainer.ADBService.DeviceOffline += ADBService_DeviceOffline;
+            ServiceContainer.ADBService.DeviceOnline += OnDeviceOnline;
+            ServiceContainer.ADBService.DeviceOffline += OnDeviceOffline;
+            ServiceContainer.ADBService.PackageListChanged += OnPackageListChanged;
+            
             Disposable
                 .Create(() =>
                 {
-                    ServiceContainer.ADBService.DeviceOnline -= ADBService_DeviceOnline;
-                    ServiceContainer.ADBService.DeviceOffline -= ADBService_DeviceOffline;
+                    ServiceContainer.ADBService.DeviceOnline -= OnDeviceOnline;
+                    ServiceContainer.ADBService.DeviceOffline -= OnDeviceOffline;
+                    ServiceContainer.ADBService.PackageListChanged -= OnPackageListChanged;
                 })
                 .DisposeWith(disposables);
         });
@@ -104,17 +109,20 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
                 ServiceContainer.ADBService.Device!.UninstallGame(game);
                 Log.Information("Uninstalled game: {GameName}", game.GameName);
             }
-
-            Refresh.Execute().Subscribe();
         });
     }
 
-    private void ADBService_DeviceOffline(object? sender, EventArgs e)
+    private void OnDeviceOffline(object? sender, EventArgs e)
     {
         Dispatcher.UIThread.InvokeAsync(InstalledGames.Clear);
     }
 
-    private void ADBService_DeviceOnline(object? sender, EventArgs e)
+    private void OnDeviceOnline(object? sender, EventArgs e)
+    {
+        Refresh.Execute().Subscribe();
+    }
+    
+    private void OnPackageListChanged(object? sender, EventArgs e)
     {
         Refresh.Execute().Subscribe();
     }

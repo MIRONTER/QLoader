@@ -11,7 +11,6 @@ public partial class DeviceInfoView : ReactiveUserControl<DeviceInfoViewModel>
     {
         ViewModel = new DeviceInfoViewModel();
         DataContext = ViewModel;
-        this.WhenActivated(disposables => { });
         InitializeComponent();
     }
 

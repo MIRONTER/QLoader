@@ -12,8 +12,6 @@ public partial class SideloaderSettingsView : ReactiveUserControl<SideloaderSett
     {
         ViewModel = Globals.SideloaderSettings;
         DataContext = ViewModel;
-        this.WhenActivated(disposables => { });
-
         InitializeComponent();
     }
 

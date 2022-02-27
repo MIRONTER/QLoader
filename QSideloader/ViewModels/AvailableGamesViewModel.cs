@@ -26,12 +26,6 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
         Install = ReactiveCommand.CreateFromObservable(InstallImpl);
         Refresh.Execute().Subscribe();
-        this.WhenActivated(disposables =>
-        {
-            Disposable
-                .Create(() => { })
-                .DisposeWith(disposables);
-        });
     }
 
     public ReactiveCommand<Unit, Unit> Refresh { get; }

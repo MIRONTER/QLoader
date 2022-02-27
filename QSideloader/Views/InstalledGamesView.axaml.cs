@@ -11,7 +11,6 @@ public partial class InstalledGamesView : ReactiveUserControl<InstalledGamesView
     {
         ViewModel = new InstalledGamesViewModel();
         DataContext = ViewModel;
-        this.WhenActivated(disposables => { });
         InitializeComponent();
     }
 

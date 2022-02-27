@@ -44,6 +44,7 @@ public class ADBService
 
     // TODO: make use of DeviceUnauthorized event
     public event EventHandler? DeviceUnauthorized;
+    public event EventHandler? PackageListChanged;
 
     private string? RunShellCommand(DeviceData device, string command, bool logCommand = false)
     {
@@ -223,7 +224,7 @@ public class ADBService
     private void OnDeviceOffline(EventArgs e)
     {
         Log.Information("Device Disconnected");
-        DeviceOffline?.Invoke(null, e);
+        DeviceOffline?.Invoke(this, e);
         Device = null;
     }
 
@@ -232,7 +233,7 @@ public class ADBService
         Log.Information("Device Connected");
         Device = new ADBDevice(e.Device, this, GetHashedId(e.Device.Serial));
         if (!FirstDeviceSearch)
-            DeviceOnline?.Invoke(null, e);
+            DeviceOnline?.Invoke(this, e);
     }
 
     private static string GetHashedId(string deviceSerial)
@@ -584,6 +585,7 @@ public class ADBService
             Log.Information("Installing APK: {ApkFileName}", Path.GetFileName(apkPath));
             PackageManager.InstallPackage(apkPath, reinstall, grantRuntimePermissions);
             Log.Information("Package installed");
+            ADBService.PackageListChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void UninstallPackage(string packageName)
@@ -592,6 +594,7 @@ public class ADBService
             try
             {
                 ADB.AdbClient.UninstallPackage(this, packageName);
+                ADBService.PackageListChanged?.Invoke(this, EventArgs.Empty);
             }
             catch (PackageInstallationException e)
             {

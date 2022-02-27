@@ -11,7 +11,6 @@ public partial class TaskView : ReactiveUserControl<TaskViewModel>
     {
         ViewModel = new TaskViewModel();
         DataContext = ViewModel;
-        this.WhenActivated(disposables => { });
         InitializeComponent();
     }
 
