@@ -191,7 +191,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         return Observable.Start(() =>
         {
             if (!ServiceContainer.ADBService.ValidateDeviceConnection()) return;
-            ServiceContainer.ADBService.Device!.RunShellCommand("shell svc usb setFunctions mtp true", true);
+            ServiceContainer.ADBService.Device!.RunShellCommand("svc usb setFunctions mtp true", true);
             Log.Information("Mounted device storage");
         });
     }
