@@ -69,7 +69,8 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         var textureHeight = 0;
         await Task.Run(() =>
         {
-            int.TryParse(ServiceContainer.ADBService.Device!.RunShellCommand("getprop debug.oculus.refreshRate"), 
+#pragma warning disable CA1806
+            int.TryParse(ServiceContainer.ADBService.Device!.RunShellCommand("getprop debug.oculus.refreshRate"),
                 out refreshRate);
             int.TryParse(ServiceContainer.ADBService.Device!.RunShellCommand("getprop debug.oculus.gpuLevel"),
                 out gpuLevel);
@@ -79,6 +80,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 out textureWidth);
             int.TryParse(ServiceContainer.ADBService.Device!.RunShellCommand("getprop debug.oculus.textureHeight"), 
                 out textureHeight);
+#pragma warning restore CA1806
         });
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
@@ -102,37 +104,37 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
             {
                 ServiceContainer.ADBService.Device!.RunShellCommand(
                     $"setprop debug.oculus.refreshRate \"\"", true);
-                Log.Debug("Reset refresh rate to default");
+                Log.Information("Reset refresh rate to default");
             }
             else if (int.TryParse(SelectedRefreshRate, out var refreshRate))
             {
                 ServiceContainer.ADBService.Device!.RunShellCommand(
                     $"setprop debug.oculus.refreshRate {refreshRate}", true);
-                Log.Debug("Set refresh rate: {RefreshRate} Hz", refreshRate);
+                Log.Information("Set refresh rate: {RefreshRate} Hz", refreshRate);
             }
             if (string.IsNullOrEmpty(SelectedGpuLevel) || SelectedGpuLevel == "Default")
             {
                 ServiceContainer.ADBService.Device!.RunShellCommand(
                     $"setprop debug.oculus.gpuLevel \"\"", true);
-                Log.Debug("Reset gpu level to default");
+                Log.Information("Reset GPU level to default");
             }
             else if (int.TryParse(SelectedGpuLevel, out var gpuLevel))
             {
                 ServiceContainer.ADBService.Device!.RunShellCommand(
                     $"setprop debug.oculus.gpuLevel {gpuLevel}", true);
-                Log.Debug("Set gpu level: {GpuLevel}", gpuLevel);
+                Log.Information("Set GPU level: {GpuLevel}", gpuLevel);
             }
             if (string.IsNullOrEmpty(SelectedCpuLevel) || SelectedCpuLevel == "Default")
             {
                 ServiceContainer.ADBService.Device!.RunShellCommand(
                     $"setprop debug.oculus.cpuLevel \"\"", true);
-                Log.Debug("Reset cpu level to default");
+                Log.Information("Reset CPu level to default");
             }
             else if (int.TryParse(SelectedCpuLevel, out var cpuLevel))
             {
                 ServiceContainer.ADBService.Device!.RunShellCommand(
                     $"setprop debug.oculus.cpuLevel {cpuLevel}", true);
-                Log.Debug("Set cpu level: {CpuLevel}", cpuLevel);
+                Log.Information("Set CPU level: {CpuLevel}", cpuLevel);
             }
 
             if (string.IsNullOrEmpty(ResolutionTextBoxText))
@@ -141,13 +143,13 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                     $"setprop debug.oculus.textureWidth \"\"", true);
                 ServiceContainer.ADBService.Device!.RunShellCommand(
                     $"setprop debug.oculus.textureHeight \"\"", true);
-                Log.Debug("Reset render resolution to default");
+                Log.Information("Reset render resolution to default");
             }
             if (TryParseResolutionString(ResolutionTextBoxText, out var width, out var height))
             {
                 ServiceContainer.ADBService.Device!.RunShellCommand($"setprop debug.oculus.textureWidth {width}", true);
                 ServiceContainer.ADBService.Device!.RunShellCommand($"setprop debug.oculus.textureHeight {height}", true);
-                Log.Debug("Set render resolution Width:{Width} Height:{Height}", width, height);
+                Log.Information("Set render resolution Width:{Width} Height:{Height}", width, height);
             }
         });
     }
@@ -186,7 +188,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         return false;
     }
 
-    private IObservable<Unit> MountStorageImpl()
+    private static IObservable<Unit> MountStorageImpl()
     {
         return Observable.Start(() =>
         {
@@ -195,7 +197,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
             Log.Information("Mounted device storage");
         });
     }
-    private IObservable<Unit> LaunchHiddenSettingsImpl()
+    private static IObservable<Unit> LaunchHiddenSettingsImpl()
     {
         return Observable.Start(() =>
         {
