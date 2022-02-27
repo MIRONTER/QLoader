@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:QSideloader.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="450"
              x:Class="QSideloader.Views.SideloaderSettingsView">
     <Design.DataContext>
         <viewModels:SideloaderSettingsViewModel />
@@ -12,7 +12,7 @@
             BorderThickness="2"
             CornerRadius="6"
             Padding="8"
-            Margin="8">
+            Margin="0">
         <StackPanel Orientation="Vertical">
             <Grid Margin="0,0,0,8" ColumnDefinitions="Auto,*,Auto">
                 <TextBlock Grid.Column="0" FontSize="16" FontWeight="DemiBold">Sideloader Settings</TextBlock>
@@ -31,6 +31,9 @@
             </StackPanel>
             <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding DeleteAfterInstall}" IsEnabled="False">Delete files after install</ToggleSwitch>
             <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding EnableDebugConsole}" IsVisible="{Binding IsWindows}">Show debug console (relaunch to apply)</ToggleSwitch>
+            <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
+                <Button IsEnabled="False">Clear log files</Button>
+            </StackPanel>
         </StackPanel>
     </Border>
 </UserControl>

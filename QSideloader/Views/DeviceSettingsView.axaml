@@ -2,41 +2,44 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:viewModels="clr-namespace:QSideloader.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="450"
              x:Class="QSideloader.Views.DeviceSettingsView">
+    <Design.DataContext>
+        <viewModels:DeviceSettingsViewModel />
+    </Design.DataContext>
     <Border BorderBrush="#454545"
             BorderThickness="2"
             CornerRadius="6"
             Padding="8"
-            Margin="8">
-        <StackPanel Orientation="Vertical">
+            Margin="0">
+        <StackPanel Orientation="Vertical" IsEnabled="{Binding IsDeviceConnected}">
             <TextBlock FontSize="16" FontWeight="DemiBold" Margin="0,0,0,8">Quest Settings</TextBlock>
             <StackPanel Orientation="Horizontal">
-                <ComboBox Margin="0,0,0,0" PlaceholderText="Refresh rate">
-                    <ComboBoxItem>Default</ComboBoxItem>
-                    <ComboBoxItem>72Hz</ComboBoxItem>
-                    <ComboBoxItem>90Hz</ComboBoxItem>
-                    <ComboBoxItem>120Hz</ComboBoxItem>
+                <ComboBox Margin="0,0,0,0" PlaceholderText="Refresh rate" 
+                          MinWidth="120"
+                          Items="{Binding RefreshRates}" 
+                          SelectedItem="{Binding SelectedRefreshRate, Mode=TwoWay}">
+                    <ToolTip.Tip>Refresh rate</ToolTip.Tip>
                 </ComboBox>
-                <ComboBox Margin="8,0,0,0" PlaceholderText="GPU level">
-                    <ComboBoxItem>Default</ComboBoxItem>
-                    <ComboBoxItem>0</ComboBoxItem>
-                    <ComboBoxItem>1</ComboBoxItem>
-                    <ComboBoxItem>2</ComboBoxItem>
-                    <ComboBoxItem>3</ComboBoxItem>
-                    <ComboBoxItem>4</ComboBoxItem>
+                <ComboBox Margin="8,0,0,0" PlaceholderText="GPU level" 
+                          MinWidth="104"
+                          Items="{Binding GpuLevels, Mode=TwoWay}"
+                          SelectedItem="{Binding SelectedGpuLevel}">
+                    <ToolTip.Tip>GPU level</ToolTip.Tip>
                 </ComboBox>
-                <ComboBox Margin="8,0,0,0" PlaceholderText="CPU level">
-                    <ComboBoxItem>Default</ComboBoxItem>
-                    <ComboBoxItem>0</ComboBoxItem>
-                    <ComboBoxItem>1</ComboBoxItem>
-                    <ComboBoxItem>2</ComboBoxItem>
-                    <ComboBoxItem>3</ComboBoxItem>
-                    <ComboBoxItem>4</ComboBoxItem>
+                <ComboBox Margin="8,0,0,0" PlaceholderText="CPU level" 
+                          MinWidth="104"
+                          Items="{Binding CpuLevels, Mode=TwoWay}"
+                          SelectedItem="{Binding SelectedCpuLevel}">
+                    <ToolTip.Tip>CPU level</ToolTip.Tip>
                 </ComboBox>
-                <TextBox Margin="8,0,0,0" MinWidth="100" Watermark="Resolution (leave empty for default)"
-                         IsEnabled="False" />
-                <Button Margin="16,0,0,0">Apply</Button>
+                <TextBox Margin="8,0,0,0" MinWidth="240" Watermark="Resolution (leave empty for default)"
+                         Text="{Binding ResolutionTextBoxText, Mode=TwoWay}">
+                    <ToolTip.Tip>Resolution (leave empty for default)</ToolTip.Tip>
+                </TextBox>
+                <Button Margin="16,0,0,0" Command="{Binding ApplySettings}" VerticalAlignment="Top">Apply</Button>
+                <TextBlock Margin="4,4,0,0" VerticalAlignment="Top" Opacity="0.7">(not recommended)</TextBlock>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
                 <Button>Mount Quest as System Drive</Button>

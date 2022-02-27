@@ -4,10 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:QSideloader.ViewModels"
              xmlns:views="clr-namespace:QSideloader.Views"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="700"
+             mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="700"
              x:Class="QSideloader.Views.SettingsView">
-    <StackPanel Orientation="Vertical" IsEnabled="False">
-        <views:DeviceSettingsView />
-        <views:SideloaderSettingsView />
+    <StackPanel Orientation="Vertical" IsEnabled="True">
+        <views:DeviceSettingsView Margin="8" />
+        <views:SideloaderSettingsView Margin="8" />
     </StackPanel>
 </UserControl>

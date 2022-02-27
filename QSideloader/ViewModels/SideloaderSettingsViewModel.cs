@@ -23,7 +23,7 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
     {
         Activator = new ViewModelActivator();
         SaveSettings = ReactiveCommand.CreateFromObservable(SaveSettingsImpl);
-        SetDownloadLocation = ReactiveCommand.CreateFromObservable(SetDownloadLocationImpl);
+        SetDownloadLocation = ReactiveCommand.CreateFromObservable(SetDownloadLocationImpl, this.IsValid());
         RestoreDefaults = ReactiveCommand.CreateFromObservable(RestoreDefaultsImpl);
         InitDefaults();
         LoadSettings();
@@ -156,7 +156,8 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
                 DownloadsLocationTextBoxText == DownloadsLocation) return;
             DownloadsLocation = DownloadsLocationTextBoxText;
             SaveSettings.Execute().Subscribe();
-            Log.Debug("Set new downloads location");
+            Log.Debug("Set new downloads location: {DownloadsLocation}", 
+                DownloadsLocationTextBoxText);
         });
     }
 
