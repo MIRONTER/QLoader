@@ -404,7 +404,7 @@ public class ADBService
                 var query = InstalledPackages.Join(Globals.AvailableGames, package => package, game => game.PackageName,
                     (_, game) => new InstalledGame(game, PackageManager.GetVersionInfo(game.PackageName).VersionCode));
                 var installedGames = query.ToList();
-                Log.Information("Found {Count} installed games: {InstalledGames}", installedGames.Count,
+                Log.Debug("Found {Count} installed games: {InstalledGames}", installedGames.Count,
                     installedGames.Select(x => x.PackageName));
                 return installedGames;
             }
@@ -511,7 +511,7 @@ public class ADBService
                 var gamePath = Path.GetDirectoryName(scriptPath)!;
                 var scriptCommands = File.ReadAllLines(scriptPath);
                 foreach (var archivePath in Directory.GetFiles(gamePath, "*.7z", SearchOption.TopDirectoryOnly))
-                    ZipHelper.ExtractArchive(archivePath, gamePath);
+                    ZipUtil.ExtractArchive(archivePath, gamePath);
                 foreach (var rawCommand in scriptCommands)
                 {
                     if (string.IsNullOrWhiteSpace(rawCommand) || rawCommand.StartsWith("#")) continue;

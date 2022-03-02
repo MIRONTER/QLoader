@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using FileHelpers;
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace QSideloader.Models;
 

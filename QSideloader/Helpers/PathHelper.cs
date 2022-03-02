@@ -20,12 +20,9 @@ public static class PathHelper
             RclonePath = @"./tools/linux/rclone/FFA";
             SevenZipPath = @"./tools/linux/7zz";
         }
-
-        NotesPath = Path.Combine("metadata", "notes.json");
     }
 
     public static string AdbPath { get; } = "";
-    public static string NotesPath { get; }
     public static string RclonePath { get; } = "";
     public static string SevenZipPath { get; } = "";
     public static string SettingsPath => "settings.json";

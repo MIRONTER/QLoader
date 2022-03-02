@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.IO;
 using System.Reactive;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -128,7 +127,7 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
                     File.Delete(tmpPath);
                 }
 
-                Log.Information("Settings saved");
+                Log.Debug("Settings saved");
             }
             catch (Exception e)
             {
@@ -139,7 +138,12 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> RestoreDefaultsImpl()
     {
-        return Observable.Start(InitDefaults);
+        return Observable.Start(() =>
+        {
+            Log.Information("Restoring default settings");
+            InitDefaults();
+            SaveSettings.Execute().Subscribe();
+        });
     }
 
     private IObservable<Unit> SetDownloadLocationImpl()

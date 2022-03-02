@@ -135,8 +135,7 @@ public class DownloaderService
                 case OperationCanceledException or TaskCanceledException:
                     throw;
                 case CommandExecutionException when e.Message.Contains("downloadQuotaExceeded"):
-                    throw new DownloadQuotaExceededException($"Quota exceeded on mirror {MirrorName}", e, MirrorName,
-                        source);
+                    throw new DownloadQuotaExceededException($"Quota exceeded on mirror {MirrorName}", e);
             }
 
             throw new DownloaderServiceException("Error executing rclone download", e);
@@ -155,7 +154,7 @@ public class DownloaderService
             EnsureMirrorSelected();
 
             string? gameListPath;
-            var notesPath = PathHelper.NotesPath;
+            var notesPath = Path.Combine("metadata", "notes.json");
             if (Globals.AvailableGames is not null && !refresh)
                 return;
             Log.Information("Downloading game list");
@@ -262,7 +261,7 @@ public class DownloaderService
     {
         var stopWatch = Stopwatch.StartNew();
         var srcPath = $"Quest Games/{game.ReleaseName}";
-        var dstPath = $"downloads/{game.ReleaseName}/";
+        var dstPath = $"{Globals.SideloaderSettings.DownloadsLocation}/{game.ReleaseName}/";
         try
         {
             Log.Information("Downloading release {ReleaseName}", game.ReleaseName);
@@ -282,18 +281,20 @@ public class DownloaderService
                     Log.Information("Retrying download");
                 }
 
-            stopWatch.Stop();
             Log.Debug("Rclone download took {TotalSeconds} seconds", Math.Round(stopWatch.Elapsed.TotalSeconds, 2));
             Log.Information("Release {ReleaseName} downloaded", game.ReleaseName);
             return dstPath;
         }
         catch (Exception e)
         {
-            stopWatch.Stop();
             if (e is OperationCanceledException or TaskCanceledException)
                 throw;
             Log.Error(e, "Error downloading release");
             throw new DownloaderServiceException("Error downloading release", e);
+        }
+        finally
+        {
+            stopWatch.Stop();
         }
     }
     
@@ -358,20 +359,13 @@ public class DownloaderServiceException : Exception
 
 public class DownloadQuotaExceededException : DownloaderServiceException
 {
-    public DownloadQuotaExceededException(string message, string? mirrorName, string? path)
+    public DownloadQuotaExceededException(string message)
         : base(message)
     {
-        MirrorName = mirrorName;
-        Path = path;
     }
 
-    public DownloadQuotaExceededException(string message, Exception inner, string? mirrorName, string? path)
+    public DownloadQuotaExceededException(string message, Exception inner)
         : base(message, inner)
     {
-        MirrorName = mirrorName;
-        Path = path;
     }
-
-    public string? MirrorName { get; }
-    public string? Path { get; }
 }

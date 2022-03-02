@@ -36,14 +36,25 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                     "monterey" => new List<string> {"Auto", "60", "72"},
                     _ => RefreshRates
                 };
-#pragma warning disable CS4014
-                LoadCurrentSettings();
-#pragma warning restore CS4014
+                Task.Run(LoadCurrentSettings);
             }
+            ServiceContainer.ADBService.DeviceOnline += OnDeviceOnline;
+            ServiceContainer.ADBService.DeviceOffline += OnDeviceOffline;
             Disposable
                 .Create(() => { })
                 .DisposeWith(disposables);
         });
+    }
+
+    private void OnDeviceOffline(object? sender, EventArgs e)
+    {
+        IsDeviceConnected = false;
+    }
+
+    private void OnDeviceOnline(object? sender, EventArgs e)
+    {
+        IsDeviceConnected = true;
+        LoadCurrentSettings();
     }
 
     [Reactive] public bool IsDeviceConnected { get; private set; }
@@ -59,30 +70,22 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     public ReactiveCommand<Unit, Unit> LaunchHiddenSettings { get; }
     public ViewModelActivator Activator { get; }
 
-    private async Task LoadCurrentSettings()
+    private void LoadCurrentSettings()
     {
         if (!ServiceContainer.ADBService.ValidateDeviceConnection()) return;
-        var refreshRate = 0;
-        var gpuLevel = 0;
-        var cpuLevel = 0;
-        var textureWidth = 0;
-        var textureHeight = 0;
-        await Task.Run(() =>
-        {
 #pragma warning disable CA1806
-            int.TryParse(ServiceContainer.ADBService.Device!.RunShellCommand("getprop debug.oculus.refreshRate"),
-                out refreshRate);
-            int.TryParse(ServiceContainer.ADBService.Device!.RunShellCommand("getprop debug.oculus.gpuLevel"),
-                out gpuLevel);
-            int.TryParse(ServiceContainer.ADBService.Device!.RunShellCommand("getprop debug.oculus.cpuLevel"),
-                out cpuLevel);
-            int.TryParse(ServiceContainer.ADBService.Device!.RunShellCommand("getprop debug.oculus.textureWidth"), 
-                out textureWidth);
-            int.TryParse(ServiceContainer.ADBService.Device!.RunShellCommand("getprop debug.oculus.textureHeight"), 
-                out textureHeight);
+        int.TryParse(ServiceContainer.ADBService.Device!.RunShellCommand("getprop debug.oculus.refreshRate"),
+            out var refreshRate);
+        int.TryParse(ServiceContainer.ADBService.Device!.RunShellCommand("getprop debug.oculus.gpuLevel"),
+            out var gpuLevel);
+        int.TryParse(ServiceContainer.ADBService.Device!.RunShellCommand("getprop debug.oculus.cpuLevel"),
+            out var cpuLevel);
+        int.TryParse(ServiceContainer.ADBService.Device!.RunShellCommand("getprop debug.oculus.textureWidth"), 
+            out var textureWidth);
+        int.TryParse(ServiceContainer.ADBService.Device!.RunShellCommand("getprop debug.oculus.textureHeight"), 
+            out var textureHeight);
 #pragma warning restore CA1806
-        });
-        await Dispatcher.UIThread.InvokeAsync(() =>
+        Dispatcher.UIThread.InvokeAsync(() =>
         {
             if (refreshRate != 0)
                 SelectedRefreshRate = refreshRate.ToString();
