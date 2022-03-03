@@ -58,7 +58,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task PerformTaskImpl()
     {
-        string? gamePath = null;
+        string? gamePath;
         if (Game is null)
             throw new InvalidOperationException("Game is not set");
         if (!ServiceContainer.ADBService.ValidateDeviceConnection())
@@ -107,6 +107,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             downloadStatsSubscription.Dispose();
             DownloadStats = "";
             DownloaderService.ReleaseDownloadLock();
+            // if download only OnFinished("Download complete");
             return gamePath;
         }
         finally
