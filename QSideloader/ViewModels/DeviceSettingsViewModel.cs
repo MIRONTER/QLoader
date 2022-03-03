@@ -23,7 +23,23 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         MountStorage = ReactiveCommand.CreateFromObservable(MountStorageImpl);
         LaunchHiddenSettings = ReactiveCommand.CreateFromObservable(LaunchHiddenSettingsImpl);
         this.ValidationRule(viewModel => viewModel.ResolutionTextBoxText,
-            x => (TryParseResolutionString(x, out _, out _) || string.IsNullOrEmpty(x)), "Invalid input format");
+            x => string.IsNullOrEmpty(x) || TryParseResolutionString(x, out _, out _), 
+            "Invalid input format");
+        this.ValidationRule(viewModel => viewModel.ResolutionTextBoxText,
+            x =>
+            {
+                if (TryParseResolutionString(x, out var width, out var height))
+                    return width <= 3072 && height <= 3072;
+                return true;
+            }, "Resolution is too high");
+        this.ValidationRule(viewModel => viewModel.ResolutionTextBoxText,
+            x =>
+            {
+                if (TryParseResolutionString(x, out var width, out var height))
+                    return width >= 512 && height >= 512;
+                return true;
+            }, "Resolution is too low");
+        
         this.WhenActivated(disposables =>
         {
             //TODO: on device connect and disconnect events handling
@@ -166,17 +182,16 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
             return false;
         }
         
-        // This might not be very intuitive, idk
-        /*if (input.Length == 4 && int.TryParse(input, out var value))
+        if (input.Length is 3 or 4 && int.TryParse(input, out var value))
         {
             width = value;
             height = value;
             return true;
-        }*/
+        }
 
         if (input.Contains('x'))
         {
-            const string resolutionStringPattern = @"^(\d{4})x(\d{4})$";
+            const string resolutionStringPattern = @"^(\d{3,4})x(\d{3,4})$";
             var match = Regex.Match(input, resolutionStringPattern);
             if (match.Success)
             {
