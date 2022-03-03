@@ -39,7 +39,7 @@
                     <ToolTip.Tip>Resolution (leave empty for default)</ToolTip.Tip>
                 </TextBox>
                 <Button Margin="16,0,0,0" Command="{Binding ApplySettings}" VerticalAlignment="Top">Apply</Button>
-                <TextBlock Margin="4,4,0,0" VerticalAlignment="Top" Opacity="0.7">(not recommended)</TextBlock>
+                <!--TextBlock Margin="4,4,0,0" VerticalAlignment="Top" Opacity="0.7">(not recommended)</TextBlock-->
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
                 <Button Command="{Binding MountStorage}">Mount Quest as System Drive</Button>
