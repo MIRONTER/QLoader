@@ -58,7 +58,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task PerformTaskImpl()
     {
-        string gamePath;
+        string? gamePath = null;
         if (Game is null)
             throw new InvalidOperationException("Game is not set");
         if (!ServiceContainer.ADBService.ValidateDeviceConnection())
@@ -68,6 +68,28 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             return;
         }
 
+        try
+        {
+            gamePath = await PerformDownload();
+        }
+        catch (Exception e)
+        {
+            OnFinished(e is OperationCanceledException or TaskCanceledException ? "Cancelled" : "Download failed");
+            return;
+        }
+
+        try
+        {
+            await PerformInstall(gamePath ?? throw new InvalidOperationException("gamePath is null"));
+        }
+        catch (Exception e)
+        {
+            OnFinished(e is OperationCanceledException or TaskCanceledException ? "Cancelled" : "Install failed");
+        }
+    }
+
+    private async Task<string> PerformDownload()
+    {
         var tookDownloadLock = false;
         var downloadStatsSubscription = Disposable.Empty;
         try
@@ -80,29 +102,21 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 .PollStats(TimeSpan.FromMilliseconds(100), ThreadPoolScheduler.Instance)
                 .SubscribeOn(RxApp.TaskpoolScheduler)
                 .Subscribe(RefreshDownloadStats);
-            gamePath = await Task.Run(() => ServiceContainer.DownloaderService.DownloadGame(Game,
+            var gamePath = await Task.Run(() => ServiceContainer.DownloaderService.DownloadGame(Game,
                 CancellationTokenSource.Token));
             downloadStatsSubscription.Dispose();
             DownloadStats = "";
             DownloaderService.ReleaseDownloadLock();
+            return gamePath;
         }
-        catch (Exception e)
+        finally
         {
-            OnFinished(e is OperationCanceledException or TaskCanceledException ? "Cancelled" : "Download failed");
-            if (!tookDownloadLock) return;
-            DownloaderService.ReleaseDownloadLock();
-            downloadStatsSubscription.Dispose();
-            DownloadStats = "";
-            return;
-        }
-
-        try
-        {
-            await PerformInstall(gamePath);
-        }
-        catch (Exception e)
-        {
-            OnFinished(e is OperationCanceledException or TaskCanceledException ? "Cancelled" : "Install failed");
+            if (tookDownloadLock)
+            {
+                DownloaderService.ReleaseDownloadLock();
+                downloadStatsSubscription.Dispose();
+                DownloadStats = "";
+            }
         }
     }
 
