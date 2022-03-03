@@ -14,7 +14,6 @@ using QSideloader.Helpers;
 using QSideloader.ViewModels;
 using QSideloader.Views;
 using Serilog;
-using Serilog.Core;
 using Serilog.Exceptions;
 using Serilog.Formatting.Json;
 
@@ -50,13 +49,16 @@ public class App : Application
 
     private static void InitializeLogging()
     {
-        if (File.Exists("debug_log.txt") && new FileInfo("debug_log.txt").Length > 3000000)
-            File.Delete("debug_log.txt");
-        if (File.Exists("debug_log.json") && new FileInfo("debug_log.json").Length > 5000000)
-            File.Delete("debug_log.json");
+        const string humanReadableLogPath = "debug_log.txt";
+        const string jsonLogPath = "debug_log.json";
+        const string exceptionsLogPath = "debug_exceptions.txt";
+        if (File.Exists(humanReadableLogPath) && new FileInfo(humanReadableLogPath).Length > 3000000)
+            File.Delete(humanReadableLogPath);
+        if (File.Exists(jsonLogPath) && new FileInfo(jsonLogPath).Length > 5000000)
+            File.Delete(jsonLogPath);
         
         var humanReadableLogger = new LoggerConfiguration().MinimumLevel.Debug()
-            .WriteTo.File("debug_log.txt", fileSizeLimitBytes: 3000000)
+            .WriteTo.File(humanReadableLogPath, fileSizeLimitBytes: 3000000)
             .CreateLogger();
         
         Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
@@ -66,16 +68,16 @@ public class App : Application
             .WriteTo.Debug(
                 outputTemplate:
                 "{Exception} {Properties:j}{NewLine}{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}")
-            .WriteTo.File(new JsonFormatter(renderMessage: true), "debug_log.json", fileSizeLimitBytes: 3000000)
+            .WriteTo.File(new JsonFormatter(renderMessage: true), jsonLogPath, fileSizeLimitBytes: 3000000)
             .CreateLogger();
         
         LogStartMessage(Log.Logger);
 
         // Log all exceptions
-        if (File.Exists("debug_exceptions.txt"))
-            File.Delete("debug_exceptions.txt");
+        if (File.Exists(exceptionsLogPath))
+            File.Delete(exceptionsLogPath);
         var firstChanceExceptionHandler = new LoggerConfiguration().MinimumLevel.Error()
-            .WriteTo.File("debug_exceptions.txt")
+            .WriteTo.File(exceptionsLogPath)
             .CreateLogger();
         AppDomain.CurrentDomain.FirstChanceException += (_, e) =>
         {
@@ -88,24 +90,23 @@ public class App : Application
                 || e.Exception is TaskCanceledException or OperationCanceledException) return;
             firstChanceExceptionHandler.Error(e.Exception, "FirstChanceException");
         };
-        
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Globals.SideloaderSettings.EnableDebugConsole)
-        {
-            AllocConsole();
-            Console.Title = $"{Assembly.GetExecutingAssembly().GetName().Name} debug console";
-            var consoleLogger = new LoggerConfiguration().MinimumLevel.Debug().WriteTo.Console().CreateLogger();
-            LogStartMessage(consoleLogger);
-            Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
-                .Enrich.WithThreadId().Enrich.WithThreadName()
-                .Enrich.WithExceptionDetails()
-                .WriteTo.Logger(humanReadableLogger)
-                .WriteTo.Debug(
-                    outputTemplate:
-                    "{Exception} {Properties:j}{NewLine}{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}")
-                .WriteTo.File(new JsonFormatter(renderMessage: true), "debug_log.json", fileSizeLimitBytes: 3000000)
-                .WriteTo.Logger(consoleLogger)
-                .CreateLogger();
-        }
+
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
+            !Globals.SideloaderSettings.EnableDebugConsole) return;
+        AllocConsole();
+        Console.Title = $"{Assembly.GetExecutingAssembly().GetName().Name} debug console";
+        var consoleLogger = new LoggerConfiguration().MinimumLevel.Debug().WriteTo.Console().CreateLogger();
+        LogStartMessage(consoleLogger);
+        Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
+            .Enrich.WithThreadId().Enrich.WithThreadName()
+            .Enrich.WithExceptionDetails()
+            .WriteTo.Logger(humanReadableLogger)
+            .WriteTo.Debug(
+                outputTemplate:
+                "{Exception} {Properties:j}{NewLine}{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}")
+            .WriteTo.File(new JsonFormatter(renderMessage: true), jsonLogPath, fileSizeLimitBytes: 3000000)
+            .WriteTo.Logger(consoleLogger)
+            .CreateLogger();
     }
 
     private static void LogStartMessage(ILogger logger)
