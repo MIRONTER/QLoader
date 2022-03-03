@@ -117,14 +117,14 @@ public class DownloaderService
         IsMirrorListInitialized = true;
     }
 
-    private void Download(string source, string destination, string additionalArgs = "",
+    private void Download(string source, string destination, string additionalArgs = "", int retries = 1,
         CancellationToken ct = default)
     {
         try
         {
             EnsureMirrorSelected();
             Cli.Wrap(PathHelper.RclonePath)
-                .WithArguments($"copy --retries 1 \"{MirrorName}:{source}\" \"{destination}\" {additionalArgs}")
+                .WithArguments($"copy --retries {retries} \"{MirrorName}:{source}\" \"{destination}\" {additionalArgs}")
                 .ExecuteBufferedAsync(ct)
                 .GetAwaiter().GetResult();
         }
@@ -271,7 +271,7 @@ public class DownloaderService
                 try
                 {
                     Download(srcPath, dstPath,
-                        "--progress --drive-acknowledge-abuse --rc --drive-stop-on-download-limit", ct);
+                        "--progress --drive-acknowledge-abuse --rc --drive-stop-on-download-limit", 3, ct);
                     downloadSuccess = true;
                 }
                 catch (DownloadQuotaExceededException)

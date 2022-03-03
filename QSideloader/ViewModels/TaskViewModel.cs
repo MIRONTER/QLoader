@@ -102,7 +102,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 .PollStats(TimeSpan.FromMilliseconds(100), ThreadPoolScheduler.Instance)
                 .SubscribeOn(RxApp.TaskpoolScheduler)
                 .Subscribe(RefreshDownloadStats);
-            var gamePath = await Task.Run(() => ServiceContainer.DownloaderService.DownloadGame(Game,
+            var gamePath = await Task.Run(() => ServiceContainer.DownloaderService.DownloadGame(Game!,
                 CancellationTokenSource.Token));
             downloadStatsSubscription.Dispose();
             DownloadStats = "";
