@@ -14,6 +14,7 @@ using QSideloader.Helpers;
 using QSideloader.ViewModels;
 using QSideloader.Views;
 using Serilog;
+using Serilog.Core;
 using Serilog.Exceptions;
 using Serilog.Formatting.Json;
 
@@ -23,8 +24,6 @@ public class App : Application
 {
     public override void Initialize()
     {
-        AvaloniaXamlLoader.Load(this);
-
         var exePath = Path.GetDirectoryName(AppContext.BaseDirectory);
         if (exePath is not null)
             Directory.SetCurrentDirectory(exePath);
@@ -32,9 +31,7 @@ public class App : Application
         if (!Design.IsDesignMode)
             InitializeLogging();
 
-        Log.Information("----------------------------------------");
-        Log.Information("Starting {ProgramName}...",
-            Assembly.GetExecutingAssembly().GetName().Name);
+        AvaloniaXamlLoader.Load(this);
     }
 
     public override void OnFrameworkInitializationCompleted()
@@ -57,18 +54,11 @@ public class App : Application
             File.Delete("debug_log.txt");
         if (File.Exists("debug_log.json") && new FileInfo("debug_log.json").Length > 5000000)
             File.Delete("debug_log.json");
-
-
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Globals.SideloaderSettings.EnableDebugConsole)
-        {
-            AllocConsole();
-            Console.Title = $"{Assembly.GetExecutingAssembly().GetName().Name} debug console";
-        }
-
+        
         var humanReadableLogger = new LoggerConfiguration().MinimumLevel.Debug()
             .WriteTo.File("debug_log.txt", fileSizeLimitBytes: 3000000)
             .CreateLogger();
-
+        
         Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
             .Enrich.WithThreadId().Enrich.WithThreadName()
             .Enrich.WithExceptionDetails()
@@ -77,8 +67,9 @@ public class App : Application
                 outputTemplate:
                 "{Exception} {Properties:j}{NewLine}{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}")
             .WriteTo.File(new JsonFormatter(renderMessage: true), "debug_log.json", fileSizeLimitBytes: 3000000)
-            .WriteTo.Console()
             .CreateLogger();
+        
+        LogStartMessage(Log.Logger);
 
         // Log all exceptions
         if (File.Exists("debug_exceptions.txt"))
@@ -97,6 +88,31 @@ public class App : Application
                 || e.Exception is TaskCanceledException or OperationCanceledException) return;
             firstChanceExceptionHandler.Error(e.Exception, "FirstChanceException");
         };
+        
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Globals.SideloaderSettings.EnableDebugConsole)
+        {
+            AllocConsole();
+            Console.Title = $"{Assembly.GetExecutingAssembly().GetName().Name} debug console";
+            var consoleLogger = new LoggerConfiguration().MinimumLevel.Debug().WriteTo.Console().CreateLogger();
+            LogStartMessage(consoleLogger);
+            Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
+                .Enrich.WithThreadId().Enrich.WithThreadName()
+                .Enrich.WithExceptionDetails()
+                .WriteTo.Logger(humanReadableLogger)
+                .WriteTo.Debug(
+                    outputTemplate:
+                    "{Exception} {Properties:j}{NewLine}{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}")
+                .WriteTo.File(new JsonFormatter(renderMessage: true), "debug_log.json", fileSizeLimitBytes: 3000000)
+                .WriteTo.Logger(consoleLogger)
+                .CreateLogger();
+        }
+    }
+
+    private static void LogStartMessage(ILogger logger)
+    {
+        logger.Information("----------------------------------------");
+        logger.Information("Starting {ProgramName}...",
+            Assembly.GetExecutingAssembly().GetName().Name);
     }
 
     [DllImport("kernel32.dll", SetLastError = true)]

@@ -77,6 +77,7 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
             Log.Debug("Downloads location is invalid, resetting");
             Directory.CreateDirectory(defaultLocation);
             DownloadsLocation = defaultLocation;
+            SaveSettings.Execute().Subscribe();
         }
 
         DownloadsLocationTextBoxText = DownloadsLocation;
