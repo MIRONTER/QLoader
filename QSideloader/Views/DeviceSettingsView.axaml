@@ -34,10 +34,16 @@
                           SelectedItem="{Binding SelectedCpuLevel}">
                     <ToolTip.Tip>CPU level</ToolTip.Tip>
                 </ComboBox>
-                <TextBox Margin="8,0,0,0" MinWidth="224" Watermark="Resolution (leave empty for auto)"
+                <!--TextBox Margin="8,0,0,0" MinWidth="224" Watermark="Resolution (0 for auto)"
                          Text="{Binding ResolutionTextBoxText, Mode=TwoWay}">
                     <ToolTip.Tip>Resolution (leave empty for default)</ToolTip.Tip>
-                </TextBox>
+                </TextBox-->
+                <ComboBox Margin="8,0,0,0" PlaceholderText="Default texture resolution" 
+                          MinWidth="204"
+                          Items="{Binding TextureResolutions, Mode=TwoWay}"
+                          SelectedItem="{Binding SelectedTextureResolution}">
+                    <ToolTip.Tip>Default texture resolution</ToolTip.Tip>
+                </ComboBox>
                 <Button Margin="16,0,0,0" Command="{Binding ApplySettings}" VerticalAlignment="Top">Apply</Button>
                 <TextBlock Margin="4,4,0,0" VerticalAlignment="Top" Opacity="0.7">(not recommended)</TextBlock>
             </StackPanel>
