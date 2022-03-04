@@ -261,7 +261,7 @@ public class DownloaderService
     {
         var stopWatch = Stopwatch.StartNew();
         var srcPath = $"Quest Games/{game.ReleaseName}";
-        var dstPath = $"{Globals.SideloaderSettings.DownloadsLocation}/{game.ReleaseName}/";
+        var dstPath = Path.Combine(Globals.SideloaderSettings.DownloadsLocation, game.ReleaseName!);
         try
         {
             Log.Information("Downloading release {ReleaseName}", game.ReleaseName);
@@ -272,6 +272,8 @@ public class DownloaderService
                 {
                     Download(srcPath, dstPath,
                         "--progress --drive-acknowledge-abuse --rc --drive-stop-on-download-limit", 3, ct);
+                    var json = JsonConvert.SerializeObject(game);
+                    File.WriteAllText(Path.Combine(dstPath, "release.json"), json);
                     downloadSuccess = true;
                 }
                 catch (DownloadQuotaExceededException)

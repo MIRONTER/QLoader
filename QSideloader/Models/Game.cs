@@ -3,6 +3,8 @@ using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using FileHelpers;
+using Newtonsoft.Json;
+
 // ReSharper disable MemberCanBePrivate.Global
 
 namespace QSideloader.Models;
@@ -12,7 +14,7 @@ namespace QSideloader.Models;
 [SuppressMessage("ReSharper", "PropertyCanBeMadeInitOnly.Global")]
 public class Game : INotifyPropertyChanged
 {
-    [FieldHidden] private bool _isSelected;
+    [FieldHidden] [JsonIgnoreAttribute] private bool _isSelected;
 
     [FieldTrim(TrimMode.Right)] public string? GameName { get; protected set; }
 
@@ -25,7 +27,7 @@ public class Game : INotifyPropertyChanged
 
     public int GameSize { get; protected set; }
 
-    [FieldHidden]
+    [FieldHidden] [JsonIgnoreAttribute]
     public bool IsSelected
     {
         get => _isSelected;
@@ -36,9 +38,9 @@ public class Game : INotifyPropertyChanged
         }
     }
 
-    [FieldHidden] public bool IsNoteAvailable { get; set; }
+    [FieldHidden] [JsonIgnoreAttribute] public bool IsNoteAvailable { get; set; }
 
-    [FieldHidden] public string? Note { get; set; }
+    [FieldHidden] [JsonIgnoreAttribute] public string? Note { get; set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -56,7 +58,7 @@ public class InstalledGame : Game
         ReleaseName = game.ReleaseName;
         PackageName = game.PackageName;
         AvailableVersionCode = game.VersionCode;
-        VersionCode = -1;
+        VersionCode = game.VersionCode;
         LastUpdated = game.LastUpdated;
         GameSize = game.GameSize;
         InstalledVersionCode = installedVersionCode;
@@ -66,8 +68,8 @@ public class InstalledGame : Game
             : "Up To Date";
     }
 
-    public int InstalledVersionCode { get; set; }
-    public int AvailableVersionCode { get; set; }
-    public bool IsUpdateAvailable { get; set; }
-    public string UpdateStatus { get; set; }
+    [JsonIgnoreAttribute] public int InstalledVersionCode { get; set; }
+    [JsonIgnoreAttribute] public int AvailableVersionCode { get; set; }
+    [JsonIgnoreAttribute] public bool IsUpdateAvailable { get; set; }
+    [JsonIgnoreAttribute] public string UpdateStatus { get; set; }
 }

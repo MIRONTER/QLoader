@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using QSideloader.Services;
@@ -67,8 +65,8 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] public string? SelectedGpuLevel { get; set; }
     public string[] CpuLevels { get; } = {"Auto", "0", "1", "2", "3", "4"};
     [Reactive] public string? SelectedCpuLevel { get; set; }
-    public string[] TextureResolutions { get; } = {"Auto", "512", "768", "1024", "1216", "1440", "1536", "2048", "2560", "3072"};
-    [Reactive] public string? SelectedTextureResolution { get; set; }
+    public string[] TextureSizes { get; } = {"Auto", "512", "768", "1024", "1216", "1440", "1536", "2048", "2560", "3072"};
+    [Reactive] public string? SelectedTextureSize { get; set; }
     //[Reactive] public string ResolutionTextBoxText { get; set; } = "";
     public ReactiveCommand<Unit, Unit> ApplySettings { get; }
     public ReactiveCommand<Unit, Unit> MountStorage { get; }
@@ -78,6 +76,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     private void LoadCurrentSettings()
     {
         if (!ServiceContainer.ADBService.ValidateDeviceConnection()) return;
+        Log.Debug("Loading device settings");
 #pragma warning disable CA1806
         int.TryParse(ServiceContainer.ADBService.Device!.RunShellCommand("getprop debug.oculus.refreshRate"),
             out var refreshRate);
@@ -93,13 +92,26 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         Dispatcher.UIThread.InvokeAsync(() =>
         {
             if (refreshRate != 0)
+            {
                 SelectedRefreshRate = refreshRate.ToString();
+                Log.Debug("Refresh rate: {RefreshRate}", refreshRate);
+            }
             if (gpuLevel != 0)
+            {
                 SelectedGpuLevel = gpuLevel.ToString();
+                Log.Debug("GPU level: {GpuLevel}", gpuLevel);
+            }
             if (cpuLevel != 0)
+            {
                 SelectedCpuLevel = cpuLevel.ToString();
-            if (textureHeight != 0 && textureWidth != 0 && TextureResolutions.Contains(textureWidth.ToString()))
-                SelectedTextureResolution = textureWidth.ToString();
+                Log.Debug("CPU level: {CpuLevel}", cpuLevel);
+            }
+            // ReSharper disable once InvertIf
+            if (textureHeight != 0 && textureWidth != 0)
+            {
+                SelectedTextureSize = textureWidth.ToString();
+                Log.Debug("Default texture size: {TextureSize}", textureWidth);
+            }
         });
     }
 
@@ -145,7 +157,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 Log.Information("Set CPU level: {CpuLevel}", cpuLevel);
             }
 
-            if (SelectedTextureResolution == "Auto")
+            if (SelectedTextureSize == "Auto")
             {
                 ServiceContainer.ADBService.Device!.RunShellCommand(
                     $"setprop debug.oculus.textureWidth \"\"", true);
@@ -153,9 +165,9 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                     $"setprop debug.oculus.textureHeight \"\"", true);
                 Log.Information("Reset texture resolution to Auto");
             }
-            else if (SelectedTextureResolution != null)
+            else if (SelectedTextureSize != null)
             {
-                ResolutionValueToDimensions(SelectedTextureResolution, out var width, out var height);
+                ResolutionValueToDimensions(SelectedTextureSize, out var width, out var height);
                 ServiceContainer.ADBService.Device!.RunShellCommand($"setprop debug.oculus.textureWidth {width}", true);
                 ServiceContainer.ADBService.Device!.RunShellCommand($"setprop debug.oculus.textureHeight {height}", true);
                 Log.Information("Set texture resolution Width:{Width} Height:{Height}", width, height);

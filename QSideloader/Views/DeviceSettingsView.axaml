@@ -38,11 +38,11 @@
                          Text="{Binding ResolutionTextBoxText, Mode=TwoWay}">
                     <ToolTip.Tip>Resolution (leave empty for default)</ToolTip.Tip>
                 </TextBox-->
-                <ComboBox Margin="8,0,0,0" PlaceholderText="Default texture resolution" 
+                <ComboBox Margin="8,0,0,0" PlaceholderText="Default texture size" 
                           MinWidth="204"
-                          Items="{Binding TextureResolutions, Mode=TwoWay}"
-                          SelectedItem="{Binding SelectedTextureResolution}">
-                    <ToolTip.Tip>Default texture resolution</ToolTip.Tip>
+                          Items="{Binding TextureSizes, Mode=TwoWay}"
+                          SelectedItem="{Binding SelectedTextureSize}">
+                    <ToolTip.Tip>Default texture size</ToolTip.Tip>
                 </ComboBox>
                 <Button Margin="16,0,0,0" Command="{Binding ApplySettings}" VerticalAlignment="Top">Apply</Button>
                 <TextBlock Margin="4,4,0,0" VerticalAlignment="Top" Opacity="0.7">(not recommended)</TextBlock>
