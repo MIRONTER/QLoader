@@ -90,7 +90,6 @@ public class ADBService
             DeviceSemaphoreSlim.Wait();
             try
             {
-                EnsureADBRunning();
                 if (TryFindDevice(out var foundDevice)) connectionStatus = RunShellCommand(foundDevice!, "echo 1")?.Trim() == "1";
 
                 if (Device is null && connectionStatus)
