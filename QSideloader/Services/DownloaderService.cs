@@ -117,7 +117,7 @@ public class DownloaderService
         IsMirrorListInitialized = true;
     }
 
-    private void Download(string source, string destination, string additionalArgs = "", int retries = 1,
+    private void RcloneDownload(string source, string destination, string additionalArgs = "", int retries = 1,
         CancellationToken ct = default)
     {
         try
@@ -242,7 +242,7 @@ public class DownloaderService
             foreach (var gameListName in gameListNames)
                 try
                 {
-                    Download($"Quest Games/{gameListName}", "./metadata/");
+                    RcloneDownload($"Quest Games/{gameListName}", "./metadata/");
                     gameListPath = "metadata" + Path.DirectorySeparatorChar + gameListName;
                     return true;
                 }
@@ -270,7 +270,7 @@ public class DownloaderService
             while (!downloadSuccess)
                 try
                 {
-                    Download(srcPath, dstPath,
+                    RcloneDownload(srcPath, dstPath,
                         "--progress --drive-acknowledge-abuse --rc --drive-stop-on-download-limit", 3, ct);
                     var json = JsonConvert.SerializeObject(game);
                     File.WriteAllText(Path.Combine(dstPath, "release.json"), json);

@@ -1,17 +1,21 @@
 using System;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.ReactiveUI;
 using FluentAvalonia.Styling;
 using FluentAvalonia.UI.Controls;
 using QSideloader.ViewModels;
+using ReactiveUI;
 using Serilog;
 
 namespace QSideloader.Views;
 
-public partial class MainWindow : Window
+public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
     public MainWindow()
     {
@@ -29,6 +33,8 @@ public partial class MainWindow : Window
 
         var navigationView = this.FindControl<NavigationView>("NavigationView");
         navigationView.SelectedItem = navigationView.MenuItems.OfType<NavigationViewItem>().First();
+        
+        this.WhenActivated(d => d(ViewModel!.ShowDialog.RegisterHandler(DoShowDialogAsync)));
     }
 
     private void InitializeComponent()
@@ -111,4 +117,15 @@ public partial class MainWindow : Window
             taskListBox.ScrollIntoView(taskListBox.Items.OfType<TaskView>().Last());
         }
     }*/
+
+    private async Task DoShowDialogAsync(InteractionContext<GameDetailsViewModel, GameViewModel> interaction)
+    {
+        var dialog = new GameDetailsWindow
+        {
+            DataContext = interaction.Input
+        };
+
+        var result = await dialog.ShowDialog<GameViewModel?>(this);
+        interaction.SetOutput(result);
+    }
 }

@@ -1,0 +1,62 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="400"
+        x:Class="QSideloader.Views.GameDetailsWindow"
+        Title="GameDetailsWindow"
+        Width="1000"
+        Height="400"
+        WindowStartupLocation="CenterOwner"
+        TransparencyLevelHint="AcrylicBlur"
+        ExtendClientAreaToDecorationsHint="True"
+        CanResize="False"
+        SizeToContent="Manual">
+        <Panel>
+                <ExperimentalAcrylicBorder IsHitTestVisible="False">
+                        <ExperimentalAcrylicBorder.Material>
+                                <ExperimentalAcrylicMaterial
+                                        BackgroundSource="Digger"
+                                        TintColor="Black"
+                                        TintOpacity="1"
+                                        MaterialOpacity="0.65"/>
+                        </ExperimentalAcrylicBorder.Material>
+                </ExperimentalAcrylicBorder>
+                
+                <Panel Margin="40,20,40,40">
+                        <Grid ColumnDefinitions="510,*" RowDefinitions="Auto,Auto,310">
+                                <TextBlock Grid.ColumnSpan="2" 
+                                           Margin="0,0,0,0"
+                                           FontWeight="Bold"
+                                           FontSize="20">Resident Evil VR</TextBlock>
+                                <TextBlock Grid.Column="0" Grid.Row="1"
+                                           Margin="0,0,0,12"
+                                           FontWeight="Light">Resident Evil VR v141+1.1 -FFA</TextBlock>
+                                <Image Grid.Row="2" Grid.Column="0" Source="../Assets/com.Armature.VR4.png" 
+                                       MaxWidth="505"
+                                       MaxHeight="300"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Center"/>
+                                <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="Auto,Auto,*" 
+                                      RowDefinitions="Auto,Auto,Auto,*"
+                                      Margin="24,0,0,0">
+                                        <Button Grid.Row="0" Grid.Column="0">Download &amp; Install</Button>
+                                        <Button Grid.Row="0" Grid.Column="1" Margin="12,0,0,0">Download</Button>
+                                        <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1"
+                                                   Margin="0,4,0,0"
+                                                   FontWeight="Light">Download size: 7012MB</TextBlock>
+                                        <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" 
+                                                   Margin="0,12,0,0"
+                                                   HorizontalAlignment="Left"
+                                                   Width="400"
+                                                   TextWrapping="Wrap">Description: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent sed ligula eget eros interdum porta eget quis magna. Ut in lacus urna. Mauris ac commodo metus. Vivamus ac eros vitae purus dictum venenatis quis quis nulla. Phasellus fermentum est tellus, id faucibus lorem finibus eget. Integer sit amet congue augue. Morbi sed nibh sem. Donec egestas urna ante, vel pellentesque lorem efficitur et. </TextBlock>
+                                        <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="3"
+                                                   Margin="0,12,0,0"
+                                                   HorizontalAlignment="Left"
+                                                   Width="400"
+                                                   TextWrapping="Wrap">Note: Working on Quest 1 despite being intended for only Quest 2. Playable to end on Quest 1, minor lag in rainy areas.</TextBlock>
+                                </Grid> 
+                        </Grid>
+                </Panel>
+        </Panel>
+</Window>
