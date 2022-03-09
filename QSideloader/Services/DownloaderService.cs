@@ -266,15 +266,14 @@ public class DownloaderService
         {
             Log.Information("Downloading release {ReleaseName}", game.ReleaseName);
             var localMirrorList = MirrorList.ToList();
-            var downloadSuccess = false;
-            while (!downloadSuccess)
+            while (true)
                 try
                 {
                     RcloneDownload(srcPath, dstPath,
                         "--progress --drive-acknowledge-abuse --rc --drive-stop-on-download-limit", 3, ct);
                     var json = JsonConvert.SerializeObject(game);
                     File.WriteAllText(Path.Combine(dstPath, "release.json"), json);
-                    downloadSuccess = true;
+                    break;
                 }
                 catch (DownloadQuotaExceededException)
                 {

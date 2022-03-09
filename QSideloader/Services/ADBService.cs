@@ -457,17 +457,17 @@ public class ADBService
                     Log.Information("Sideloading game {GameName}", game.GameName);
 
 
-                    if (File.Exists(gamePath + "install.txt"))
+                    if (File.Exists(Path.Combine(gamePath, "install.txt")))
                     {
                         observer.OnNext("Performing custom install");
                         Log.Information("Starting running commands from install.txt");
-                        RunInstallScript(gamePath + "install.txt");
+                        RunInstallScript(Path.Combine(gamePath, "install.txt"));
                     }
-                    else if (File.Exists(gamePath + "Install.txt"))
+                    else if (File.Exists(Path.Combine(gamePath, "Install.txt")))
                     {
                         observer.OnNext("Performing custom install");
                         Log.Information("Starting running commands from Install.txt");
-                        RunInstallScript(gamePath + "Install.txt");
+                        RunInstallScript(Path.Combine(gamePath, "Install.txt"));
                     }
                     else
                         // install APKs, copy OBB dir
@@ -479,10 +479,10 @@ public class ADBService
                             InstallPackage(apkPath, false, true);
                         }
 
-                        if (Directory.Exists(gamePath + game.PackageName))
+                        if (game.PackageName is not null && Directory.Exists(Path.Combine(gamePath, game.PackageName)))
                         {
                             observer.OnNext("Pushing OBB");
-                            PushDirectory(gamePath + game.PackageName, "/sdcard/Android/obb/");
+                            PushDirectory(Path.Combine(gamePath, game.PackageName), "/sdcard/Android/obb/");
                         }
                     }
 

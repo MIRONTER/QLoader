@@ -81,13 +81,9 @@ public class App : Application
             .CreateLogger();
         AppDomain.CurrentDomain.FirstChanceException += (_, e) =>
         {
-            if (e.Exception is SocketException or HttpRequestException &&
-                (e.Exception.Message.Contains("Connection refused") ||
-                 e.Exception.Message.Contains("Connection reset by peer") ||
-                 e.Exception.Message.Contains("An error occurred while sending the request"))
-                || e.Exception is RuntimeBinderException &&
-                e.Exception.Message.Contains("Newtonsoft.Json.Linq.JObject")
-                || e.Exception is TaskCanceledException or OperationCanceledException) return;
+            if (e.Exception.StackTrace is not null && e.Exception.StackTrace.Contains("GetRcloneDownloadStats")
+                || e.Exception.Message.Contains("does not contain a definition for 'bytes'")
+                || e.Exception.Message.Contains("does not contain a definition for 'speed'")) return;
             firstChanceExceptionHandler.Error(e.Exception, "FirstChanceException");
         };
 
