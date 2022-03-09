@@ -246,12 +246,7 @@ public class ADBService
 
     private bool TryFindDevice(out DeviceData? foundDevice)
     {
-        if (Device is {State: DeviceState.Online})
-        {
-            foundDevice = Device;
-            return true;
-        }
-        List<DeviceData> deviceList = ADB.AdbClient.GetDevices();
+        var deviceList = ADB.AdbClient.GetDevices();
         if (deviceList.Count > 0)
         {
             foreach (var device in deviceList)
