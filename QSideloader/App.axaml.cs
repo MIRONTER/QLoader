@@ -93,6 +93,7 @@ public class App : Application
         Console.Title = $"{Assembly.GetExecutingAssembly().GetName().Name} debug console";
         var consoleLogger = new LoggerConfiguration().MinimumLevel.Debug().WriteTo.Console().CreateLogger();
         LogStartMessage(consoleLogger);
+        Log.CloseAndFlush();
         Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
             .Enrich.WithThreadId().Enrich.WithThreadName()
             .Enrich.WithExceptionDetails()

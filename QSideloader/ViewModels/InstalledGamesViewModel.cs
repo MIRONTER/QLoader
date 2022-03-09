@@ -60,6 +60,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
+            Log.Information("Refreshing list of installed games");
             RefreshInstalledGames();
             RefreshProps();
         });
@@ -144,7 +145,6 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
     private void RefreshProps()
     {
         Dispatcher.UIThread.InvokeAsync(PopulateInstalledGames);
-        Log.Information("Refreshed list of installed games");
     }
 
     private void PopulateInstalledGames()

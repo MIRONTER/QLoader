@@ -348,6 +348,7 @@ public class ADBService
             DeviceInfoSemaphoreSlim.Wait();
             try
             {
+                Log.Debug("Refreshing device info");
                 // If device info has just been refreshed we can skip
                 if (alreadyRefreshing)
                 {
@@ -367,7 +368,7 @@ public class ADBService
                                     throw new ADBServiceException(
                                         "RefreshInfo: dumpsys RunShellCommand returned null");
                 BatteryLevel = int.Parse(Regex.Match(dumpsysOutput, @"[0-9]{1,3}").ToString());
-                Log.Debug("Refreshed device info");
+                
             }
             finally
             {
@@ -475,6 +476,7 @@ public class ADBService
                     }
 
                     Log.Information("Installed game {GameName}", game.GameName);
+                    ADBService.PackageListChanged?.Invoke(this, EventArgs.Empty);
                     observer.OnCompleted();
                 }
                 catch (Exception e)
@@ -540,6 +542,12 @@ public class ADBService
                             case "shell":
                             {
                                 args = args.Select(x => x.Contains(' ') ? $"\"{x}\"" : x).ToList();
+                                if (args.Count > 2 && args[0] == "pm" && args[1] == "uninstall")
+                                {
+                                    var packageName = args[2];
+                                    UninstallPackage(packageName);
+                                    break;
+                                }
                                 var shellCommand = string.Join(" ", args);
                                 RunShellCommand(shellCommand, true);
                                 break;
@@ -564,6 +572,7 @@ public class ADBService
         {
             _ = game.PackageName ?? throw new ArgumentException("game.PackageName is null");
             UninstallPackage(game.PackageName);
+            ADBService.PackageListChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void InstallPackage(string apkPath, bool reinstall, bool grantRuntimePermissions)
@@ -572,7 +581,6 @@ public class ADBService
             Log.Information("Installing APK: {ApkFileName}", Path.GetFileName(apkPath));
             PackageManager.InstallPackage(apkPath, reinstall, grantRuntimePermissions);
             Log.Information("Package installed");
-            ADBService.PackageListChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void UninstallPackage(string packageName)
@@ -581,7 +589,6 @@ public class ADBService
             try
             {
                 ADB.AdbClient.UninstallPackage(this, packageName);
-                ADBService.PackageListChanged?.Invoke(this, EventArgs.Empty);
             }
             catch (PackageInstallationException e)
             {
