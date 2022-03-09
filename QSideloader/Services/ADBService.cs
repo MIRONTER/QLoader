@@ -71,36 +71,29 @@ public class ADBService
     {
         EnsureADBRunning();
         var connectionStatus = false;
-        if (Device is not null && !assumeOffline)
+        try
         {
             DeviceSemaphoreSlim.Wait();
-            try
+            if (Device is not null && !assumeOffline)
             {
                 connectionStatus = Device.RunShellCommand("echo 1")?.Trim() == "1";
                 if (!connectionStatus)
                     OnDeviceOffline(new DeviceDataEventArgs(Device));
             }
-            finally
+            else
             {
-                DeviceSemaphoreSlim.Release();
-            }
-        }
-        else
-        {
-            DeviceSemaphoreSlim.Wait();
-            try
-            {
-                if (TryFindDevice(out var foundDevice)) connectionStatus = RunShellCommand(foundDevice!, "echo 1")?.Trim() == "1";
+                if (TryFindDevice(out var foundDevice))
+                    connectionStatus = RunShellCommand(foundDevice!, "echo 1")?.Trim() == "1";
 
                 if (Device is null && connectionStatus)
                     OnDeviceOnline(new DeviceDataEventArgs(foundDevice));
                 else if (Device is not null && !connectionStatus) // || FirstDeviceSearch)
                     OnDeviceOffline(new DeviceDataEventArgs(Device));
             }
-            finally
-            {
-                DeviceSemaphoreSlim.Release();
-            }
+        }
+        finally
+        {
+            DeviceSemaphoreSlim.Release();
         }
 
         FirstDeviceSearch = false;
