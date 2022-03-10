@@ -21,21 +21,21 @@ using Serilog;
 
 namespace QSideloader.Services;
 
-public class ADBService
+public class AdbService
 {
     private static readonly SemaphoreSlim DeviceSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim AdbServerSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim SideloadSemaphoreSlim = new(1, 1);
 
-    public ADBService()
+    public AdbService()
     {
         Task.Run(() => { ValidateDeviceConnection(); });
     }
 
     private bool FirstDeviceSearch { get; set; } = true;
 
-    private ADBServerClient ADB { get; } = new();
-    public ADBDevice? Device { get; private set; }
+    private AdbServerClient Adb { get; } = new();
+    public AdbDevice? Device { get; private set; }
     private DeviceMonitor? Monitor { get; set; }
 
     public event EventHandler? DeviceOnline;
@@ -53,7 +53,7 @@ public class ADBService
         {
             if (logCommand)
                 Log.Debug("Running shell command: {Command}", command);
-            ADB.AdbClient.ExecuteRemoteCommand(command, device, receiver);
+            Adb.AdbClient.ExecuteRemoteCommand(command, device, receiver);
         }
         catch
         {
@@ -108,7 +108,7 @@ public class ADBService
             AdbServerSemaphoreSlim.Wait();
             try
             {
-                var adbServerStatus = ADB.AdbServer.GetStatus();
+                var adbServerStatus = Adb.AdbServer.GetStatus();
                 if (adbServerStatus.IsRunning)
                 {
                     var requiredAdbVersion = new Version("1.0.40");
@@ -156,18 +156,18 @@ public class ADBService
             {
                 // TODO: handle failures
                 Log.Error(e, "Failed to start ADB server");
-                //throw new ADBServiceException("Failed to start ADB server", e);
+                //throw new AdbServiceException("Failed to start ADB server", e);
                 return;
             }
 
-            if (!ADB.AdbServer.GetStatus().IsRunning)
+            if (!Adb.AdbServer.GetStatus().IsRunning)
             {
                 Log.Error("Failed to start ADB server");
-                //throw new ADBServiceException("Failed to start ADB server");
+                //throw new AdbServiceException("Failed to start ADB server");
                 return;
             }
 
-            ADB.AdbClient.Connect("127.0.0.1:62001");
+            Adb.AdbClient.Connect("127.0.0.1:62001");
             Log.Information("Started ADB server");
             StartDeviceMonitor(true);
         }
@@ -223,7 +223,7 @@ public class ADBService
     private void OnDeviceOnline(DeviceDataEventArgs e)
     {
         Log.Information("Device Connected");
-        Device = new ADBDevice(e.Device, this, GetHashedId(e.Device.Serial));
+        Device = new AdbDevice(e.Device, this, GetHashedId(e.Device.Serial));
         if (!FirstDeviceSearch)
             DeviceOnline?.Invoke(this, e);
     }
@@ -239,7 +239,7 @@ public class ADBService
 
     private bool TryFindDevice(out DeviceData? foundDevice)
     {
-        var deviceList = ADB.AdbClient.GetDevices();
+        var deviceList = Adb.AdbClient.GetDevices();
         if (deviceList.Count > 0)
         {
             foreach (var device in deviceList)
@@ -283,19 +283,19 @@ public class ADBService
         SideloadSemaphoreSlim.Release();
     }
 
-    private class ADBServerClient
+    private class AdbServerClient
     {
         public AdvancedAdbClient AdbClient { get; } = new();
         public AdbServer AdbServer { get; } = new();
     }
 
 
-    public class ADBDevice : DeviceData
+    public class AdbDevice : DeviceData
     {
         private static readonly SemaphoreSlim DeviceInfoSemaphoreSlim = new(1, 1);
         private static readonly SemaphoreSlim PackagesSemaphoreSlim = new(1, 1);
 
-        public ADBDevice(DeviceData deviceData, ADBService adbService, string hashedId)
+        public AdbDevice(DeviceData deviceData, AdbService adbService, string hashedId)
         {
             Serial = deviceData.Serial;
             State = deviceData.State;
@@ -315,7 +315,7 @@ public class ADBService
             };
 
             ADBService = adbService;
-            ADB = adbService.ADB;
+            ADB = adbService.Adb;
             HashedId = hashedId;
             PackageManager = new PackageManager(ADB.AdbClient, this, true);
             RefreshProps();
@@ -357,7 +357,7 @@ public class ADBService
                 }
 
                 var dfOutput = RunShellCommand("df /storage/emulated") ??
-                               throw new ADBServiceException("RefreshInfo: df RunShellCommand returned null");
+                               throw new AdbServiceException("RefreshInfo: df RunShellCommand returned null");
                 var dfOutputSplit = dfOutput.Split(new[] {"\r\n", "\r", "\n"}, StringSplitOptions.None);
                 var line = Regex.Split(dfOutputSplit[1], @"\s{1,}");
                 SpaceTotal = (float) Math.Round(float.Parse(line[1]) / 1000000, 2);
@@ -365,7 +365,7 @@ public class ADBService
                 SpaceFree = (float) Math.Round(float.Parse(line[3]) / 1000000, 2);
 
                 var dumpsysOutput = RunShellCommand("dumpsys battery | grep level") ??
-                                    throw new ADBServiceException(
+                                    throw new AdbServiceException(
                                         "RefreshInfo: dumpsys RunShellCommand returned null");
                 BatteryLevel = int.Parse(Regex.Match(dumpsysOutput, @"[0-9]{1,3}").ToString());
                 
@@ -481,7 +481,7 @@ public class ADBService
                 catch (Exception e)
                 {
                     Log.Error(e, "Error installing game");
-                    observer.OnError(new ADBServiceException("Error installing game", e));
+                    observer.OnError(new AdbServiceException("Error installing game", e));
                 }
 
                 return Disposable.Empty;
@@ -552,18 +552,18 @@ public class ADBService
                                 break;
                             }
                             default:
-                                throw new ADBServiceException("Encountered unknown adb command");
+                                throw new AdbServiceException("Encountered unknown adb command");
                         }
                     }
                     else
                     {
-                        throw new ADBServiceException("Encountered unknown command");
+                        throw new AdbServiceException("Encountered unknown command");
                     }
                 }
             }
             catch (Exception e)
             {
-                throw new ADBServiceException("Failed to run install script", e);
+                throw new AdbServiceException("Failed to run install script", e);
             }
         }
 
@@ -622,21 +622,21 @@ public class ADBService
         private List<string> InstalledPackages { get; set; } = new();
         public string FriendlyName { get; }
         private string HashedId { get; }
-        private ADBServerClient ADB  { get; }
-        private ADBService ADBService { get; }
+        private AdbServerClient ADB  { get; }
+        private AdbService ADBService { get; }
 
         #endregion
     }
 }
 
-public class ADBServiceException : Exception
+public class AdbServiceException : Exception
 {
-    public ADBServiceException(string message)
+    public AdbServiceException(string message)
         : base(message)
     {
     }
 
-    public ADBServiceException(string message, Exception inner)
+    public AdbServiceException(string message, Exception inner)
         : base(message, inner)
     {
     }

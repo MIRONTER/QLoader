@@ -124,7 +124,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private async Task PerformInstall(string gamePath)
     {
         Status = "Install queued";
-        await ADBService.TakeSideloadLockAsync(CancellationTokenSource.Token);
+        await AdbService.TakeSideloadLockAsync(CancellationTokenSource.Token);
         Status = "Installing";
         if (!ServiceContainer.ADBService.ValidateDeviceConnection())
         {
@@ -139,12 +139,12 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 x => Status = x,
                 _ =>
                 {
-                    ADBService.ReleaseSideloadLock();
+                    AdbService.ReleaseSideloadLock();
                     OnFinished("Install failed");
                 },
                 () =>
                 {
-                    ADBService.ReleaseSideloadLock();
+                    AdbService.ReleaseSideloadLock();
                     OnFinished("Installed");
                 });
     }
