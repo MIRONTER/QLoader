@@ -82,6 +82,7 @@ public class App : Application
         AppDomain.CurrentDomain.FirstChanceException += (_, e) =>
         {
             if (e.Exception.StackTrace is not null && e.Exception.StackTrace.Contains("GetRcloneDownloadStats")
+                || e.Exception.Message.Contains("127.0.0.1:5572")
                 || e.Exception.Message.Contains("does not contain a definition for 'bytes'")
                 || e.Exception.Message.Contains("does not contain a definition for 'speed'")) return;
             firstChanceExceptionHandler.Error(e.Exception, "FirstChanceException");
