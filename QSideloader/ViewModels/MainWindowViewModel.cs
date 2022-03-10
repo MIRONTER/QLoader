@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using QSideloader.Helpers;
 using QSideloader.Views;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -14,7 +15,8 @@ public class MainWindowViewModel : ViewModelBase
         ShowDialog = new Interaction<GameDetailsViewModel, GameViewModel>();
         ShowGameDetailsCommand = ReactiveCommand.CreateFromTask(async () =>
         {
-            var gameDetails = new GameDetailsViewModel();
+            if (Globals.AvailableGames is null || Globals.AvailableGames.Length == 0) return;
+            var gameDetails = new GameDetailsViewModel(Globals.AvailableGames[0]);
             var result = await ShowDialog.Handle(gameDetails);
         });
     }

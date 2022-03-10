@@ -41,6 +41,8 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     public bool IsBusy => _isBusy.Value;
 
     [Reactive] public string? FriendlyName { get; private set; }
+    [Reactive] public bool IsQuest1 { get; private set; }
+    [Reactive] public bool IsQuest2 { get; private set; }
     [Reactive] public float SpaceUsed { get; private set; }
     [Reactive] public float SpaceFree { get; private set; }
     [Reactive] public float BatteryLevel { get; private set; }
@@ -99,6 +101,8 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         SpaceFree = device.SpaceFree;
         BatteryLevel = device.BatteryLevel;
         FriendlyName = device.FriendlyName;
+        IsQuest1 = device.Product == "monterey";
+        IsQuest2 = device.Product == "hollywood";
     }
 
     private void SetRefreshTimer(bool start)

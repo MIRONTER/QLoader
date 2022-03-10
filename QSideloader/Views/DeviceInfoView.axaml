@@ -39,14 +39,16 @@
             </Style.Animations>
         </Style>
     </UserControl.Styles>-->
+    
 
     <Border BorderBrush="#171717"
             BorderThickness="0"
             Margin="4,0,4,4"
+            Height="130"
             CornerRadius="10"
             Background="#1F1F1F"
             IsVisible="{Binding IsDeviceConnected}">
-        <Grid ColumnDefinitions="Auto,Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
+        <Grid ColumnDefinitions="Auto,Auto,*,Auto" RowDefinitions="*,*,*,*">
             <aura:ProgressRing Grid.Column="0" Grid.Row="0"
                                Grid.ColumnSpan="3" Grid.RowSpan="4"
                                IsIndeterminate="{Binding IsBusy}"
@@ -57,10 +59,20 @@
             </TextBlock>
             <Image Grid.Row="1" Grid.Column="0"
                    Grid.RowSpan="3"
-                   Source="../Assets/quest2.png"
+                   Source="/Assets/quest2.png"
                    Width="130"
+                   Height="87"
                    HorizontalAlignment="Left"
-                   Margin="0,0,0,12" />
+                   Margin="0,0,0,12"
+                   IsVisible="{Binding IsQuest2}"/>
+            <Image Grid.Row="1" Grid.Column="0"
+                   Grid.RowSpan="3"
+                   Source="/Assets/quest1.png"
+                   Width="130"
+                   Height="87"
+                   HorizontalAlignment="Left"
+                   Margin="0,0,0,12"
+                   IsVisible="{Binding IsQuest1}"/>
             <TextBlock Grid.Row="1" Grid.Column="1"
                        VerticalAlignment="Center"
                        Text="{Binding FriendlyName}" />
