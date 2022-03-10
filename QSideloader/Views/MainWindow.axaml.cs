@@ -125,7 +125,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             DataContext = interaction.Input
         };
 
-        var result = await dialog.ShowDialog<GameViewModel?>(this);
+        var result = await dialog.ShowDialog<GameViewModel?>(this) ?? new GameViewModel();
         interaction.SetOutput(result);
     }
 }

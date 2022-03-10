@@ -16,6 +16,20 @@ public class Game : INotifyPropertyChanged
 {
     [FieldHidden] [JsonIgnoreAttribute] private bool _isSelected;
 
+    protected Game()
+    {
+    }
+
+    public Game(string gameName, string releaseName, int gameSize, string? note)
+    {
+        GameName = gameName;
+        ReleaseName = releaseName;
+        GameSize = gameSize;
+        if (note is null) return;
+        Note = note;
+        IsNoteAvailable = true;
+    }
+
     [FieldTrim(TrimMode.Right)] public string? GameName { get; protected set; }
 
     public string? ReleaseName { get; protected set; }
