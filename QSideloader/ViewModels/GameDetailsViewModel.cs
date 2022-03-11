@@ -20,17 +20,13 @@ namespace QSideloader.ViewModels;
 public class GameDetailsViewModel
 {
     public Game Game { get; }
-    [Reactive] public string? ThumbnailPath { get; }
+    [Reactive] public string? ThumbnailPath { get; } = $"avares://{Assembly.GetExecutingAssembly().GetName().Name}/Assets/NoThumbnailImage.png";
     public ReactiveCommand<Unit, Unit> DownloadAndInstall { get; }
 
     public GameDetailsViewModel()
     {
         Game = new Game("GameName", "ReleaseName", 1337, "NoteText");
         DownloadAndInstall = ReactiveCommand.CreateFromObservable(DownloadAndInstallImpl);
-        var assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
-        var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
-        if (assets is null) return;
-        ThumbnailPath = $"avares://{assemblyName}/Assets/NoThumbnailImage.png";
     }
     public GameDetailsViewModel(Game game)
     {
@@ -45,8 +41,6 @@ public class GameDetailsViewModel
             ThumbnailPath = jpgPath;
         else if (assets.Exists(new Uri(pngpath)))
             ThumbnailPath = pngpath;
-        else
-            ThumbnailPath = $"avares://{assemblyName}/Assets/NoThumbnailImage.png";
     }
     
     private IObservable<Unit> DownloadAndInstallImpl()
