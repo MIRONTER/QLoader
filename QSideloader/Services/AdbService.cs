@@ -578,15 +578,15 @@ public class AdbService
         {
             _ = PackageManager ?? throw new InvalidOperationException("PackageManager must be initialized");
             Log.Information("Installing APK: {ApkFileName}", Path.GetFileName(apkPath));
-            List<string> args = new ();
-            if (reinstall)
-                args.Add("-r");
-            if (grantRuntimePermissions)
-                args.Add("-g");
-            //PackageManager.InstallPackage(apkPath, reinstall, grantRuntimePermissions);
-            // TODO: monitor for installation hang issues or socket timeouts
-            using Stream stream = File.OpenRead(apkPath);
-            ADB.AdbClient.Install(this, stream, args.ToArray());
+            // Using legacy method here as AdbClient.Install hangs occasionally
+            PackageManager.InstallPackage(apkPath, reinstall, grantRuntimePermissions);
+            // List<string> args = new ();
+            // if (reinstall)
+            //     args.Add("-r");
+            // if (grantRuntimePermissions)
+            //     args.Add("-g");
+            // using Stream stream = File.OpenRead(apkPath);
+            // ADB.AdbClient.Install(this, stream, args.ToArray());
             Log.Information("Package installed");
         }
 
