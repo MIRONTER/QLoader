@@ -118,14 +118,14 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         }
     }*/
 
-    private async Task DoShowDialogAsync(InteractionContext<GameDetailsViewModel, GameViewModel> interaction)
+    private async Task DoShowDialogAsync(InteractionContext<GameDetailsViewModel, GameViewModel?> interaction)
     {
         var dialog = new GameDetailsWindow
         {
             DataContext = interaction.Input
         };
 
-        var result = await dialog.ShowDialog<GameViewModel?>(this) ?? new GameViewModel();
+        var result = await dialog.ShowDialog<GameViewModel?>(this);
         interaction.SetOutput(result);
     }
 }

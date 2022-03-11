@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModels="clr-namespace:QSideloader.ViewModels"
+        xmlns:helpers="clr-namespace:QSideloader.Helpers"
         mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="400"
         x:Class="QSideloader.Views.GameDetailsWindow"
         Title="GameDetailsWindow"
@@ -16,6 +17,10 @@
     <Design.DataContext>
         <viewModels:GameDetailsViewModel />
     </Design.DataContext>
+    
+    <Window.Resources>
+        <helpers:BitmapAssetValueConverter x:Key="variableImage"/>
+    </Window.Resources>
 
     <Panel>
         <ExperimentalAcrylicBorder IsHitTestVisible="False">
@@ -39,7 +44,7 @@
                            Margin="0,0,0,12"
                            FontWeight="Light"
                            Text="{Binding Game.ReleaseName}" />
-                <Image Grid.Row="2" Grid.Column="0" Source="../Assets/com.Armature.VR4.png"
+                <Image Grid.Row="2" Grid.Column="0" Source="{Binding ThumbnailPath, Converter={StaticResource variableImage}}"
                        MaxWidth="505"
                        MaxHeight="300"
                        VerticalAlignment="Top"
@@ -47,14 +52,15 @@
                 <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="Auto,Auto,*"
                       RowDefinitions="Auto,Auto,Auto,*"
                       Margin="24,0,0,0">
-                    <Button Grid.Row="0" Grid.Column="0">Download &amp; Install</Button>
-                    <Button Grid.Row="0" Grid.Column="1" Margin="12,0,0,0">Download</Button>
-                    <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" Margin="0,4,0,0" FontWeight="Light" Text="{Binding Game.GameSize, StringFormat={}Download size: {0}MB}" />
+                    <Button Grid.Row="0" Grid.Column="0" Command="{Binding DownloadAndInstall}">Download &amp; Install</Button>
+                    <Button Grid.Row="0" Grid.Column="1" Margin="12,0,0,0" IsEnabled="False">Download</Button>
+                    <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" Margin="1,4,0,0" FontWeight="Light" Text="{Binding Game.GameSize, StringFormat={}Download size: {0}MB}" />
                     <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2"
                                Margin="0,12,0,0"
                                HorizontalAlignment="Left"
                                Width="400"
-                               TextWrapping="Wrap">
+                               TextWrapping="Wrap"
+                               IsVisible="False">
                         Description: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent sed ligula eget eros interdum porta eget quis magna. Ut in lacus urna. Mauris ac commodo metus. Vivamus ac eros vitae purus dictum venenatis quis quis nulla. Phasellus fermentum est tellus, id faucibus lorem finibus eget. Integer sit amet congue augue. Morbi sed nibh sem. Donec egestas urna ante, vel pellentesque lorem efficitur et.
                     </TextBlock>
                     <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="3"

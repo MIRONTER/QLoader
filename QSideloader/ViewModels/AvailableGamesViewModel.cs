@@ -60,23 +60,11 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
-                QueueForInstall(game);
+                Globals.MainWindowViewModel!.QueueForInstall(game);
             }
         });
     }
-
-    public void QueueForInstall(Game game)
-    {
-        Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            var taskView = new TaskView();
-            taskView.ViewModel!.Game = game;
-            taskView.ViewModel!.PerformTask.Execute().Subscribe();
-            Globals.MainWindowViewModel!.TaskList.Add(taskView);
-        });
-        Log.Information("Queued for install: {ReleaseName}", game.ReleaseName);
-    }
-
+    
     private void RefreshAvailableGames(bool redownload = false)
     {
         ServiceContainer.DownloaderService.EnsureGameListAvailableAsync(redownload).GetAwaiter().GetResult();

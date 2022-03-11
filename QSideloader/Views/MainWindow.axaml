@@ -34,7 +34,6 @@
         <Grid RowDefinitions="*,Auto">
             <ui:Frame x:Name="ContentFrame" Grid.Row="0" />
             <views:DeviceInfoView Grid.Row="1" />
-            <Button Grid.Row="1" HorizontalAlignment="Center" Command="{Binding ShowGameDetailsCommand}">Show Test Dialog</Button>
             <ui:InfoBar Grid.Row="0" x:Name="MainInfoBar"
                         Severity="Informational"
                         Margin="12"

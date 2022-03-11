@@ -368,7 +368,7 @@ public class AdbService
                                     throw new AdbServiceException(
                                         "RefreshInfo: dumpsys RunShellCommand returned null");
                 BatteryLevel = int.Parse(Regex.Match(dumpsysOutput, @"[0-9]{1,3}").ToString());
-                
+                Log.Debug("Refreshed");
             }
             finally
             {
