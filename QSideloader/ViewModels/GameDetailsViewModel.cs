@@ -20,7 +20,7 @@ namespace QSideloader.ViewModels;
 public class GameDetailsViewModel
 {
     public Game Game { get; }
-    [Reactive] public string? ThumbnailPath { get; } = $"avares://{Assembly.GetExecutingAssembly().GetName().Name}/Assets/NoThumbnailImage.png";
+    [Reactive] public string? ThumbnailPath { get; } = Path.Combine("Resources", "NoThumbnailImage.png");
     public ReactiveCommand<Unit, Unit> DownloadAndInstall { get; }
 
     public GameDetailsViewModel()
@@ -35,12 +35,18 @@ public class GameDetailsViewModel
         var assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
         var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
         if (assets is null) return;
-        var jpgPath = $"avares://{assemblyName}/Assets/thumbnails/{Game.PackageName}.jpg";
+        /*var jpgPath = $"avares://{assemblyName}/Assets/thumbnails/{Game.PackageName}.jpg";
         var pngpath = $"avares://{assemblyName}/Assets/thumbnails/{Game.PackageName}.png";
         if (assets.Exists(new Uri(jpgPath)))
             ThumbnailPath = jpgPath;
         else if (assets.Exists(new Uri(pngpath)))
-            ThumbnailPath = pngpath;
+            ThumbnailPath = pngpath;*/
+        var jpgPath = Path.Combine("Resources", "thumbnails", $"{Game.PackageName}.jpg");
+        var pngPath = Path.Combine("Resources", "thumbnails", $"{Game.PackageName}.png");
+        if (File.Exists(jpgPath))
+            ThumbnailPath = jpgPath;
+        else if (File.Exists(pngPath))
+            ThumbnailPath = pngPath;
     }
     
     private IObservable<Unit> DownloadAndInstallImpl()
