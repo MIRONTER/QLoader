@@ -35,12 +35,6 @@ public class GameDetailsViewModel
         var assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
         var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
         if (assets is null) return;
-        /*var jpgPath = $"avares://{assemblyName}/Assets/thumbnails/{Game.PackageName}.jpg";
-        var pngpath = $"avares://{assemblyName}/Assets/thumbnails/{Game.PackageName}.png";
-        if (assets.Exists(new Uri(jpgPath)))
-            ThumbnailPath = jpgPath;
-        else if (assets.Exists(new Uri(pngpath)))
-            ThumbnailPath = pngpath;*/
         var jpgPath = Path.Combine("Resources", "thumbnails", $"{Game.PackageName}.jpg");
         var pngPath = Path.Combine("Resources", "thumbnails", $"{Game.PackageName}.png");
         if (File.Exists(jpgPath))

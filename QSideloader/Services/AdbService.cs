@@ -69,7 +69,15 @@ public class AdbService
 
     public bool ValidateDeviceConnection(bool assumeOffline = false)
     {
-        EnsureADBRunning();
+        try
+        {
+            EnsureADBRunning();
+        }
+        catch
+        {
+            return false;
+        }
+
         var connectionStatus = false;
         try
         {
@@ -156,15 +164,13 @@ public class AdbService
             {
                 // TODO: handle failures
                 Log.Error(e, "Failed to start ADB server");
-                //throw new AdbServiceException("Failed to start ADB server", e);
-                return;
+                throw new AdbServiceException("Failed to start ADB server", e);
             }
 
             if (!Adb.AdbServer.GetStatus().IsRunning)
             {
                 Log.Error("Failed to start ADB server");
-                //throw new AdbServiceException("Failed to start ADB server");
-                return;
+                throw new AdbServiceException("Failed to start ADB server");
             }
 
             Adb.AdbClient.Connect("127.0.0.1:62001");

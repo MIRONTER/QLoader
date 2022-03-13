@@ -19,8 +19,8 @@
     </Design.DataContext>
     
     <Window.Resources>
-        <helpers:BitmapAssetValueConverter x:Key="variableImageFromAssets"/>
-        <helpers:BitmapImageFileValueConverter x:Key="variableImageFromFiles" />
+        <helpers:BitmapAssetValueConverter x:Key="VariableImageFromAssets"/>
+        <helpers:BitmapImageFileValueConverter x:Key="VariableImageFromFiles" />
     </Window.Resources>
 
     <Panel>
@@ -45,7 +45,7 @@
                            Margin="0,0,0,12"
                            FontWeight="Light"
                            Text="{Binding Game.ReleaseName}" />
-                <Image Grid.Row="2" Grid.Column="0" Source="{Binding ThumbnailPath, Converter={StaticResource variableImageFromFiles}}"
+                <Image Grid.Row="2" Grid.Column="0" Source="{Binding ThumbnailPath, Converter={StaticResource VariableImageFromFiles}}"
                        MaxWidth="505"
                        MaxHeight="300"
                        VerticalAlignment="Top"
