@@ -56,6 +56,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     
     private void OnDeviceOnline(object? sender, EventArgs e)
     {
+        IsDeviceConnected = true;
         Refresh.Execute().Subscribe();
         SetRefreshTimer(true);
     }
