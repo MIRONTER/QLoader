@@ -10,7 +10,7 @@
         Icon="/Assets/avalonia-logo.ico"
         Title="Loader"
         MinHeight="760"
-        MinWidth="700"
+        MinWidth="860"
         WindowStartupLocation="CenterScreen"
         Opened="Window_OnOpened">
     <!--TransparencyLevelHint="AcrylicBlur"

@@ -455,13 +455,13 @@ public class AdbService
                     if (File.Exists(Path.Combine(gamePath, "install.txt")))
                     {
                         observer.OnNext("Performing custom install");
-                        Log.Information("Starting running commands from install.txt");
+                        Log.Information("Running commands from install.txt");
                         RunInstallScript(Path.Combine(gamePath, "install.txt"));
                     }
                     else if (File.Exists(Path.Combine(gamePath, "Install.txt")))
                     {
                         observer.OnNext("Performing custom install");
-                        Log.Information("Starting running commands from Install.txt");
+                        Log.Information("Running commands from Install.txt");
                         RunInstallScript(Path.Combine(gamePath, "Install.txt"));
                     }
                     else

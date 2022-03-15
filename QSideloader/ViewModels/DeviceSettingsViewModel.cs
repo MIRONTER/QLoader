@@ -35,8 +35,8 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 IsDeviceConnected = true;
                 RefreshRates = _adbService.Device!.Product switch
                 {
-                    "hollywood" => new[]{"Auto", "72", "90", "120"},
-                    "monterey" => new[]{"Auto", "60", "72"},
+                    "hollywood" => new[]{"Auto (recommended)", "72", "90", "120"},
+                    "monterey" => new[]{"Auto (recommended)", "60", "72"},
                     _ => RefreshRates
                 };
                 Task.Run(LoadCurrentSettings);
@@ -63,13 +63,19 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] public bool IsDeviceConnected { get; private set; }
     [Reactive] public string[] RefreshRates { get; private set; } = Array.Empty<string>();
     [Reactive] public string? SelectedRefreshRate { get; set; }
-    public string[] GpuLevels { get; } = {"Auto", "0", "1", "2", "3", "4"};
+    private string? CurrentRefreshRate { get; set; }
+    public string[] GpuLevels { get; } = {"Auto (recommended)", "0", "1", "2", "3", "4"};
     [Reactive] public string? SelectedGpuLevel { get; set; }
-    public string[] CpuLevels { get; } = {"Auto", "0", "1", "2", "3", "4"};
+    private string? CurrentGpuLevel { get; set; }
+    public string[] CpuLevels { get; } = {"Auto (recommended)", "0", "1", "2", "3", "4"};
     [Reactive] public string? SelectedCpuLevel { get; set; }
-    public string[] TextureSizes { get; } = {"Auto", "512", "768", "1024", "1216", "1440", "1536", "2048", "2560", "3072"};
+    private string? CurrentCpuLevel { get; set; }
+    public string[] TextureSizes { get; } = {"Auto (recommended)", "512", "768", "1024", "1216", "1440", "1536", "2048", "2560", "3072"};
     [Reactive] public string? SelectedTextureSize { get; set; }
+    private string? CurrentTextureSize { get; set; }
     //[Reactive] public string ResolutionTextBoxText { get; set; } = "";
+    [Reactive] public string? UsernameTextBoxText { get; set; }
+    private string? CurrentUsername { get; set; }
     public ReactiveCommand<Unit, Unit> ApplySettings { get; }
     public ReactiveCommand<Unit, Unit> MountStorage { get; }
     public ReactiveCommand<Unit, Unit> LaunchHiddenSettings { get; }
@@ -91,88 +97,166 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         int.TryParse(_adbService.Device!.RunShellCommand("getprop debug.oculus.textureHeight"), 
             out var textureHeight);
 #pragma warning restore CA1806
+        var currentUsername = _adbService.Device.RunShellCommand("settings get global username");
         Dispatcher.UIThread.InvokeAsync(() =>
         {
             if (refreshRate != 0)
             {
+                CurrentRefreshRate = refreshRate.ToString();
                 SelectedRefreshRate = refreshRate.ToString();
                 Log.Debug("Refresh rate: {RefreshRate}", refreshRate);
             }
+            else
+            {
+                CurrentRefreshRate = null;
+                SelectedRefreshRate = null;
+            }
             if (gpuLevel != 0)
             {
+                CurrentGpuLevel = gpuLevel.ToString();
                 SelectedGpuLevel = gpuLevel.ToString();
                 Log.Debug("GPU level: {GpuLevel}", gpuLevel);
             }
+            else
+            {
+                CurrentGpuLevel = null;
+                SelectedGpuLevel = null;
+            }
             if (cpuLevel != 0)
             {
+                CurrentCpuLevel = cpuLevel.ToString();
                 SelectedCpuLevel = cpuLevel.ToString();
                 Log.Debug("CPU level: {CpuLevel}", cpuLevel);
             }
-            // ReSharper disable once InvertIf
+            else
+            {
+                CurrentCpuLevel = null;
+                SelectedCpuLevel = null;
+            }
+            
             if (textureHeight != 0 && textureWidth != 0)
             {
+                CurrentTextureSize = textureWidth.ToString();
                 SelectedTextureSize = textureWidth.ToString();
                 Log.Debug("Default texture size: {TextureSize}", textureWidth);
+            }
+            else
+            {
+                CurrentTextureSize = null;
+                SelectedTextureSize = null;
+            }
+
+            // ReSharper disable once InvertIf
+            // Comparison to literal is intentional
+            if (currentUsername != "null")
+            {
+                CurrentUsername = currentUsername;
+                UsernameTextBoxText = currentUsername;
+            }
+            else
+            {
+                CurrentUsername = null;
+                UsernameTextBoxText = null;
             }
         });
     }
 
+    // TODO: too many conditions, see if this can be simplified
     private IObservable<Unit> ApplySettingsImpl()
     {
         return Observable.Start(() =>
         {
-            if (!_adbService.ValidateDeviceConnection()) return;
-            if (SelectedRefreshRate == "Auto")
+            if (!_adbService.ValidateDeviceConnection())
             {
-                _adbService.Device!.RunShellCommand(
-                    $"setprop debug.oculus.refreshRate \"\"", true);
-                Log.Information("Reset refresh rate to Auto");
+                Log.Warning("ApplySettingsImpl: no device connection!");
+                return;
             }
-            else if (int.TryParse(SelectedRefreshRate, out var refreshRate))
+            // Check if any option is selected and it differs from current setting
+            if (SelectedRefreshRate is not null && (CurrentRefreshRate is null || SelectedRefreshRate != CurrentRefreshRate))
             {
-                _adbService.Device!.RunShellCommand(
-                    $"setprop debug.oculus.refreshRate {refreshRate}", true);
-                Log.Information("Set refresh rate: {RefreshRate} Hz", refreshRate);
+                if (SelectedRefreshRate.Contains("Auto") && CurrentRefreshRate is not null)
+                {
+                    _adbService.Device!.RunShellCommand(
+                        $"setprop debug.oculus.refreshRate \"\"", true);
+                    CurrentRefreshRate = null;
+                    Log.Information("Reset refresh rate to Auto");
+                }
+                else if (int.TryParse(SelectedRefreshRate, out var refreshRate))
+                {
+                    _adbService.Device!.RunShellCommand(
+                        $"setprop debug.oculus.refreshRate {refreshRate}", true);
+                    CurrentRefreshRate = SelectedRefreshRate;
+                    Log.Information("Set refresh rate: {RefreshRate} Hz", refreshRate);
+                }
             }
-            if (SelectedGpuLevel == "Auto")
+            if (SelectedGpuLevel is not null && (CurrentGpuLevel is null || SelectedGpuLevel != CurrentGpuLevel))
             {
-                _adbService.Device!.RunShellCommand(
-                    $"setprop debug.oculus.gpuLevel \"\"", true);
-                Log.Information("Reset GPU level to Auto");
+                if (SelectedGpuLevel.Contains("Auto") && CurrentGpuLevel is not null)
+                {
+                    _adbService.Device!.RunShellCommand(
+                        $"setprop debug.oculus.gpuLevel \"\"", true);
+                    CurrentGpuLevel = null;
+                    Log.Information("Reset GPU level to Auto");
+                }
+                else if (int.TryParse(SelectedGpuLevel, out var gpuLevel))
+                {
+                    _adbService.Device!.RunShellCommand(
+                        $"setprop debug.oculus.gpuLevel {gpuLevel}", true);
+                    CurrentGpuLevel = SelectedGpuLevel;
+                    Log.Information("Set GPU level: {GpuLevel}", gpuLevel);
+                }
             }
-            else if (int.TryParse(SelectedGpuLevel, out var gpuLevel))
+            if (SelectedCpuLevel is not null && (CurrentCpuLevel is null || SelectedCpuLevel != CurrentCpuLevel))
             {
-                _adbService.Device!.RunShellCommand(
-                    $"setprop debug.oculus.gpuLevel {gpuLevel}", true);
-                Log.Information("Set GPU level: {GpuLevel}", gpuLevel);
-            }
-            if (SelectedCpuLevel == "Auto")
-            {
-                _adbService.Device!.RunShellCommand(
-                    $"setprop debug.oculus.cpuLevel \"\"", true);
-                Log.Information("Reset CPU level to Auto");
-            }
-            else if (int.TryParse(SelectedCpuLevel, out var cpuLevel))
-            {
-                _adbService.Device!.RunShellCommand(
-                    $"setprop debug.oculus.cpuLevel {cpuLevel}", true);
-                Log.Information("Set CPU level: {CpuLevel}", cpuLevel);
+                if (SelectedCpuLevel.Contains("Auto") && CurrentCpuLevel is not null)
+                {
+                    _adbService.Device!.RunShellCommand(
+                        $"setprop debug.oculus.cpuLevel \"\"", true);
+                    CurrentCpuLevel = null;
+                    Log.Information("Reset CPU level to Auto");
+                }
+                else if (int.TryParse(SelectedCpuLevel, out var cpuLevel))
+                {
+                    _adbService.Device!.RunShellCommand(
+                        $"setprop debug.oculus.cpuLevel {cpuLevel}", true);
+                    CurrentCpuLevel = SelectedCpuLevel;
+                    Log.Information("Set CPU level: {CpuLevel}", cpuLevel);
+                }
             }
 
-            if (SelectedTextureSize == "Auto")
+            if (SelectedTextureSize is not null && (CurrentTextureSize is null || SelectedTextureSize != CurrentTextureSize))
             {
-                _adbService.Device!.RunShellCommand(
-                    $"setprop debug.oculus.textureWidth \"\"", true);
-                _adbService.Device!.RunShellCommand(
-                    $"setprop debug.oculus.textureHeight \"\"", true);
-                Log.Information("Reset texture resolution to Auto");
+                if (SelectedTextureSize.Contains("Auto") && CurrentTextureSize is not null)
+                {
+                    _adbService.Device!.RunShellCommand(
+                        $"setprop debug.oculus.textureWidth \"\"", true);
+                    _adbService.Device.RunShellCommand(
+                        $"setprop debug.oculus.textureHeight \"\"", true);
+                    CurrentTextureSize = null;
+                    Log.Information("Reset texture resolution to Auto");
+                }
+                else if (SelectedTextureSize != null)
+                {
+                    ResolutionValueToDimensions(SelectedTextureSize, out var width, out var height);
+                    _adbService.Device!.RunShellCommand($"setprop debug.oculus.textureWidth {width}", true);
+                    _adbService.Device.RunShellCommand($"setprop debug.oculus.textureHeight {height}", true);
+                    CurrentTextureSize = SelectedTextureSize;
+                    Log.Information("Set texture resolution Width:{Width} Height:{Height}", width, height);
+                }
             }
-            else if (SelectedTextureSize != null)
+
+            if (UsernameTextBoxText is not null && (CurrentUsername is null || UsernameTextBoxText != CurrentUsername))
             {
-                ResolutionValueToDimensions(SelectedTextureSize, out var width, out var height);
-                _adbService.Device!.RunShellCommand($"setprop debug.oculus.textureWidth {width}", true);
-                _adbService.Device!.RunShellCommand($"setprop debug.oculus.textureHeight {height}", true);
-                Log.Information("Set texture resolution Width:{Width} Height:{Height}", width, height);
+                if (string.IsNullOrWhiteSpace(UsernameTextBoxText) && UsernameTextBoxText is not null)
+                {
+                    _adbService.Device!.RunShellCommand($"settings put global username null");
+                    Log.Information("Reset username", UsernameTextBoxText);
+                }
+                else
+                {
+                    _adbService.Device!.RunShellCommand($"settings put global username {UsernameTextBoxText}");
+                    Log.Information("Set username: {Username}", UsernameTextBoxText);
+                }
             }
         });
     }
