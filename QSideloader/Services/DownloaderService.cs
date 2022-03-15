@@ -112,6 +112,7 @@ public class DownloaderService
     {
         if (IsMirrorListInitialized) return;
         MirrorList = GetMirrorList();
+        Log.Debug("MirrorList initialized: {MirrorList}", MirrorList);
         if (MirrorList.Count == 0)
             throw new DownloaderServiceException("Failed to load mirror list");
         IsMirrorListInitialized = true;

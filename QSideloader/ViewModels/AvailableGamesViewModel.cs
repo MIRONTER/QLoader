@@ -18,9 +18,13 @@ namespace QSideloader.ViewModels;
 public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
 {
     private readonly ObservableAsPropertyHelper<bool> _isBusy;
+    private readonly AdbService _adbService;
+    private readonly DownloaderService _downloaderService;
 
     public AvailableGamesViewModel()
     {
+        _adbService = ServiceContainer.AdbService;
+        _downloaderService = ServiceContainer.DownloaderService;
         Activator = new ViewModelActivator();
         Refresh = ReactiveCommand.CreateFromObservable(RefreshImpl);
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
@@ -50,7 +54,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            if (!ServiceContainer.ADBService.ValidateDeviceConnection())
+            if (!_adbService.ValidateDeviceConnection())
             {
                 Log.Warning("InstallImpl: no device connection!");
                 return;
@@ -67,7 +71,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
     
     private void RefreshAvailableGames(bool redownload = false)
     {
-        ServiceContainer.DownloaderService.EnsureGameListAvailableAsync(redownload).GetAwaiter().GetResult();
+        _downloaderService.EnsureGameListAvailableAsync(redownload).GetAwaiter().GetResult();
         RefreshProps();
     }
 

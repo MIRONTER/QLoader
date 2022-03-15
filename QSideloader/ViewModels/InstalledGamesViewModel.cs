@@ -20,9 +20,13 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 {
     private readonly ObservableAsPropertyHelper<bool> _isBusy;
     private List<InstalledGame>? _installedGames;
+    private readonly AdbService _adbService;
+    private readonly DownloaderService _downloaderService;
 
     public InstalledGamesViewModel()
     {
+        _adbService = ServiceContainer.AdbService;
+        _downloaderService = ServiceContainer.DownloaderService;
         Activator = new ViewModelActivator();
         Refresh = ReactiveCommand.CreateFromObservable(RefreshImpl);
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
@@ -33,16 +37,16 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         Refresh.Execute().Subscribe();
         this.WhenActivated(disposables =>
         {
-            ServiceContainer.ADBService.DeviceOnline += OnDeviceOnline;
-            ServiceContainer.ADBService.DeviceOffline += OnDeviceOffline;
-            ServiceContainer.ADBService.PackageListChanged += OnPackageListChanged;
+            _adbService.DeviceOnline += OnDeviceOnline;
+            _adbService.DeviceOffline += OnDeviceOffline;
+            _adbService.PackageListChanged += OnPackageListChanged;
             
             Disposable
                 .Create(() =>
                 {
-                    ServiceContainer.ADBService.DeviceOnline -= OnDeviceOnline;
-                    ServiceContainer.ADBService.DeviceOffline -= OnDeviceOffline;
-                    ServiceContainer.ADBService.PackageListChanged -= OnPackageListChanged;
+                    _adbService.DeviceOnline -= OnDeviceOnline;
+                    _adbService.DeviceOffline -= OnDeviceOffline;
+                    _adbService.PackageListChanged -= OnPackageListChanged;
                 })
                 .DisposeWith(disposables);
         });
@@ -71,7 +75,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            if (!ServiceContainer.ADBService.ValidateDeviceConnection())
+            if (!_adbService.ValidateDeviceConnection())
             {
                 Log.Warning("UpdateImpl: no device connection!");
                 return;
@@ -97,7 +101,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            if (!ServiceContainer.ADBService.ValidateDeviceConnection())
+            if (!_adbService.ValidateDeviceConnection())
             {
                 Log.Warning("UninstallImpl: no device connection!");
                 return;
@@ -107,7 +111,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
-                ServiceContainer.ADBService.Device!.UninstallGame(game);
+                _adbService.Device!.UninstallGame(game);
                 Log.Information("Uninstalled game: {GameName}", game.GameName);
             }
         });
@@ -130,16 +134,16 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private void RefreshInstalledGames()
     {
-        if (!ServiceContainer.ADBService.ValidateDeviceConnection())
+        if (!_adbService.ValidateDeviceConnection())
         {
             Log.Warning("RefreshInstalledGames: no device connection!");
             _installedGames = null;
             return;
         }
 
-        ServiceContainer.DownloaderService.EnsureGameListAvailableAsync().GetAwaiter().GetResult();
-        ServiceContainer.ADBService.Device!.RefreshInstalledPackages();
-        _installedGames = ServiceContainer.ADBService.Device.GetInstalledGames();
+        _downloaderService.EnsureGameListAvailableAsync().GetAwaiter().GetResult();
+        _adbService.Device!.RefreshInstalledPackages();
+        _installedGames = _adbService.Device.GetInstalledGames();
     }
 
     private void RefreshProps()

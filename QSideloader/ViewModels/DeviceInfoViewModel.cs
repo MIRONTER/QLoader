@@ -14,9 +14,11 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
 {
     private readonly ObservableAsPropertyHelper<bool> _isBusy;
     private Timer? _refreshTimer;
+    private readonly AdbService _adbService;
 
     public DeviceInfoViewModel()
     {
+        _adbService = ServiceContainer.AdbService;
         Activator = new ViewModelActivator();
         Refresh = ReactiveCommand.CreateFromObservable(RefreshImpl);
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
@@ -24,14 +26,14 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         SetRefreshTimer(true);
         this.WhenActivated(disposables =>
         {
-            ServiceContainer.ADBService.DeviceOnline += OnDeviceOnline;
-            ServiceContainer.ADBService.DeviceOffline += OnDeviceOffline;
-            ServiceContainer.ADBService.PackageListChanged += OnPackageListChanged;
+            _adbService.DeviceOnline += OnDeviceOnline;
+            _adbService.DeviceOffline += OnDeviceOffline;
+            _adbService.PackageListChanged += OnPackageListChanged;
             Disposable.Create(() =>
             {
-                ServiceContainer.ADBService.DeviceOnline -= OnDeviceOnline;
-                ServiceContainer.ADBService.DeviceOffline -= OnDeviceOffline;
-                ServiceContainer.ADBService.PackageListChanged -= OnPackageListChanged;
+                _adbService.DeviceOnline -= OnDeviceOnline;
+                _adbService.DeviceOffline -= OnDeviceOffline;
+                _adbService.PackageListChanged -= OnPackageListChanged;
             }).DisposeWith(disposables);
         });
     }
@@ -80,7 +82,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
 
     private void RefreshDeviceInfo()
     {
-        if (!ServiceContainer.ADBService.ValidateDeviceConnection())
+        if (!_adbService.ValidateDeviceConnection())
         {
             Log.Warning("RefreshDeviceInfo: no device connection!");
             IsDeviceConnected = false;
@@ -89,13 +91,13 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         }
 
         IsDeviceConnected = true;
-        ServiceContainer.ADBService.Device!.RefreshInfo();
-        ServiceContainer.ADBService.Device.RefreshInstalledPackages();
+        _adbService.Device!.RefreshInfo();
+        _adbService.Device.RefreshInstalledPackages();
     }
 
     private void RefreshProps()
     {
-        var device = ServiceContainer.ADBService.Device;
+        var device = _adbService.Device;
         if (device is null) return;
         SpaceUsed = device.SpaceUsed;
         SpaceFree = device.SpaceFree;

@@ -19,17 +19,20 @@ namespace QSideloader.ViewModels;
 
 public class GameDetailsViewModel
 {
+    private readonly AdbService _adbService;
     public Game Game { get; }
     [Reactive] public string? ThumbnailPath { get; } = Path.Combine("Resources", "NoThumbnailImage.png");
     public ReactiveCommand<Unit, Unit> DownloadAndInstall { get; }
 
     public GameDetailsViewModel()
     {
+        _adbService = ServiceContainer.AdbService;
         Game = new Game("GameName", "ReleaseName", 1337, "NoteText");
         DownloadAndInstall = ReactiveCommand.CreateFromObservable(DownloadAndInstallImpl);
     }
     public GameDetailsViewModel(Game game)
     {
+        _adbService = ServiceContainer.AdbService;
         Game = game;
         DownloadAndInstall = ReactiveCommand.CreateFromObservable(DownloadAndInstallImpl);
         var assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
@@ -47,7 +50,7 @@ public class GameDetailsViewModel
     {
         return Observable.Start(() =>
         {
-            if (!ServiceContainer.ADBService.ValidateDeviceConnection())
+            if (!_adbService.ValidateDeviceConnection())
             {
                 Log.Warning("InstallImpl: no device connection!");
                 return;

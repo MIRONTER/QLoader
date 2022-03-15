@@ -15,8 +15,10 @@ namespace QSideloader.ViewModels;
 
 public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
 {
+    private readonly AdbService _adbService;
     public DeviceSettingsViewModel()
     {
+        _adbService = ServiceContainer.AdbService;
         Activator = new ViewModelActivator();
         ApplySettings = ReactiveCommand.CreateFromObservable(ApplySettingsImpl, this.IsValid());
         MountStorage = ReactiveCommand.CreateFromObservable(MountStorageImpl);
@@ -28,10 +30,10 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         this.WhenActivated(disposables =>
         {
             //TODO: on device connect and disconnect events handling
-            if (ServiceContainer.ADBService.ValidateDeviceConnection())
+            if (_adbService.ValidateDeviceConnection())
             {
                 IsDeviceConnected = true;
-                RefreshRates = ServiceContainer.ADBService.Device!.Product switch
+                RefreshRates = _adbService.Device!.Product switch
                 {
                     "hollywood" => new[]{"Auto", "72", "90", "120"},
                     "monterey" => new[]{"Auto", "60", "72"},
@@ -39,8 +41,8 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 };
                 Task.Run(LoadCurrentSettings);
             }
-            ServiceContainer.ADBService.DeviceOnline += OnDeviceOnline;
-            ServiceContainer.ADBService.DeviceOffline += OnDeviceOffline;
+            _adbService.DeviceOnline += OnDeviceOnline;
+            _adbService.DeviceOffline += OnDeviceOffline;
             Disposable
                 .Create(() => { })
                 .DisposeWith(disposables);
@@ -75,18 +77,18 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
 
     private void LoadCurrentSettings()
     {
-        if (!ServiceContainer.ADBService.ValidateDeviceConnection()) return;
+        if (!_adbService.ValidateDeviceConnection()) return;
         Log.Debug("Loading device settings");
 #pragma warning disable CA1806
-        int.TryParse(ServiceContainer.ADBService.Device!.RunShellCommand("getprop debug.oculus.refreshRate"),
+        int.TryParse(_adbService.Device!.RunShellCommand("getprop debug.oculus.refreshRate"),
             out var refreshRate);
-        int.TryParse(ServiceContainer.ADBService.Device!.RunShellCommand("getprop debug.oculus.gpuLevel"),
+        int.TryParse(_adbService.Device!.RunShellCommand("getprop debug.oculus.gpuLevel"),
             out var gpuLevel);
-        int.TryParse(ServiceContainer.ADBService.Device!.RunShellCommand("getprop debug.oculus.cpuLevel"),
+        int.TryParse(_adbService.Device!.RunShellCommand("getprop debug.oculus.cpuLevel"),
             out var cpuLevel);
-        int.TryParse(ServiceContainer.ADBService.Device!.RunShellCommand("getprop debug.oculus.textureWidth"), 
+        int.TryParse(_adbService.Device!.RunShellCommand("getprop debug.oculus.textureWidth"), 
             out var textureWidth);
-        int.TryParse(ServiceContainer.ADBService.Device!.RunShellCommand("getprop debug.oculus.textureHeight"), 
+        int.TryParse(_adbService.Device!.RunShellCommand("getprop debug.oculus.textureHeight"), 
             out var textureHeight);
 #pragma warning restore CA1806
         Dispatcher.UIThread.InvokeAsync(() =>
@@ -119,57 +121,57 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            if (!ServiceContainer.ADBService.ValidateDeviceConnection()) return;
+            if (!_adbService.ValidateDeviceConnection()) return;
             if (SelectedRefreshRate == "Auto")
             {
-                ServiceContainer.ADBService.Device!.RunShellCommand(
+                _adbService.Device!.RunShellCommand(
                     $"setprop debug.oculus.refreshRate \"\"", true);
                 Log.Information("Reset refresh rate to Auto");
             }
             else if (int.TryParse(SelectedRefreshRate, out var refreshRate))
             {
-                ServiceContainer.ADBService.Device!.RunShellCommand(
+                _adbService.Device!.RunShellCommand(
                     $"setprop debug.oculus.refreshRate {refreshRate}", true);
                 Log.Information("Set refresh rate: {RefreshRate} Hz", refreshRate);
             }
             if (SelectedGpuLevel == "Auto")
             {
-                ServiceContainer.ADBService.Device!.RunShellCommand(
+                _adbService.Device!.RunShellCommand(
                     $"setprop debug.oculus.gpuLevel \"\"", true);
                 Log.Information("Reset GPU level to Auto");
             }
             else if (int.TryParse(SelectedGpuLevel, out var gpuLevel))
             {
-                ServiceContainer.ADBService.Device!.RunShellCommand(
+                _adbService.Device!.RunShellCommand(
                     $"setprop debug.oculus.gpuLevel {gpuLevel}", true);
                 Log.Information("Set GPU level: {GpuLevel}", gpuLevel);
             }
             if (SelectedCpuLevel == "Auto")
             {
-                ServiceContainer.ADBService.Device!.RunShellCommand(
+                _adbService.Device!.RunShellCommand(
                     $"setprop debug.oculus.cpuLevel \"\"", true);
                 Log.Information("Reset CPU level to Auto");
             }
             else if (int.TryParse(SelectedCpuLevel, out var cpuLevel))
             {
-                ServiceContainer.ADBService.Device!.RunShellCommand(
+                _adbService.Device!.RunShellCommand(
                     $"setprop debug.oculus.cpuLevel {cpuLevel}", true);
                 Log.Information("Set CPU level: {CpuLevel}", cpuLevel);
             }
 
             if (SelectedTextureSize == "Auto")
             {
-                ServiceContainer.ADBService.Device!.RunShellCommand(
+                _adbService.Device!.RunShellCommand(
                     $"setprop debug.oculus.textureWidth \"\"", true);
-                ServiceContainer.ADBService.Device!.RunShellCommand(
+                _adbService.Device!.RunShellCommand(
                     $"setprop debug.oculus.textureHeight \"\"", true);
                 Log.Information("Reset texture resolution to Auto");
             }
             else if (SelectedTextureSize != null)
             {
                 ResolutionValueToDimensions(SelectedTextureSize, out var width, out var height);
-                ServiceContainer.ADBService.Device!.RunShellCommand($"setprop debug.oculus.textureWidth {width}", true);
-                ServiceContainer.ADBService.Device!.RunShellCommand($"setprop debug.oculus.textureHeight {height}", true);
+                _adbService.Device!.RunShellCommand($"setprop debug.oculus.textureWidth {width}", true);
+                _adbService.Device!.RunShellCommand($"setprop debug.oculus.textureHeight {height}", true);
                 Log.Information("Set texture resolution Width:{Width} Height:{Height}", width, height);
             }
         });
@@ -296,21 +298,21 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         }
     }
 
-    private static IObservable<Unit> MountStorageImpl()
+    private IObservable<Unit> MountStorageImpl()
     {
         return Observable.Start(() =>
         {
-            if (!ServiceContainer.ADBService.ValidateDeviceConnection()) return;
-            ServiceContainer.ADBService.Device!.RunShellCommand("svc usb setFunctions mtp true", true);
+            if (!_adbService.ValidateDeviceConnection()) return;
+            _adbService.Device!.RunShellCommand("svc usb setFunctions mtp true", true);
             Log.Information("Mounted device storage");
         });
     }
-    private static IObservable<Unit> LaunchHiddenSettingsImpl()
+    private IObservable<Unit> LaunchHiddenSettingsImpl()
     {
         return Observable.Start(() =>
         {
-            if (!ServiceContainer.ADBService.ValidateDeviceConnection()) return;
-            ServiceContainer.ADBService.Device!.RunShellCommand("am start -a android.intent.action.VIEW -d com.oculus.tv -e uri com.android.settings/.DevelopmentSettings com.oculus.vrshell/.MainActivity", true);
+            if (!_adbService.ValidateDeviceConnection()) return;
+            _adbService.Device!.RunShellCommand("am start -a android.intent.action.VIEW -d com.oculus.tv -e uri com.android.settings/.DevelopmentSettings com.oculus.vrshell/.MainActivity", true);
             Log.Information("Launched hidden settings");
         });
     }

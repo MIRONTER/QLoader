@@ -16,10 +16,13 @@ namespace QSideloader.ViewModels;
 public class TaskViewModel : ViewModelBase, IActivatableViewModel
 {
     private Game? _game;
-
+    private readonly AdbService _adbService;
+    private readonly DownloaderService _downloaderService;
 
     public TaskViewModel()
     {
+        _adbService = ServiceContainer.AdbService;
+        _downloaderService = ServiceContainer.DownloaderService;
         PerformTask = ReactiveCommand.CreateFromTask(PerformTaskImpl);
         Activator = new ViewModelActivator();
     }
@@ -61,7 +64,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         string? gamePath;
         if (Game is null)
             throw new InvalidOperationException("Game is not set");
-        if (!ServiceContainer.ADBService.ValidateDeviceConnection())
+        if (!_adbService.ValidateDeviceConnection())
         {
             Log.Warning("PerformTaskImpl: no device connection!");
             OnFinished("Failed: no device connection");
@@ -98,11 +101,11 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             await DownloaderService.TakeDownloadLockAsync(CancellationTokenSource.Token);
             tookDownloadLock = true;
             Status = "Downloading";
-            downloadStatsSubscription = ServiceContainer.DownloaderService
+            downloadStatsSubscription = _downloaderService
                 .PollStats(TimeSpan.FromMilliseconds(100), ThreadPoolScheduler.Instance)
                 .SubscribeOn(RxApp.TaskpoolScheduler)
                 .Subscribe(RefreshDownloadStats);
-            var gamePath = await Task.Run(() => ServiceContainer.DownloaderService.DownloadGame(Game!,
+            var gamePath = await Task.Run(() => _downloaderService.DownloadGame(Game!,
                 CancellationTokenSource.Token));
             downloadStatsSubscription.Dispose();
             DownloadStats = "";
@@ -126,14 +129,14 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         Status = "Install queued";
         await AdbService.TakeSideloadLockAsync(CancellationTokenSource.Token);
         Status = "Installing";
-        if (!ServiceContainer.ADBService.ValidateDeviceConnection())
+        if (!_adbService.ValidateDeviceConnection())
         {
             Log.Warning("PerformInstall: no device connection!");
             OnFinished("Install failed");
             return;
         }
 
-        ServiceContainer.ADBService.Device!.SideloadGame(Game!, gamePath)
+        _adbService.Device!.SideloadGame(Game!, gamePath)
             .SubscribeOn(RxApp.TaskpoolScheduler)
             .Subscribe(
                 x => Status = x,
