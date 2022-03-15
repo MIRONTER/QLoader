@@ -27,12 +27,12 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         // this.ValidationRule(viewModel => viewModel.ResolutionTextBoxText,
         //     x => string.IsNullOrEmpty(x) || x == "0" || TryParseResolutionString(x, out _, out _), 
         //     "Invalid input format");
-        this.ValidationRule(viewModel => viewModel.UsernameTextBoxText, x => string.IsNullOrEmpty(x) || IsValidUsername(x),
+        this.ValidationRule(viewModel => viewModel.UsernameTextBoxText, 
+            x => string.IsNullOrEmpty(x) || IsValidUsername(x),
             "Invalid username");
 
         this.WhenActivated(disposables =>
         {
-            //TODO: on device connect and disconnect events handling
             if (_adbService.ValidateDeviceConnection())
             {
                 IsDeviceConnected = true;
@@ -60,7 +60,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     private void OnDeviceOnline(object? sender, EventArgs e)
     {
         IsDeviceConnected = true;
-        LoadCurrentSettings();
+        Task.Run(LoadCurrentSettings);
     }
 
     [Reactive] public bool IsDeviceConnected { get; private set; }

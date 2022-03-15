@@ -87,10 +87,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
                 game.IsSelected = false;
                 Dispatcher.UIThread.InvokeAsync(() =>
                 {
-                    var taskView = new TaskView();
-                    taskView.ViewModel!.Game = game;
-                    taskView.ViewModel!.PerformTask.Execute().Subscribe();
-                    Globals.MainWindowViewModel!.TaskList.Add(taskView);
+                    Globals.MainWindowViewModel!.QueueForInstall(game);
                 });
                 Log.Information("Queued for update: {ReleaseName}", game.ReleaseName);
             }
