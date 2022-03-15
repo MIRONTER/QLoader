@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using QSideloader.Services;
@@ -26,6 +27,8 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         // this.ValidationRule(viewModel => viewModel.ResolutionTextBoxText,
         //     x => string.IsNullOrEmpty(x) || x == "0" || TryParseResolutionString(x, out _, out _), 
         //     "Invalid input format");
+        this.ValidationRule(viewModel => viewModel.UsernameTextBoxText, x => string.IsNullOrEmpty(x) || IsValidUsername(x),
+            "Invalid username");
 
         this.WhenActivated(disposables =>
         {
@@ -245,14 +248,15 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 }
             }
 
+            // ReSharper disable once InvertIf
             if (UsernameTextBoxText is not null && (CurrentUsername is null || UsernameTextBoxText != CurrentUsername))
             {
-                if (string.IsNullOrWhiteSpace(UsernameTextBoxText) && UsernameTextBoxText is not null)
+                if (string.IsNullOrEmpty(UsernameTextBoxText) && CurrentUsername is not null)
                 {
-                    _adbService.Device!.RunShellCommand($"settings put global username null");
-                    Log.Information("Reset username", UsernameTextBoxText);
+                    _adbService.Device!.RunShellCommand("settings put global username null");
+                    Log.Information("Reset username");
                 }
-                else
+                else if (UsernameTextBoxText is not null && IsValidUsername(UsernameTextBoxText))
                 {
                     _adbService.Device!.RunShellCommand($"settings put global username {UsernameTextBoxText}");
                     Log.Information("Set username: {Username}", UsernameTextBoxText);
@@ -380,6 +384,14 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 height = 0;
                 return;
         }
+    }
+
+    private static bool IsValidUsername(string username)
+    {
+        // Regex for checking username against Oculus username requirements:
+        // https://support.oculus.com/articles/accounts/account-settings-and-management/change-oculus-username/
+        const string usernameCheckPattern = @"^(?![-_])(?!.*--)(?!.*__)[\w-]+$";
+        return username.Length is >= 2 and <= 20 && Regex.IsMatch(username, usernameCheckPattern);
     }
 
     private IObservable<Unit> MountStorageImpl()
