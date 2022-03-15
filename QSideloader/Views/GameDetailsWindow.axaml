@@ -13,7 +13,8 @@
         TransparencyLevelHint="AcrylicBlur"
         ExtendClientAreaToDecorationsHint="True"
         CanResize="False"
-        SizeToContent="Manual">
+        SizeToContent="Manual"
+        KeyUp="OnKeyUp">
     <Design.DataContext>
         <viewModels:GameDetailsViewModel />
     </Design.DataContext>
