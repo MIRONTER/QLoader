@@ -112,7 +112,7 @@ public class DownloaderService
     {
         if (IsMirrorListInitialized) return;
         MirrorList = GetMirrorList();
-        Log.Debug("MirrorList initialized: {MirrorList}", MirrorList);
+        Log.Debug("Loaded mirrors: {MirrorList}", MirrorList);
         if (MirrorList.Count == 0)
             throw new DownloaderServiceException("Failed to load mirror list");
         IsMirrorListInitialized = true;
@@ -137,6 +137,8 @@ public class DownloaderService
                     throw;
                 case CommandExecutionException when e.Message.Contains("downloadQuotaExceeded"):
                     throw new DownloadQuotaExceededException($"Quota exceeded on mirror {MirrorName}", e);
+                case CommandExecutionException {ExitCode: 3 or 4 or 7}:
+                    throw new MirrorException($"Download error on mirror {MirrorName}", e);
             }
 
             throw new DownloaderServiceException("Error executing rclone download", e);
@@ -163,7 +165,6 @@ public class DownloaderService
             {
                 if (TryDownloadGameList(out gameListPath))
                     break;
-                Log.Warning("Quota exceeded on all game lists on mirror {MirrorName}", MirrorName);
                 SwitchMirror();
             }
             /*if (!Directory.Exists("metadata"))
@@ -247,12 +248,25 @@ public class DownloaderService
                     gameListPath = "metadata" + Path.DirectorySeparatorChar + gameListName;
                     return true;
                 }
-                catch (DownloadQuotaExceededException)
+                catch (Exception e)
                 {
-                    Log.Debug("Quota exceeded on list {GameList} on mirror {MirrorName}",
-                        gameListName, MirrorName);
+                    switch (e)
+                    {
+                        case DownloadQuotaExceededException:
+                            Log.Debug("Quota exceeded on list {GameList} on mirror {MirrorName}",
+                                gameListName, MirrorName);
+                            break;
+                        case MirrorException:
+                            Log.Warning(e, "Error downloading list {GameList} from mirror {MirrorName} (is mirror down?)",
+                                gameListName, MirrorName);
+                            gameListPath = "";
+                            return false;
+                        default:
+                            throw;
+                    }
                 }
-
+            
+            Log.Warning("Quota exceeded on all game lists on mirror {MirrorName}", MirrorName);
             gameListPath = "";
             return false;
         }
@@ -276,9 +290,19 @@ public class DownloaderService
                     File.WriteAllText(Path.Combine(dstPath, "release.json"), json);
                     break;
                 }
-                catch (DownloadQuotaExceededException)
+                catch (Exception e)
                 {
-                    Log.Warning("Quota exceeded on mirror {MirrorName}", MirrorName);
+                    switch (e)
+                    {
+                        case DownloadQuotaExceededException:
+                            Log.Warning("Quota exceeded on mirror {MirrorName}", MirrorName);
+                            break;
+                        case MirrorException:
+                            Log.Warning(e, "Download error on mirror {MirrorName}", MirrorName);
+                            break;
+                        default:
+                            throw;
+                    }
                     SwitchMirror(localMirrorList);
                     Log.Information("Retrying download");
                 }
@@ -367,6 +391,19 @@ public class DownloadQuotaExceededException : DownloaderServiceException
     }
 
     public DownloadQuotaExceededException(string message, Exception inner)
+        : base(message, inner)
+    {
+    }
+}
+
+public class MirrorException : DownloaderServiceException
+{
+    public MirrorException(string message)
+        : base(message)
+    {
+    }
+
+    public MirrorException(string message, Exception inner)
         : base(message, inner)
     {
     }
