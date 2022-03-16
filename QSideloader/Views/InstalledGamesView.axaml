@@ -23,7 +23,8 @@
                            IsVisible="{Binding IsBusy}" />
         <DataGrid Grid.Row="1" x:Name="InstalledGamesDataGrid"
                   Items="{Binding InstalledGames}"
-                  AutoGenerateColumns="False">
+                  AutoGenerateColumns="False"
+                  DoubleTapped="InstalledGamesDataGrid_OnDoubleTapped">
             <DataGrid.Columns>
                 <DataGridTemplateColumn Width="52"
                                         IsReadOnly="False"

@@ -1,5 +1,10 @@
-﻿using Avalonia.Markup.Xaml;
+﻿using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
+using FluentAvalonia.UI.Controls;
+using QSideloader.Helpers;
+using QSideloader.Models;
 using QSideloader.ViewModels;
 
 namespace QSideloader.Views;
@@ -16,6 +21,17 @@ public partial class InstalledGamesView : ReactiveUserControl<InstalledGamesView
     private void InitializeComponent()
     {
         AvaloniaXamlLoader.Load(this);
+    }
+    
+    private void InstalledGamesDataGrid_OnDoubleTapped(object? sender, RoutedEventArgs e)
+    {
+        var dataGrid = (DataGrid?) sender;
+        if (dataGrid is null || e.Source is FontIcon) return;
+        var selectedGame = (InstalledGame?) dataGrid.SelectedItem;
+        if (selectedGame is null) return;
+        // TODO: let user set action in settings?
+        //Globals.MainWindowViewModel!.QueueForInstall(selectedGame);
+        Globals.MainWindowViewModel!.ShowGameDetailsCommand.Execute(selectedGame);
     }
 
     /*private void SetMultiSelectEnabled(bool state)
