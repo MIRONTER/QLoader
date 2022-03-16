@@ -84,10 +84,11 @@ public class App : Application
             firstChanceExceptionHandler.Error(e.Exception, "FirstChanceException");
         };
 
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
-            !Globals.SideloaderSettings.EnableDebugConsole) return;
-        AllocConsole();
-        Console.Title = $"{Assembly.GetExecutingAssembly().GetName().Name} debug console";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Globals.SideloaderSettings.EnableDebugConsole)
+        {
+            AllocConsole();
+            Console.Title = $"{Assembly.GetExecutingAssembly().GetName().Name} debug console";
+        }
         var consoleLogger = new LoggerConfiguration().MinimumLevel.Debug().WriteTo.Console().CreateLogger();
         LogStartMessage(consoleLogger);
         Log.CloseAndFlush();
