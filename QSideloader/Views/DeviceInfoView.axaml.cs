@@ -1,7 +1,6 @@
 ﻿using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
 using QSideloader.ViewModels;
-using ReactiveUI;
 
 namespace QSideloader.Views;
 

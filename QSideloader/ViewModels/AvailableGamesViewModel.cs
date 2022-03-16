@@ -2,13 +2,11 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Threading;
 using QSideloader.Helpers;
 using QSideloader.Models;
 using QSideloader.Services;
-using QSideloader.Views;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Serilog;

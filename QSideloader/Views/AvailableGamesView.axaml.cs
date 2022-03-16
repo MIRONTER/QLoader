@@ -6,7 +6,6 @@ using FluentAvalonia.UI.Controls;
 using QSideloader.Helpers;
 using QSideloader.Models;
 using QSideloader.ViewModels;
-using ReactiveUI;
 
 namespace QSideloader.Views;
 

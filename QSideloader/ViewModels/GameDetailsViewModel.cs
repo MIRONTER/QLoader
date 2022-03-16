@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Drawing;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Reflection;
 using Avalonia;
 using Avalonia.Platform;
-using Avalonia.Threading;
 using QSideloader.Helpers;
 using QSideloader.Models;
 using QSideloader.Services;
-using QSideloader.Views;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Serilog;
@@ -36,7 +32,6 @@ public class GameDetailsViewModel
         _adbService = ServiceContainer.AdbService;
         Game = game;
         DownloadAndInstall = ReactiveCommand.CreateFromObservable(DownloadAndInstallImpl);
-        var assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
         var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
         if (assets is null) return;
         var jpgPath = Path.Combine("Resources", "thumbnails", $"{Game.PackageName}.jpg");

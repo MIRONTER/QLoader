@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
-using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 
 namespace QSideloader.Helpers;
 

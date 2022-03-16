@@ -1,15 +1,11 @@
 using System;
 using System.IO;
-using System.Net.Http;
-using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using Microsoft.CSharp.RuntimeBinder;
 using QSideloader.Helpers;
 using QSideloader.ViewModels;
 using QSideloader.Views;

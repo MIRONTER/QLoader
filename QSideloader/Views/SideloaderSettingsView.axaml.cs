@@ -2,7 +2,6 @@
 using Avalonia.ReactiveUI;
 using QSideloader.Helpers;
 using QSideloader.ViewModels;
-using ReactiveUI;
 
 namespace QSideloader.Views;
 
