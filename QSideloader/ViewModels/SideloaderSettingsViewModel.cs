@@ -143,7 +143,6 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
         {
             Log.Information("Restoring default settings");
             InitDefaults();
-            SaveSettings.Execute().Subscribe();
         });
     }
 
