@@ -390,8 +390,8 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     {
         // Regex for checking username against Oculus username requirements:
         // https://support.oculus.com/articles/accounts/account-settings-and-management/change-oculus-username/
-        const string usernameCheckPattern = @"^(?![-_])(?!.*--)(?!.*__)[\w-]+$";
-        return username.Length is >= 2 and <= 20 && Regex.IsMatch(username, usernameCheckPattern);
+        const string usernameCheckPattern = @"^(?![-_])(?!.*--)(?!.*__)[\w-]{2,20}$";
+        return Regex.IsMatch(username, usernameCheckPattern);
     }
 
     private IObservable<Unit> MountStorageImpl()
