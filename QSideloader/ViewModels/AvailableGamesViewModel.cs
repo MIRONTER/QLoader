@@ -68,7 +68,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             }
         });
     }
-    
+
     private void RefreshAvailableGames(bool redownload = false)
     {
         _downloaderService.EnsureGameListAvailableAsync(redownload).GetAwaiter().GetResult();

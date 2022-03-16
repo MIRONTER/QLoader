@@ -59,7 +59,7 @@ public class AdbService
         {
             return null;
         }
-        
+
         var result = receiver.ToString().Trim();
         if (!logCommand) return result;
         if (!string.IsNullOrWhiteSpace(result))
@@ -278,7 +278,7 @@ public class AdbService
     {
         return device.Product is "hollywood" or "monterey";
     }
-    
+
     public static async Task TakeSideloadLockAsync(CancellationToken ct = default)
     {
         await SideloadSemaphoreSlim.WaitAsync(ct);
@@ -420,7 +420,7 @@ public class AdbService
             using var file = File.OpenRead(localPath);
             syncService.Push(file, remotePath, 771, DateTime.Now, null, CancellationToken.None);
         }
-        
+
         private void PushDirectory(string localPath, string remotePath)
         {
             if (!remotePath.EndsWith("/"))
@@ -553,6 +553,7 @@ public class AdbService
                                     UninstallPackage(packageName);
                                     break;
                                 }
+
                                 var shellCommand = string.Join(" ", args);
                                 RunShellCommand(shellCommand, true);
                                 break;
@@ -628,7 +629,7 @@ public class AdbService
         private List<string> InstalledPackages { get; set; } = new();
         public string FriendlyName { get; }
         private string HashedId { get; }
-        private AdbServerClient ADB  { get; }
+        private AdbServerClient ADB { get; }
         private AdbService ADBService { get; }
 
         #endregion

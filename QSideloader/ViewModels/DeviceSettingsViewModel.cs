@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -17,6 +16,7 @@ namespace QSideloader.ViewModels;
 public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
 {
     private readonly AdbService _adbService;
+
     public DeviceSettingsViewModel()
     {
         _adbService = ServiceContainer.AdbService;
@@ -27,7 +27,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         // this.ValidationRule(viewModel => viewModel.ResolutionTextBoxText,
         //     x => string.IsNullOrEmpty(x) || x == "0" || TryParseResolutionString(x, out _, out _), 
         //     "Invalid input format");
-        this.ValidationRule(viewModel => viewModel.UsernameTextBoxText, 
+        this.ValidationRule(viewModel => viewModel.UsernameTextBoxText,
             x => string.IsNullOrEmpty(x) || IsValidUsername(x),
             "Invalid username");
 
@@ -38,12 +38,13 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 IsDeviceConnected = true;
                 RefreshRates = _adbService.Device!.Product switch
                 {
-                    "hollywood" => new[]{"Auto (recommended)", "72", "90", "120"},
-                    "monterey" => new[]{"Auto (recommended)", "60", "72"},
+                    "hollywood" => new[] {"Auto (recommended)", "72", "90", "120"},
+                    "monterey" => new[] {"Auto (recommended)", "60", "72"},
                     _ => RefreshRates
                 };
                 Task.Run(LoadCurrentSettings);
             }
+
             _adbService.DeviceOnline += OnDeviceOnline;
             _adbService.DeviceOffline += OnDeviceOffline;
             Disposable
@@ -73,9 +74,14 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     public string[] CpuLevels { get; } = {"Auto (recommended)", "0", "1", "2", "3", "4"};
     [Reactive] public string? SelectedCpuLevel { get; set; }
     private string? CurrentCpuLevel { get; set; }
-    public string[] TextureSizes { get; } = {"Auto (recommended)", "512", "768", "1024", "1216", "1440", "1536", "2048", "2560", "3072"};
+
+    public string[] TextureSizes { get; } =
+        {"Auto (recommended)", "512", "768", "1024", "1216", "1440", "1536", "2048", "2560", "3072"};
+
     [Reactive] public string? SelectedTextureSize { get; set; }
+
     private string? CurrentTextureSize { get; set; }
+
     //[Reactive] public string ResolutionTextBoxText { get; set; } = "";
     [Reactive] public string? UsernameTextBoxText { get; set; }
     private string? CurrentUsername { get; set; }
@@ -95,9 +101,9 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
             out var gpuLevel);
         int.TryParse(_adbService.Device!.RunShellCommand("getprop debug.oculus.cpuLevel"),
             out var cpuLevel);
-        int.TryParse(_adbService.Device!.RunShellCommand("getprop debug.oculus.textureWidth"), 
+        int.TryParse(_adbService.Device!.RunShellCommand("getprop debug.oculus.textureWidth"),
             out var textureWidth);
-        int.TryParse(_adbService.Device!.RunShellCommand("getprop debug.oculus.textureHeight"), 
+        int.TryParse(_adbService.Device!.RunShellCommand("getprop debug.oculus.textureHeight"),
             out var textureHeight);
 #pragma warning restore CA1806
         var currentUsername = _adbService.Device.RunShellCommand("settings get global username");
@@ -114,6 +120,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 CurrentRefreshRate = null;
                 SelectedRefreshRate = null;
             }
+
             if (gpuLevel != 0)
             {
                 CurrentGpuLevel = gpuLevel.ToString();
@@ -125,6 +132,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 CurrentGpuLevel = null;
                 SelectedGpuLevel = null;
             }
+
             if (cpuLevel != 0)
             {
                 CurrentCpuLevel = cpuLevel.ToString();
@@ -136,7 +144,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 CurrentCpuLevel = null;
                 SelectedCpuLevel = null;
             }
-            
+
             if (textureHeight != 0 && textureWidth != 0)
             {
                 CurrentTextureSize = textureWidth.ToString();
@@ -174,8 +182,10 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 Log.Warning("ApplySettingsImpl: no device connection!");
                 return;
             }
+
             // Check if any option is selected and it differs from current setting
-            if (SelectedRefreshRate is not null && (CurrentRefreshRate is null || SelectedRefreshRate != CurrentRefreshRate))
+            if (SelectedRefreshRate is not null &&
+                (CurrentRefreshRate is null || SelectedRefreshRate != CurrentRefreshRate))
             {
                 if (SelectedRefreshRate.Contains("Auto") && CurrentRefreshRate is not null)
                 {
@@ -192,6 +202,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                     Log.Information("Set refresh rate: {RefreshRate} Hz", refreshRate);
                 }
             }
+
             if (SelectedGpuLevel is not null && (CurrentGpuLevel is null || SelectedGpuLevel != CurrentGpuLevel))
             {
                 if (SelectedGpuLevel.Contains("Auto") && CurrentGpuLevel is not null)
@@ -209,6 +220,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                     Log.Information("Set GPU level: {GpuLevel}", gpuLevel);
                 }
             }
+
             if (SelectedCpuLevel is not null && (CurrentCpuLevel is null || SelectedCpuLevel != CurrentCpuLevel))
             {
                 if (SelectedCpuLevel.Contains("Auto") && CurrentCpuLevel is not null)
@@ -227,7 +239,8 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 }
             }
 
-            if (SelectedTextureSize is not null && (CurrentTextureSize is null || SelectedTextureSize != CurrentTextureSize))
+            if (SelectedTextureSize is not null &&
+                (CurrentTextureSize is null || SelectedTextureSize != CurrentTextureSize))
             {
                 if (SelectedTextureSize.Contains("Auto") && CurrentTextureSize is not null)
                 {
@@ -403,12 +416,15 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
             Log.Information("Mounted device storage");
         });
     }
+
     private IObservable<Unit> LaunchHiddenSettingsImpl()
     {
         return Observable.Start(() =>
         {
             if (!_adbService.ValidateDeviceConnection()) return;
-            _adbService.Device!.RunShellCommand("am start -a android.intent.action.VIEW -d com.oculus.tv -e uri com.android.settings/.DevelopmentSettings com.oculus.vrshell/.MainActivity", true);
+            _adbService.Device!.RunShellCommand(
+                "am start -a android.intent.action.VIEW -d com.oculus.tv -e uri com.android.settings/.DevelopmentSettings com.oculus.vrshell/.MainActivity",
+                true);
             Log.Information("Launched hidden settings");
         });
     }

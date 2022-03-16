@@ -155,7 +155,7 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
                 DownloadsLocationTextBoxText == DownloadsLocation) return;
             DownloadsLocation = DownloadsLocationTextBoxText;
             SaveSettings.Execute().Subscribe();
-            Log.Debug("Set new downloads location: {DownloadsLocation}", 
+            Log.Debug("Set new downloads location: {DownloadsLocation}",
                 DownloadsLocationTextBoxText);
         });
     }

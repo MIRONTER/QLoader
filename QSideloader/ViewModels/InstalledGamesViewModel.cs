@@ -40,7 +40,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             _adbService.DeviceOnline += OnDeviceOnline;
             _adbService.DeviceOffline += OnDeviceOffline;
             _adbService.PackageListChanged += OnPackageListChanged;
-            
+
             Disposable
                 .Create(() =>
                 {
@@ -85,10 +85,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
-                Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    Globals.MainWindowViewModel!.QueueForInstall(game);
-                });
+                Dispatcher.UIThread.InvokeAsync(() => { Globals.MainWindowViewModel!.QueueForInstall(game); });
                 Log.Information("Queued for update: {ReleaseName}", game.ReleaseName);
             }
         });
@@ -123,7 +120,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         Refresh.Execute().Subscribe();
     }
-    
+
     private void OnPackageListChanged(object? sender, EventArgs e)
     {
         Refresh.Execute().Subscribe();

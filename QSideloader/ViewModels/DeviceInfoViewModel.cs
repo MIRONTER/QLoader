@@ -53,7 +53,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] public string DownloaderStatus { get; set; } = "Loading";
     [Reactive] public string ADBStatus { get; set; } = "Starting";
     public ViewModelActivator Activator { get; }
-    
+
     private void OnDeviceOnline(object? sender, EventArgs e)
     {
         IsDeviceConnected = true;
@@ -66,7 +66,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         IsDeviceConnected = false;
         SetRefreshTimer(false);
     }
-    
+
     private void OnPackageListChanged(object? sender, EventArgs e)
     {
         Refresh.Execute().Subscribe();

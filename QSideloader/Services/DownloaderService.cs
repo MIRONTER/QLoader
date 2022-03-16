@@ -299,7 +299,7 @@ public class DownloaderService
             stopWatch.Stop();
         }
     }
-    
+
     public static async Task TakeDownloadLockAsync(CancellationToken ct = default)
     {
         await DownloadSemaphoreSlim.WaitAsync(ct);

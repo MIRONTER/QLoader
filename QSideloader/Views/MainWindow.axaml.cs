@@ -33,7 +33,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         var navigationView = this.FindControl<NavigationView>("NavigationView");
         navigationView.SelectedItem = navigationView.MenuItems.OfType<NavigationViewItem>().First();
-        
+
         this.WhenActivated(d => d(ViewModel!.ShowDialog.RegisterHandler(DoShowDialogAsync)));
     }
 

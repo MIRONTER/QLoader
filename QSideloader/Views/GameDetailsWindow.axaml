@@ -18,9 +18,9 @@
     <Design.DataContext>
         <viewModels:GameDetailsViewModel />
     </Design.DataContext>
-    
+
     <Window.Resources>
-        <helpers:BitmapAssetValueConverter x:Key="VariableImageFromAssets"/>
+        <helpers:BitmapAssetValueConverter x:Key="VariableImageFromAssets" />
         <helpers:BitmapImageFileValueConverter x:Key="VariableImageFromFiles" />
     </Window.Resources>
 
@@ -46,7 +46,8 @@
                            Margin="0,0,0,12"
                            FontWeight="Light"
                            Text="{Binding Game.ReleaseName}" />
-                <Image Grid.Row="2" Grid.Column="0" Source="{Binding ThumbnailPath, Converter={StaticResource VariableImageFromFiles}}"
+                <Image Grid.Row="2" Grid.Column="0"
+                       Source="{Binding ThumbnailPath, Converter={StaticResource VariableImageFromFiles}}"
                        MaxWidth="505"
                        MaxHeight="300"
                        VerticalAlignment="Top"
@@ -56,7 +57,8 @@
                       Margin="24,0,0,0">
                     <Button Grid.Row="0" Grid.Column="0" Command="{Binding DownloadAndInstall}">Download &amp; Install</Button>
                     <Button Grid.Row="0" Grid.Column="1" Margin="12,0,0,0" IsEnabled="False">Download</Button>
-                    <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" Margin="1,4,0,0" FontWeight="Light" Text="{Binding Game.GameSize, StringFormat={}Download size: {0}MB}" />
+                    <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" Margin="1,4,0,0" FontWeight="Light"
+                               Text="{Binding Game.GameSize, StringFormat={}Download size: {0}MB}" />
                     <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2"
                                Margin="0,12,0,0"
                                HorizontalAlignment="Left"
@@ -69,9 +71,9 @@
                                Margin="0,12,0,0"
                                HorizontalAlignment="Left"
                                Width="400"
-                               TextWrapping="Wrap" 
+                               TextWrapping="Wrap"
                                IsVisible="{Binding Game.IsNoteAvailable}"
-                               Text="{Binding Game.Note, StringFormat={}Note: {0}}"/>
+                               Text="{Binding Game.Note, StringFormat={}Note: {0}}" />
                 </Grid>
             </Grid>
         </Panel>

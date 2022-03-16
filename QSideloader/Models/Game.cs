@@ -41,7 +41,8 @@ public class Game : INotifyPropertyChanged
 
     public int GameSize { get; protected set; }
 
-    [FieldHidden] [JsonIgnoreAttribute]
+    [FieldHidden]
+    [JsonIgnoreAttribute]
     public bool IsSelected
     {
         get => _isSelected;

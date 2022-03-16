@@ -24,7 +24,7 @@ public class MainWindowViewModel : ViewModelBase
             await ShowDialog.Handle(gameDetails);
         });
     }
-    
+
     public void QueueForInstall(Game game)
     {
         Dispatcher.UIThread.InvokeAsync(() =>
@@ -36,8 +36,9 @@ public class MainWindowViewModel : ViewModelBase
         });
         Log.Information("Queued for install: {ReleaseName}", game.ReleaseName);
     }
+
     [Reactive] public ObservableCollection<TaskView> TaskList { get; set; } = new();
-    
+
     public ICommand ShowGameDetailsCommand { get; }
     public Interaction<GameDetailsViewModel, GameViewModel?> ShowDialog { get; }
 }

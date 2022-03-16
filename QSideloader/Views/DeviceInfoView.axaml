@@ -39,7 +39,7 @@
             </Style.Animations>
         </Style>
     </UserControl.Styles>-->
-    
+
 
     <Border BorderBrush="#171717"
             BorderThickness="0"
@@ -64,7 +64,7 @@
                    Height="87"
                    HorizontalAlignment="Left"
                    Margin="0,0,0,12"
-                   IsVisible="{Binding IsQuest2}"/>
+                   IsVisible="{Binding IsQuest2}" />
             <Image Grid.Row="1" Grid.Column="0"
                    Grid.RowSpan="3"
                    Source="/Assets/quest1.png"
@@ -72,20 +72,20 @@
                    Height="87"
                    HorizontalAlignment="Left"
                    Margin="0,0,0,12"
-                   IsVisible="{Binding IsQuest1}"/>
+                   IsVisible="{Binding IsQuest1}" />
             <TextBlock Grid.Row="1" Grid.Column="1"
                        VerticalAlignment="Center"
                        Text="{Binding FriendlyName}" />
             <TextBlock Grid.Row="2" Grid.Column="1" VerticalAlignment="Center">
-                    <TextBlock.Text>
-                        <MultiBinding StringFormat="{}Used: {0}GB      Free: {1}GB">
-                            <Binding Path="SpaceUsed" />
-                            <Binding Path="SpaceFree" />
-                        </MultiBinding>
-                    </TextBlock.Text>
-                </TextBlock>
-                <TextBlock Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" 
-                           Text="{Binding BatteryLevel, StringFormat={}Battery level: {0}%}" />
+                <TextBlock.Text>
+                    <MultiBinding StringFormat="{}Used: {0}GB      Free: {1}GB">
+                        <Binding Path="SpaceUsed" />
+                        <Binding Path="SpaceFree" />
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
+            <TextBlock Grid.Row="3" Grid.Column="1" VerticalAlignment="Center"
+                       Text="{Binding BatteryLevel, StringFormat={}Battery level: {0}%}" />
         </Grid>
     </Border>
 </UserControl>

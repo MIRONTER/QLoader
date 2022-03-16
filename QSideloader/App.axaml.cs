@@ -56,11 +56,11 @@ public class App : Application
             File.Delete(humanReadableLogPath);
         if (File.Exists(jsonLogPath) && new FileInfo(jsonLogPath).Length > 5000000)
             File.Delete(jsonLogPath);
-        
+
         var humanReadableLogger = new LoggerConfiguration().MinimumLevel.Debug()
             .WriteTo.File(humanReadableLogPath, fileSizeLimitBytes: 3000000)
             .CreateLogger();
-        
+
         Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
             .Enrich.WithThreadId().Enrich.WithThreadName()
             .Enrich.WithExceptionDetails()
@@ -70,7 +70,7 @@ public class App : Application
                 "{Exception} {Properties:j}{NewLine}{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}")
             .WriteTo.File(new JsonFormatter(renderMessage: true), jsonLogPath, fileSizeLimitBytes: 3000000)
             .CreateLogger();
-        
+
         LogStartMessage(Log.Logger);
 
         // Log all exceptions

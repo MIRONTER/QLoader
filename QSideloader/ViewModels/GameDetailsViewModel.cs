@@ -30,6 +30,7 @@ public class GameDetailsViewModel
         Game = new Game("GameName", "ReleaseName", 1337, "NoteText");
         DownloadAndInstall = ReactiveCommand.CreateFromObservable(DownloadAndInstallImpl);
     }
+
     public GameDetailsViewModel(Game game)
     {
         _adbService = ServiceContainer.AdbService;
@@ -45,7 +46,7 @@ public class GameDetailsViewModel
         else if (File.Exists(pngPath))
             ThumbnailPath = pngPath;
     }
-    
+
     private IObservable<Unit> DownloadAndInstallImpl()
     {
         return Observable.Start(() =>
