@@ -11,6 +11,7 @@ using QSideloader.ViewModels;
 using QSideloader.Views;
 using Serilog;
 using Serilog.Exceptions;
+using Serilog.Formatting.Compact;
 using Serilog.Formatting.Json;
 
 namespace QSideloader;
@@ -99,7 +100,7 @@ public class App : Application
             .WriteTo.Debug(
                 outputTemplate:
                 "{Exception} {Properties:j}{NewLine}{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}")
-            .WriteTo.File(new JsonFormatter(renderMessage: true), jsonLogPath, fileSizeLimitBytes: 3000000)
+            .WriteTo.File(new RenderedCompactJsonFormatter(), jsonLogPath, fileSizeLimitBytes: 3000000)
             .WriteTo.Logger(consoleLogger)
             .CreateLogger();
     }
