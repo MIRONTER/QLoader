@@ -23,6 +23,7 @@ namespace QSideloader.Services;
 
 public class AdbService
 {
+    private List<AdbDevice> _deviceList = new();
     private static readonly SemaphoreSlim DeviceSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim AdbServerSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim SideloadSemaphoreSlim = new(1, 1);
@@ -36,6 +37,11 @@ public class AdbService
 
     private AdbServerClient Adb { get; } = new();
     public AdbDevice? Device { get; private set; }
+    public IReadOnlyList<AdbDevice> DeviceList
+    {
+        get => _deviceList.AsReadOnly();
+        private set => _deviceList = value.ToList();
+    }
     private DeviceMonitor? Monitor { get; set; }
 
     public event EventHandler? DeviceOnline;
@@ -45,6 +51,7 @@ public class AdbService
     // TODO: make use of DeviceUnauthorized event
     public event EventHandler? DeviceUnauthorized;
     public event EventHandler? PackageListChanged;
+    public event EventHandler? DeviceListChanged;
 
     private string? RunShellCommand(DeviceData device, string command, bool logCommand = false)
     {
@@ -57,6 +64,7 @@ public class AdbService
         }
         catch
         {
+            // TODO: throw exception instead of returning null
             return null;
         }
 
@@ -84,19 +92,27 @@ public class AdbService
             DeviceSemaphoreSlim.Wait();
             if (Device is not null && !assumeOffline)
             {
-                connectionStatus = Device.RunShellCommand("echo 1")?.Trim() == "1";
-                if (!connectionStatus)
-                    OnDeviceOffline(new DeviceDataEventArgs(Device));
+                connectionStatus = PingDevice(Device);
             }
-            else
+            if (!connectionStatus)
             {
-                if (TryFindDevice(out var foundDevice))
-                    connectionStatus = RunShellCommand(foundDevice!, "echo 1")?.Trim() == "1";
+                DeviceData? foundDevice = null;
+                ScanDevices();
+                foreach (var device in DeviceList)
+                {
+                    connectionStatus = PingDevice(device);
+                    if (!connectionStatus) continue;
+                    foundDevice = device;
+                    break;
+                }
 
-                if (Device is null && connectionStatus)
-                    OnDeviceOnline(new DeviceDataEventArgs(foundDevice));
-                else if (Device is not null && !connectionStatus) // || FirstDeviceSearch)
-                    OnDeviceOffline(new DeviceDataEventArgs(Device));
+                if ((Device is null || Device?.Serial != foundDevice?.Serial) && foundDevice is not null && connectionStatus)
+                {
+                    var device = new AdbDevice(foundDevice, this);
+                    OnDeviceOnline(new AdbDeviceEventArgs(device));
+                }
+                else if (Device is not null && !connectionStatus)
+                    OnDeviceOffline(new AdbDeviceEventArgs(Device));
             }
         }
         finally
@@ -108,6 +124,20 @@ public class AdbService
         return connectionStatus;
     }
 
+    private void ScanDevices()
+    {
+        try
+        {
+            EnsureADBRunning();
+        }
+        catch
+        {
+            return;
+        }
+        DeviceList = GetOculusDevices();
+        DeviceListChanged?.Invoke(this, EventArgs.Empty);
+    }
+    
     private void EnsureADBRunning()
     {
         try
@@ -182,6 +212,11 @@ public class AdbService
             AdbServerSemaphoreSlim.Release();
         }
     }
+    
+    private bool PingDevice(DeviceData device)
+    {
+        return device.State == DeviceState.Online && RunShellCommand(device, "echo 1")?.Trim() == "1";
+    }
 
     private void StartDeviceMonitor(bool restart)
     {
@@ -199,10 +234,15 @@ public class AdbService
         switch (e.Device.State)
         {
             case DeviceState.Online:
+                if (DeviceList.All(x => x.Serial != e.Device.Serial))
+                    ScanDevices();
                 ValidateDeviceConnection();
                 break;
-            case DeviceState.Offline when e.Device.Serial == Device?.Serial:
-                ValidateDeviceConnection(true);
+            case DeviceState.Offline:
+                if (e.Device.Serial == Device?.Serial)
+                    ValidateDeviceConnection(true);
+                else
+                    ScanDevices();
                 break;
             case DeviceState.Unauthorized:
                 DeviceUnauthorized?.Invoke(sender, e);
@@ -219,17 +259,17 @@ public class AdbService
         }
     }
 
-    private void OnDeviceOffline(EventArgs e)
+    private void OnDeviceOffline(AdbDeviceEventArgs e)
     {
-        Log.Information("Device Disconnected");
+        Log.Information("Device {Device} disconnected", e.Device);
         DeviceOffline?.Invoke(this, e);
         Device = null;
     }
 
-    private void OnDeviceOnline(DeviceDataEventArgs e)
+    private void OnDeviceOnline(AdbDeviceEventArgs e)
     {
-        Log.Information("Device Connected");
-        Device = new AdbDevice(e.Device, this, GetHashedId(e.Device.Serial));
+        Log.Information("Connected to device {Device}", e.Device);
+        Device = e.Device;
         if (!FirstDeviceSearch)
             DeviceOnline?.Invoke(this, e);
     }
@@ -243,8 +283,10 @@ public class AdbService
         return hashedId;
     }
 
-    private bool TryFindDevice(out DeviceData? foundDevice)
+    private List<AdbDevice> GetOculusDevices()
     {
+        Log.Debug("Scanning connected devices");
+        List<AdbDevice> oculusDeviceList = new();
         var deviceList = Adb.AdbClient.GetDevices();
         if (deviceList.Count > 0)
         {
@@ -254,15 +296,16 @@ public class AdbService
                 if (IsOculusQuest(device))
                 {
                     //Log.Information("Found Oculus Quest device. SN: " + device.Serial);
-                    Log.Information("Found Oculus Quest device. Hashed ID: {HashedDeviceId}", hashedDeviceId);
-                    foundDevice = device;
-                    return true;
+                    var adbDevice = new AdbDevice(device, this);
+                    oculusDeviceList.Add(adbDevice);
+                    Log.Information("Found Oculus Quest device: {Device}", adbDevice);
+                    continue;
                 }
 
                 if (device.State == DeviceState.Unauthorized)
-                    Log.Warning("Found device in Unauthorized state! Hashed ID: {HashedDeviceId}", hashedDeviceId);
+                    Log.Warning("Found device in Unauthorized state! ({HashedDeviceId})", hashedDeviceId);
                 else
-                    Log.Information("Not an Oculus Quest device! Hashed ID: {HashedDeviceId}", hashedDeviceId);
+                    Log.Information("Not an Oculus Quest device! ({HashedDeviceId})", hashedDeviceId);
             }
         }
         else
@@ -270,8 +313,24 @@ public class AdbService
             Log.Warning("No ADB devices found");
         }
 
-        foundDevice = null;
-        return false;
+        return Globals.SideloaderSettings.PreferredConnectionType switch
+        {
+            "USB" => oculusDeviceList.OrderBy(x => x.IsWireless).ToList(),
+            "Wireless" => oculusDeviceList.OrderByDescending(x => x.IsWireless).ToList(),
+            _ => oculusDeviceList
+        };
+    }
+
+    public void TrySwitchDevice(AdbDevice device)
+    {
+        if (device.Serial == Device?.Serial) return;
+        if (device.State != DeviceState.Online || !PingDevice(device))
+        {
+            Log.Debug("Attempted switch to offline device {Device}", device);
+            return;
+        }
+        Log.Information("Switching to device {Device}", device);
+        OnDeviceOnline(new AdbDeviceEventArgs(device));
     }
 
     private static bool IsOculusQuest(DeviceData device)
@@ -301,9 +360,23 @@ public class AdbService
         private static readonly SemaphoreSlim DeviceInfoSemaphoreSlim = new(1, 1);
         private static readonly SemaphoreSlim PackagesSemaphoreSlim = new(1, 1);
 
-        public AdbDevice(DeviceData deviceData, AdbService adbService, string hashedId)
+        public AdbDevice(DeviceData deviceData, AdbService adbService)
         {
+            AdbService = adbService;
+            Adb = adbService.Adb;
+            
             Serial = deviceData.Serial;
+            IsWireless = deviceData.Serial.Contains('.');
+            try
+            {
+                // corrected serial for wireless connection
+                RealSerial = AdbService.RunShellCommand(deviceData, "getprop ro.boot.serialno") ?? deviceData.Serial;
+            }
+            catch
+            {
+                // ignored
+            }
+
             State = deviceData.State;
             Model = deviceData.Model;
             Product = deviceData.Product;
@@ -320,16 +393,20 @@ public class AdbService
                 _ => "Unknown?"
             };
 
-            ADBService = adbService;
-            ADB = adbService.Adb;
-            HashedId = hashedId;
-            PackageManager = new PackageManager(ADB.AdbClient, this, true);
+            HashedId = GetHashedId(RealSerial?? Serial);
+            
+            PackageManager = new PackageManager(Adb.AdbClient, this, true);
             RefreshProps();
+        }
+
+        public override string ToString()
+        {
+            return IsWireless ? $"{HashedId} (wireless)" : HashedId;
         }
 
         public string? RunShellCommand(string command, bool logCommand = false)
         {
-            return ADBService.RunShellCommand(this, command, logCommand);
+            return AdbService.RunShellCommand(this, command, logCommand);
         }
 
         public void RefreshInstalledPackages()
@@ -384,7 +461,7 @@ public class AdbService
 
         private void RefreshProps()
         {
-            DeviceProps = ADB.AdbClient.GetProperties(this);
+            DeviceProps = Adb.AdbClient.GetProperties(this);
         }
 
         public List<InstalledGame> GetInstalledGames()
@@ -416,7 +493,7 @@ public class AdbService
         private void PushFile(string localPath, string remotePath)
         {
             Log.Debug("Pushing file: \"{LocalPath}\" -> \"{RemotePath}\"", localPath, remotePath);
-            using var syncService = new SyncService(ADB.AdbClient, this);
+            using var syncService = new SyncService(Adb.AdbClient, this);
             using var file = File.OpenRead(localPath);
             syncService.Push(file, remotePath, 771, DateTime.Now, null, CancellationToken.None);
         }
@@ -481,7 +558,7 @@ public class AdbService
                     }
 
                     Log.Information("Installed game {GameName}", game.GameName);
-                    ADBService.PackageListChanged?.Invoke(this, EventArgs.Empty);
+                    AdbService.PackageListChanged?.Invoke(this, EventArgs.Empty);
                     observer.OnCompleted();
                 }
                 catch (Exception e)
@@ -578,7 +655,7 @@ public class AdbService
         {
             _ = game.PackageName ?? throw new ArgumentException("game.PackageName is null");
             UninstallPackage(game.PackageName);
-            ADBService.PackageListChanged?.Invoke(this, EventArgs.Empty);
+            AdbService.PackageListChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void InstallPackage(string apkPath, bool reinstall, bool grantRuntimePermissions)
@@ -593,7 +670,7 @@ public class AdbService
             // if (grantRuntimePermissions)
             //     args.Add("-g");
             // using Stream stream = File.OpenRead(apkPath);
-            // ADB.AdbClient.Install(this, stream, args.ToArray());
+            // Adb.AdbClient.Install(this, stream, args.ToArray());
             Log.Information("Package installed");
         }
 
@@ -602,7 +679,7 @@ public class AdbService
             Log.Information("Uninstalling package {PackageName}", packageName);
             try
             {
-                ADB.AdbClient.UninstallPackage(this, packageName);
+                Adb.AdbClient.UninstallPackage(this, packageName);
             }
             catch (PackageInstallationException e)
             {
@@ -628,11 +705,23 @@ public class AdbService
         public float BatteryLevel { get; private set; }
         private List<string> InstalledPackages { get; set; } = new();
         public string FriendlyName { get; }
-        private string HashedId { get; }
-        private AdbServerClient ADB { get; }
-        private AdbService ADBService { get; }
+        public string HashedId { get; }
+        public string? RealSerial { get; }
+        public bool IsWireless { get; }
+        private AdbServerClient Adb { get; }
+        private AdbService AdbService { get; }
 
         #endregion
+    }
+    
+    public class AdbDeviceEventArgs : EventArgs
+    {
+        public AdbDeviceEventArgs(AdbDevice device)
+        {
+            this.Device = device;
+        }
+
+        public AdbDevice Device { get; private set; }
     }
 }
 

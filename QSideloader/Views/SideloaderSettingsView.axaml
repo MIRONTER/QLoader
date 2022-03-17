@@ -22,6 +22,8 @@
                 <ToggleSwitch IsChecked="{Binding CheckUpdatesOnLaunch, Mode=TwoWay}">Check for updates on launch</ToggleSwitch>
                 <Button VerticalAlignment="Bottom" Margin="20,0,0,8">Check Now</Button>
             </StackPanel>
+            <TextBlock VerticalAlignment="Center">Preferred connection type</TextBlock>
+            <ComboBox Margin="0,4,0,0" Items="{Binding ConnectionTypes}" SelectedItem="{Binding PreferredConnectionType}" />
             <TextBlock Margin="0,8,0,0">Downloads location</TextBlock>
             <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
                 <TextBox MinWidth="250" Padding="10,5,10,6"
@@ -31,9 +33,7 @@
             </StackPanel>
             <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding DeleteAfterInstall}" IsEnabled="False">Delete files after install</ToggleSwitch>
             <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding EnableDebugConsole}" IsVisible="{Binding IsWindows}">Show debug console (relaunch to apply)</ToggleSwitch>
-            <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
-                <Button IsEnabled="False">Clear log files</Button>
-            </StackPanel>
+            <Button Margin="0,8,0,0" IsEnabled="False">Clear log files</Button>
         </StackPanel>
     </Border>
 </UserControl>

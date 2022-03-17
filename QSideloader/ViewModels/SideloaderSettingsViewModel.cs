@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
@@ -35,11 +36,13 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
     }
 
     [JsonProperty] private byte ConfigVersion { get; } = 1;
-    [Reactive] [JsonProperty] public bool CheckUpdatesOnLaunch { get; set; }
-    [Reactive] public string DownloadsLocationTextBoxText { get; set; } = "";
-    [JsonProperty] public string DownloadsLocation { get; set; } = "";
-    [Reactive] [JsonProperty] public bool DeleteAfterInstall { get; set; }
-    [Reactive] [JsonProperty] public bool EnableDebugConsole { get; set; }
+    [Reactive] [JsonProperty] public bool CheckUpdatesOnLaunch { get; private set; }
+    public string[] ConnectionTypes { get; } = {"USB", "Wireless"};
+    [Reactive] [JsonProperty] public string? PreferredConnectionType { get; private set; }
+    [Reactive] public string DownloadsLocationTextBoxText { get; private set; } = "";
+    [JsonProperty] public string DownloadsLocation { get; private set; } = "";
+    [Reactive] [JsonProperty] public bool DeleteAfterInstall { get; private set; }
+    [Reactive] [JsonProperty] public bool EnableDebugConsole { get; private set; }
     public bool IsWindows { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
     private ReactiveCommand<Unit, Unit> SaveSettings { get; }
     private ReactiveCommand<Unit, Unit> RestoreDefaults { get; }
@@ -52,6 +55,7 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
     private void InitDefaults()
     {
         CheckUpdatesOnLaunch = true;
+        PreferredConnectionType = ConnectionTypes[0];
         DownloadsLocation = Path.Combine(Environment.CurrentDirectory, "downloads");
         DownloadsLocationTextBoxText = DownloadsLocation;
         DeleteAfterInstall = false;
@@ -64,6 +68,7 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
 
     private void ValidateSettings()
     {
+        var saveNeeded = false;
         if (!Directory.Exists(DownloadsLocation))
         {
             var defaultLocation = Path.Combine(Environment.CurrentDirectory, "downloads");
@@ -71,16 +76,27 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
             {
                 Directory.CreateDirectory(defaultLocation);
                 DownloadsLocationTextBoxText = DownloadsLocation;
-                return;
             }
+            else
+            {
+                Log.Debug("Downloads location is invalid, resetting");
+                Directory.CreateDirectory(defaultLocation);
+                DownloadsLocation = defaultLocation;
+                saveNeeded = true;
+            }
+            
+        }
 
-            Log.Debug("Downloads location is invalid, resetting");
-            Directory.CreateDirectory(defaultLocation);
-            DownloadsLocation = defaultLocation;
-            SaveSettings.Execute().Subscribe();
+        if (!ConnectionTypes.Contains(PreferredConnectionType))
+        {
+            Log.Debug("Preferred connection type is invalid, resetting");
+            PreferredConnectionType = ConnectionTypes[0];
+            saveNeeded = true;
         }
 
         DownloadsLocationTextBoxText = DownloadsLocation;
+        if (saveNeeded)
+            SaveSettings.Execute().Subscribe();
     }
 
     private void LoadSettings()
