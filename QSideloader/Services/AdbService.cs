@@ -158,6 +158,38 @@ public class AdbService
             DeviceListSemaphoreSlim.Release();
         }
     }
+
+    // Respect preferred connection type
+    private void CheckConnectionPreference()
+    {
+        if (Device is null) return;
+        var preferredConnectionType = _sideloaderSettings.PreferredConnectionType;
+        switch (Device.IsWireless)
+        {
+            case true when preferredConnectionType == "USB":
+            {
+                if (DeviceList.FirstOrDefault(x => x.TrueSerial == Device.TrueSerial && !x.IsWireless) is
+                    { } preferredDevice)
+                {
+                    Log.Information("Auto-switching to preferred connection type ({ConnectionType})", 
+                        preferredConnectionType);
+                    TrySwitchDevice(preferredDevice);
+                }
+                break;
+            }
+            case true when preferredConnectionType == "Wireless":
+            {
+                if (DeviceList.FirstOrDefault(x => x.TrueSerial == Device.TrueSerial && x.IsWireless) is
+                    { } preferredDevice)
+                {
+                    Log.Information("Auto-switching to preferred connection type ({ConnectionType})", 
+                        preferredConnectionType);
+                    TrySwitchDevice(preferredDevice);
+                }
+                break;
+            }
+        }
+    }
     
     private void EnsureADBRunning()
     {
@@ -267,7 +299,10 @@ public class AdbService
                 if (e.Device.Serial == Device?.Serial)
                     ValidateDeviceConnection(true);
                 else
+                {
                     RefreshDeviceList();
+                    CheckConnectionPreference();
+                }
                 break;
             case DeviceState.Unauthorized:
                 DeviceUnauthorized?.Invoke(sender, e);
@@ -799,7 +834,7 @@ public class AdbService
         private List<string> InstalledPackages { get; set; } = new();
         public string FriendlyName { get; }
         private string HashedId { get; }
-        private string? TrueSerial { get; }
+        public string? TrueSerial { get; }
         public bool IsWireless { get; }
         private AdbServerClient Adb { get; }
         private AdbService AdbService { get; }
