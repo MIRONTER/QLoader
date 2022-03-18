@@ -142,7 +142,7 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
                 {
                     var tmpPath = PathHelper.SettingsPath + ".tmp";
                     File.WriteAllText(tmpPath, json);
-                    File.Move(tmpPath, PathHelper.SettingsPath);
+                    File.Move(tmpPath, PathHelper.SettingsPath, true);
                     File.Delete(tmpPath);
                 }
 
