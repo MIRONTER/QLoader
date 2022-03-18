@@ -17,6 +17,7 @@ using CliWrap;
 using CliWrap.Buffered;
 using QSideloader.Helpers;
 using QSideloader.Models;
+using QSideloader.ViewModels;
 using Serilog;
 
 namespace QSideloader.Services;
@@ -24,13 +25,22 @@ namespace QSideloader.Services;
 public class AdbService
 {
     private List<AdbDevice> _deviceList = new();
+    private SideloaderSettingsViewModel _sideloaderSettings;
     private static readonly SemaphoreSlim DeviceSemaphoreSlim = new(1, 1);
+    private static readonly SemaphoreSlim DeviceListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim AdbServerSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim SideloadSemaphoreSlim = new(1, 1);
 
     public AdbService()
     {
-        Task.Run(() => { ValidateDeviceConnection(); });
+        _sideloaderSettings = Globals.SideloaderSettings;
+        Task.Run(async () =>
+        {
+            ValidateDeviceConnection();
+            var lastWirelessAdbHost = _sideloaderSettings.LastWirelessAdbHost;
+            if (!string.IsNullOrEmpty(lastWirelessAdbHost))
+                await TryConnectWirelessAdbAsync(lastWirelessAdbHost);
+        });
     }
 
     private bool FirstDeviceSearch { get; set; } = true;
@@ -97,7 +107,7 @@ public class AdbService
             if (!connectionStatus)
             {
                 DeviceData? foundDevice = null;
-                ScanDevices();
+                RefreshDeviceList();
                 foreach (var device in DeviceList)
                 {
                     connectionStatus = PingDevice(device);
@@ -124,18 +134,29 @@ public class AdbService
         return connectionStatus;
     }
 
-    private void ScanDevices()
+    private void RefreshDeviceList()
     {
         try
         {
-            EnsureADBRunning();
+            var skipScan = DeviceListSemaphoreSlim.CurrentCount == 0;
+            DeviceListSemaphoreSlim.Wait();
+            try
+            {
+                EnsureADBRunning();
+            }
+            catch
+            {
+                return;
+            }
+
+            if (skipScan) return;
+            DeviceList = GetOculusDevices();
+            DeviceListChanged?.Invoke(this, EventArgs.Empty);
         }
-        catch
+        finally
         {
-            return;
+            DeviceListSemaphoreSlim.Release();
         }
-        DeviceList = GetOculusDevices();
-        DeviceListChanged?.Invoke(this, EventArgs.Empty);
     }
     
     private void EnsureADBRunning()
@@ -221,7 +242,11 @@ public class AdbService
     private void StartDeviceMonitor(bool restart)
     {
         if (Monitor is null || restart)
+        {
+            if (Monitor is not null)
+                Monitor.DeviceChanged -= OnDeviceChanged;
             Monitor = new DeviceMonitor(new AdbSocket(new IPEndPoint(IPAddress.Loopback, 5037)));
+        }
         if (Monitor.IsRunning) return;
         Monitor.DeviceChanged += OnDeviceChanged;
         Monitor.Start();
@@ -235,14 +260,14 @@ public class AdbService
         {
             case DeviceState.Online:
                 if (DeviceList.All(x => x.Serial != e.Device.Serial))
-                    ScanDevices();
+                    RefreshDeviceList();
                 ValidateDeviceConnection();
                 break;
             case DeviceState.Offline:
                 if (e.Device.Serial == Device?.Serial)
                     ValidateDeviceConnection(true);
                 else
-                    ScanDevices();
+                    RefreshDeviceList();
                 break;
             case DeviceState.Unauthorized:
                 DeviceUnauthorized?.Invoke(sender, e);
@@ -285,7 +310,7 @@ public class AdbService
 
     private List<AdbDevice> GetOculusDevices()
     {
-        Log.Debug("Scanning connected devices");
+        Log.Information("Searching for devices");
         List<AdbDevice> oculusDeviceList = new();
         var deviceList = Adb.AdbClient.GetDevices();
         if (deviceList.Count > 0)
@@ -296,9 +321,17 @@ public class AdbService
                 if (IsOculusQuest(device))
                 {
                     //Log.Information("Found Oculus Quest device. SN: " + device.Serial);
-                    var adbDevice = new AdbDevice(device, this);
-                    oculusDeviceList.Add(adbDevice);
-                    Log.Information("Found Oculus Quest device: {Device}", adbDevice);
+                    try
+                    {
+                        var adbDevice = new AdbDevice(device, this);
+                        oculusDeviceList.Add(adbDevice);
+                        Log.Information("Found Oculus Quest device: {Device}", adbDevice);
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
+
                     continue;
                 }
 
@@ -327,10 +360,53 @@ public class AdbService
         if (device.State != DeviceState.Online || !PingDevice(device))
         {
             Log.Debug("Attempted switch to offline device {Device}", device);
+            RefreshDeviceList();
             return;
         }
         Log.Information("Switching to device {Device}", device);
         OnDeviceOnline(new AdbDeviceEventArgs(device));
+    }
+
+    public async Task EnableWirelessAdbAsync(AdbDevice device)
+    {
+        Log.Information("Enabling Wireless ADB");
+        if (device.IsWireless)
+        {
+            Log.Warning("Device {Device} is already wireless!", device);
+            return;
+        }
+
+        try
+        {
+            var host = device.EnableWirelessAdb();
+            await TryConnectWirelessAdbAsync(host, true);
+            _sideloaderSettings.LastWirelessAdbHost = host;
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Failed to enable Wireless ADB");
+        }
+    }
+    
+    private async Task TryConnectWirelessAdbAsync(string host, bool silent = false)
+    {
+        if (!silent)
+            Log.Information("Trying to connect wireless device, host {Host}", host);
+        
+        try
+        {
+            await Task.Delay(1000);
+            Adb.AdbClient.Connect(host);
+            _sideloaderSettings.LastWirelessAdbHost = host;
+            if (!silent)
+                Log.Information("Connected wireless device");
+        }
+        catch
+        {
+            if (!silent)
+                Log.Warning("Couldn't connect wireless device");
+            _sideloaderSettings.LastWirelessAdbHost = "";
+        }
     }
 
     private static bool IsOculusQuest(DeviceData device)
@@ -370,7 +446,7 @@ public class AdbService
             try
             {
                 // corrected serial for wireless connection
-                RealSerial = AdbService.RunShellCommand(deviceData, "getprop ro.boot.serialno") ?? deviceData.Serial;
+                TrueSerial = AdbService.RunShellCommand(deviceData, "getprop ro.boot.serialno") ?? deviceData.Serial;
             }
             catch
             {
@@ -393,7 +469,7 @@ public class AdbService
                 _ => "Unknown?"
             };
 
-            HashedId = GetHashedId(RealSerial?? Serial);
+            HashedId = GetHashedId(TrueSerial ?? Serial);
             
             PackageManager = new PackageManager(Adb.AdbClient, this, true);
             RefreshProps();
@@ -695,6 +771,23 @@ public class AdbService
             }
         }
 
+        public string EnableWirelessAdb()
+        {
+            const int port = 5555;
+            const string ipAddressPattern = @"src ([\d]{1,3}.[\d]{1,3}.[\d]{1,3}.[\d]{1,3})";
+            RunShellCommand("settings put global wifi_on 1");
+            RunShellCommand("settings put global wifi_wakeup_available 1");
+            RunShellCommand("settings put global wifi_wakeup_enabled 1");
+            RunShellCommand("settings put global wifi_sleep_policy 2");
+            RunShellCommand("settings put global wifi_suspend_optimizations_enabled 0");
+            RunShellCommand("settings put global wifi_watchdog_poor_network_test_enabled 0");
+            RunShellCommand("svc wifi enable");
+            var ipRouteOutput = RunShellCommand("ip route");
+            var ipAddress = Regex.Match(ipRouteOutput!, ipAddressPattern).Groups[1].ToString();
+            Adb.AdbClient.TcpIp(this, port);
+            return ipAddress;
+        }
+
         #region Properties
 
         private PackageManager? PackageManager { get; }
@@ -705,8 +798,8 @@ public class AdbService
         public float BatteryLevel { get; private set; }
         private List<string> InstalledPackages { get; set; } = new();
         public string FriendlyName { get; }
-        public string HashedId { get; }
-        public string? RealSerial { get; }
+        private string HashedId { get; }
+        private string? TrueSerial { get; }
         public bool IsWireless { get; }
         private AdbServerClient Adb { get; }
         private AdbService AdbService { get; }
@@ -718,10 +811,10 @@ public class AdbService
     {
         public AdbDeviceEventArgs(AdbDevice device)
         {
-            this.Device = device;
+            Device = device;
         }
 
-        public AdbDevice Device { get; private set; }
+        public AdbDevice Device { get; }
     }
 }
 

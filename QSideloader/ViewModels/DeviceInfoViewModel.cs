@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Timers;
 using AdvancedSharpAdbClient;
 using Avalonia.Threading;
@@ -27,6 +28,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         Activator = new ViewModelActivator();
         Refresh = ReactiveCommand.CreateFromObservable(RefreshImpl);
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
+        EnableWirelessAdb = ReactiveCommand.CreateFromTask(EnableWirelessAdbImpl);
         Refresh.Execute().Subscribe();
         SetRefreshTimer(true);
         PropertyChanged += OnPropertyChanged;
@@ -47,6 +49,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     }
 
     private ReactiveCommand<Unit, Unit> Refresh { get; }
+    private ReactiveCommand<Unit, Unit> EnableWirelessAdb { get; }
 
     public bool IsBusy => _isBusy.Value;
 
@@ -57,6 +60,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] public float SpaceFree { get; private set; }
     [Reactive] public float BatteryLevel { get; private set; }
     [Reactive] public bool IsDeviceConnected { get; set; }
+    [Reactive] public bool IsDeviceWireless { get; set; }
     [Reactive] public AdbService.AdbDevice? CurrentDevice { get; set; }
     [Reactive] public List<AdbService.AdbDevice> DeviceList { get; set; } = new();
     public ViewModelActivator Activator { get; }
@@ -88,6 +92,16 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
             RefreshProps();
         });
     }
+    
+    private async Task EnableWirelessAdbImpl()
+    {
+        if (!_adbService.ValidateDeviceConnection())
+        {
+            Log.Warning("EnableWirelessAdbImpl: no device connection!");
+            return;
+        }
+        await _adbService.EnableWirelessAdbAsync(_adbService.Device!);
+    }
 
     private void RefreshDeviceInfo()
     {
@@ -101,7 +115,8 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         }
 
         IsDeviceConnected = true;
-        _adbService.Device!.RefreshInfo();
+        IsDeviceWireless = _adbService.Device!.IsWireless;
+        _adbService.Device.RefreshInfo();
         _adbService.Device.RefreshInstalledPackages();
     }
 

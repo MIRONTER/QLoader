@@ -98,6 +98,7 @@
                 </ComboBox.ItemTemplate>
                 <ToolTip.Tip>Connected Device</ToolTip.Tip>
             </ComboBox>
+            <Button Grid.Row="0" Grid.RowSpan="4" Grid.Column="2" Margin="8" IsVisible="{Binding !IsDeviceWireless}" Command="{Binding EnableWirelessAdb}">Enable Wireless ADB</Button>
         </Grid>
     </Border>
 </UserControl>
