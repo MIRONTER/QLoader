@@ -177,7 +177,7 @@ public class AdbService
                 }
                 break;
             }
-            case true when preferredConnectionType == "Wireless":
+            case false when preferredConnectionType == "Wireless":
             {
                 if (DeviceList.FirstOrDefault(x => x.TrueSerial == Device.TrueSerial && x.IsWireless) is
                     { } preferredDevice)
@@ -562,7 +562,14 @@ public class AdbService
                                     throw new AdbServiceException(
                                         "RefreshInfo: dumpsys RunShellCommand returned null");
                 BatteryLevel = int.Parse(Regex.Match(dumpsysOutput, @"[0-9]{1,3}").ToString());
-                Log.Debug("Refreshed");
+                Log.Debug("Refreshed device info");
+            }
+            catch
+            {
+                SpaceTotal = 0;
+                SpaceUsed = 0;
+                SpaceFree = 0;
+                Log.Debug("Failed to refresh device info");
             }
             finally
             {
@@ -810,7 +817,6 @@ public class AdbService
         {
             const int port = 5555;
             const string ipAddressPattern = @"src ([\d]{1,3}.[\d]{1,3}.[\d]{1,3}.[\d]{1,3})";
-            RunShellCommand("settings put global wifi_on 1");
             RunShellCommand("settings put global wifi_wakeup_available 1");
             RunShellCommand("settings put global wifi_wakeup_enabled 1");
             RunShellCommand("settings put global wifi_sleep_policy 2");

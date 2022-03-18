@@ -31,13 +31,19 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         EnableWirelessAdb = ReactiveCommand.CreateFromTask(EnableWirelessAdbImpl);
         Refresh.Execute().Subscribe();
         SetRefreshTimer(true);
-        PropertyChanged += OnPropertyChanged;
         this.WhenActivated(disposables =>
         {
             _adbService.DeviceOnline += OnDeviceOnline;
             _adbService.DeviceOffline += OnDeviceOffline;
             _adbService.PackageListChanged += OnPackageListChanged;
             _adbService.DeviceListChanged += OnDeviceListChanged;
+            this.WhenAnyValue(x => x.CurrentDevice).Where(x => x is not null && x.Serial != _adbService.Device?.Serial)
+                .DistinctUntilChanged()
+                .Subscribe(x =>
+                {
+                    _adbService.TrySwitchDevice(x!);
+                    RefreshSelectedDevice();
+                }).DisposeWith(disposables);
             Disposable.Create(() =>
             {
                 _adbService.DeviceOnline -= OnDeviceOnline;
@@ -49,7 +55,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     }
 
     private ReactiveCommand<Unit, Unit> Refresh { get; }
-    private ReactiveCommand<Unit, Unit> EnableWirelessAdb { get; }
+    public ReactiveCommand<Unit, Unit> EnableWirelessAdb { get; }
 
     public bool IsBusy => _isBusy.Value;
 
@@ -160,15 +166,6 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         else
         {
             _refreshTimer?.Stop();
-        }
-    }
-    
-    private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == "CurrentDevice" && CurrentDevice is not null && CurrentDevice.Serial != _adbService.Device?.Serial)
-        {
-            _adbService.TrySwitchDevice(CurrentDevice);
-            RefreshSelectedDevice();
         }
     }
 }
