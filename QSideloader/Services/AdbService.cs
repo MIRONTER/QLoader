@@ -150,7 +150,11 @@ public class AdbService
             }
 
             if (skipScan) return;
-            DeviceList = GetOculusDevices();
+            var deviceList = GetOculusDevices();
+            var listChanged = deviceList.Any(device => DeviceList.All(x => x.Serial != device.Serial)) 
+                               || DeviceList.Any(device => deviceList.All(x => x.Serial != device.Serial));
+            if (!listChanged) return;
+            DeviceList = deviceList;
             DeviceListChanged?.Invoke(this, EventArgs.Empty);
         }
         finally
@@ -292,7 +296,10 @@ public class AdbService
         {
             case DeviceState.Online:
                 if (DeviceList.All(x => x.Serial != e.Device.Serial))
+                {
                     RefreshDeviceList();
+                    //CheckConnectionPreference();
+                }
                 ValidateDeviceConnection();
                 break;
             case DeviceState.Offline:
@@ -301,7 +308,7 @@ public class AdbService
                 else
                 {
                     RefreshDeviceList();
-                    CheckConnectionPreference();
+                    //CheckConnectionPreference();
                 }
                 break;
             case DeviceState.Unauthorized:
