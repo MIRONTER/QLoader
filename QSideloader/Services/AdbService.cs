@@ -440,8 +440,6 @@ public class AdbService
             await Task.Delay(1000);
             Adb.AdbClient.Connect(host);
             _sideloaderSettings.LastWirelessAdbHost = host;
-            if (!silent)
-                Log.Information("Connected wireless device");
         }
         catch
         {
