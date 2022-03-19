@@ -104,7 +104,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private void RefreshProps()
     {
-        Dispatcher.UIThread.InvokeAsync(PopulateAvailableGames);
+        PopulateAvailableGames();
     }
 
     private void PopulateAvailableGames()
@@ -115,11 +115,11 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             return;
         }
 
-        var toAdd = Globals.AvailableGames.Except(AvailableGames).ToList();
+        //var toAdd = Globals.AvailableGames.Except(AvailableGames).ToList();
         var toRemove = AvailableGames.Except(Globals.AvailableGames).ToList();
         _availableGamesSourceCache.Edit(innerCache =>
         {
-            innerCache.AddOrUpdate(toAdd);
+            innerCache.AddOrUpdate(Globals.AvailableGames);
             innerCache.Remove(toRemove);
         });
         // foreach (var addedGame in toAdd)
