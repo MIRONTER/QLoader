@@ -439,7 +439,7 @@ public class AdbService
             return;
         }
         if (!silent)
-            Log.Information("Trying to connect wireless device, host {Host}", host);
+            Log.Debug("Trying to connect wireless device, host {Host}", host);
         
         try
         {
