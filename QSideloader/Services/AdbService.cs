@@ -432,6 +432,12 @@ public class AdbService
     
     private async Task TryConnectWirelessAdbAsync(string host, bool silent = false)
     {
+        if (DeviceList.Any(x => x.Serial.Contains(host)))
+        {
+            if (!silent)
+                Log.Debug("Wireless device on {Host} is already connected, skipping", host);
+            return;
+        }
         if (!silent)
             Log.Information("Trying to connect wireless device, host {Host}", host);
         
