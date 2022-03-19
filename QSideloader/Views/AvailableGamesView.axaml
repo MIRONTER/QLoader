@@ -4,12 +4,18 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:aura="using:Aura.UI.Controls"
              xmlns:vm="using:QSideloader.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="450"
              x:Class="QSideloader.Views.AvailableGamesView">
     <Design.DataContext>
         <vm:AvailableGamesViewModel />
     </Design.DataContext>
     <Grid RowDefinitions="Auto,*">
+        <TextBox Grid.Row="0" 
+                 Margin="8,0,0,0"
+                 HorizontalAlignment="Left" VerticalAlignment="Center" 
+                 Watermark="Search" 
+                 Width="400"
+                 Text="{Binding SearchText, Mode=TwoWay}"></TextBox>
         <StackPanel Grid.Row="0"
                     Orientation="Horizontal"
                     Spacing="12" Margin="8"
