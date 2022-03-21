@@ -33,7 +33,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
 
         this.WhenActivated(disposables =>
         {
-            if (_adbService.ValidateDeviceConnection())
+            if (_adbService.CheckDeviceConnection())
             {
                 IsDeviceConnected = true;
                 RefreshRates = _adbService.Device!.Product switch
@@ -92,7 +92,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
 
     private void LoadCurrentSettings()
     {
-        if (!_adbService.ValidateDeviceConnection()) return;
+        if (!_adbService.CheckDeviceConnection()) return;
         Log.Debug("Loading device settings");
 #pragma warning disable CA1806
         int.TryParse(_adbService.Device!.RunShellCommand("getprop debug.oculus.refreshRate"),
@@ -177,7 +177,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            if (!_adbService.ValidateDeviceConnection())
+            if (!_adbService.CheckDeviceConnection())
             {
                 Log.Warning("ApplySettingsImpl: no device connection!");
                 return;
@@ -411,7 +411,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            if (!_adbService.ValidateDeviceConnection()) return;
+            if (!_adbService.CheckDeviceConnection()) return;
             _adbService.Device!.RunShellCommand("svc usb setFunctions mtp true", true);
             Log.Information("Mounted device storage");
         });
@@ -421,7 +421,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            if (!_adbService.ValidateDeviceConnection()) return;
+            if (!_adbService.CheckDeviceConnection()) return;
             _adbService.Device!.RunShellCommand(
                 "am start -a android.intent.action.VIEW -d com.oculus.tv -e uri com.android.settings/.DevelopmentSettings com.oculus.vrshell/.MainActivity",
                 true);

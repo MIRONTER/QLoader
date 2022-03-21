@@ -65,7 +65,7 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
         DownloadsLocationTextBoxText = DownloadsLocation;
         DeleteAfterInstall = false;
         LastWirelessAdbHost = "";
-        EnableDebugConsole = false;
+        EnableDebugConsole = !IsConsoleToggleable;
     }
 
     private void ValidateSettings()

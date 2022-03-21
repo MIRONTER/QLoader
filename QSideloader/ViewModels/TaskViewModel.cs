@@ -64,7 +64,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         string? gamePath;
         if (Game is null)
             throw new InvalidOperationException("Game is not set");
-        if (!_adbService.ValidateDeviceConnection())
+        if (!_adbService.CheckDeviceConnection())
         {
             Log.Warning("PerformTaskImpl: no device connection!");
             OnFinished("Failed: no device connection");
@@ -129,7 +129,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         Status = "Install queued";
         await AdbService.TakeSideloadLockAsync(CancellationTokenSource.Token);
         Status = "Installing";
-        if (!_adbService.ValidateDeviceConnection())
+        if (!_adbService.CheckDeviceConnection())
         {
             Log.Warning("PerformInstall: no device connection!");
             OnFinished("Install failed");

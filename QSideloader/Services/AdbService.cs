@@ -36,7 +36,7 @@ public class AdbService
         _sideloaderSettings = Globals.SideloaderSettings;
         Task.Run(async () =>
         {
-            ValidateDeviceConnection();
+            CheckDeviceConnection();
             var lastWirelessAdbHost = _sideloaderSettings.LastWirelessAdbHost;
             if (!string.IsNullOrEmpty(lastWirelessAdbHost))
                 await TryConnectWirelessAdbAsync(lastWirelessAdbHost);
@@ -85,7 +85,7 @@ public class AdbService
         return result;
     }
 
-    public bool ValidateDeviceConnection(bool assumeOffline = false)
+    public bool CheckDeviceConnection(bool assumeOffline = false)
     {
         try
         {
@@ -306,11 +306,11 @@ public class AdbService
                     RefreshDeviceList();
                     //CheckConnectionPreference();
                 }
-                ValidateDeviceConnection();
+                CheckDeviceConnection();
                 break;
             case DeviceState.Offline:
                 if (e.Device.Serial == Device?.Serial)
-                    ValidateDeviceConnection(true);
+                    CheckDeviceConnection(true);
                 else
                 {
                     RefreshDeviceList();

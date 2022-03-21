@@ -74,7 +74,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            if (!_adbService.ValidateDeviceConnection())
+            if (!_adbService.CheckDeviceConnection())
             {
                 Log.Warning("UpdateImpl: no device connection!");
                 return;
@@ -94,7 +94,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            if (!_adbService.ValidateDeviceConnection())
+            if (!_adbService.CheckDeviceConnection())
             {
                 Log.Warning("UninstallImpl: no device connection!");
                 return;
@@ -127,7 +127,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private void RefreshInstalledGames()
     {
-        if (!_adbService.ValidateDeviceConnection())
+        if (!_adbService.CheckDeviceConnection())
         {
             Log.Warning("RefreshInstalledGames: no device connection!");
             _installedGames = null;

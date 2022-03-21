@@ -81,7 +81,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            if (!_adbService.ValidateDeviceConnection())
+            if (!_adbService.CheckDeviceConnection())
             {
                 Log.Warning("InstallImpl: no device connection!");
                 return;
