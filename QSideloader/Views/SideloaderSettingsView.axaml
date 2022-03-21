@@ -32,7 +32,7 @@
                 <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding SetDownloadLocation}">Set</Button>
             </StackPanel>
             <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding DeleteAfterInstall}" IsEnabled="False">Delete files after install</ToggleSwitch>
-            <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding EnableDebugConsole}" IsVisible="{Binding IsWindows}">Show debug console (relaunch to apply)</ToggleSwitch>
+            <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding EnableDebugConsole}" IsVisible="{Binding IsConsoleToggleable}">Show debug console (relaunch to apply)</ToggleSwitch>
             <Button Margin="0,8,0,0" IsEnabled="False">Clear log files</Button>
         </StackPanel>
     </Border>

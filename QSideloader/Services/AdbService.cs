@@ -444,6 +444,7 @@ public class AdbService
         try
         {
             await Task.Delay(1000);
+            // BUG: unreliable, add connection loop, then manually switch
             Adb.AdbClient.Connect(host);
             _sideloaderSettings.LastWirelessAdbHost = host;
         }

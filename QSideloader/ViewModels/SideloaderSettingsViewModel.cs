@@ -44,7 +44,11 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] [JsonProperty] public bool DeleteAfterInstall { get; private set; }
     [Reactive] [JsonProperty] public bool EnableDebugConsole { get; private set; }
     [Reactive] [JsonProperty] public string LastWirelessAdbHost { get; set; } = "";
-    public bool IsWindows { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+#if DEBUG
+    public bool IsConsoleToggleable { get; }
+#else
+    public bool IsConsoleToggleable { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+#endif
     private ReactiveCommand<Unit, Unit> SaveSettings { get; }
     private ReactiveCommand<Unit, Unit> RestoreDefaults { get; }
     public ReactiveCommand<Unit, Unit> SetDownloadLocation { get; }
@@ -61,11 +65,7 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
         DownloadsLocationTextBoxText = DownloadsLocation;
         DeleteAfterInstall = false;
         LastWirelessAdbHost = "";
-#if DEBUG
-        EnableDebugConsole = true;
-#else
         EnableDebugConsole = false;
-#endif
     }
 
     private void ValidateSettings()

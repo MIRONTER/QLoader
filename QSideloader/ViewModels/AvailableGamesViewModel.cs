@@ -31,7 +31,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         Activator = new ViewModelActivator();
 
         Func<Game, bool> GameFilter(string text) => game => string.IsNullOrEmpty(text)
-                                                            || text.Split(' ')
+                                                            || text.Split()
                                                                 .All(x => game.ReleaseName!.ToLower()
                                                                     .Contains(x.ToLower()));
 
@@ -39,7 +39,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             .Throttle(TimeSpan.FromMilliseconds(250))
             .DistinctUntilChanged()
             .Select(GameFilter);
-        var cleanUp = _availableGamesSourceCache.Connect()
+        var cacheListBind = _availableGamesSourceCache.Connect()
             .RefCount()
             .ObserveOn(RxApp.TaskpoolScheduler)
             .Filter(filterPredicate)
@@ -50,7 +50,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             .Subscribe();
         this.WhenActivated(disposables =>
         {
-            cleanUp.DisposeWith(disposables);
+            cacheListBind.DisposeWith(disposables);
         });
         Refresh = ReactiveCommand.CreateFromObservable(RefreshImpl);
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);

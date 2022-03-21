@@ -90,6 +90,9 @@ public class App : Application
             AllocConsole();
             Console.Title = $"{Assembly.GetExecutingAssembly().GetName().Name} debug console";
         }
+#if DEBUG
+        Console.Title = $"{Assembly.GetExecutingAssembly().GetName().Name} debug console";
+#endif
         var consoleLogger = new LoggerConfiguration().MinimumLevel.Debug().WriteTo.Console().CreateLogger();
         LogStartMessage(consoleLogger);
         Log.CloseAndFlush();

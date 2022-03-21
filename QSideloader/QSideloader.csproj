@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <IncludePackageReferencesDuringMarkupCompilation>true</IncludePackageReferencesDuringMarkupCompilation>
-        <OutputType>Exe</OutputType>
+        <OutputType Condition="'$(Configuration)' == 'Debug'">Exe</OutputType>
+        <OutputType Condition="'$(Configuration)' != 'Debug'">WinExe</OutputType>
         <TargetFramework>net6.0</TargetFramework>
         <Nullable>enable</Nullable>
         <!--Avalonia doesen't support TrimMode=link currently,but we are working on that https://github.com/AvaloniaUI/Avalonia/issues/6892 -->
@@ -17,15 +18,15 @@
         <Folder Include="Models\" />
         <AvaloniaResource Include="Assets\**" />
         <None Remove=".gitignore" />
-        <Content Condition="'$(RuntimeIdentifier)'=='win-x64'" Include="tools\windows\**\*">
+        <Content Condition="'$(RuntimeIdentifier)'=='win-x64' Or '$(RuntimeIdentifier)'==''" Include="tools\windows\**\*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
         </Content>
-        <Content Condition="'$(RuntimeIdentifier)'=='linux-x64'" Include="tools\linux\**\*">
+        <Content Condition="'$(RuntimeIdentifier)'=='linux-x64' Or '$(RuntimeIdentifier)'==''" Include="tools\linux\**\*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
         </Content>
-        <Content Condition="'$(RuntimeIdentifier)'=='osx-x64'" Include="tools\darwin\**\*">
+        <Content Condition="'$(RuntimeIdentifier)'=='osx-x64' Or '$(RuntimeIdentifier)'==''" Include="tools\darwin\**\*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
         </Content>
