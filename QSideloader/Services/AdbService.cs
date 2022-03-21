@@ -269,9 +269,15 @@ public class AdbService
             AdbServerSemaphoreSlim.Release();
         }
     }
+
+    private void WakeDevice(DeviceData device)
+    {
+        RunShellCommand(device, "input keyevent KEYCODE_WAKEUP");
+    }
     
     private bool PingDevice(DeviceData device)
     {
+        WakeDevice(device);
         return device.State == DeviceState.Online && RunShellCommand(device, "echo 1")?.Trim() == "1";
     }
 
