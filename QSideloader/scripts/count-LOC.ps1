@@ -1,3 +1,4 @@
+cd ..
 $result = Get-ChildItem -include *.cs,*.xaml -exclude *.g.cs,*.g.i.cs,*.Assembly*.cs -recurse
 $result | % {
     $_ | Select-Object -Property 'Name', @{
