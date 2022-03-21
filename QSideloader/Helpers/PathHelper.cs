@@ -20,6 +20,12 @@ public static class PathHelper
             RclonePath = @"./tools/linux/rclone/FFA";
             SevenZipPath = @"./tools/linux/7zz";
         }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            AdbPath = @"./tools/darwin/platform-tools/adb";
+            RclonePath = @"./tools/darwin/rclone/FFA";
+            SevenZipPath = @"./tools/darwin/7zz";
+        }
     }
 
     public static string AdbPath { get; } = "";
