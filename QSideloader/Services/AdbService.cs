@@ -451,9 +451,18 @@ public class AdbService
         try
         {
             await Task.Delay(1000);
-            // BUG: unreliable, add connection loop, then manually switch
-            _adb.AdbClient.Connect(host);
-            _sideloaderSettings.LastWirelessAdbHost = host;
+            for (var i = 0; i < 10; i++)
+            {
+                _adb.AdbClient.Connect(host);
+                if (_adb.AdbClient.GetDevices().Any(x => x.Serial.Contains(host)))
+                {
+                    RefreshDeviceList();
+                    _sideloaderSettings.LastWirelessAdbHost = host;
+                    break;
+                }
+
+                await Task.Delay(300);
+            }
         }
         catch
         {
@@ -809,7 +818,7 @@ public class AdbService
                     throw new ArgumentException("packageName is invalid");
                 UninstallPackage(packageName, true);
                 RunShellCommand(
-                    $"rm -r /sdcard/Android/data/{packageName}; rm -r /sdcard/Android/obb/{packageName} ");
+                    $"rm -r /sdcard/Android/data/{packageName}/; rm -r /sdcard/Android/obb/{packageName}/");
             }
             catch (Exception e)
             {
