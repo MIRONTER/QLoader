@@ -4,6 +4,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AdvancedSharpAdbClient;
 using Avalonia.Threading;
 using QSideloader.Services;
 using ReactiveUI;
@@ -35,23 +36,31 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         {
             Task.Run(Initialize);
 
-            _adbService.DeviceOnline += OnDeviceOnline;
-            _adbService.DeviceOffline += OnDeviceOffline;
+            _adbService.DeviceChange.Subscribe(OnDeviceChange).DisposeWith(disposables);
             Disposable
                 .Create(() => { })
                 .DisposeWith(disposables);
         });
     }
 
-    private void OnDeviceOffline(object? sender, EventArgs e)
+    private void OnDeviceChange(AdbService.AdbDevice device)
     {
-        IsDeviceConnected = false;
-    }
-
-    private void OnDeviceOnline(object? sender, EventArgs e)
-    {
-        IsDeviceConnected = true;
-        Task.Run(LoadCurrentSettings);
+        switch (device.State)
+        {
+            case DeviceState.Online:
+                IsDeviceConnected = true;
+                RefreshRates = device.Product switch
+                {
+                    "hollywood" => new[] {"Auto (recommended)", "72", "90", "120"},
+                    "monterey" => new[] {"Auto (recommended)", "60", "72"},
+                    _ => RefreshRates
+                };
+                LoadCurrentSettings();
+                break;
+            case DeviceState.Offline:
+                IsDeviceConnected = false;
+                break;
+        }
     }
 
     [Reactive] public bool IsDeviceConnected { get; private set; }
@@ -83,14 +92,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     private void Initialize()
     {
         if (!_adbService.CheckDeviceConnection()) return;
-        IsDeviceConnected = true;
-        RefreshRates = _adbService.Device!.Product switch
-        {
-            "hollywood" => new[] {"Auto (recommended)", "72", "90", "120"},
-            "monterey" => new[] {"Auto (recommended)", "60", "72"},
-            _ => RefreshRates
-        };
-        LoadCurrentSettings();
+        OnDeviceChange(_adbService.Device!);
     }
     
     private void LoadCurrentSettings()

@@ -4,8 +4,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -30,6 +32,9 @@ public class AdbService
     private static readonly SemaphoreSlim DeviceListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim AdbServerSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim SideloadSemaphoreSlim = new(1, 1);
+    private readonly Subject<AdbDevice> _deviceChangeSubject = new();
+    private readonly Subject<Unit> _packageListChangeSubject = new();
+    private readonly Subject<List<AdbDevice>> _deviceListChangeSubject = new();
 
     public AdbService()
     {
@@ -53,15 +58,9 @@ public class AdbService
         private set => _deviceList = value.ToList();
     }
     private DeviceMonitor? Monitor { get; set; }
-
-    public event EventHandler? DeviceOnline;
-
-    public event EventHandler? DeviceOffline;
-
-    // TODO: make use of DeviceUnauthorized event
-    public event EventHandler? DeviceUnauthorized;
-    public event EventHandler? PackageListChanged;
-    public event EventHandler? DeviceListChanged;
+    public IObservable<AdbDevice> DeviceChange => _deviceChangeSubject;
+    public IObservable<Unit> PackageListChange => _packageListChangeSubject;
+    public IObservable<List<AdbDevice>> DeviceListChange => _deviceListChangeSubject;
 
     private string? RunShellCommand(DeviceData device, string command, bool logCommand = false)
     {
@@ -155,7 +154,7 @@ public class AdbService
                                || DeviceList.Any(device => deviceList.All(x => x.Serial != device.Serial));
             if (!listChanged) return;
             DeviceList = deviceList;
-            DeviceListChanged?.Invoke(this, EventArgs.Empty);
+            _deviceListChangeSubject.OnNext(deviceList);
         }
         finally
         {
@@ -318,8 +317,6 @@ public class AdbService
                 }
                 break;
             case DeviceState.Unauthorized:
-                DeviceUnauthorized?.Invoke(sender, e);
-                break;
             case DeviceState.BootLoader:
             case DeviceState.Host:
             case DeviceState.Recovery:
@@ -335,16 +332,19 @@ public class AdbService
     private void OnDeviceOffline(AdbDeviceEventArgs e)
     {
         Log.Information("Device {Device} disconnected", e.Device);
-        DeviceOffline?.Invoke(this, e);
+        e.Device.State = DeviceState.Offline;
+        _deviceChangeSubject.OnNext(e.Device);
         Device = null;
     }
 
     private void OnDeviceOnline(AdbDeviceEventArgs e)
     {
         Log.Information("Connected to device {Device}", e.Device);
+        e.Device.State = DeviceState.Online;
         Device = e.Device;
         if (!FirstDeviceSearch)
-            DeviceOnline?.Invoke(this, e);
+            //DeviceOnline?.Invoke(this, e);
+            _deviceChangeSubject.OnNext(e.Device);
     }
 
     private static string GetHashedId(string deviceSerial)
@@ -694,7 +694,7 @@ public class AdbService
                     }
 
                     Log.Information("Installed game {GameName}", game.GameName);
-                    AdbService.PackageListChanged?.Invoke(this, EventArgs.Empty);
+                    AdbService._packageListChangeSubject.OnNext(new Unit());
                     observer.OnCompleted();
                 }
                 catch (Exception e)
@@ -791,7 +791,7 @@ public class AdbService
         {
             _ = game.PackageName ?? throw new ArgumentException("game.PackageName is null");
             UninstallPackage(game.PackageName);
-            AdbService.PackageListChanged?.Invoke(this, EventArgs.Empty);
+            AdbService._packageListChangeSubject.OnNext(new Unit());
         }
 
         private void InstallPackage(string apkPath, bool reinstall, bool grantRuntimePermissions)

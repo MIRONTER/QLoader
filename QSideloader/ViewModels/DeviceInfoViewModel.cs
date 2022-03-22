@@ -33,10 +33,9 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         SetRefreshTimer(true);
         this.WhenActivated(disposables =>
         {
-            _adbService.DeviceOnline += OnDeviceOnline;
-            _adbService.DeviceOffline += OnDeviceOffline;
-            _adbService.PackageListChanged += OnPackageListChanged;
-            _adbService.DeviceListChanged += OnDeviceListChanged;
+            _adbService.DeviceChange.Subscribe(OnDeviceChange).DisposeWith(disposables);
+            _adbService.PackageListChange.Subscribe(_ => OnPackageListChanged());
+            _adbService.DeviceListChange.Subscribe(OnDeviceListChanged);
             this.WhenAnyValue(x => x.CurrentDevice).Where(x => x is not null && x.Serial != _adbService.Device?.Serial)
                 .DistinctUntilChanged()
                 .Subscribe(x =>
@@ -46,10 +45,6 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
                 }).DisposeWith(disposables);
             Disposable.Create(() =>
             {
-                _adbService.DeviceOnline -= OnDeviceOnline;
-                _adbService.DeviceOffline -= OnDeviceOffline;
-                _adbService.PackageListChanged -= OnPackageListChanged;
-                _adbService.DeviceListChanged -= OnDeviceListChanged;
             }).DisposeWith(disposables);
         });
     }
@@ -71,21 +66,24 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] public List<AdbService.AdbDevice> DeviceList { get; set; } = new();
     public ViewModelActivator Activator { get; }
 
-    private void OnDeviceOnline(object? sender, EventArgs e)
+    private void OnDeviceChange(AdbService.AdbDevice device)
     {
-        IsDeviceConnected = true;
-        Refresh.Execute().Subscribe();
-        SetRefreshTimer(true);
+        switch (device.State)
+        {
+            case DeviceState.Online:
+                IsDeviceConnected = true;
+                Refresh.Execute().Subscribe();
+                SetRefreshTimer(true);
+                break;
+            case DeviceState.Offline:
+                IsDeviceConnected = false;
+                CurrentDevice = null;
+                SetRefreshTimer(false);
+                break;
+        }
     }
 
-    private void OnDeviceOffline(object? sender, EventArgs e)
-    {
-        IsDeviceConnected = false;
-        CurrentDevice = null;
-        SetRefreshTimer(false);
-    }
-
-    private void OnPackageListChanged(object? sender, EventArgs e)
+    private void OnPackageListChanged()
     {
         Refresh.Execute().Subscribe();
     }
@@ -123,12 +121,12 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         IsDeviceConnected = true;
         IsDeviceWireless = _adbService.Device!.IsWireless;
         _adbService.Device.RefreshInfo();
-        _adbService.Device.RefreshInstalledPackages();
     }
 
     private void RefreshProps()
     {
         var device = _adbService.Device;
+        DeviceList = _adbService.DeviceList.ToList();
         RefreshSelectedDevice();
         if (device is null) return;
         SpaceUsed = device.SpaceUsed;
@@ -139,14 +137,14 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         IsQuest2 = device.Product == "hollywood";
     }
 
-    private void OnDeviceListChanged(object? sender, EventArgs e)
+    private void OnDeviceListChanged(IReadOnlyList<AdbService.AdbDevice> deviceList)
     {
+        DeviceList = deviceList.ToList();
         RefreshSelectedDevice();
     }
     
     private void RefreshSelectedDevice()
     {
-        DeviceList = _adbService.DeviceList.ToList();
         CurrentDevice = DeviceList.FirstOrDefault(x => _adbService.Device?.Serial == x.Serial);
     }
 

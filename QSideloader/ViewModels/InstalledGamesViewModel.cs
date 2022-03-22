@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using AdvancedSharpAdbClient;
 using Avalonia.Threading;
 using QSideloader.Helpers;
 using QSideloader.Models;
@@ -36,16 +37,12 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         Refresh.Execute().Subscribe();
         this.WhenActivated(disposables =>
         {
-            _adbService.DeviceOnline += OnDeviceOnline;
-            _adbService.DeviceOffline += OnDeviceOffline;
-            _adbService.PackageListChanged += OnPackageListChanged;
+            _adbService.DeviceChange.Subscribe(OnDeviceChange).DisposeWith(disposables);
+            _adbService.PackageListChange.Subscribe(_ => OnPackageListChanged());
 
             Disposable
                 .Create(() =>
                 {
-                    _adbService.DeviceOnline -= OnDeviceOnline;
-                    _adbService.DeviceOffline -= OnDeviceOffline;
-                    _adbService.PackageListChanged -= OnPackageListChanged;
                 })
                 .DisposeWith(disposables);
         });
@@ -110,17 +107,20 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         });
     }
 
-    private void OnDeviceOffline(object? sender, EventArgs e)
+    private void OnDeviceChange(AdbService.AdbDevice device)
     {
-        Dispatcher.UIThread.InvokeAsync(InstalledGames.Clear);
+        switch (device.State)
+        {
+            case DeviceState.Online:
+                Refresh.Execute().Subscribe();
+                break;
+            case DeviceState.Offline:
+                Dispatcher.UIThread.InvokeAsync(InstalledGames.Clear);
+                break;
+        }
     }
 
-    private void OnDeviceOnline(object? sender, EventArgs e)
-    {
-        Refresh.Execute().Subscribe();
-    }
-
-    private void OnPackageListChanged(object? sender, EventArgs e)
+    private void OnPackageListChanged()
     {
         Refresh.Execute().Subscribe();
     }
