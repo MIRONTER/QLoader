@@ -700,6 +700,7 @@ public class AdbService
                 catch (Exception e)
                 {
                     Log.Error(e, "Error installing game");
+                    CleanupRemnants(game);
                     observer.OnError(new AdbServiceException("Error installing game", e));
                 }
 
@@ -789,9 +790,33 @@ public class AdbService
 
         public void UninstallGame(InstalledGame game)
         {
-            _ = game.PackageName ?? throw new ArgumentException("game.PackageName is null");
+            _ = game.PackageName ?? throw new ArgumentException("game.PackageName must not be null");
             UninstallPackage(game.PackageName);
+            CleanupRemnants(game);
             AdbService._packageListChangeSubject.OnNext(new Unit());
+        }
+
+        private void CleanupRemnants(Game game)
+        {
+            CleanupRemnants(game.PackageName 
+                            ?? throw new ArgumentException("game.PackageName must not be null"));
+        }
+
+        private void CleanupRemnants(string packageName)
+        {
+            try
+            {
+                const string packageNamePattern = @"^([A-Za-z]{1}[A-Za-z\d_]*\.)+[A-Za-z][A-Za-z\d_]*$";
+                if (string.IsNullOrWhiteSpace(packageName) || !Regex.IsMatch(packageName, packageNamePattern))
+                    throw new ArgumentException("packageName is invalid");
+                UninstallPackage(packageName, true);
+                RunShellCommand(
+                    $"rm -r /sdcard/Android/data/{packageName}; rm -r /sdcard/Android/obb/{packageName} ");
+            }
+            catch (Exception e)
+            {
+                Log.Warning(e, "Failed to clean up remnants of package {PackageName}", packageName);
+            }
         }
 
         private void InstallPackage(string apkPath, bool reinstall, bool grantRuntimePermissions)
@@ -810,9 +835,10 @@ public class AdbService
             Log.Information("Package installed");
         }
 
-        private void UninstallPackage(string packageName)
+        private void UninstallPackage(string packageName, bool silent = false)
         {
-            Log.Information("Uninstalling package {PackageName}", packageName);
+            if (!silent)
+                Log.Information("Uninstalling package {PackageName}", packageName);
             try
             {
                 Adb.AdbClient.UninstallPackage(this, packageName);
@@ -823,9 +849,10 @@ public class AdbService
                         RunShellCommand($"pm list packages -3 | grep -w \"package:{packageName}\"")))
                 {
                     // TODO: throw own exception here and handle where needed
-                    Log.Information(
-                        "Package {PackageName} is not installed",
-                        packageName);
+                    if (!silent)
+                        Log.Information(
+                            "Package {PackageName} is not installed",
+                            packageName);
                 }
                 else throw;
             }
