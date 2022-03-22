@@ -28,6 +28,8 @@ public class AdbService
 {
     private List<AdbDevice> _deviceList = new();
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
+    private readonly AdbServerClient _adb;
+    private DeviceMonitor? _deviceMonitor;
     private static readonly SemaphoreSlim DeviceSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim DeviceListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim AdbServerSemaphoreSlim = new(1, 1);
@@ -39,6 +41,7 @@ public class AdbService
     public AdbService()
     {
         _sideloaderSettings = Globals.SideloaderSettings;
+        _adb = new AdbServerClient();
         Task.Run(async () =>
         {
             CheckDeviceConnection();
@@ -50,14 +53,12 @@ public class AdbService
 
     private bool FirstDeviceSearch { get; set; } = true;
 
-    private AdbServerClient Adb { get; } = new();
     public AdbDevice? Device { get; private set; }
     public IReadOnlyList<AdbDevice> DeviceList
     {
         get => _deviceList.AsReadOnly();
         private set => _deviceList = value.ToList();
     }
-    private DeviceMonitor? Monitor { get; set; }
     public IObservable<AdbDevice> DeviceChange => _deviceChangeSubject.AsObservable();
     public IObservable<Unit> PackageListChange => _packageListChangeSubject.AsObservable();
     public IObservable<List<AdbDevice>> DeviceListChange => _deviceListChangeSubject.AsObservable();
@@ -69,7 +70,7 @@ public class AdbService
         {
             if (logCommand)
                 Log.Debug("Running shell command: {Command}", command);
-            Adb.AdbClient.ExecuteRemoteCommand(command, device, receiver);
+            _adb.AdbClient.ExecuteRemoteCommand(command, device, receiver);
         }
         catch
         {
@@ -202,7 +203,7 @@ public class AdbService
             AdbServerSemaphoreSlim.Wait();
             try
             {
-                var adbServerStatus = Adb.AdbServer.GetStatus();
+                var adbServerStatus = _adb.AdbServer.GetStatus();
                 if (adbServerStatus.IsRunning)
                 {
                     var requiredAdbVersion = new Version("1.0.40");
@@ -253,13 +254,13 @@ public class AdbService
                 throw new AdbServiceException("Failed to start ADB server", e);
             }
 
-            if (!Adb.AdbServer.GetStatus().IsRunning)
+            if (!_adb.AdbServer.GetStatus().IsRunning)
             {
                 Log.Error("Failed to start ADB server");
                 throw new AdbServiceException("Failed to start ADB server");
             }
 
-            Adb.AdbClient.Connect("127.0.0.1:62001");
+            _adb.AdbClient.Connect("127.0.0.1:62001");
             Log.Information("Started ADB server");
             StartDeviceMonitor(true);
         }
@@ -282,15 +283,15 @@ public class AdbService
 
     private void StartDeviceMonitor(bool restart)
     {
-        if (Monitor is null || restart)
+        if (_deviceMonitor is null || restart)
         {
-            if (Monitor is not null)
-                Monitor.DeviceChanged -= OnDeviceChanged;
-            Monitor = new DeviceMonitor(new AdbSocket(new IPEndPoint(IPAddress.Loopback, 5037)));
+            if (_deviceMonitor is not null)
+                _deviceMonitor.DeviceChanged -= OnDeviceChanged;
+            _deviceMonitor = new DeviceMonitor(new AdbSocket(new IPEndPoint(IPAddress.Loopback, 5037)));
         }
-        if (Monitor.IsRunning) return;
-        Monitor.DeviceChanged += OnDeviceChanged;
-        Monitor.Start();
+        if (_deviceMonitor.IsRunning) return;
+        _deviceMonitor.DeviceChanged += OnDeviceChanged;
+        _deviceMonitor.Start();
         Log.Debug("Started device monitor");
     }
 
@@ -360,7 +361,7 @@ public class AdbService
     {
         Log.Information("Searching for devices");
         List<AdbDevice> oculusDeviceList = new();
-        var deviceList = Adb.AdbClient.GetDevices();
+        var deviceList = _adb.AdbClient.GetDevices();
         if (deviceList.Count > 0)
         {
             foreach (var device in deviceList)
@@ -451,7 +452,7 @@ public class AdbService
         {
             await Task.Delay(1000);
             // BUG: unreliable, add connection loop, then manually switch
-            Adb.AdbClient.Connect(host);
+            _adb.AdbClient.Connect(host);
             _sideloaderSettings.LastWirelessAdbHost = host;
         }
         catch
@@ -486,20 +487,22 @@ public class AdbService
 
     public class AdbDevice : DeviceData
     {
+        private readonly AdbServerClient _adb;
+        private readonly AdbService _adbService;
         private static readonly SemaphoreSlim DeviceInfoSemaphoreSlim = new(1, 1);
         private static readonly SemaphoreSlim PackagesSemaphoreSlim = new(1, 1);
 
         public AdbDevice(DeviceData deviceData, AdbService adbService)
         {
-            AdbService = adbService;
-            Adb = adbService.Adb;
+            _adbService = adbService;
+            _adb = adbService._adb;
             
             Serial = deviceData.Serial;
             IsWireless = deviceData.Serial.Contains('.');
             try
             {
                 // corrected serial for wireless connection
-                TrueSerial = AdbService.RunShellCommand(deviceData, "getprop ro.boot.serialno") ?? deviceData.Serial;
+                TrueSerial = _adbService.RunShellCommand(deviceData, "getprop ro.boot.serialno") ?? deviceData.Serial;
             }
             catch
             {
@@ -524,8 +527,7 @@ public class AdbService
 
             HashedId = GetHashedId(TrueSerial ?? Serial);
             
-            PackageManager = new PackageManager(Adb.AdbClient, this, true);
-            RefreshProps();
+            PackageManager = new PackageManager(_adb.AdbClient, this, true);
         }
 
         public override string ToString()
@@ -535,7 +537,7 @@ public class AdbService
 
         public string? RunShellCommand(string command, bool logCommand = false)
         {
-            return AdbService.RunShellCommand(this, command, logCommand);
+            return _adbService.RunShellCommand(this, command, logCommand);
         }
 
         public void RefreshInstalledPackages()
@@ -595,11 +597,6 @@ public class AdbService
             }
         }
 
-        private void RefreshProps()
-        {
-            DeviceProps = Adb.AdbClient.GetProperties(this);
-        }
-
         public List<InstalledGame> GetInstalledGames()
         {
             PackagesSemaphoreSlim.Wait();
@@ -629,7 +626,7 @@ public class AdbService
         private void PushFile(string localPath, string remotePath)
         {
             Log.Debug("Pushing file: \"{LocalPath}\" -> \"{RemotePath}\"", localPath, remotePath);
-            using var syncService = new SyncService(Adb.AdbClient, this);
+            using var syncService = new SyncService(_adb.AdbClient, this);
             using var file = File.OpenRead(localPath);
             syncService.Push(file, remotePath, 771, DateTime.Now, null, CancellationToken.None);
         }
@@ -694,7 +691,7 @@ public class AdbService
                     }
 
                     Log.Information("Installed game {GameName}", game.GameName);
-                    AdbService._packageListChangeSubject.OnNext(new Unit());
+                    _adbService._packageListChangeSubject.OnNext(new Unit());
                     observer.OnCompleted();
                 }
                 catch (Exception e)
@@ -794,7 +791,7 @@ public class AdbService
             _ = game.PackageName ?? throw new ArgumentException("game.PackageName must not be null");
             UninstallPackage(game.PackageName);
             CleanupRemnants(game);
-            AdbService._packageListChangeSubject.OnNext(new Unit());
+            _adbService._packageListChangeSubject.OnNext(new Unit());
         }
 
         private void CleanupRemnants(Game game)
@@ -842,7 +839,7 @@ public class AdbService
                 Log.Information("Uninstalling package {PackageName}", packageName);
             try
             {
-                Adb.AdbClient.UninstallPackage(this, packageName);
+                _adb.AdbClient.UninstallPackage(this, packageName);
             }
             catch (PackageInstallationException e)
             {
@@ -871,14 +868,13 @@ public class AdbService
             RunShellCommand("svc wifi enable");
             var ipRouteOutput = RunShellCommand("ip route");
             var ipAddress = Regex.Match(ipRouteOutput!, ipAddressPattern).Groups[1].ToString();
-            Adb.AdbClient.TcpIp(this, port);
+            _adb.AdbClient.TcpIp(this, port);
             return ipAddress;
         }
 
         #region Properties
 
         private PackageManager? PackageManager { get; }
-        private Dictionary<string, string> DeviceProps { get; set; } = new();
         public float SpaceUsed { get; private set; }
         public float SpaceFree { get; private set; }
         public float SpaceTotal { get; private set; }
@@ -888,8 +884,6 @@ public class AdbService
         private string HashedId { get; }
         public string? TrueSerial { get; }
         public bool IsWireless { get; }
-        private AdbServerClient Adb { get; }
-        private AdbService AdbService { get; }
 
         #endregion
     }

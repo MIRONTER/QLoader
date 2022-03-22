@@ -39,7 +39,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
                 .Subscribe(x =>
                 {
                     _adbService.TrySwitchDevice(x!);
-                    RefreshSelectedDevice();
+                    RefreshDeviceSelection();
                 }).DisposeWith(disposables);
         });
     }
@@ -121,7 +121,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     {
         var device = _adbService.Device;
         DeviceList = _adbService.DeviceList.ToList();
-        RefreshSelectedDevice();
+        RefreshDeviceSelection();
         if (device is null) return;
         SpaceUsed = device.SpaceUsed;
         SpaceFree = device.SpaceFree;
@@ -137,7 +137,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         DeviceList = deviceList.ToList();
     }
     
-    private void RefreshSelectedDevice()
+    private void RefreshDeviceSelection()
     {
         CurrentDevice = DeviceList.FirstOrDefault(x => _adbService.Device?.Serial == x.Serial);
     }
