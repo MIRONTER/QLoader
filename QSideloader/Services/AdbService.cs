@@ -714,6 +714,7 @@ public class AdbService
             {
                 if (!File.Exists(scriptPath))
                     throw new ArgumentException("Install script path is not valid");
+                var scriptName = Path.GetFileName(scriptPath);
                 // Regex pattern to split command into list of arguments
                 const string argsPattern = @"[\""].+?[\""]|[^ ]+";
                 var gamePath = Path.GetDirectoryName(scriptPath)!;
@@ -724,7 +725,7 @@ public class AdbService
                 {
                     if (string.IsNullOrWhiteSpace(rawCommand) || rawCommand.StartsWith("#")) continue;
                     var command = rawCommand.Replace(" > NUL 2>&1", "");
-                    Log.Information("install.txt: Running command: \"{Command}\"", command);
+                    Log.Information("{ScriptName}: Running command: \"{Command}\"", scriptName, command);
                     var args = Regex.Matches(command, argsPattern)
                         .Select(x => x.Value.Trim('"'))
                         .ToList();
