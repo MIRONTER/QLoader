@@ -33,17 +33,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
 
         this.WhenActivated(disposables =>
         {
-            if (_adbService.CheckDeviceConnection())
-            {
-                IsDeviceConnected = true;
-                RefreshRates = _adbService.Device!.Product switch
-                {
-                    "hollywood" => new[] {"Auto (recommended)", "72", "90", "120"},
-                    "monterey" => new[] {"Auto (recommended)", "60", "72"},
-                    _ => RefreshRates
-                };
-                Task.Run(LoadCurrentSettings);
-            }
+            Task.Run(Initialize);
 
             _adbService.DeviceOnline += OnDeviceOnline;
             _adbService.DeviceOffline += OnDeviceOffline;
@@ -90,9 +80,21 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     public ReactiveCommand<Unit, Unit> LaunchHiddenSettings { get; }
     public ViewModelActivator Activator { get; }
 
-    private void LoadCurrentSettings()
+    private void Initialize()
     {
         if (!_adbService.CheckDeviceConnection()) return;
+        IsDeviceConnected = true;
+        RefreshRates = _adbService.Device!.Product switch
+        {
+            "hollywood" => new[] {"Auto (recommended)", "72", "90", "120"},
+            "monterey" => new[] {"Auto (recommended)", "60", "72"},
+            _ => RefreshRates
+        };
+        LoadCurrentSettings();
+    }
+    
+    private void LoadCurrentSettings()
+    {
         Log.Debug("Loading device settings");
 #pragma warning disable CA1806
         int.TryParse(_adbService.Device!.RunShellCommand("getprop debug.oculus.refreshRate"),
