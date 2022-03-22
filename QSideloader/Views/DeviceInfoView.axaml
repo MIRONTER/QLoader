@@ -88,7 +88,7 @@
                        Text="{Binding BatteryLevel, StringFormat={}Battery level: {0}%}" />
             <ComboBox Grid.Row="0" Grid.RowSpan="4" Grid.Column="2" Margin="8" 
                       MinWidth="170"
-                      PlaceholderText="Connected Device" 
+                      PlaceholderText="Device list" 
                       Items="{Binding DeviceList}"
                       SelectedItem="{Binding CurrentDevice}">
                 <ComboBox.ItemTemplate>
@@ -96,7 +96,7 @@
                         <TextBlock Text="{Binding}" />
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
-                <ToolTip.Tip>Connected Device</ToolTip.Tip>
+                <ToolTip.Tip>Device list</ToolTip.Tip>
             </ComboBox>
             <Button Grid.Row="0" Grid.RowSpan="4" Grid.Column="2" Margin="8" IsVisible="{Binding !IsDeviceWireless}" Command="{Binding EnableWirelessAdb}">Enable Wireless ADB</Button>
         </Grid>

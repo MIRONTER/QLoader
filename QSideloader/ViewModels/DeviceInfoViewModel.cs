@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -8,7 +7,6 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Timers;
 using AdvancedSharpAdbClient;
-using Avalonia.Threading;
 using QSideloader.Services;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -33,7 +31,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         SetRefreshTimer(true);
         this.WhenActivated(disposables =>
         {
-            _adbService.DeviceChange.Subscribe(OnDeviceChange).DisposeWith(disposables);
+            _adbService.DeviceChange.Subscribe(OnDeviceChanged).DisposeWith(disposables);
             _adbService.PackageListChange.Subscribe(_ => OnPackageListChanged()).DisposeWith(disposables);
             _adbService.DeviceListChange.Subscribe(OnDeviceListChanged).DisposeWith(disposables);
             this.WhenAnyValue(x => x.CurrentDevice).Where(x => x is not null && x.Serial != _adbService.Device?.Serial)
@@ -63,7 +61,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] public List<AdbService.AdbDevice> DeviceList { get; set; } = new();
     public ViewModelActivator Activator { get; }
 
-    private void OnDeviceChange(AdbService.AdbDevice device)
+    private void OnDeviceChanged(AdbService.AdbDevice device)
     {
         switch (device.State)
         {
@@ -110,7 +108,6 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         {
             Log.Warning("RefreshDeviceInfo: no device connection!");
             IsDeviceConnected = false;
-            CurrentDevice = null;
             SetRefreshTimer(false);
             return;
         }
@@ -136,8 +133,8 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
 
     private void OnDeviceListChanged(IReadOnlyList<AdbService.AdbDevice> deviceList)
     {
+        CurrentDevice = null;
         DeviceList = deviceList.ToList();
-        RefreshSelectedDevice();
     }
     
     private void RefreshSelectedDevice()

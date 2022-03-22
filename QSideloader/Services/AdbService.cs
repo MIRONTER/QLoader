@@ -27,7 +27,7 @@ namespace QSideloader.Services;
 public class AdbService
 {
     private List<AdbDevice> _deviceList = new();
-    private SideloaderSettingsViewModel _sideloaderSettings;
+    private readonly SideloaderSettingsViewModel _sideloaderSettings;
     private static readonly SemaphoreSlim DeviceSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim DeviceListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim AdbServerSemaphoreSlim = new(1, 1);
@@ -58,9 +58,9 @@ public class AdbService
         private set => _deviceList = value.ToList();
     }
     private DeviceMonitor? Monitor { get; set; }
-    public IObservable<AdbDevice> DeviceChange => _deviceChangeSubject;
-    public IObservable<Unit> PackageListChange => _packageListChangeSubject;
-    public IObservable<List<AdbDevice>> DeviceListChange => _deviceListChangeSubject;
+    public IObservable<AdbDevice> DeviceChange => _deviceChangeSubject.AsObservable();
+    public IObservable<Unit> PackageListChange => _packageListChangeSubject.AsObservable();
+    public IObservable<List<AdbDevice>> DeviceListChange => _deviceListChangeSubject.AsObservable();
 
     private string? RunShellCommand(DeviceData device, string command, bool logCommand = false)
     {
@@ -303,7 +303,7 @@ public class AdbService
                 if (DeviceList.All(x => x.Serial != e.Device.Serial))
                 {
                     RefreshDeviceList();
-                    //CheckConnectionPreference();
+                    CheckConnectionPreference();
                 }
                 CheckDeviceConnection();
                 break;
@@ -313,7 +313,7 @@ public class AdbService
                 else
                 {
                     RefreshDeviceList();
-                    //CheckConnectionPreference();
+                    CheckConnectionPreference();
                 }
                 break;
             case DeviceState.Unauthorized:
