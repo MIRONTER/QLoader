@@ -133,11 +133,8 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
 
     private void OnDeviceListChanged(IReadOnlyList<AdbService.AdbDevice> deviceList)
     {
-        var currentSerial = CurrentDevice?.Serial;
+        CurrentDevice = null;
         DeviceList = deviceList.ToList();
-        var device = DeviceList.FirstOrDefault(x => x.Serial == currentSerial);
-        if (device is not null)
-            CurrentDevice = device;
     }
     
     private void RefreshDeviceSelection()
