@@ -38,7 +38,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         this.WhenActivated(disposables =>
         {
             _adbService.DeviceChange.Subscribe(OnDeviceChange).DisposeWith(disposables);
-            _adbService.PackageListChange.Subscribe(_ => OnPackageListChanged());
+            _adbService.PackageListChange.Subscribe(_ => OnPackageListChanged()).DisposeWith(disposables);
 
             Disposable
                 .Create(() =>
