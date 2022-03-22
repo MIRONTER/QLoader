@@ -37,9 +37,6 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
             Task.Run(Initialize);
 
             _adbService.DeviceChange.Subscribe(OnDeviceChange).DisposeWith(disposables);
-            Disposable
-                .Create(() => { })
-                .DisposeWith(disposables);
         });
     }
 

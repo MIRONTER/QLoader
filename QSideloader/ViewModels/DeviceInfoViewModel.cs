@@ -43,9 +43,6 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
                     _adbService.TrySwitchDevice(x!);
                     RefreshSelectedDevice();
                 }).DisposeWith(disposables);
-            Disposable.Create(() =>
-            {
-            }).DisposeWith(disposables);
         });
     }
 
