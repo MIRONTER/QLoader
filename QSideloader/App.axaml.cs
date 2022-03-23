@@ -1,6 +1,8 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
@@ -73,16 +75,13 @@ public class App : Application
         // Log all exceptions
         if (File.Exists(exceptionsLogPath))
             File.Delete(exceptionsLogPath);
-        var firstChanceExceptionHandler = new LoggerConfiguration().MinimumLevel.Error()
+        var firstChanceExceptionLogger = new LoggerConfiguration().MinimumLevel.Error()
             .WriteTo.File(exceptionsLogPath)
             .CreateLogger();
         AppDomain.CurrentDomain.FirstChanceException += (_, e) =>
         {
-            if (e.Exception.StackTrace is not null && e.Exception.StackTrace.Contains("GetRcloneDownloadStats")
-                || e.Exception.Message.Contains("127.0.0.1:5572")
-                || e.Exception.Message.Contains("does not contain a definition for 'bytes'")
-                || e.Exception.Message.Contains("does not contain a definition for 'speed'")) return;
-            firstChanceExceptionHandler.Error(e.Exception, "FirstChanceException");
+            if (!ShouldLogFirstChanceException(e)) return;
+            firstChanceExceptionLogger.Error(e.Exception, "FirstChanceException");
         };
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Globals.SideloaderSettings.EnableDebugConsole)
@@ -106,6 +105,21 @@ public class App : Application
             .WriteTo.File(new RenderedCompactJsonFormatter(), jsonLogPath, fileSizeLimitBytes: 3000000)
             .WriteTo.Logger(consoleLogger)
             .CreateLogger();
+        
+        if (Debugger.IsAttached)
+            AppDomain.CurrentDomain.FirstChanceException += (_, e) =>
+            {
+                if (!ShouldLogFirstChanceException(e)) return;
+                consoleLogger.Error(e.Exception, "FirstChanceException");
+            };
+        
+        bool ShouldLogFirstChanceException(FirstChanceExceptionEventArgs e)
+        {
+            return !(e.Exception.StackTrace is not null && e.Exception.StackTrace.Contains("GetRcloneDownloadStats")
+                     || e.Exception.Message.Contains("127.0.0.1:5572")
+                     || e.Exception.Message.Contains("does not contain a definition for 'bytes'")
+                     || e.Exception.Message.Contains("does not contain a definition for 'speed'"));
+        }
     }
 
     private static void LogStartMessage(ILogger logger)
