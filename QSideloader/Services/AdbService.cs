@@ -59,9 +59,9 @@ public class AdbService
         get => _deviceList.AsReadOnly();
         private set => _deviceList = value.ToList();
     }
-    public IObservable<AdbDevice> DeviceChange => _deviceChangeSubject.AsObservable();
-    public IObservable<Unit> PackageListChange => _packageListChangeSubject.AsObservable();
-    public IObservable<List<AdbDevice>> DeviceListChange => _deviceListChangeSubject.AsObservable();
+    public IObservable<AdbDevice> WhenDeviceChanged => _deviceChangeSubject.AsObservable();
+    public IObservable<Unit> WhenPackageListChanged => _packageListChangeSubject.AsObservable();
+    public IObservable<List<AdbDevice>> WhenDeviceListChanged => _deviceListChangeSubject.AsObservable();
 
     private string? RunShellCommand(DeviceData device, string command, bool logCommand = false)
     {

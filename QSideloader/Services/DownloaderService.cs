@@ -170,11 +170,6 @@ public class DownloaderService
             /*if (!Directory.Exists("metadata"))
                 Directory.CreateDirectory("metadata");
 
-
-            using HttpRequestMessage gameListRequestMessage =
-                    new(HttpMethod.Get, "https://qsideloader.1592630.xyz/FFA.txt"),
-                notesRequestMessage = new(HttpMethod.Get, "https://qsideloader.1592630.xyz/notes.json");
-
             if (File.Exists(gameListPath))
             {
                 var lastUpdate = File.GetLastWriteTimeUtc(gameListPath);

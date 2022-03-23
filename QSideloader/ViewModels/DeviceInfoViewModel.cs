@@ -31,9 +31,9 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         SetRefreshTimer(true);
         this.WhenActivated(disposables =>
         {
-            _adbService.DeviceChange.Subscribe(OnDeviceChanged).DisposeWith(disposables);
-            _adbService.PackageListChange.Subscribe(_ => OnPackageListChanged()).DisposeWith(disposables);
-            _adbService.DeviceListChange.Subscribe(OnDeviceListChanged).DisposeWith(disposables);
+            _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged).DisposeWith(disposables);
+            _adbService.WhenPackageListChanged.Subscribe(_ => OnPackageListChanged()).DisposeWith(disposables);
+            _adbService.WhenDeviceListChanged.Subscribe(OnDeviceListChanged).DisposeWith(disposables);
             this.WhenAnyValue(x => x.CurrentDevice).Where(x => x is not null && x.Serial != _adbService.Device?.Serial)
                 .DistinctUntilChanged()
                 .Subscribe(x =>

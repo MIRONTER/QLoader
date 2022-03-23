@@ -37,8 +37,8 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         Refresh.Execute().Subscribe();
         this.WhenActivated(disposables =>
         {
-            _adbService.DeviceChange.Subscribe(OnDeviceChange).DisposeWith(disposables);
-            _adbService.PackageListChange.Subscribe(_ => OnPackageListChanged()).DisposeWith(disposables);
+            _adbService.WhenDeviceChanged.Subscribe(OnDeviceChange).DisposeWith(disposables);
+            _adbService.WhenPackageListChanged.Subscribe(_ => OnPackageListChanged()).DisposeWith(disposables);
         });
     }
 
