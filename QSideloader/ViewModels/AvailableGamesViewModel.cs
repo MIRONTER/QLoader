@@ -46,11 +46,10 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             .SortBy(x => x.ReleaseName!)
             .ObserveOn(RxApp.MainThreadScheduler)
             .Bind(out _availableGames)
-            .DisposeMany()
-            .Subscribe();
+            .DisposeMany();
         this.WhenActivated(disposables =>
         {
-            cacheListBind.DisposeWith(disposables);
+            cacheListBind.Subscribe().DisposeWith(disposables);
         });
         Refresh = ReactiveCommand.CreateFromObservable(RefreshImpl);
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
