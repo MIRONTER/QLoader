@@ -179,7 +179,8 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
 
     private void AutoSave(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is "HasErrors" or "DownloadsLocationTextBoxText") return;
+        if (e.PropertyName is null || typeof(SideloaderSettingsViewModel).GetProperty(e.PropertyName) is { } property && !Attribute.IsDefined(property,
+                typeof(JsonPropertyAttribute))) return;
         AutoSaveDelayTimer.Stop();
         AutoSaveDelayTimer.Start();
     }
