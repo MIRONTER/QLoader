@@ -104,6 +104,7 @@ public class AdbService
             {
                 connectionStatus = PingDevice(Device);
             }
+
             if (!connectionStatus)
             {
                 DeviceData? foundDevice = null;
@@ -116,7 +117,8 @@ public class AdbService
                     break;
                 }
 
-                if ((Device is null || Device?.Serial != foundDevice?.Serial) && foundDevice is not null && connectionStatus)
+                if ((Device is null || Device?.Serial != foundDevice?.Serial) && foundDevice is not null &&
+                    connectionStatus)
                 {
                     var device = new AdbDevice(foundDevice, this);
                     OnDeviceOnline(new AdbDeviceEventArgs(device));
@@ -124,6 +126,10 @@ public class AdbService
                 else if (Device is not null && !connectionStatus)
                     OnDeviceOffline(new AdbDeviceEventArgs(Device));
             }
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Error while checking device connection");
         }
         finally
         {
@@ -151,8 +157,8 @@ public class AdbService
 
             if (skipScan) return;
             var deviceList = GetOculusDevices();
-            var listChanged = deviceList.Any(device => DeviceList.All(x => x.Serial != device.Serial)) 
-                               || DeviceList.Any(device => deviceList.All(x => x.Serial != device.Serial));
+            var listChanged = deviceList.Any(device => DeviceList.All(x => x.Serial != device.Serial))
+                              || DeviceList.Any(device => deviceList.All(x => x.Serial != device.Serial));
             if (!listChanged) return;
             DeviceList = deviceList;
             _deviceListChangeSubject.OnNext(deviceList);

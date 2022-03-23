@@ -133,8 +133,8 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
 
     private void OnDeviceListChanged(IReadOnlyList<AdbService.AdbDevice> deviceList)
     {
-        var toAdd = deviceList.Where(device => DeviceList.All(x => x.Serial != device.Serial));
-        var toRemove = DeviceList.Where(device => deviceList.All(x => x.Serial != device.Serial));
+        var toAdd = deviceList.Where(device => DeviceList.All(x => x.Serial != device.Serial)).ToList();
+        var toRemove = DeviceList.Where(device => deviceList.All(x => x.Serial != device.Serial)).ToList();
         foreach (var device in toAdd)
             DeviceList.Add(device);
         foreach (var device in toRemove)
