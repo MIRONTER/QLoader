@@ -667,6 +667,42 @@ public class AdbService
                     remotePath + localDir + "/" + file.Replace(@"\", "/"));
         }
 
+        private void PullFile(string remotePath, string localPath)
+        {
+            var remoteFileName = remotePath.Split('/').Last(x => !string.IsNullOrEmpty(x));
+            var localFilePath = localPath + Path.DirectorySeparatorChar + remoteFileName;
+            Log.Debug("Pulling file: \"{RemotePath}\" -> \"{LocalPath}\"", remotePath, localFilePath);
+            using var syncService = new SyncService(_adb.AdbClient, this);
+            using var file = File.OpenWrite(localFilePath);
+            syncService.Pull(remotePath, file,  null, CancellationToken.None);
+        }
+
+        public void PullDirectory(string remotePath, string localPath, string[]? excludeDirs = default)
+        {
+            if (!remotePath.EndsWith("/"))
+                remotePath += "/";
+            var remoteDirName = remotePath.Split('/').Last(x => !string.IsNullOrEmpty(x));
+            var localDir = Path.Combine(localPath, remoteDirName);
+            Directory.CreateDirectory(localDir);
+            Log.Debug("Pulling directory: \"{RemotePath}\" -> \"{LocalPath}\"",
+                remotePath, localDir);
+            using var syncService = new SyncService(_adb.AdbClient, this);
+            // Get listing for remote directory, excluding directories in excludeDirs
+            var remoteDirectoryListing = syncService.GetDirectoryListing(remotePath).Where(x =>
+                excludeDirs is null || !excludeDirs.Contains(x.Path.Split('/').Last(s => !string.IsNullOrEmpty(s)))).ToList();
+            foreach (var remoteFile in remoteDirectoryListing.Where(x => x.Path != "." && x.Path != ".."))
+            {
+                if (remoteFile.FileMode.HasFlag(UnixFileMode.Directory))
+                {
+                    PullDirectory(remotePath + remoteFile.Path, localDir, excludeDirs);
+                }
+                else if (remoteFile.FileMode.HasFlag(UnixFileMode.Regular))
+                {
+                    PullFile(remotePath + remoteFile.Path, localDir);
+                }
+            }
+        }
+
         public IObservable<string> SideloadGame(Game game, string gamePath)
         {
             return Observable.Create<string>(observer =>
