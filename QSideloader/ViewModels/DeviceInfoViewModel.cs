@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -58,7 +59,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] public bool IsDeviceConnected { get; set; }
     [Reactive] public bool IsDeviceWireless { get; set; }
     [Reactive] public AdbService.AdbDevice? CurrentDevice { get; set; }
-    [Reactive] public List<AdbService.AdbDevice> DeviceList { get; set; } = new();
+    [Reactive] public ObservableCollection<AdbService.AdbDevice> DeviceList { get; set; } = new();
     public ViewModelActivator Activator { get; }
 
     private void OnDeviceChanged(AdbService.AdbDevice device)
@@ -120,7 +121,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     private void RefreshProps()
     {
         var device = _adbService.Device;
-        DeviceList = _adbService.DeviceList.ToList();
+        DeviceList = new ObservableCollection<AdbService.AdbDevice>(_adbService.DeviceList.ToList());
         RefreshDeviceSelection();
         if (device is null) return;
         SpaceUsed = device.SpaceUsed;
