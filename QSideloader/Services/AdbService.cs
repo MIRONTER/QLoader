@@ -368,37 +368,42 @@ public class AdbService
         Log.Information("Searching for devices");
         List<AdbDevice> oculusDeviceList = new();
         var deviceList = _adb.AdbClient.GetDevices();
-        if (deviceList.Count > 0)
-        {
-            foreach (var device in deviceList)
-            {
-                var hashedDeviceId = GetHashedId(device.Serial);
-                if (IsOculusQuest(device))
-                {
-                    //Log.Information("Found Oculus Quest device. SN: " + device.Serial);
-                    try
-                    {
-                        var adbDevice = new AdbDevice(device, this);
-                        oculusDeviceList.Add(adbDevice);
-                        Log.Information("Found Oculus Quest device: {Device}", adbDevice);
-                    }
-                    catch
-                    {
-                        // ignored
-                    }
-
-                    continue;
-                }
-
-                if (device.State == DeviceState.Unauthorized)
-                    Log.Warning("Found device in Unauthorized state! ({HashedDeviceId})", hashedDeviceId);
-                else
-                    Log.Information("Not an Oculus Quest device! ({HashedDeviceId})", hashedDeviceId);
-            }
-        }
-        else
+        if (deviceList.Count == 0)
         {
             Log.Warning("No ADB devices found");
+            return oculusDeviceList;
+        }
+
+        foreach (var device in deviceList)
+        {
+            var hashedDeviceId = GetHashedId(device.Serial);
+            if (IsOculusQuest(device))
+            {
+                try
+                {
+                    var adbDevice = new AdbDevice(device, this);
+                    oculusDeviceList.Add(adbDevice);
+                    Log.Information("Found Oculus Quest device: {Device}", adbDevice);
+                }
+                catch
+                {
+                    // ignored
+                }
+
+                continue;
+            }
+
+            if (device.State == DeviceState.Online)
+                Log.Information("Not an Oculus Quest device! ({HashedDeviceId} - {Product})", hashedDeviceId,
+                    device.Product);
+            else
+                Log.Information("Found device in {State} state! ({HashedDeviceId})", device.State, hashedDeviceId);
+        }
+
+        if (oculusDeviceList.Count == 0)
+        {
+            Log.Warning("No Oculus devices found");
+            return oculusDeviceList;
         }
 
         return Globals.SideloaderSettings.PreferredConnectionType switch
