@@ -103,6 +103,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
+                _adbService.Device!.BackupGame(game);
                 _adbService.Device!.UninstallGame(game);
                 Log.Information("Uninstalled game: {GameName}", game.GameName);
             }

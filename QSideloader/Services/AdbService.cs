@@ -17,6 +17,7 @@ using AdvancedSharpAdbClient;
 using AdvancedSharpAdbClient.DeviceCommands;
 using CliWrap;
 using CliWrap.Buffered;
+using Newtonsoft.Json;
 using QSideloader.Helpers;
 using QSideloader.Models;
 using QSideloader.ViewModels;
@@ -509,6 +510,7 @@ public class AdbService
     {
         private readonly AdbServerClient _adb;
         private readonly AdbService _adbService;
+        private readonly SideloaderSettingsViewModel _sideloaderSettings;
         private static readonly SemaphoreSlim DeviceInfoSemaphoreSlim = new(1, 1);
         private static readonly SemaphoreSlim PackagesSemaphoreSlim = new(1, 1);
 
@@ -516,6 +518,7 @@ public class AdbService
         {
             _adbService = adbService;
             _adb = adbService._adb;
+            _sideloaderSettings = Globals.SideloaderSettings;
             
             Serial = deviceData.Serial;
             IsWireless = deviceData.Serial.Contains('.');
@@ -682,7 +685,7 @@ public class AdbService
             syncService.Pull(remotePath, file,  null, CancellationToken.None);
         }
 
-        public void PullDirectory(string remotePath, string localPath, string[]? excludeDirs = default)
+        private void PullDirectory(string remotePath, string localPath, string[]? excludeDirs = default)
         {
             if (!remotePath.EndsWith("/"))
                 remotePath += "/";
@@ -705,6 +708,20 @@ public class AdbService
                 {
                     PullFile(remotePath + remoteFile.Path, localDir);
                 }
+            }
+        }
+
+        private bool DirectoryExists(string path)
+        {
+            try
+            {
+                using var syncService = new SyncService(_adb.AdbClient, this);
+                return syncService.Stat(path).FileMode.HasFlag(UnixFileMode.Directory);
+            }
+            catch (Exception e)
+            {
+                Log.Warning(e, "Failed to stat the provided path");
+                return false;
             }
         }
 
@@ -928,7 +945,46 @@ public class AdbService
             return ipAddress;
         }
 
-        #region Properties
+        public void BackupGame(Game game, bool backupData = true, bool backupApk = false, bool backupObb = false)
+        {
+            Log.Information("Backing up game {GameName}", game.GameName);
+            var backupPath = Path.Combine(_sideloaderSettings.BackupsLocation, $"{DateTime.Now:yyyyMMddTHHmmss}_{game.PackageName}");
+            var backupMetadataPath = Path.Combine(backupPath, "backup.json");
+            var dataPath = $"/sdcard/Android/data/{game.PackageName}/";
+            var dataBackupPath = Path.Combine(backupPath, "data");
+            var obbPath = $"/sdcard/Android/obb/{game.PackageName}/";
+            var obbBackupPath = Path.Combine(backupPath, "obb");
+            const string apkPathPattern = @"package:(\S+)";
+            var apkPath = Regex.Match(RunShellCommand($"pm path {game.PackageName}")!, apkPathPattern).Groups[1]
+                .ToString();
+            Directory.CreateDirectory(backupPath);
+            var empty = true;
+            if (backupData && DirectoryExists(dataPath))
+            {
+                empty = false;
+                Directory.CreateDirectory(dataBackupPath);
+                PullDirectory(dataPath, dataBackupPath, new []{"cache"});
+            }
+            if (backupApk)
+            {
+                empty = false;
+                PullFile(apkPath, backupPath);
+            }
+            if (backupObb && DirectoryExists(obbPath))
+            {
+                empty = false;
+                Directory.CreateDirectory(obbBackupPath);
+                PullDirectory(obbPath, obbBackupPath);
+            }
+
+            if (!empty)
+            {
+                var json = JsonConvert.SerializeObject(game);
+                File.WriteAllText("game.json", json);
+            }
+            else
+                Log.Information("Nothing to backup");
+        }
 
         private PackageManager? PackageManager { get; }
         public float SpaceUsed { get; private set; }
@@ -940,8 +996,6 @@ public class AdbService
         private string HashedId { get; }
         public string? TrueSerial { get; }
         public bool IsWireless { get; }
-
-        #endregion
     }
     
     public class AdbDeviceEventArgs : EventArgs

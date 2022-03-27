@@ -19,6 +19,9 @@ namespace QSideloader.ViewModels;
 [JsonObject(MemberSerialization.OptIn)]
 public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
 {
+    private readonly string _defaultDownloadsLocation = Path.Combine(Environment.CurrentDirectory, "downloads");
+    private readonly string _defaultBackupsLocation = Path.Combine(Environment.CurrentDirectory, "backups");
+    
     public SideloaderSettingsViewModel()
     {
         Activator = new ViewModelActivator();
@@ -41,6 +44,8 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] [JsonProperty] public string? PreferredConnectionType { get; private set; }
     [Reactive] public string DownloadsLocationTextBoxText { get; private set; } = "";
     [JsonProperty] public string DownloadsLocation { get; private set; } = "";
+    [Reactive] public string BackupsLocationTextBoxText { get; private set; } = "";
+    [JsonProperty] public string BackupsLocation { get; private set; } = "";
     [Reactive] [JsonProperty] public bool DeleteAfterInstall { get; private set; }
     [Reactive] [JsonProperty] public bool EnableDebugConsole { get; private set; }
     [Reactive] [JsonProperty] public string LastWirelessAdbHost { get; set; } = "";
@@ -61,8 +66,10 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
     {
         CheckUpdatesOnLaunch = true;
         PreferredConnectionType = ConnectionTypes[0];
-        DownloadsLocation = Path.Combine(Environment.CurrentDirectory, "downloads");
+        DownloadsLocation = _defaultDownloadsLocation;
         DownloadsLocationTextBoxText = DownloadsLocation;
+        BackupsLocation = _defaultBackupsLocation;
+        BackupsLocationTextBoxText = BackupsLocation;
         DeleteAfterInstall = false;
         LastWirelessAdbHost = "";
         EnableDebugConsole = !IsConsoleToggleable;
@@ -73,25 +80,39 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
         var saveNeeded = false;
         if (!Directory.Exists(DownloadsLocation))
         {
-            var defaultLocation = Path.Combine(Environment.CurrentDirectory, "downloads");
-            if (DownloadsLocation == defaultLocation)
+            if (DownloadsLocation == _defaultDownloadsLocation)
             {
-                Directory.CreateDirectory(defaultLocation);
+                Directory.CreateDirectory(_defaultDownloadsLocation);
                 DownloadsLocationTextBoxText = DownloadsLocation;
             }
             else
             {
-                Log.Debug("Downloads location is invalid, resetting");
-                Directory.CreateDirectory(defaultLocation);
-                DownloadsLocation = defaultLocation;
+                Log.Debug("Downloads location is invalid, resetting to default");
+                Directory.CreateDirectory(_defaultDownloadsLocation);
+                DownloadsLocation = _defaultDownloadsLocation;
                 saveNeeded = true;
             }
-            
+        }
+        
+        if (!Directory.Exists(BackupsLocation))
+        {
+            if (BackupsLocation == _defaultBackupsLocation)
+            {
+                Directory.CreateDirectory(_defaultBackupsLocation);
+                BackupsLocationTextBoxText = BackupsLocation;
+            }
+            else
+            {
+                Log.Debug("Backups location is invalid, resetting to default");
+                Directory.CreateDirectory(_defaultBackupsLocation);
+                BackupsLocation = _defaultBackupsLocation;
+                saveNeeded = true;
+            }
         }
 
         if (!ConnectionTypes.Contains(PreferredConnectionType))
         {
-            Log.Debug("Preferred connection type is invalid, resetting");
+            Log.Debug("Preferred connection type is invalid, resetting to default");
             PreferredConnectionType = ConnectionTypes[0];
             saveNeeded = true;
         }
@@ -134,8 +155,7 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     using FileStream stream = AtomicFileStream.Open(PathHelper.SettingsPath, FileMode.Create,
-                        FileAccess.Write,
-                        FileShare.Read, 4096, FileOptions.None);
+                        FileAccess.Write, FileShare.Read, 4096, FileOptions.None);
                     stream.Write(Encoding.UTF8.GetBytes(json));
                 }
                 else
