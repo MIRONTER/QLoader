@@ -2,10 +2,12 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
+using Avalonia.ReactiveUI;
+using QSideloader.ViewModels;
 
 namespace QSideloader.Views;
 
-public partial class GameDetailsWindow : Window
+public partial class GameDetailsWindow : ReactiveWindow<GameDetailsViewModel>
 {
     public GameDetailsWindow()
     {

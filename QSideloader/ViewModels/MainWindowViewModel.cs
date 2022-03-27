@@ -20,6 +20,7 @@ public class MainWindowViewModel : ViewModelBase
         ShowGameDetailsCommand = ReactiveCommand.CreateFromTask<Game>(async game =>
         {
             if (Globals.AvailableGames is null) return;
+            Log.Debug("Opening game details dialog for {GameName}", game.GameName);
             var gameDetails = new GameDetailsViewModel(game);
             await ShowDialog.Handle(gameDetails);
         });

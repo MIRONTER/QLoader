@@ -4,6 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModels="clr-namespace:QSideloader.ViewModels"
         xmlns:helpers="clr-namespace:QSideloader.Helpers"
+        xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
         mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="400"
         x:Class="QSideloader.Views.GameDetailsWindow"
         Title="GameDetailsWindow"
@@ -46,12 +47,20 @@
                            Margin="0,0,0,12"
                            FontWeight="Light"
                            Text="{Binding Game.ReleaseName}" />
+                <vlc:VideoView Grid.Row="2" Grid.Column="0" 
+                               MediaPlayer="{Binding MediaPlayer}"
+                               Width="505"
+                               Height="300"
+                               VerticalAlignment="Stretch"
+                               HorizontalAlignment="Stretch"
+                               IsVisible="{Binding IsTrailerPlaying}" />
                 <Image Grid.Row="2" Grid.Column="0"
                        Source="{Binding ThumbnailPath, Converter={StaticResource VariableImageFromFiles}}"
                        MaxWidth="505"
                        MaxHeight="300"
                        VerticalAlignment="Top"
-                       HorizontalAlignment="Center" />
+                       HorizontalAlignment="Center" 
+                       IsVisible="{Binding !IsTrailerPlaying}"/>
                 <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="Auto,Auto,*"
                       RowDefinitions="Auto,Auto,Auto,*"
                       Margin="24,0,0,0">

@@ -32,4 +32,6 @@ public static class PathHelper
     public static string RclonePath { get; } = "";
     public static string SevenZipPath { get; } = "";
     public static string SettingsPath => "settings.json";
+    public static string ThumbnailsPath => Path.Combine("Resources", "thumbnails");
+    public static string TrailersPath => Path.Combine("Resources", "videos");
 }

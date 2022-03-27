@@ -32,6 +32,7 @@ public partial class InstalledGamesView : ReactiveUserControl<InstalledGamesView
         // TODO: let user set action in settings?
         //Globals.MainWindowViewModel!.QueueForInstall(selectedGame);
         Globals.MainWindowViewModel!.ShowGameDetailsCommand.Execute(selectedGame);
+        e.Handled = true;
     }
 
     /*private void SetMultiSelectEnabled(bool state)
