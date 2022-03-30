@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis;
 
 namespace QSideloader.Helpers;
 
@@ -24,6 +25,8 @@ public static class PathHelper
         {
             AdbPath = @"./tools/darwin/platform-tools/adb";
             RclonePath = @"./tools/darwin/rclone/FFA";
+            RclonePath = Path.Combine("./tools/darwin/",
+                RuntimeInformation.OSArchitecture == Architecture.Arm64 ? "arm64" : "x64", "rclone/FFA");
             SevenZipPath = @"./tools/darwin/7zz";
         }
     }

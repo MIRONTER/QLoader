@@ -3,7 +3,8 @@
 echo "Deleting old archives"
 rm win-x64.zip
 rm linux-x64.tar.gz
-em osx-x64.zip
+rm osx-x64.zip
+rm osx-arm64.zip
 rm TrailersAddon.zip
 
 echo "Packing win-x64 build"
@@ -18,6 +19,11 @@ echo "Packing osx-x64 build"
 chmod +x osx-x64/Loader
 chmod -R +x osx-x64/tools/
 zip -r osx-x64.zip osx-x64
+
+echo "Packing osx-arm64 build"
+chmod +x osx-arm64/Loader
+chmod -R +x osx-arm64/tools/
+zip -r osx-arm64.zip osx-arm64
 
 echo "Packing trailers addon"
 CURRENTDIR=$(pwd)
