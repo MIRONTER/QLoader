@@ -9,12 +9,11 @@
         <TrimMode>copyused</TrimMode>
         <PublicSign>false</PublicSign>
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
-        <AssemblyVersion>0.1.0.0</AssemblyVersion>
+        <AssemblyVersion>0.1.1.0</AssemblyVersion>
         <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
         <NeutralLanguage>en</NeutralLanguage>
         <AssemblyName>Loader</AssemblyName>
-        <FileVersion>0.1.0.0</FileVersion>
-        <InformationalVersion>0.1.0</InformationalVersion>
+        <InformationalVersion>0.1.1</InformationalVersion>
     </PropertyGroup>
     <ItemGroup>
         <Folder Include="Models\" />

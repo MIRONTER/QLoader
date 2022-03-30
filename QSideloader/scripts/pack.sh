@@ -3,6 +3,7 @@
 echo "Deleting old archives"
 rm win-x64.zip
 rm linux-x64.tar.gz
+em osx-x64.zip
 rm TrailersAddon.zip
 
 echo "Packing win-x64 build"
@@ -21,7 +22,7 @@ zip -r osx-x64.zip osx-x64
 echo "Packing trailers addon"
 CURRENTDIR=$(pwd)
 cd ../../../
-zip -r $CURRENTDIR/TrailersAddon.zip Resources/videos/
-cd $CURRENTDIR
+zip -r "$CURRENTDIR/TrailersAddon.zip" Resources/videos/
+cd "$CURRENTDIR" || exit
 
 echo "Done!"
