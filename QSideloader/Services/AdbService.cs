@@ -816,7 +816,10 @@ public class AdbService
                             case "uninstall":
                             {
                                 var packageName = args.First();
-                                UninstallPackage(packageName);
+                                // FIXME: backup for reinstall 
+                                //BackupGame(packageName);
+                                Log.Information("Ignoring uninstall command");
+                                //UninstallPackage(packageName);
                                 break;
                             }
                             case "push":
@@ -835,7 +838,10 @@ public class AdbService
                                 if (args.Count > 2 && args[0] == "pm" && args[1] == "uninstall")
                                 {
                                     var packageName = args[2];
-                                    UninstallPackage(packageName);
+                                    // FIXME: backup for reinstall 
+                                    //BackupGame(packageName);
+                                    Log.Information("Ignoring uninstall command");
+                                    //UninstallPackage(packageName);
                                     break;
                                 }
 
@@ -947,15 +953,20 @@ public class AdbService
 
         public void BackupGame(Game game, bool backupData = true, bool backupApk = false, bool backupObb = false)
         {
-            Log.Information("Backing up game {GameName}", game.GameName);
-            var backupPath = Path.Combine(_sideloaderSettings.BackupsLocation, $"{DateTime.Now:yyyyMMddTHHmmss}_{game.PackageName}");
+            BackupGame(game.PackageName!, backupData, backupApk, backupObb);
+        }
+
+        public void BackupGame(string packageName, bool backupData = true, bool backupApk = false, bool backupObb = false)
+        {
+            Log.Information("Backing up {PackageName}", packageName);
+            var backupPath = Path.Combine(_sideloaderSettings.BackupsLocation, $"{DateTime.Now:yyyyMMddTHHmmss}_{packageName}");
             var backupMetadataPath = Path.Combine(backupPath, "backup.json");
-            var dataPath = $"/sdcard/Android/data/{game.PackageName}/";
+            var dataPath = $"/sdcard/Android/data/{packageName}/";
             var dataBackupPath = Path.Combine(backupPath, "data");
-            var obbPath = $"/sdcard/Android/obb/{game.PackageName}/";
+            var obbPath = $"/sdcard/Android/obb/{packageName}/";
             var obbBackupPath = Path.Combine(backupPath, "obb");
             const string apkPathPattern = @"package:(\S+)";
-            var apkPath = Regex.Match(RunShellCommand($"pm path {game.PackageName}")!, apkPathPattern).Groups[1]
+            var apkPath = Regex.Match(RunShellCommand($"pm path {packageName}")!, apkPathPattern).Groups[1]
                 .ToString();
             Directory.CreateDirectory(backupPath);
             var empty = true;
@@ -979,8 +990,8 @@ public class AdbService
 
             if (!empty)
             {
-                var json = JsonConvert.SerializeObject(game);
-                File.WriteAllText("game.json", json);
+                //var json = JsonConvert.SerializeObject(game);
+                //File.WriteAllText("game.json", json);
             }
             else
                 Log.Information("Nothing to backup");
