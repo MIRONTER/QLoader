@@ -107,6 +107,7 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel
     private void DisposeMediaPlayer()
     {
         if (MediaPlayer is null) return;
+        // VideoView causes a crash if we just use MediaPlayer.Dispose() here
         var mediaPlayer = MediaPlayer;
         MediaPlayer = null;
         mediaPlayer.Stop();
