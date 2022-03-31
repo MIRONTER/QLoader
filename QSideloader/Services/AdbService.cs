@@ -486,7 +486,7 @@ public class AdbService
 
     private static bool IsOculusQuest(DeviceData device)
     {
-        return device.Product is "hollywood" or "monterey";
+        return device.Product is "hollywood" or "monterey" or "vr_monterey";
     }
 
     public static async Task TakeSideloadLockAsync(CancellationToken ct = default)
