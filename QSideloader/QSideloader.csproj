@@ -16,15 +16,15 @@
         <InformationalVersion>0.1.1</InformationalVersion>
     </PropertyGroup>
     <ItemGroup>
-        <IncludeTools Condition="$(RuntimeIdentifier.Contains('win')) Or '$(RuntimeIdentifier)'==''" Include="tools\windows\**\*"/>
-        <IncludeTools Condition="$(RuntimeIdentifier.Contains('linux')) Or '$(RuntimeIdentifier)'==''" Include="tools\linux\**\*"/>
-        <IncludeTools Condition="$(RuntimeIdentifier.Contains('osx')) Or '$(RuntimeIdentifier)'==''" Include="tools\darwin\**\*"/>
-        <ExcludeArchitectureSpecific Include="tools\windows\x64\**\*;tools\windows\x86\**\*"/>
-        <ExcludeArchitectureSpecific Include="tools\darwin\x64\**\*;tools\darwin\arm64\**\*"/>
-        <IncludeArchitectureSpecific Condition="($(RuntimeIdentifier.Contains('win')) And $(RuntimeIdentifier.Contains('x64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\windows\x64\rclone\**\*"/>
-        <IncludeArchitectureSpecific Condition="($(RuntimeIdentifier.Contains('win')) And $(RuntimeIdentifier.Contains('x86'))) Or '$(RuntimeIdentifier)'==''" Include="tools\windows\x86\rclone\**\*"/>
-        <IncludeArchitectureSpecific Condition="($(RuntimeIdentifier.Contains('osx')) And $(RuntimeIdentifier.Contains('x64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\darwin\x64\rclone\**\*"/>
-        <IncludeArchitectureSpecific Condition="($(RuntimeIdentifier.Contains('osx')) And $(RuntimeIdentifier.Contains('arm64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\darwin\arm64\rclone\**\*"/>
+        <IncludeTools Condition="$(RuntimeIdentifier.Contains('win')) Or '$(RuntimeIdentifier)'==''" Include="tools\windows\**\*" />
+        <IncludeTools Condition="$(RuntimeIdentifier.Contains('linux')) Or '$(RuntimeIdentifier)'==''" Include="tools\linux\**\*" />
+        <IncludeTools Condition="$(RuntimeIdentifier.Contains('osx')) Or '$(RuntimeIdentifier)'==''" Include="tools\darwin\**\*" />
+        <ExcludeArchitectureSpecific Include="tools\windows\x64\**\*;tools\windows\x86\**\*" />
+        <ExcludeArchitectureSpecific Include="tools\darwin\x64\**\*;tools\darwin\arm64\**\*" />
+        <IncludeArchitectureSpecific Condition="($(RuntimeIdentifier.Contains('win')) And $(RuntimeIdentifier.Contains('x64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\windows\x64\**\*" />
+        <IncludeArchitectureSpecific Condition="($(RuntimeIdentifier.Contains('win')) And $(RuntimeIdentifier.Contains('x86'))) Or '$(RuntimeIdentifier)'==''" Include="tools\windows\x86\**\*" />
+        <IncludeArchitectureSpecific Condition="($(RuntimeIdentifier.Contains('osx')) And $(RuntimeIdentifier.Contains('x64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\darwin\x64\**\*" />
+        <IncludeArchitectureSpecific Condition="($(RuntimeIdentifier.Contains('osx')) And $(RuntimeIdentifier.Contains('arm64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\darwin\arm64\**\*" />
     </ItemGroup>
     <ItemGroup>
         <Folder Include="Models\" />

@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -28,6 +29,25 @@ public class App : Application
 
         if (!Design.IsDesignMode)
             InitializeLogging();
+
+        if (File.Exists("TrailersAddon.zip"))
+        {
+            Task.Run(() =>
+            {
+                Log.Information("Found trailers addon zip. Starting background install");
+                ZipUtil.ExtractArchive("TrailersAddon.zip", Directory.GetCurrentDirectory());
+                Log.Information("Installed trailers addon");
+            });
+        }
+        if (File.Exists(Path.Combine("..", "TrailersAddon.zip")))
+        {
+            Task.Run(() =>
+            {
+                Log.Information("Found trailers addon zip. Starting background install");
+                ZipUtil.ExtractArchive(Path.Combine("..", "TrailersAddon.zip"), Directory.GetCurrentDirectory());
+                Log.Information("Installed trailers addon");
+            });
+        }
 
         AvaloniaXamlLoader.Load(this);
     }
