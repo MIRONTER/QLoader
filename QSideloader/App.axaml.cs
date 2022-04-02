@@ -37,6 +37,7 @@ public class App : Application
                 Log.Information("Found trailers addon zip. Starting background install");
                 ZipUtil.ExtractArchive("TrailersAddon.zip", Directory.GetCurrentDirectory());
                 Log.Information("Installed trailers addon");
+                File.Delete("TrailersAddon.zip");
             });
         }
         if (File.Exists(Path.Combine("..", "TrailersAddon.zip")))
@@ -46,6 +47,7 @@ public class App : Application
                 Log.Information("Found trailers addon zip. Starting background install");
                 ZipUtil.ExtractArchive(Path.Combine("..", "TrailersAddon.zip"), Directory.GetCurrentDirectory());
                 Log.Information("Installed trailers addon");
+                File.Delete(Path.Combine("..", "TrailersAddon.zip"));
             });
         }
 
