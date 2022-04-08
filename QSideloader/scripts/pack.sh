@@ -20,9 +20,19 @@ chmod +x osx-x64/Loader
 chmod -R +x osx-x64/tools/
 zip -r osx-x64.zip osx-x64
 
-echo "Packing osx-arm64 build"
 chmod +x osx-arm64/Loader
 chmod -R +x osx-arm64/tools/
+# Check if rcodesign tool is installed
+if ! [ -x "$HOME/.cargo/bin/rcodesign" ]; then
+  echo 'Error: rcodesign is not installed.' >&2
+  echo 'Please install apple-codesign rust crate.' >&2
+  exit 1
+fi
+# MacOS doesn't allow to run unsigned native M1 binaries
+echo "Signing osx-arm64 build with ad-hoc certificate"
+$HOME/.cargo/bin/rcodesign sign osx-arm64/Loader
+find osx-arm64 -name "*.dylib" -exec $HOME/.cargo/bin/rcodesign sign {} \;
+echo "Packing osx-arm64 build"
 zip -r osx-arm64.zip osx-arm64
 
 echo "Packing trailers addon"
