@@ -93,13 +93,11 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task<string> PerformDownload()
     {
-        var tookDownloadLock = false;
         var downloadStatsSubscription = Disposable.Empty;
+        Status = "Download queued";
+        await DownloaderService.TakeDownloadLockAsync(CancellationTokenSource.Token);
         try
         {
-            Status = "Download queued";
-            await DownloaderService.TakeDownloadLockAsync(CancellationTokenSource.Token);
-            tookDownloadLock = true;
             Status = "Downloading";
             downloadStatsSubscription = _downloaderService
                 .PollStats(TimeSpan.FromMilliseconds(100), ThreadPoolScheduler.Instance)
@@ -108,19 +106,14 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             var gamePath = await Task.Run(() => _downloaderService.DownloadGame(Game!,
                 CancellationTokenSource.Token));
             downloadStatsSubscription.Dispose();
-            DownloadStats = "";
-            DownloaderService.ReleaseDownloadLock();
             // if download only OnFinished("Download complete");
             return gamePath;
         }
         finally
         {
-            if (tookDownloadLock)
-            {
-                DownloaderService.ReleaseDownloadLock();
-                downloadStatsSubscription.Dispose();
-                DownloadStats = "";
-            }
+            DownloadStats = "";
+            downloadStatsSubscription.Dispose();
+            DownloaderService.ReleaseDownloadLock();
         }
     }
 

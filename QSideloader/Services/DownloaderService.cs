@@ -328,6 +328,8 @@ public class DownloaderService
     {
         if (DownloadSemaphoreSlim.CurrentCount < 1)
             DownloadSemaphoreSlim.Release();
+        else
+            Log.Warning("Attempted double release of download lock");
     }
 
     public IObservable<DownloadStats> PollStats(TimeSpan interval, IScheduler scheduler)
