@@ -16,7 +16,6 @@
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="Publish debug win-x64" run_configuration_type="DotNetFolderPublish" />
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="Publish debug linux-x64" run_configuration_type="DotNetFolderPublish" />
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="Publish debug osx-x64" run_configuration_type="DotNetFolderPublish" />
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Publish debug osx-arm64" run_configuration_type="DotNetFolderPublish" />
     </method>
   </configuration>
 </component>
