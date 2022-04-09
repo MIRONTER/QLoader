@@ -280,7 +280,7 @@ public class DownloaderService
                 try
                 {
                     RcloneDownload(srcPath, dstPath,
-                        "--progress --drive-acknowledge-abuse --rc --drive-stop-on-download-limit", 3, ct);
+                        "--progress --drive-acknowledge-abuse --rc --rc-addr :48040 --drive-stop-on-download-limit", 3, ct);
                     var json = JsonConvert.SerializeObject(game);
                     File.WriteAllText(Path.Combine(dstPath, "release.json"), json);
                     break;
@@ -352,7 +352,7 @@ public class DownloaderService
     {
         try
         {
-            var response = await HttpClient.PostAsync("http://127.0.0.1:5572/core/stats", null);
+            var response = await HttpClient.PostAsync("http://127.0.0.1:48040/core/stats", null);
             var responseContent = await response.Content.ReadAsStringAsync();
             var results = JsonConvert.DeserializeObject<dynamic>(responseContent);
             if (results is null || results["transferring"] is null) return new DownloadStats();
