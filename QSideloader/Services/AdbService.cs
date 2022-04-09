@@ -729,11 +729,14 @@ public class AdbService
         {
             return Observable.Create<string>(observer =>
             {
+                var reinstall = false;
                 try
                 {
                     _ = PackageManager ?? throw new InvalidOperationException("PackageManager must be initialized");
                     Log.Information("Sideloading game {GameName}", game.GameName);
-
+                    
+                    if (game.PackageName is not null)
+                        reinstall = PackageManager.Packages.ContainsKey(game.PackageName);
 
                     if (File.Exists(Path.Combine(gamePath, "install.txt")))
                     {
@@ -770,7 +773,8 @@ public class AdbService
                 catch (Exception e)
                 {
                     Log.Error(e, "Error installing game");
-                    CleanupRemnants(game);
+                    if (!reinstall)
+                        CleanupRemnants(game);
                     observer.OnError(new AdbServiceException("Error installing game", e));
                 }
 
