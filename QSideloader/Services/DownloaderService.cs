@@ -156,15 +156,26 @@ public class DownloaderService
         {
             EnsureMirrorSelected();
 
-            string? gameListPath;
+            var csvEngine = new FileHelperEngine<Game>();
             var notesPath = Path.Combine("metadata", "notes.json");
             if (Globals.AvailableGames is not null && !refresh)
                 return;
             Log.Information("Downloading game list");
             while (true)
             {
-                if (TryDownloadGameList(out gameListPath))
-                    break;
+                if (TryDownloadGameList(out var gameListPath))
+                {
+                    try
+                    {
+                        Globals.AvailableGames = csvEngine.ReadFile(gameListPath);
+                        Log.Information("Loaded {Count} games", Globals.AvailableGames.Length);
+                        break;
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Warning(e, "Failed to read game list from mirror {MirrorName}", MirrorName);
+                    }
+                }
                 SwitchMirror();
             }
             /*if (!Directory.Exists("metadata"))
@@ -207,11 +218,6 @@ public class DownloaderService
             }
             else if (notesResponse.StatusCode != HttpStatusCode.NotModified)
                 Log.Error($"Unexpected http response: {notesResponse.ReasonPhrase}");*/
-
-
-            var csvEngine = new FileHelperEngine<Game>();
-            Globals.AvailableGames = csvEngine.ReadFile(gameListPath);
-            Log.Information("Loaded {Count} games", Globals.AvailableGames.Length);
 
             if (!File.Exists(notesPath)) return;
             var notesJson = await File.ReadAllTextAsync(notesPath);
