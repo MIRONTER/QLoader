@@ -998,7 +998,10 @@ public class AdbService
                 //File.WriteAllText("game.json", json);
             }
             else
+            {
                 Log.Information("Nothing to backup");
+                Directory.Delete(backupPath, true);
+            }
         }
 
         private PackageManager? PackageManager { get; }
