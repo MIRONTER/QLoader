@@ -16,18 +16,21 @@ using FileHelpers;
 using Newtonsoft.Json;
 using QSideloader.Helpers;
 using QSideloader.Models;
+using QSideloader.ViewModels;
 using Serilog;
 
 namespace QSideloader.Services;
 
 public class DownloaderService
 {
+    private readonly SideloaderSettingsViewModel _sideloaderSettings;
     private static readonly SemaphoreSlim MirrorListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim GameListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim DownloadSemaphoreSlim = new(1, 1);
 
     public DownloaderService()
     {
+        _sideloaderSettings = Globals.SideloaderSettings;
         Task.Run(() => EnsureGameListAvailableAsync());
     }
 
@@ -124,8 +127,10 @@ public class DownloaderService
         try
         {
             EnsureMirrorSelected();
+            var bwLimit = !string.IsNullOrEmpty(_sideloaderSettings.DownloaderBandwidthLimit) ?
+                $"--bwlimit {_sideloaderSettings.DownloaderBandwidthLimit}" : "";
             Cli.Wrap(PathHelper.RclonePath)
-                .WithArguments($"copy --retries {retries} \"{MirrorName}:{source}\" \"{destination}\" {additionalArgs}")
+                .WithArguments($"copy --retries {retries} {bwLimit} \"{MirrorName}:{source}\" \"{destination}\" {additionalArgs}")
                 .ExecuteBufferedAsync(ct)
                 .GetAwaiter().GetResult();
         }

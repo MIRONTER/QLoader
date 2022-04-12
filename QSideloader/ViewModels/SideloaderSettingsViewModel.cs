@@ -6,6 +6,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Timers;
 using Newtonsoft.Json;
 using QSideloader.Helpers;
@@ -27,6 +28,8 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
         Activator = new ViewModelActivator();
         SaveSettings = ReactiveCommand.CreateFromObservable(SaveSettingsImpl);
         SetDownloadLocation = ReactiveCommand.CreateFromObservable(SetDownloadLocationImpl, this.IsValid());
+        SetBackupsLocation = ReactiveCommand.CreateFromObservable(SetBackupsLocationImpl, this.IsValid());
+        SetDownloaderBandwidthLimit = ReactiveCommand.CreateFromObservable(SetDownloaderBandwidthLimitImpl, this.IsValid());
         RestoreDefaults = ReactiveCommand.CreateFromObservable(RestoreDefaultsImpl);
         InitDefaults();
         LoadSettings();
@@ -35,7 +38,18 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
         this.ValidationRule(viewModel => viewModel.DownloadsLocationTextBoxText,
             Directory.Exists,
             "Invalid path");
-        AutoSaveDelayTimer.Elapsed += (_, _) => SaveSettings.Execute().Subscribe();
+        this.ValidationRule(viewModel => viewModel.BackupsLocationTextBoxText,
+            Directory.Exists,
+            "Invalid path");
+        this.ValidationRule(viewModel => viewModel.DownloaderBandwidthLimitTextBoxText,
+            x => string.IsNullOrEmpty(x) ||
+                 int.TryParse(Regex.Match(x, @"^(\d+)[BKMGTP]{0,1}$").Groups[1].ToString(), out _),
+            "Invalid format. Allowed format: Number in KiB/s, or number with suffix B|K|M|G|T|P (e.g. 1000 or 10M)");
+        AutoSaveDelayTimer.Elapsed += (_, _) =>
+        {
+            ValidateSettings(false);
+            SaveSettings.Execute().Subscribe();
+        };
     }
 
     [JsonProperty] private byte ConfigVersion { get; } = 1;
@@ -46,6 +60,8 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
     [JsonProperty] public string DownloadsLocation { get; private set; } = "";
     [Reactive] public string BackupsLocationTextBoxText { get; private set; } = "";
     [JsonProperty] public string BackupsLocation { get; private set; } = "";
+    [Reactive] public string DownloaderBandwidthLimitTextBoxText { get; private set; } = "";
+    [JsonProperty] public string DownloaderBandwidthLimit { get; private set; } = "";
     [Reactive] [JsonProperty] public bool DeleteAfterInstall { get; private set; }
     [Reactive] [JsonProperty] public bool EnableDebugConsole { get; private set; }
     [Reactive] [JsonProperty] public string LastWirelessAdbHost { get; set; } = "";
@@ -57,6 +73,8 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
     private ReactiveCommand<Unit, Unit> SaveSettings { get; }
     private ReactiveCommand<Unit, Unit> RestoreDefaults { get; }
     public ReactiveCommand<Unit, Unit> SetDownloadLocation { get; }
+    public ReactiveCommand<Unit, Unit> SetBackupsLocation { get; }
+    public ReactiveCommand<Unit, Unit> SetDownloaderBandwidthLimit { get; }
 
     private Timer AutoSaveDelayTimer { get; } = new() {AutoReset = false, Interval = 500};
 
@@ -70,12 +88,14 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
         DownloadsLocationTextBoxText = DownloadsLocation;
         BackupsLocation = _defaultBackupsLocation;
         BackupsLocationTextBoxText = BackupsLocation;
+        DownloaderBandwidthLimit = "";
+        DownloaderBandwidthLimitTextBoxText = "";
         DeleteAfterInstall = false;
         LastWirelessAdbHost = "";
         EnableDebugConsole = !IsConsoleToggleable;
     }
 
-    private void ValidateSettings()
+    private void ValidateSettings(bool save = true)
     {
         var saveNeeded = false;
         if (!Directory.Exists(DownloadsLocation))
@@ -118,7 +138,9 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
         }
 
         DownloadsLocationTextBoxText = DownloadsLocation;
-        if (saveNeeded)
+        BackupsLocationTextBoxText = BackupsLocation;
+        DownloaderBandwidthLimitTextBoxText = DownloaderBandwidthLimit;
+        if (save && saveNeeded)
             SaveSettings.Execute().Subscribe();
     }
 
@@ -181,6 +203,8 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
         {
             Log.Information("Restoring default settings");
             InitDefaults();
+            AutoSaveDelayTimer.Stop();
+            AutoSaveDelayTimer.Start();
         });
     }
 
@@ -192,8 +216,42 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
                 DownloadsLocationTextBoxText == DownloadsLocation) return;
             DownloadsLocation = DownloadsLocationTextBoxText;
             SaveSettings.Execute().Subscribe();
-            Log.Debug("Set new downloads location: {DownloadsLocation}",
+            Log.Debug("Set new downloads location: {Location}",
                 DownloadsLocationTextBoxText);
+        });
+    }
+    
+    private IObservable<Unit> SetBackupsLocationImpl()
+    {
+        return Observable.Start(() =>
+        {
+            if (!Directory.Exists(BackupsLocationTextBoxText) ||
+                BackupsLocationTextBoxText == BackupsLocation) return;
+            BackupsLocation = BackupsLocationTextBoxText;
+            SaveSettings.Execute().Subscribe();
+            Log.Debug("Set new backups location: {Location}",
+                BackupsLocationTextBoxText);
+        });
+    }
+    
+    private IObservable<Unit> SetDownloaderBandwidthLimitImpl()
+    {
+        return Observable.Start(() =>
+        {
+            if (DownloaderBandwidthLimitTextBoxText == DownloaderBandwidthLimit ||
+                !string.IsNullOrEmpty(DownloaderBandwidthLimitTextBoxText) &&
+                !int.TryParse(
+                    Regex.Match(DownloaderBandwidthLimitTextBoxText, @"^(\d+)[BKMGTP]{0,1}$").Groups[1].ToString(),
+                    out _)) return;
+            DownloaderBandwidthLimit = DownloaderBandwidthLimitTextBoxText;
+            SaveSettings.Execute().Subscribe();
+            if (!string.IsNullOrEmpty(DownloaderBandwidthLimitTextBoxText))
+                Log.Debug("Set new downloader bandwidth limit: {Limit}",
+                    DownloaderBandwidthLimitTextBoxText);
+            else
+            {
+                Log.Debug("Removed downloader bandwidth limit");
+            }
         });
     }
 

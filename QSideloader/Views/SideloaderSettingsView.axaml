@@ -31,6 +31,21 @@
                 <Button Margin="4,0,0,0" VerticalAlignment="Top" IsEnabled="False">Browse</Button>
                 <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding SetDownloadLocation}">Set</Button>
             </StackPanel>
+            <TextBlock Margin="0,8,0,0">Backups location</TextBlock>
+            <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
+                <TextBox MinWidth="250" Padding="10,5,10,6"
+                         Text="{Binding BackupsLocationTextBoxText, Mode=TwoWay}" />
+                <Button Margin="4,0,0,0" VerticalAlignment="Top" IsEnabled="False">Browse</Button>
+                <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding SetBackupsLocation}">Set</Button>
+            </StackPanel>
+            <TextBlock Margin="0,8,0,0">Downloader bandwidth limit</TextBlock>
+            <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
+                <TextBox MinWidth="100" Watermark="Limit"
+                         Text="{Binding DownloaderBandwidthLimitTextBoxText}">
+                    <ToolTip.Tip>Limit in KiB/s, or use suffix B|K|M|G|T|P (leave empty for unlimited)</ToolTip.Tip>
+                </TextBox>
+                <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding SetDownloaderBandwidthLimit}">Set</Button>
+            </StackPanel>
             <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding DeleteAfterInstall}" IsEnabled="False">Delete files after install</ToggleSwitch>
             <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding EnableDebugConsole}" IsVisible="{Binding IsConsoleToggleable}">Show debug console (relaunch to apply)</ToggleSwitch>
             <Button Margin="0,8,0,0" IsEnabled="False">Clear log files</Button>
