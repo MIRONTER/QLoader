@@ -78,11 +78,11 @@ public class App : Application
         if (File.Exists(jsonLogPath) && new FileInfo(jsonLogPath).Length > 5000000)
             File.Delete(jsonLogPath);
 
-        var humanReadableLogger = new LoggerConfiguration().MinimumLevel.Debug()
+        var humanReadableLogger = new LoggerConfiguration().MinimumLevel.Verbose()
             .WriteTo.File(humanReadableLogPath, fileSizeLimitBytes: 3000000)
             .CreateLogger();
 
-        Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
+        Log.Logger = new LoggerConfiguration().MinimumLevel.Verbose()
             .Enrich.WithThreadId().Enrich.WithThreadName()
             .Enrich.WithExceptionDetails()
             .WriteTo.Logger(humanReadableLogger)
@@ -114,7 +114,7 @@ public class App : Application
         var consoleLogger = new LoggerConfiguration().MinimumLevel.Debug().WriteTo.Console().CreateLogger();
         LogStartMessage(consoleLogger);
         Log.CloseAndFlush();
-        Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
+        Log.Logger = new LoggerConfiguration().MinimumLevel.Verbose()
             .Enrich.WithThreadId().Enrich.WithThreadName()
             .Enrich.WithExceptionDetails()
             .WriteTo.Logger(humanReadableLogger)
