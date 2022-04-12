@@ -86,9 +86,6 @@ public class App : Application
             .Enrich.WithThreadId().Enrich.WithThreadName()
             .Enrich.WithExceptionDetails()
             .WriteTo.Logger(humanReadableLogger)
-            .WriteTo.Debug(
-                outputTemplate:
-                "{Exception} {Properties:j}{NewLine}{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}")
             .WriteTo.File(new JsonFormatter(renderMessage: true), jsonLogPath, fileSizeLimitBytes: 3000000)
             .CreateLogger();
 
