@@ -46,7 +46,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         this.WhenActivated(disposables =>
         {
             cacheListBind.Subscribe().DisposeWith(disposables);
-            _adbService.WhenDeviceChanged.Subscribe(OnDeviceChange).DisposeWith(disposables);
+            _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged).DisposeWith(disposables);
             _adbService.WhenPackageListChanged.Subscribe(_ => OnPackageListChanged()).DisposeWith(disposables);
         });
     }
@@ -110,7 +110,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         });
     }
 
-    private void OnDeviceChange(AdbService.AdbDevice device)
+    private void OnDeviceChanged(AdbService.AdbDevice device)
     {
         switch (device.State)
         {

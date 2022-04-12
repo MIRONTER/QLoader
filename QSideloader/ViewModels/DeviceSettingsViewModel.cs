@@ -36,11 +36,11 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         {
             Task.Run(Initialize);
 
-            _adbService.WhenDeviceChanged.Subscribe(OnDeviceChange).DisposeWith(disposables);
+            _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged).DisposeWith(disposables);
         });
     }
 
-    private void OnDeviceChange(AdbService.AdbDevice device)
+    private void OnDeviceChanged(AdbService.AdbDevice device)
     {
         switch (device.State)
         {
@@ -89,7 +89,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     private void Initialize()
     {
         if (!_adbService.CheckDeviceConnection()) return;
-        OnDeviceChange(_adbService.Device!);
+        OnDeviceChanged(_adbService.Device!);
     }
     
     private void LoadCurrentSettings()

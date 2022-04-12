@@ -2,9 +2,11 @@
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using AdvancedSharpAdbClient;
 using Avalonia.Threading;
 using QSideloader.Helpers;
 using QSideloader.Models;
+using QSideloader.Services;
 using QSideloader.Views;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -14,8 +16,10 @@ namespace QSideloader.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
+    private readonly AdbService _adbService;
     public MainWindowViewModel()
     {
+        _adbService = ServiceContainer.AdbService;
         ShowDialog = new Interaction<GameDetailsViewModel, GameViewModel?>();
         ShowGameDetailsCommand = ReactiveCommand.CreateFromTask<Game>(async game =>
         {
@@ -24,6 +28,8 @@ public class MainWindowViewModel : ViewModelBase
             var gameDetails = new GameDetailsViewModel(game);
             await ShowDialog.Handle(gameDetails);
         });
+        _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged);
+        IsDeviceConnected = _adbService.CheckDeviceConnection();
     }
 
     public void QueueForInstall(Game game)
@@ -37,7 +43,21 @@ public class MainWindowViewModel : ViewModelBase
         });
         Log.Information("Queued for install: {ReleaseName}", game.ReleaseName);
     }
+    
+    private void OnDeviceChanged(AdbService.AdbDevice device)
+    {
+        switch (device.State)
+        {
+            case DeviceState.Online:
+                IsDeviceConnected = true;
+                break;
+            case DeviceState.Offline:
+                IsDeviceConnected = false;
+                break;
+        }
+    }
 
+    [Reactive] public bool IsDeviceConnected { get; set; }
     [Reactive] public ObservableCollection<TaskView> TaskList { get; set; } = new();
 
     public ICommand ShowGameDetailsCommand { get; }

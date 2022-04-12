@@ -35,15 +35,14 @@
             <ui:Frame x:Name="ContentFrame" Grid.Row="0" />
             <views:DeviceInfoView Grid.Row="1" />
             <ui:InfoBar Grid.Row="0" x:Name="MainInfoBar"
-                        Severity="Informational"
+                        Severity="Warning"
                         Margin="12"
                         VerticalAlignment="Bottom"
-                        HorizontalAlignment="Right"
-                        IsIconVisible="False"
-                        IsOpen="False"
-                        Background="#202020"
+                        HorizontalAlignment="Center"
+                        IsIconVisible="True"
+                        IsOpen="{Binding !IsDeviceConnected}"
                         IsClosable="False"
-                        Title="Status"
+                        Title="No device connection"
                         Message="" />
             <Border Grid.Row="0" Grid.RowSpan="2"
                     MaxHeight="203"
