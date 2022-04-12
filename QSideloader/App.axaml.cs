@@ -77,6 +77,8 @@ public class App : Application
             File.Delete(humanReadableLogPath);
         if (File.Exists(jsonLogPath) && new FileInfo(jsonLogPath).Length > 5000000)
             File.Delete(jsonLogPath);
+        if (File.Exists(exceptionsLogPath) && new FileInfo(exceptionsLogPath).Length > 10000000)
+            File.Delete(exceptionsLogPath);
 
         var humanReadableLogger = new LoggerConfiguration().MinimumLevel.Verbose()
             .WriteTo.File(humanReadableLogPath, fileSizeLimitBytes: 3000000)
@@ -92,8 +94,6 @@ public class App : Application
         LogStartMessage(Log.Logger);
 
         // Log all exceptions
-        if (File.Exists(exceptionsLogPath))
-            File.Delete(exceptionsLogPath);
         var firstChanceExceptionLogger = new LoggerConfiguration().MinimumLevel.Error()
             .WriteTo.File(exceptionsLogPath)
             .CreateLogger();
