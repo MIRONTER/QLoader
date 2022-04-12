@@ -54,9 +54,10 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel
             _libVlc ??= new LibVLC("--input-repeat=65535");
             MediaPlayer = new MediaPlayer(_libVlc);
         }
-        catch
+        catch (Exception e)
         {
             Log.Warning("Failed to initialize LibVLC");
+            Log.Verbose(e, "");
         }
         DownloadAndInstall = ReactiveCommand.CreateFromObservable(DownloadAndInstallImpl);
         var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
