@@ -180,7 +180,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         {
             if (!_adbService.CheckDeviceConnection())
             {
-                Log.Warning("ApplySettingsImpl: no device connection!");
+                Log.Warning("DeviceSettingsViewModel.ApplySettingsImpl: no device connection!");
                 return;
             }
 

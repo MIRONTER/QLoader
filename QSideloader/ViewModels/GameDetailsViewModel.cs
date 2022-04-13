@@ -81,7 +81,7 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel
         {
             if (!_adbService.CheckDeviceConnection())
             {
-                Log.Warning("InstallImpl: no device connection!");
+                Log.Warning("GameDetailsViewModel.InstallImpl: no device connection!");
                 return;
             }
 

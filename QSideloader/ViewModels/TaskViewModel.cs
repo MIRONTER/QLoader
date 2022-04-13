@@ -66,7 +66,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             throw new InvalidOperationException("Game is not set");
         if (!_adbService.CheckDeviceConnection())
         {
-            Log.Warning("PerformTaskImpl: no device connection!");
+            Log.Warning("TaskViewModel.RunTaskImpl: no device connection!");
             OnFinished("Failed: no device connection");
             return;
         }

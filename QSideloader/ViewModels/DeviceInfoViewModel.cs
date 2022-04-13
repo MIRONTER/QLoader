@@ -97,7 +97,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     {
         if (!_adbService.CheckDeviceConnection())
         {
-            Log.Warning("EnableWirelessAdbImpl: no device connection!");
+            Log.Warning("DeviceInfoViewModel.EnableWirelessAdbImpl: no device connection!");
             return;
         }
         await _adbService.EnableWirelessAdbAsync(_adbService.Device!);
@@ -107,7 +107,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     {
         if (!_adbService.CheckDeviceConnection())
         {
-            Log.Warning("RefreshDeviceInfo: no device connection!");
+            Log.Warning("DeviceInfoViewModel.RefreshDeviceInfo: no device connection!");
             IsDeviceConnected = false;
             SetRefreshTimer(false);
             return;

@@ -75,7 +75,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         {
             if (!_adbService.CheckDeviceConnection())
             {
-                Log.Warning("UpdateImpl: no device connection!");
+                Log.Warning("InstalledGamesViewModel.UpdateImpl: no device connection!");
                 return;
             }
 
@@ -95,7 +95,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         {
             if (!_adbService.CheckDeviceConnection())
             {
-                Log.Warning("UninstallImpl: no device connection!");
+                Log.Warning("InstalledGamesViewModel.UninstallImpl: no device connection!");
                 return;
             }
 
@@ -132,7 +132,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         if (!_adbService.CheckDeviceConnection())
         {
-            Log.Warning("RefreshInstalledGames: no device connection!");
+            Log.Warning("InstalledGamesViewModel.RefreshInstalledGames: no device connection!");
             _installedGamesSourceCache.Clear();
             return;
         }
