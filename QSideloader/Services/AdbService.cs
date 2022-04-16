@@ -869,7 +869,7 @@ public class AdbService
             }
         }
 
-        public void UninstallGame(InstalledGame game)
+        public void UninstallGame(Game game)
         {
             _ = game.PackageName ?? throw new ArgumentException("game.PackageName must not be null");
             UninstallPackage(game.PackageName);
@@ -890,7 +890,14 @@ public class AdbService
                 const string packageNamePattern = @"^([A-Za-z]{1}[A-Za-z\d_]*\.)+[A-Za-z][A-Za-z\d_]*$";
                 if (string.IsNullOrWhiteSpace(packageName) || !Regex.IsMatch(packageName, packageNamePattern))
                     throw new ArgumentException("packageName is invalid");
-                UninstallPackage(packageName, true);
+                try
+                {
+                    UninstallPackage(packageName, true);
+                }
+                catch (PackageNotFoundException)
+                {
+                    // ignored
+                }
                 RunShellCommand(
                     $"rm -r /sdcard/Android/data/{packageName}/; rm -r /sdcard/Android/obb/{packageName}/");
             }
@@ -929,11 +936,11 @@ public class AdbService
                 if (e.Message == "DELETE_FAILED_INTERNAL_ERROR" && string.IsNullOrWhiteSpace(
                         RunShellCommand($"pm list packages -3 | grep -w \"package:{packageName}\"")))
                 {
-                    // TODO: throw own exception here and handle where needed
                     if (!silent)
                         Log.Information(
                             "Package {PackageName} is not installed",
                             packageName);
+                    throw new PackageNotFoundException(packageName);
                 }
                 else throw;
             }
@@ -1036,6 +1043,14 @@ public class AdbServiceException : Exception
 
     public AdbServiceException(string message, Exception inner)
         : base(message, inner)
+    {
+    }
+}
+
+public class PackageNotFoundException : AdbServiceException
+{
+    public PackageNotFoundException(string packageName)
+        : base($"Package {packageName} not found")
     {
     }
 }
