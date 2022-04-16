@@ -9,11 +9,11 @@
         <TrimMode>copyused</TrimMode>
         <PublicSign>false</PublicSign>
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
-        <AssemblyVersion>0.1.1.0</AssemblyVersion>
+        <AssemblyVersion>0.1.3.0</AssemblyVersion>
         <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
         <NeutralLanguage>en</NeutralLanguage>
         <AssemblyName>Loader</AssemblyName>
-        <InformationalVersion>0.1.1</InformationalVersion>
+        <InformationalVersion>v0.1.3-alpha</InformationalVersion>
     </PropertyGroup>
     <ItemGroup>
         <IncludeTools Condition="$(RuntimeIdentifier.Contains('win')) Or '$(RuntimeIdentifier)'==''" Include="tools\windows\**\*" />
