@@ -86,7 +86,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
                 return;
             }
 
-            var selectedGames = AvailableGames.Where(game => game.IsSelected);
+            var selectedGames = AvailableGames.Where(game => game.IsSelected).ToList();
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
