@@ -9,7 +9,7 @@
         x:Class="QSideloader.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
         Title="Loader"
-        MinHeight="760"
+        MinHeight="600"
         MinWidth="860"
         WindowStartupLocation="CenterScreen"
         Opened="Window_OnOpened">

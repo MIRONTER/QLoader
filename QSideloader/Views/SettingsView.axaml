@@ -6,8 +6,10 @@
              xmlns:views="clr-namespace:QSideloader.Views"
              mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="700"
              x:Class="QSideloader.Views.SettingsView">
-    <StackPanel Orientation="Vertical" IsEnabled="True">
-        <views:DeviceSettingsView Margin="8" />
-        <views:SideloaderSettingsView Margin="8" />
-    </StackPanel>
+    <ScrollViewer>
+        <StackPanel Orientation="Vertical" IsEnabled="True">
+            <views:DeviceSettingsView Margin="8" />
+            <views:SideloaderSettingsView Margin="8" />
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>
