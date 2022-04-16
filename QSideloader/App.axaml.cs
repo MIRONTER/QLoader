@@ -140,9 +140,13 @@ public class App : Application
 
     private static void LogStartMessage(ILogger logger)
     {
+        var executingAssembly = Assembly.GetExecutingAssembly();
+        var programName = executingAssembly.GetName().Name;
+        var versionString = executingAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+            .InformationalVersion ?? "";
         logger.Information("----------------------------------------");
-        logger.Information("Starting {ProgramName}...",
-            Assembly.GetExecutingAssembly().GetName().Name);
+        logger.Information("Starting {ProgramName} {VersionString}...",
+            programName, versionString);
     }
 
     [DllImport("kernel32.dll", SetLastError = true)]

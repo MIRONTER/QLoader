@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -65,6 +66,8 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] [JsonProperty] public bool DeleteAfterInstall { get; private set; }
     [Reactive] [JsonProperty] public bool EnableDebugConsole { get; private set; }
     [Reactive] [JsonProperty] public string LastWirelessAdbHost { get; set; } = "";
+    public string VersionString { get; } = Assembly.GetExecutingAssembly()
+        .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "";
 #if DEBUG
     public bool IsConsoleToggleable { get; }
 #else

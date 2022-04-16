@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:QSideloader.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="600"
              x:Class="QSideloader.Views.SideloaderSettingsView">
     <Design.DataContext>
         <viewModels:SideloaderSettingsViewModel />
@@ -48,7 +48,16 @@
             </StackPanel>
             <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding DeleteAfterInstall}" IsEnabled="False">Delete files after install</ToggleSwitch>
             <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding EnableDebugConsole}" IsVisible="{Binding IsConsoleToggleable}">Show debug console (relaunch to apply)</ToggleSwitch>
-            <Button Margin="0,8,0,0" IsEnabled="False">Clear log files</Button>
+            <Grid Margin="0,8,0,0" ColumnDefinitions="Auto,*,Auto">
+                <Button Grid.Column="0" IsEnabled="False">Clear log files</Button>
+                <TextBlock Grid.Column="2" VerticalAlignment="Bottom">
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="{} Version {0}">
+                            <Binding Path="VersionString" />
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+            </Grid>
         </StackPanel>
     </Border>
 </UserControl>
