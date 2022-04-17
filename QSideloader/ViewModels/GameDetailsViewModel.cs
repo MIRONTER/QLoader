@@ -26,6 +26,7 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel
     [Reactive] public bool IsTrailerPlaying { get; set; }
     public ViewModelActivator Activator { get; }
 
+    // Dummy constructor for XAML, do not use
     public GameDetailsViewModel()
     {
         Activator = new ViewModelActivator();
@@ -38,7 +39,7 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel
         }
         catch
         {
-            Log.Warning("Failed to initialize LibVLC player");
+            Log.Warning("Failed to initialize LibVLC");
         }
         DownloadAndInstall = ReactiveCommand.CreateFromObservable(DownloadAndInstallImpl);
     }
@@ -57,7 +58,7 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel
         catch (Exception e)
         {
             Log.Warning("Failed to initialize LibVLC");
-            Log.Verbose(e, "");
+            Log.Verbose(e, "Failed to initialize LibVLC");
         }
         DownloadAndInstall = ReactiveCommand.CreateFromObservable(DownloadAndInstallImpl);
         var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
