@@ -872,7 +872,15 @@ public class AdbService
         public void UninstallGame(Game game)
         {
             _ = game.PackageName ?? throw new ArgumentException("game.PackageName must not be null");
-            UninstallPackage(game.PackageName);
+            try
+            {
+                Log.Information("Uninstalling package {PackageName}", game.PackageName);
+                UninstallPackage(game.PackageName);
+            }
+            catch (PackageNotFoundException)
+            {
+                 Log.Warning("Package {PackageName} is not installed", game.PackageName);
+            }
             CleanupRemnants(game);
             _adbService._packageListChangeSubject.OnNext(new Unit());
         }
@@ -892,7 +900,7 @@ public class AdbService
                     throw new ArgumentException("packageName is invalid");
                 try
                 {
-                    UninstallPackage(packageName, true);
+                    UninstallPackage(packageName);
                 }
                 catch (PackageNotFoundException)
                 {
@@ -923,10 +931,8 @@ public class AdbService
             Log.Information("Package installed");
         }
 
-        private void UninstallPackage(string packageName, bool silent = false)
+        private void UninstallPackage(string packageName)
         {
-            if (!silent)
-                Log.Information("Uninstalling package {PackageName}", packageName);
             try
             {
                 _adb.AdbClient.UninstallPackage(this, packageName);
@@ -936,13 +942,9 @@ public class AdbService
                 if (e.Message == "DELETE_FAILED_INTERNAL_ERROR" && string.IsNullOrWhiteSpace(
                         RunShellCommand($"pm list packages -3 | grep -w \"package:{packageName}\"")))
                 {
-                    if (!silent)
-                        Log.Information(
-                            "Package {PackageName} is not installed",
-                            packageName);
                     throw new PackageNotFoundException(packageName);
                 }
-                else throw;
+                throw;
             }
         }
 
