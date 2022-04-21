@@ -9,13 +9,13 @@
     <Design.DataContext>
         <vm:InstalledGamesViewModel />
     </Design.DataContext>
-    <Grid RowDefinitions="Auto,*">
+    <Grid RowDefinitions="Auto,*" IsEnabled="{Binding IsDeviceConnected}">
         <StackPanel Grid.Row="0"
                     Orientation="Horizontal"
                     Spacing="12" Margin="8"
                     HorizontalAlignment="Right">
             <Button Command="{Binding Update}">Update Selected</Button>
-            <Button MaxWidth="150" Command="{Binding Uninstall}">Uninstall Selected</Button>
+            <Button Command="{Binding Uninstall}">Uninstall Selected</Button>
             <Button Command="{Binding Refresh}">Refresh</Button>
         </StackPanel>
         <aura:ProgressRing Grid.Row="1" x:Name="InstalledGamesPageProgressRing"

@@ -20,7 +20,8 @@
                     Orientation="Horizontal"
                     Spacing="12" Margin="8"
                     HorizontalAlignment="Right">
-            <Button Command="{Binding Install}">Install Selected</Button>
+            <Button Command="{Binding Install}">Download &amp; Install Selected</Button>
+            <Button Command="{Binding Download}">Download Selected</Button>
             <Button Command="{Binding Refresh}">Refresh</Button>
         </StackPanel>
         <aura:ProgressRing Grid.Row="1" x:Name="AvailableGamesPageProgressRing"

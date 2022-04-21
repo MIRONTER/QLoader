@@ -5,13 +5,14 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
 using AdvancedSharpAdbClient;
 using QSideloader.Services;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Serilog;
+using Timer = System.Timers.Timer;
 
 namespace QSideloader.ViewModels;
 
@@ -20,6 +21,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     private readonly ObservableAsPropertyHelper<bool> _isBusy;
     private Timer? _refreshTimer;
     private readonly AdbService _adbService;
+    private static readonly SemaphoreSlim RefreshSemaphoreSlim = new SemaphoreSlim(1, 1);
 
     public DeviceInfoViewModel()
     {
@@ -67,16 +69,26 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         switch (device.State)
         {
             case DeviceState.Online:
-                IsDeviceConnected = true;
-                Refresh.Execute().Subscribe();
-                SetRefreshTimer(true);
+                OnDeviceOnline();
                 break;
             case DeviceState.Offline:
-                IsDeviceConnected = false;
-                CurrentDevice = null;
-                SetRefreshTimer(false);
+                OnDeviceOffline();
                 break;
         }
+    }
+
+    private void OnDeviceOnline()
+    {
+        IsDeviceConnected = true;
+        Refresh.Execute().Subscribe();
+        SetRefreshTimer(true);
+    }
+    
+    private void OnDeviceOffline()
+    {
+        IsDeviceConnected = false;
+        CurrentDevice = null;
+        SetRefreshTimer(false);
     }
 
     private void OnPackageListChanged()
@@ -88,8 +100,18 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            RefreshDeviceInfo();
-            RefreshProps();
+            // Check whether refresh is already in running
+            if (RefreshSemaphoreSlim.CurrentCount == 0) return;
+            RefreshSemaphoreSlim.Wait();
+            try
+            {
+                RefreshDeviceInfo();
+                RefreshProps();
+            }
+            finally
+            {
+                RefreshSemaphoreSlim.Release();
+            }
         });
     }
     
@@ -98,6 +120,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         if (!_adbService.CheckDeviceConnection())
         {
             Log.Warning("DeviceInfoViewModel.EnableWirelessAdbImpl: no device connection!");
+            OnDeviceOffline();
             return;
         }
         await _adbService.EnableWirelessAdbAsync(_adbService.Device!);
@@ -108,8 +131,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         if (!_adbService.CheckDeviceConnection())
         {
             Log.Warning("DeviceInfoViewModel.RefreshDeviceInfo: no device connection!");
-            IsDeviceConnected = false;
-            SetRefreshTimer(false);
+            OnDeviceOffline();
             return;
         }
 

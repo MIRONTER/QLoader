@@ -22,6 +22,7 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel
     public Game Game { get; }
     [Reactive] public string? ThumbnailPath { get; set; } = Path.Combine("Resources", "NoThumbnailImage.png");
     public ReactiveCommand<Unit, Unit> DownloadAndInstall { get; }
+    public ReactiveCommand<Unit, Unit> DownloadOnly { get; }
     [Reactive] public MediaPlayer? MediaPlayer { get; set; }
     [Reactive] public bool IsTrailerPlaying { get; set; }
     public ViewModelActivator Activator { get; }
@@ -42,6 +43,7 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel
             Log.Warning("Failed to initialize LibVLC");
         }
         DownloadAndInstall = ReactiveCommand.CreateFromObservable(DownloadAndInstallImpl);
+        DownloadOnly = ReactiveCommand.CreateFromObservable(DownloadOnlyImpl);
     }
 
     public GameDetailsViewModel(Game game)
@@ -61,6 +63,7 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel
             Log.Verbose(e, "Failed to initialize LibVLC");
         }
         DownloadAndInstall = ReactiveCommand.CreateFromObservable(DownloadAndInstallImpl);
+        DownloadOnly = ReactiveCommand.CreateFromObservable(DownloadOnlyImpl);
         var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
         if (assets is null) return;
         var jpgPath = Path.Combine(PathHelper.ThumbnailsPath, $"{Game.PackageName}.jpg");
@@ -85,8 +88,17 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel
                 Log.Warning("GameDetailsViewModel.InstallImpl: no device connection!");
                 return;
             }
+            
+            Globals.MainWindowViewModel!.EnqueueTask(Game, TaskType.DownloadAndInstall);
+        });
+    }
+    
+    private IObservable<Unit> DownloadOnlyImpl()
+    {
+        return Observable.Start(() =>
+        {
 
-            Globals.MainWindowViewModel!.QueueForInstall(Game);
+            Globals.MainWindowViewModel!.EnqueueTask(Game, TaskType.DownloadOnly);
         });
     }
 

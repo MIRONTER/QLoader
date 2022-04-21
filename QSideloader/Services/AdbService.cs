@@ -34,7 +34,7 @@ public class AdbService
     private static readonly SemaphoreSlim DeviceSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim DeviceListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim AdbServerSemaphoreSlim = new(1, 1);
-    private static readonly SemaphoreSlim SideloadSemaphoreSlim = new(1, 1);
+    private static readonly SemaphoreSlim PackageOperationSemaphoreSlim = new(1, 1);
     private readonly Subject<AdbDevice> _deviceChangeSubject = new();
     private readonly Subject<Unit> _packageListChangeSubject = new();
     private readonly Subject<List<AdbDevice>> _deviceListChangeSubject = new();
@@ -420,7 +420,7 @@ public class AdbService
         if (device.Serial == Device?.Serial) return;
         if (device.State != DeviceState.Online || !PingDevice(device))
         {
-            Log.Debug("Attempted switch to offline device {Device}", device);
+            Log.Warning("Attempted switch to offline device {Device}", device);
             RefreshDeviceList();
             return;
         }
@@ -489,14 +489,14 @@ public class AdbService
         return device.Product is "hollywood" or "monterey" or "vr_monterey";
     }
 
-    public static async Task TakeSideloadLockAsync(CancellationToken ct = default)
+    public static async Task TakePackageOperationLockAsync(CancellationToken ct = default)
     {
-        await SideloadSemaphoreSlim.WaitAsync(ct);
+        await PackageOperationSemaphoreSlim.WaitAsync(ct);
     }
 
-    public static void ReleaseSideloadLock()
+    public static void ReleasePackageOperationLock()
     {
-        SideloadSemaphoreSlim.Release();
+        PackageOperationSemaphoreSlim.Release();
     }
 
     private class AdbServerClient
@@ -766,6 +766,8 @@ public class AdbService
 
                         if (game.PackageName is not null && Directory.Exists(Path.Combine(gamePath, game.PackageName)))
                         {
+                            Log.Information("Found OBB directory for {PackageName}, pushing to device",
+                                game.PackageName);
                             observer.OnNext("Pushing OBB");
                             PushDirectory(Path.Combine(gamePath, game.PackageName), "/sdcard/Android/obb/");
                         }

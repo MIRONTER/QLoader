@@ -15,87 +15,286 @@ namespace QSideloader.ViewModels;
 
 public class TaskViewModel : ViewModelBase, IActivatableViewModel
 {
-    private Game? _game;
+    private string? _gamePath;
+    private readonly Game _game;
     private readonly AdbService _adbService;
     private readonly DownloaderService _downloaderService;
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private readonly TaskType _taskType;
 
+    // Dummy constructor for XAML, do not use
     public TaskViewModel()
     {
         _adbService = ServiceContainer.AdbService;
         _downloaderService = ServiceContainer.DownloaderService;
-        PerformTask = ReactiveCommand.CreateFromTask(PerformTaskImpl);
+        _game = new Game("GameName", "ReleaseName", 1337, "NoteText");
+        GameName = "GameName";
+        RunTask = ReactiveCommand.CreateFromTask(RunTaskImpl);
+        Activator = new ViewModelActivator();
+    }
+    
+    public TaskViewModel(Game game, TaskType taskType)
+    {
+        if (taskType == TaskType.InstallOnly)
+        {
+            // We need a game path to run installation
+            throw new ArgumentException("Game path not specified for InstallOnly task");
+        }
+        _adbService = ServiceContainer.AdbService;
+        _downloaderService = ServiceContainer.DownloaderService;
+        _game = game;
+        GameName = game.GameName;
+        _taskType = taskType;
+        RunTask = ReactiveCommand.CreateFromTask(RunTaskImpl);
+        RunTask.ThrownExceptions.Subscribe(ex =>
+        {
+            Log.Error("Task {TaskType} {TaskName} failed with error: {Message}", _taskType, TaskName, ex.Message);
+            Log.Verbose(ex, "Task {TaskType} failed with exception", _taskType);
+            OnFinished($"Task failed: {ex.Message}");
+        });
+        Activator = new ViewModelActivator();
+    }
+    
+    public TaskViewModel(Game game, TaskType taskType, string gamePath)
+    {
+        if (taskType != TaskType.InstallOnly)
+            Log.Warning("Unneeded game path specified for {TaskType} task", taskType);
+        else
+            _gamePath = gamePath;
+        _adbService = ServiceContainer.AdbService;
+        _downloaderService = ServiceContainer.DownloaderService;
+        _game = game;
+        GameName = game.GameName;
+        _taskType = taskType;
+        RunTask = ReactiveCommand.CreateFromTask(RunTaskImpl);
         Activator = new ViewModelActivator();
     }
 
-    public ReactiveCommand<Unit, Unit> PerformTask { get; }
+    public ReactiveCommand<Unit, Unit> RunTask { get; }
 
-    public Game? Game
-    {
-        get => _game;
-        set
-        {
-            _game = value;
-            GameName = value?.GameName;
-        }
-    }
-
+    public string TaskName => _game.GameName ?? "N/A";
     public bool IsFinished { get; private set; }
-    [Reactive] public string? GameName { get; private set; } = "N/A";
-    [Reactive] public string Status { get; private set; } = "N/A";
+    public string? GameName { get; }
+    [Reactive] public string Status { get; private set; } = "Status";
     [Reactive] public string DownloadStats { get; private set; } = "";
-    private CancellationTokenSource CancellationTokenSource { get; } = new();
+    
     public ViewModelActivator Activator { get; }
 
     private void RefreshDownloadStats(DownloadStats stats)
     {
-        if (stats.SpeedBytes is null || stats.DownloadedMBytes is null || Game is null)
+        if (stats.SpeedBytes is null || stats.DownloadedMBytes is null)
         {
             DownloadStats = "";
             return;
         }
 
-        var progressPercent = Math.Min(Math.Floor((double) stats.DownloadedMBytes / Game.GameSize * 97), 100);
+        var progressPercent = Math.Min(Math.Floor((double) stats.DownloadedMBytes / _game.GameSize * 97), 100);
 
         DownloadStats = $"{progressPercent}%, {stats.SpeedMBytes}MB/s";
     }
 
-    private async Task PerformTaskImpl()
+    private async Task RunTaskImpl()
     {
-        string? gamePath;
-        if (Game is null)
+        if (_game is null)
             throw new InvalidOperationException("Game is not set");
-        if (!_adbService.CheckDeviceConnection())
-        {
-            Log.Warning("TaskViewModel.RunTaskImpl: no device connection!");
-            OnFinished("Failed: no device connection");
-            return;
-        }
 
-        try
+        switch (_taskType)
         {
-            gamePath = await PerformDownload();
-        }
-        catch (Exception e)
-        {
-            OnFinished(e is OperationCanceledException or TaskCanceledException ? "Cancelled" : "Download failed");
-            return;
-        }
-
-        try
-        {
-            await PerformInstall(gamePath ?? throw new InvalidOperationException("gamePath is null"));
-        }
-        catch (Exception e)
-        {
-            OnFinished(e is OperationCanceledException or TaskCanceledException ? "Cancelled" : "Install failed");
+            case TaskType.DownloadAndInstall:
+                await RunDownloadAndInstallAsync();
+                break;
+            case TaskType.DownloadOnly:
+                await RunDownloadOnlyAsync();
+                break;
+            case TaskType.InstallOnly:
+                await RunInstallOnlyAsync();
+                break;
+            case TaskType.Uninstall:
+                await RunUninstallAsync();
+                break;
+            case TaskType.BackupAndUninstall:
+                await RunBackupAndUninstallAsync();
+                break;
+            case TaskType.Backup:
+                await RunBackupAsync();
+                break;
+            case TaskType.PullAndUpload:
+                await RunPullAndUploadAsync();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(_taskType));
         }
     }
+    
+    private async Task RunDownloadAndInstallAsync()
+    {
+        EnsureDeviceConnection();
+        try
+        {
+            _gamePath = await Download();
+        }
+        catch (Exception e)
+        {
+            if (e is OperationCanceledException or TaskCanceledException)
+                OnFinished("Cancelled");
+            else
+            {
+                OnFinished("Download failed");
+                throw;
+            }
+            return;
+        }
 
-    private async Task<string> PerformDownload()
+        try
+        {
+            EnsureDeviceConnection();
+            await Install(_gamePath ?? throw new InvalidOperationException("gamePath is null"));
+        }
+        catch (Exception e)
+        {
+            if (e is OperationCanceledException or TaskCanceledException)
+                OnFinished("Cancelled");
+            else
+            {
+                OnFinished("Install failed");
+                throw;
+            }
+        }
+    }
+    
+    private async Task RunDownloadOnlyAsync()
+    {
+        try
+        {
+            _gamePath = await Download();
+        }
+        catch (Exception e)
+        {
+            if (e is OperationCanceledException or TaskCanceledException)
+                OnFinished("Cancelled");
+            else
+            {
+                OnFinished("Download failed");
+                throw;
+            }
+            return;
+        }
+
+        OnFinished("Downloaded");
+    }
+    
+    private async Task RunInstallOnlyAsync()
+    {
+        EnsureDeviceConnection();
+        try
+        {
+            await Install(_gamePath ?? throw new InvalidOperationException("gamePath is null"));
+        }
+        catch (Exception e)
+        {
+            if (e is OperationCanceledException or TaskCanceledException)
+                OnFinished("Cancelled");
+            else
+            {
+                OnFinished("Install failed");
+                throw;
+            }
+        }
+    }
+    
+    private async Task RunUninstallAsync()
+    {
+        EnsureDeviceConnection();
+        try
+        {
+            Status = "Uninstalling";
+            await Uninstall();
+            OnFinished("Uninstalled");
+        }
+        catch (Exception e)
+        {
+            if (e is OperationCanceledException or TaskCanceledException)
+                OnFinished("Cancelled");
+            else
+            {
+                OnFinished("Uninstall failed");
+                throw;
+            }
+        }
+    }
+    
+    private async Task RunBackupAndUninstallAsync()
+    {
+        EnsureDeviceConnection();
+        try
+        {
+            Status = "Backing up";
+            await Backup();
+            Status = "Uninstalling";
+            await Uninstall();
+            OnFinished("Uninstalled");
+        }
+        catch (Exception e)
+        {
+            if (e is OperationCanceledException or TaskCanceledException)
+                OnFinished("Cancelled");
+            else
+            {
+                OnFinished("Uninstall failed");
+                throw;
+            }
+        }
+    }
+    
+    private async Task RunBackupAsync()
+    {
+        EnsureDeviceConnection();
+        try
+        {
+            Status = "Backing up";
+            await Backup();
+            OnFinished("Backed up");
+        }
+        catch (Exception e)
+        {
+            if (e is OperationCanceledException or TaskCanceledException)
+                OnFinished("Cancelled");
+            else
+            {
+                OnFinished("Backup failed");
+                throw;
+            }
+        }
+    }
+    
+    private async Task RunPullAndUploadAsync()
+    {
+        EnsureDeviceConnection();
+        /*try
+        {
+            Status = "Pulling";
+            var localPath = await Pull();
+            Status = "Uploading";
+            await Task.Run(() => _downloaderService.UploadDonation(_game, localPath));
+            OnFinished("Uploaded");
+        }
+        catch (Exception e)
+        {
+            if (e is OperationCanceledException or TaskCanceledException)
+                OnFinished("Cancelled");
+            else
+            {
+                OnFinished("Upload failed");
+                throw;
+            }
+        }*/
+    }
+
+    private async Task<string> Download()
     {
         var downloadStatsSubscription = Disposable.Empty;
         Status = "Download queued";
-        await DownloaderService.TakeDownloadLockAsync(CancellationTokenSource.Token);
+        await DownloaderService.TakeDownloadLockAsync(_cancellationTokenSource.Token);
         try
         {
             Status = "Downloading";
@@ -103,10 +302,9 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 .PollStats(TimeSpan.FromMilliseconds(100), ThreadPoolScheduler.Instance)
                 .SubscribeOn(RxApp.TaskpoolScheduler)
                 .Subscribe(RefreshDownloadStats);
-            var gamePath = await Task.Run(() => _downloaderService.DownloadGame(Game!,
-                CancellationTokenSource.Token));
+            var gamePath = await Task.Run(() => _downloaderService.DownloadGame(_game,
+                _cancellationTokenSource.Token));
             downloadStatsSubscription.Dispose();
-            // if download only OnFinished("Download complete");
             return gamePath;
         }
         finally
@@ -116,47 +314,81 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             DownloaderService.ReleaseDownloadLock();
         }
     }
-
-    private async Task PerformInstall(string gamePath)
+    
+    private async Task Install(string gamePath)
     {
         Status = "Install queued";
-        await AdbService.TakeSideloadLockAsync(CancellationTokenSource.Token);
+        await AdbService.TakePackageOperationLockAsync(_cancellationTokenSource.Token);
         Status = "Installing";
-        if (!_adbService.CheckDeviceConnection())
-        {
-            Log.Warning("PerformInstall: no device connection!");
-            OnFinished("Install failed");
-            return;
-        }
 
-        _adbService.Device!.SideloadGame(Game!, gamePath)
+        // Here I assume that Install is the last step in the process, this might change in the future
+        _adbService.Device!.SideloadGame(_game, gamePath)
             .SubscribeOn(RxApp.TaskpoolScheduler)
             .Subscribe(
                 x => Status = x,
                 _ =>
                 {
-                    AdbService.ReleaseSideloadLock();
+                    AdbService.ReleasePackageOperationLock();
                     OnFinished("Install failed");
                 },
                 () =>
                 {
-                    AdbService.ReleaseSideloadLock();
+                    AdbService.ReleasePackageOperationLock();
                     OnFinished("Installed");
                 });
     }
 
+    private async Task Uninstall()
+    {
+        Status = "Uninstall queued";
+        await AdbService.TakePackageOperationLockAsync(_cancellationTokenSource.Token);
+        try
+        {
+            Status = "Uninstalling";
+            await Task.Run(() => _adbService.Device!.UninstallGame(_game));
+        }
+        finally
+        {
+            AdbService.ReleasePackageOperationLock();
+        }
+    }
+
+    private async Task Backup()
+    {
+        await Task.Run(() => _adbService.Device!.BackupGame(_game));
+    }
+
     private void OnFinished(string status)
     {
+        if (IsFinished) return;
         IsFinished = true;
         Status = status;
-        Log.Information("Task {TaskName} finished. Result: {Status}",
-            Game!.GameName, status);
+        Log.Information("Task {TaskType} {TaskName} finished. Result: {Status}",
+            _taskType, _game.GameName, status);
     }
 
     public void Cancel()
     {
-        if (CancellationTokenSource.IsCancellationRequested) return;
-        CancellationTokenSource.Cancel();
-        Log.Information("Requested cancellation of task {TaskName}", Game!.GameName);
+        if (_cancellationTokenSource.IsCancellationRequested) return;
+        _cancellationTokenSource.Cancel();
+        Log.Information("Requested cancellation of task {TaskType} {TaskName}", _taskType, _game.GameName);
     }
+    
+    private void EnsureDeviceConnection()
+    {
+        if (_adbService.CheckDeviceConnection()) return;
+        OnFinished("Failed: no device connection");
+        throw new InvalidOperationException("No device connection");
+    }
+}
+
+public enum TaskType
+{
+    DownloadAndInstall,
+    DownloadOnly,
+    InstallOnly,
+    Uninstall,
+    BackupAndUninstall,
+    Backup,
+    PullAndUpload
 }

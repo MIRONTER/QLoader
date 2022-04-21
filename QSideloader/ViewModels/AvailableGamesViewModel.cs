@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using Avalonia.Threading;
 using DynamicData;
 using QSideloader.Helpers;
 using QSideloader.Models;
@@ -54,11 +52,13 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         Refresh = ReactiveCommand.CreateFromObservable(RefreshImpl);
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
         Install = ReactiveCommand.CreateFromObservable(InstallImpl);
+        Download = ReactiveCommand.CreateFromObservable(DownloadImpl);
         Refresh.Execute().Subscribe();
     }
 
     public ReactiveCommand<Unit, Unit> Refresh { get; }
     public ReactiveCommand<Unit, Unit> Install { get; }
+    public ReactiveCommand<Unit, Unit> Download { get; }
     public ReadOnlyObservableCollection<Game> AvailableGames => _availableGames;
     public bool IsBusy => _isBusy.Value;
     [Reactive] public bool MultiSelectEnabled { get; set; } = true;
@@ -90,7 +90,20 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
-                Globals.MainWindowViewModel!.QueueForInstall(game);
+                Globals.MainWindowViewModel!.EnqueueTask(game, TaskType.DownloadAndInstall);
+            }
+        });
+    }
+    
+    private IObservable<Unit> DownloadImpl()
+    {
+        return Observable.Start(() =>
+        {
+            var selectedGames = AvailableGames.Where(game => game.IsSelected).ToList();
+            foreach (var game in selectedGames)
+            {
+                game.IsSelected = false;
+                Globals.MainWindowViewModel!.EnqueueTask(game, TaskType.DownloadOnly);
             }
         });
     }

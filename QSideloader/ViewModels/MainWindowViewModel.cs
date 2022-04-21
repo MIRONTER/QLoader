@@ -32,16 +32,15 @@ public class MainWindowViewModel : ViewModelBase
         IsDeviceConnected = _adbService.CheckDeviceConnection();
     }
 
-    public void QueueForInstall(Game game)
+    public void EnqueueTask(Game game, TaskType taskType)
     {
         Dispatcher.UIThread.InvokeAsync(() =>
         {
-            var taskView = new TaskView();
-            taskView.ViewModel!.Game = game;
-            taskView.ViewModel!.PerformTask.Execute().Subscribe();
+            var taskView = new TaskView(game, taskType);
+            taskView.Run();
             TaskList.Add(taskView);
         });
-        Log.Information("Queued for install: {ReleaseName}", game.ReleaseName);
+        Log.Information("Enqueued task {TaskType} {TaskName}", taskType, game.GameName);
     }
     
     private void OnDeviceChanged(AdbService.AdbDevice device)

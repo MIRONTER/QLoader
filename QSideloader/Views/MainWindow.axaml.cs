@@ -84,16 +84,15 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         var selectedTask = (TaskView?) e.AddedItems[0];
         if (listBox is null || selectedTask is null) return;
         listBox.SelectedItem = null;
-        switch (selectedTask.ViewModel!.IsFinished)
+        switch (selectedTask.IsFinished)
         {
             case true when viewModel.TaskList.Contains(selectedTask):
-                if (selectedTask.ViewModel.Game is not null)
-                    Log.Debug("Dismissed finished task {GameName}",
-                        selectedTask.ViewModel.Game.GameName);
+                Log.Debug("Dismissed finished task {GameName}",
+                    selectedTask.TaskName);
                 viewModel.TaskList.Remove(selectedTask);
                 break;
             case false:
-                selectedTask.ViewModel.Cancel();
+                selectedTask.Cancel();
                 break;
         }
     }

@@ -1,14 +1,34 @@
-﻿using Avalonia.Markup.Xaml;
+﻿using System;
+using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
+using QSideloader.Models;
 using QSideloader.ViewModels;
 
 namespace QSideloader.Views;
 
 public partial class TaskView : ReactiveUserControl<TaskViewModel>
 {
+    public string TaskName => ViewModel?.TaskName ?? "N/A";
+    public TaskType TaskType { get; set; }
+    public bool IsFinished => ViewModel?.IsFinished ?? false;
+    public Action Cancel
+    {
+        get
+        {
+            if (ViewModel != null) return ViewModel.Cancel;
+            return () => { };
+        }
+    }
+
+    // Dummy constructor for XAML
     public TaskView()
     {
-        ViewModel = new TaskViewModel();
+        InitializeComponent();
+    }
+    public TaskView(Game game, TaskType taskType)
+    {
+        TaskType = taskType;
+        ViewModel = new TaskViewModel(game, taskType);
         DataContext = ViewModel;
         InitializeComponent();
     }
@@ -16,5 +36,10 @@ public partial class TaskView : ReactiveUserControl<TaskViewModel>
     private void InitializeComponent()
     {
         AvaloniaXamlLoader.Load(this);
+    }
+
+    public void Run()
+    {
+        ViewModel!.RunTask.Execute().Subscribe();
     }
 }

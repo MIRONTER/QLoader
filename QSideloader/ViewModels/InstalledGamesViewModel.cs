@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
 using AdvancedSharpAdbClient;
 using Avalonia.Threading;
 using DynamicData;
@@ -24,6 +24,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
     private readonly DownloaderService _downloaderService;
     private readonly SourceCache<InstalledGame, string> _installedGamesSourceCache = new(x => x.ReleaseName!);
     private readonly ReadOnlyObservableCollection<InstalledGame> _installedGames;
+    private static readonly SemaphoreSlim RefreshSemaphoreSlim = new(1, 1);
 
     public InstalledGamesViewModel()
     {
@@ -56,6 +57,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
     public ReactiveCommand<Unit, Unit> Uninstall { get; }
     public ReadOnlyObservableCollection<InstalledGame> InstalledGames => _installedGames;
     public bool IsBusy => _isBusy.Value;
+    [Reactive] public bool IsDeviceConnected { get; private set; }
     [Reactive] public bool MultiSelectEnabled { get; set; } = true;
     public ViewModelActivator Activator { get; }
 
@@ -63,8 +65,18 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            Log.Information("Refreshing list of installed games");
-            RefreshInstalledGames();
+            // Check whether refresh is already running
+            if (RefreshSemaphoreSlim.CurrentCount == 0) return;
+            RefreshSemaphoreSlim.Wait();
+            try
+            {
+                Log.Information("Refreshing list of installed games");
+                RefreshInstalledGames();
+            }
+            finally
+            {
+                RefreshSemaphoreSlim.Release();
+            }
         });
     }
 
@@ -76,6 +88,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             if (!_adbService.CheckDeviceConnection())
             {
                 Log.Warning("InstalledGamesViewModel.UpdateImpl: no device connection!");
+                OnDeviceOffline();
                 return;
             }
 
@@ -83,7 +96,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
-                Dispatcher.UIThread.InvokeAsync(() => { Globals.MainWindowViewModel!.QueueForInstall(game); });
+                Globals.MainWindowViewModel!.EnqueueTask(game, TaskType.DownloadAndInstall);
                 Log.Information("Queued for update: {ReleaseName}", game.ReleaseName);
             }
         });
@@ -96,6 +109,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             if (!_adbService.CheckDeviceConnection())
             {
                 Log.Warning("InstalledGamesViewModel.UninstallImpl: no device connection!");
+                OnDeviceOffline();
                 return;
             }
 
@@ -103,9 +117,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
-                _adbService.Device!.BackupGame(game);
-                _adbService.Device!.UninstallGame(game);
-                Log.Information("Uninstalled game: {GameName}", game.GameName);
+                Globals.MainWindowViewModel!.EnqueueTask(game, TaskType.BackupAndUninstall);
             }
         });
     }
@@ -115,14 +127,25 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         switch (device.State)
         {
             case DeviceState.Online:
-                Refresh.Execute().Subscribe();
+                OnDeviceOnline();
                 break;
             case DeviceState.Offline:
-                Dispatcher.UIThread.InvokeAsync(_installedGamesSourceCache.Clear);
+                OnDeviceOffline();
                 break;
         }
     }
-
+    
+    private void OnDeviceOnline()
+    {
+        IsDeviceConnected = true;
+        Refresh.Execute().Subscribe();
+    }
+    
+    private void OnDeviceOffline()
+    {
+        IsDeviceConnected = false;
+        Dispatcher.UIThread.InvokeAsync(_installedGamesSourceCache.Clear);
+    }
     private void OnPackageListChanged()
     {
         Refresh.Execute().Subscribe();
@@ -133,10 +156,11 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         if (!_adbService.CheckDeviceConnection())
         {
             Log.Warning("InstalledGamesViewModel.RefreshInstalledGames: no device connection!");
-            _installedGamesSourceCache.Clear();
+            OnDeviceOffline();
             return;
         }
 
+        IsDeviceConnected = true;
         _downloaderService.EnsureGameListAvailableAsync().GetAwaiter().GetResult();
         _adbService.Device!.RefreshInstalledPackages();
         var installedGames = _adbService.Device.GetInstalledGames();
