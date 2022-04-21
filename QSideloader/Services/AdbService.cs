@@ -628,8 +628,13 @@ public class AdbService
                 _ = Globals.AvailableGames ??
                     throw new InvalidOperationException("Globals.AvailableGames must be initialized");
                 _ = PackageManager ?? throw new InvalidOperationException("PackageManager must be initialized");
-                var query = InstalledPackages.Join(Globals.AvailableGames, package => package, game => game.PackageName,
-                    (_, game) => new InstalledGame(game, PackageManager.GetVersionInfo(game.PackageName).VersionCode));
+                // PackageManager.GetVersionInfo can return null
+                var query = from package in InstalledPackages
+                    let versionInfo = PackageManager.GetVersionInfo(package)
+                    let versionCode = versionInfo?.VersionCode ?? 0
+                    let game = Globals.AvailableGames.FirstOrDefault(g => g.PackageName == package)
+                    where game != null
+                    select new InstalledGame(game, versionCode);
                 var installedGames = query.ToList();
                 Log.Debug("Found {Count} installed games: {InstalledGames}", installedGames.Count,
                     installedGames.Select(x => x.PackageName));
