@@ -132,7 +132,7 @@ public class App : Application
         bool ShouldLogFirstChanceException(FirstChanceExceptionEventArgs e)
         {
             return !(e.Exception.StackTrace is not null && e.Exception.StackTrace.Contains("GetRcloneDownloadStats")
-                     || e.Exception.Message.Contains("127.0.0.1:5572")
+                     || e.Exception.Message.Contains("127.0.0.1:48040")
                      || e.Exception.Message.Contains("does not contain a definition for 'bytes'")
                      || e.Exception.Message.Contains("does not contain a definition for 'speed'"));
         }
