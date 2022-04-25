@@ -92,7 +92,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
                 return;
             }
 
-            var selectedGames = InstalledGames.Where(game => game.IsSelected).ToList();
+            var selectedGames = _installedGamesSourceCache.Items.Where(game => game.IsSelected).ToList();
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
@@ -113,7 +113,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
                 return;
             }
 
-            var selectedGames = InstalledGames.Where(game => game.IsSelected).ToList();
+            var selectedGames = _installedGamesSourceCache.Items.Where(game => game.IsSelected).ToList();
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;

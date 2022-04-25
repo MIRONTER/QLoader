@@ -86,7 +86,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
                 return;
             }
 
-            var selectedGames = AvailableGames.Where(game => game.IsSelected).ToList();
+            var selectedGames = _availableGamesSourceCache.Items.Where(game => game.IsSelected).ToList();
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
@@ -99,7 +99,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            var selectedGames = AvailableGames.Where(game => game.IsSelected).ToList();
+            var selectedGames = _availableGamesSourceCache.Items.Where(game => game.IsSelected).ToList();
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
