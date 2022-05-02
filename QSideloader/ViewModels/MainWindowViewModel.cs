@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using AdvancedSharpAdbClient;
@@ -43,6 +45,11 @@ public class MainWindowViewModel : ViewModelBase
         Log.Information("Enqueued task {TaskType} {TaskName}", taskType, game.GameName);
     }
     
+    public IEnumerable<TaskView> GetTaskList()
+    {
+        return TaskList.ToList();
+    }
+
     private void OnDeviceChanged(AdbService.AdbDevice device)
     {
         switch (device.State)

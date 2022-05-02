@@ -117,12 +117,23 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             }
 
             Log.Information("Running auto-update");
+            var runningInstalls = Globals.MainWindowViewModel!.GetTaskList().Where(x => x.TaskType == TaskType.DownloadAndInstall).ToList();
             var selectedGames = _installedGamesSourceCache.Items
                 .Where(game => game.AvailableVersionCode > game.InstalledVersionCode).ToList();
+            if (selectedGames.Count == 0)
+            {
+                Log.Information("No games to update");
+                return;
+            }
             foreach (var game in selectedGames)
             {
+                if (runningInstalls.Any(x => x.PackageName == game.PackageName))
+                {
+                    Log.Debug("Skipping {GameName} because it is already being installed", game.GameName);
+                    continue;
+                }
                 game.IsSelected = false;
-                Globals.MainWindowViewModel!.EnqueueTask(game, TaskType.DownloadAndInstall);
+                Globals.MainWindowViewModel.EnqueueTask(game, TaskType.DownloadAndInstall);
                 Log.Information("Queued for update: {ReleaseName}", game.ReleaseName);
             }
         });

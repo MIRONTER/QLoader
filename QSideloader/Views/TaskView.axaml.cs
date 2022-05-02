@@ -9,7 +9,8 @@ namespace QSideloader.Views;
 public partial class TaskView : ReactiveUserControl<TaskViewModel>
 {
     public string TaskName => ViewModel?.TaskName ?? "N/A";
-    public TaskType TaskType { get; set; }
+    public string? PackageName { get; }
+    public TaskType TaskType { get; }
     public bool IsFinished => ViewModel?.IsFinished ?? false;
     public Action Cancel
     {
@@ -28,6 +29,7 @@ public partial class TaskView : ReactiveUserControl<TaskViewModel>
     public TaskView(Game game, TaskType taskType)
     {
         TaskType = taskType;
+        PackageName = game.PackageName;
         ViewModel = new TaskViewModel(game, taskType);
         DataContext = ViewModel;
         InitializeComponent();
