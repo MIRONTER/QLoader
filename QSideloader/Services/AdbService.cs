@@ -161,6 +161,19 @@ public class AdbService
     }
 
     /// <summary>
+    /// Simple check of current connection status (no ping and no device list scanning).
+    /// For full check use <see cref="CheckDeviceConnection"/>.
+    /// </summary>
+    /// <returns>
+    /// <see langword="true"/> if device is connected, <see langword="false"/> otherwise.
+    /// </returns>
+    public bool CheckDeviceConnectionSimple()
+    {
+        if (Device is not null) return Device.State == DeviceState.Online;
+        return false;
+    }
+
+    /// <summary>
     /// Refreshes the device list.
     /// </summary>
     private void RefreshDeviceList()

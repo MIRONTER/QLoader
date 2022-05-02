@@ -49,6 +49,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             cacheListBind.Subscribe().DisposeWith(disposables);
             _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged).DisposeWith(disposables);
             _adbService.WhenPackageListChanged.Subscribe(_ => OnPackageListChanged()).DisposeWith(disposables);
+            IsDeviceConnected = _adbService.CheckDeviceConnectionSimple();
         });
     }
 

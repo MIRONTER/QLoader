@@ -106,7 +106,6 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
             if (DownloadsLocation == _defaultDownloadsLocation)
             {
                 Directory.CreateDirectory(_defaultDownloadsLocation);
-                DownloadsLocationTextBoxText = DownloadsLocation;
             }
             else
             {

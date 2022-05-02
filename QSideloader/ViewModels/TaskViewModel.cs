@@ -128,7 +128,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     
     private async Task RunDownloadAndInstallAsync()
     {
-        EnsureDeviceConnection();
+        EnsureDeviceConnection(true);
         try
         {
             _gamePath = await Download();
@@ -147,7 +147,6 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
         try
         {
-            EnsureDeviceConnection();
             await Install(_gamePath ?? throw new InvalidOperationException("gamePath is null"));
         }
         catch (Exception e)
@@ -185,7 +184,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     
     private async Task RunInstallOnlyAsync()
     {
-        EnsureDeviceConnection();
+        EnsureDeviceConnection(true);
         try
         {
             await Install(_gamePath ?? throw new InvalidOperationException("gamePath is null"));
@@ -204,7 +203,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     
     private async Task RunUninstallAsync()
     {
-        EnsureDeviceConnection();
+        EnsureDeviceConnection(true);
         try
         {
             Status = "Uninstalling";
@@ -225,7 +224,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     
     private async Task RunBackupAndUninstallAsync()
     {
-        EnsureDeviceConnection();
+        EnsureDeviceConnection(true);
         try
         {
             Status = "Backing up";
@@ -248,7 +247,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     
     private async Task RunBackupAsync()
     {
-        EnsureDeviceConnection();
+        EnsureDeviceConnection(true);
         try
         {
             Status = "Backing up";
@@ -319,6 +318,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     {
         Status = "Install queued";
         await AdbService.TakePackageOperationLockAsync(_cancellationTokenSource.Token);
+        EnsureDeviceConnection();
         Status = "Installing";
 
         // Here I assume that Install is the last step in the process, this might change in the future
@@ -344,6 +344,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         await AdbService.TakePackageOperationLockAsync(_cancellationTokenSource.Token);
         try
         {
+            EnsureDeviceConnection();
             Status = "Uninstalling";
             await Task.Run(() => _adbService.Device!.UninstallGame(_game));
         }
@@ -355,6 +356,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task Backup()
     {
+        EnsureDeviceConnection();
         await Task.Run(() => _adbService.Device!.BackupGame(_game));
     }
 
@@ -374,9 +376,10 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         Log.Information("Requested cancellation of task {TaskType} {TaskName}", _taskType, _game.GameName);
     }
     
-    private void EnsureDeviceConnection()
+    private void EnsureDeviceConnection(bool simpleCheck = false)
     {
-        if (_adbService.CheckDeviceConnection()) return;
+        if (simpleCheck && _adbService.CheckDeviceConnectionSimple() ||
+            !simpleCheck && _adbService.CheckDeviceConnection()) return;
         OnFinished("Failed: no device connection");
         throw new InvalidOperationException("No device connection");
     }

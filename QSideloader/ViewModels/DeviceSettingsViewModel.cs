@@ -34,7 +34,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
 
         this.WhenActivated(disposables =>
         {
-            Task.Run(Initialize);
+            Task.Run(OnActivated);
 
             _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged).DisposeWith(disposables);
         });
@@ -86,10 +86,12 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     public ReactiveCommand<Unit, Unit> LaunchHiddenSettings { get; }
     public ViewModelActivator Activator { get; }
 
-    private void Initialize()
+    private void OnActivated()
     {
-        if (!_adbService.CheckDeviceConnection()) return;
-        OnDeviceChanged(_adbService.Device!);
+        if (_adbService.CheckDeviceConnectionSimple() || _adbService.CheckDeviceConnection())
+            OnDeviceChanged(_adbService.Device!);
+        else
+            IsDeviceConnected = false;
     }
     
     private void LoadCurrentSettings()
@@ -181,6 +183,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
             if (!_adbService.CheckDeviceConnection())
             {
                 Log.Warning("DeviceSettingsViewModel.ApplySettingsImpl: no device connection!");
+                IsDeviceConnected = false;
                 return;
             }
 
@@ -412,7 +415,12 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            if (!_adbService.CheckDeviceConnection()) return;
+            if (!_adbService.CheckDeviceConnection())
+            {
+                Log.Warning("DeviceSettingsViewModel.MountStorageImpl: no device connection!");
+                IsDeviceConnected = false;
+                return;
+            }
             _adbService.Device!.RunShellCommand("svc usb setFunctions mtp true", true);
             Log.Information("Mounted device storage");
         });
@@ -422,7 +430,12 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            if (!_adbService.CheckDeviceConnection()) return;
+            if (!_adbService.CheckDeviceConnection())
+            {
+                Log.Warning("DeviceSettingsViewModel.LaunchHiddenSettingsImpl: no device connection!");
+                IsDeviceConnected = false;
+                return;
+            }
             _adbService.Device!.RunShellCommand(
                 "am start -a android.intent.action.VIEW -d com.oculus.tv -e uri com.android.settings/.DevelopmentSettings com.oculus.vrshell/.MainActivity",
                 true);
