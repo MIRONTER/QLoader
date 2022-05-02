@@ -14,6 +14,7 @@
                     Orientation="Horizontal"
                     Spacing="12" Margin="8"
                     HorizontalAlignment="Right">
+            <Button Command="{Binding UpdateAll}">Update All</Button>
             <Button Command="{Binding Update}">Update Selected</Button>
             <Button Command="{Binding Uninstall}">Uninstall Selected</Button>
             <Button Command="{Binding Refresh}">Refresh</Button>

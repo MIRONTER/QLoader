@@ -34,6 +34,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         Refresh = ReactiveCommand.CreateFromObservable(RefreshImpl);
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
         Update = ReactiveCommand.CreateFromObservable(UpdateImpl);
+        UpdateAll = ReactiveCommand.CreateFromObservable(UpdateAllImpl);
         Uninstall = ReactiveCommand.CreateFromObservable(UninstallImpl);
         var cacheListBind = _installedGamesSourceCache.Connect()
             .RefCount()
@@ -55,6 +56,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
     public ReactiveCommand<Unit, Unit> Refresh { get; }
     public ReactiveCommand<Unit, Unit> Update { get; }
+    public ReactiveCommand<Unit, Unit> UpdateAll { get; }
     public ReactiveCommand<Unit, Unit> Uninstall { get; }
     public ReadOnlyObservableCollection<InstalledGame> InstalledGames => _installedGames;
     public bool IsBusy => _isBusy.Value;
@@ -94,6 +96,29 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             }
 
             var selectedGames = _installedGamesSourceCache.Items.Where(game => game.IsSelected).ToList();
+            foreach (var game in selectedGames)
+            {
+                game.IsSelected = false;
+                Globals.MainWindowViewModel!.EnqueueTask(game, TaskType.DownloadAndInstall);
+                Log.Information("Queued for update: {ReleaseName}", game.ReleaseName);
+            }
+        });
+    }
+    
+    private IObservable<Unit> UpdateAllImpl()
+    {
+        return Observable.Start(() =>
+        {
+            if (!_adbService.CheckDeviceConnection())
+            {
+                Log.Warning("InstalledGamesViewModel.UpdateAllImpl: no device connection!");
+                OnDeviceOffline();
+                return;
+            }
+
+            Log.Information("Running auto-update");
+            var selectedGames = _installedGamesSourceCache.Items
+                .Where(game => game.AvailableVersionCode > game.InstalledVersionCode).ToList();
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
