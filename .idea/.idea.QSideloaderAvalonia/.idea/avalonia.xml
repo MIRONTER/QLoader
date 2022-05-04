@@ -3,6 +3,8 @@
   <component name="AvaloniaProject">
     <option name="projectPerEditor">
       <map>
+        <entry key="NetSparkle.UI.Avalonia/CheckingForUpdatesWindow.xaml" value="QSideloader/QSideloader.csproj" />
+        <entry key="NetSparkle.UI.Avalonia/UpdateAvailableWindow.xaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/App.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/AvailableGamesView.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/DeviceInfoView.axaml" value="QSideloader/QSideloader.csproj" />

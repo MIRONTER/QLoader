@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Timers;
+using Avalonia.Threading;
 using Newtonsoft.Json;
 using QSideloader.Helpers;
 using ReactiveUI;
@@ -32,6 +33,7 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
         SetBackupsLocation = ReactiveCommand.CreateFromObservable(SetBackupsLocationImpl, this.IsValid());
         SetDownloaderBandwidthLimit = ReactiveCommand.CreateFromObservable(SetDownloaderBandwidthLimitImpl, this.IsValid());
         RestoreDefaults = ReactiveCommand.CreateFromObservable(RestoreDefaultsImpl);
+        CheckUpdates = ReactiveCommand.CreateFromObservable(CheckUpdatesImpl);
         InitDefaults();
         LoadSettings();
         ValidateSettings();
@@ -78,6 +80,7 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
     public ReactiveCommand<Unit, Unit> SetDownloadLocation { get; }
     public ReactiveCommand<Unit, Unit> SetBackupsLocation { get; }
     public ReactiveCommand<Unit, Unit> SetDownloaderBandwidthLimit { get; }
+    public ReactiveCommand<Unit, Unit> CheckUpdates { get; }
 
     private Timer AutoSaveDelayTimer { get; } = new() {AutoReset = false, Interval = 500};
 
@@ -254,6 +257,15 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
             {
                 Log.Debug("Removed downloader bandwidth limit");
             }
+        });
+    }
+
+    private IObservable<Unit> CheckUpdatesImpl()
+    {
+        return Observable.Start(() =>
+        {
+            if (Globals.Updater is null) return;
+            Dispatcher.UIThread.InvokeAsync(() => Globals.Updater.CheckForUpdatesAtUserRequest());
         });
     }
 

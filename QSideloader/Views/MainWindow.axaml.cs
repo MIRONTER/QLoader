@@ -8,6 +8,10 @@ using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
 using FluentAvalonia.Styling;
 using FluentAvalonia.UI.Controls;
+using NetSparkleUpdater;
+using NetSparkleUpdater.Enums;
+using NetSparkleUpdater.SignatureVerifiers;
+using QSideloader.Helpers;
 using QSideloader.ViewModels;
 using ReactiveUI;
 using Serilog;
@@ -16,12 +20,14 @@ namespace QSideloader.Views;
 
 public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
+    private readonly SideloaderSettingsViewModel _sideloaderSettings;
     public MainWindow()
     {
         InitializeComponent();
 #if DEBUG
         this.AttachDevTools();
 #endif
+        _sideloaderSettings = Globals.SideloaderSettings;
         var thm = AvaloniaLocator.Current.GetService<FluentAvaloniaTheme>();
         if (thm is not null)
         {
@@ -101,6 +107,25 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         //var viewModel = (MainWindowViewModel) DataContext!;
         //viewModel.TaskList.CollectionChanged += TaskListOnCollectionChanged;
+        if (!Design.IsDesignMode)
+            InitializeUpdater();
+    }
+    
+    private void InitializeUpdater()
+    {
+        Log.Information("Initializing updater");
+        Globals.Updater = new SparkleUpdater(
+            "https://raw.githubusercontent.com/skrimix/QLoaderFiles/master/appcasttest.xml",
+            new Ed25519Checker(SecurityMode.Unsafe)
+        ) {
+            UIFactory = new NetSparkleUpdater.UI.Avalonia.UIFactory(Icon),
+            RelaunchAfterUpdate = true,
+            CustomInstallerArguments = "", 
+            //LogWriter = new LogWriter(true), // uncomment to enable logging to console
+            ShowsUIOnMainThread = true
+        };
+        if (_sideloaderSettings.CheckUpdatesOnLaunch)
+            Globals.Updater.StartLoop(true, true);
     }
 
     // When new task is added, scroll to last task in the list
