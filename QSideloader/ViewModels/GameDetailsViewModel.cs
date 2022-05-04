@@ -3,6 +3,7 @@ using System.IO;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using AdvancedSharpAdbClient;
 using Avalonia;
 using Avalonia.Platform;
 using LibVLCSharp.Shared;
@@ -24,7 +25,8 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel
     public ReactiveCommand<Unit, Unit> DownloadAndInstall { get; }
     public ReactiveCommand<Unit, Unit> DownloadOnly { get; }
     [Reactive] public MediaPlayer? MediaPlayer { get; set; }
-    [Reactive] public bool IsTrailerPlaying { get; set; }
+    [Reactive] public bool ShowTrailerPlayer { get; set; }
+    [Reactive] public bool IsDeviceConnected { get; set; }
     public ViewModelActivator Activator { get; }
 
     // Dummy constructor for XAML, do not use
@@ -74,6 +76,8 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel
             ThumbnailPath = pngPath;
         this.WhenActivated(disposables =>
         { 
+            _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged).DisposeWith(disposables);
+            IsDeviceConnected = _adbService.CheckDeviceConnectionSimple();
            Observable.Timer(TimeSpan.FromSeconds(2)).Subscribe(_ => PlayTrailer());
            Disposable.Create(DisposeMediaPlayer).DisposeWith(disposables);
         });
@@ -83,9 +87,10 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            if (!_adbService.CheckDeviceConnection())
+            if (!_adbService.CheckDeviceConnectionSimple())
             {
-                Log.Warning("GameDetailsViewModel.InstallImpl: no device connection!");
+                Log.Warning("GameDetailsViewModel.DownloadAndInstallImpl: no device connection!");
+                IsDeviceConnected = false;
                 return;
             }
             
@@ -101,6 +106,19 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel
             Globals.MainWindowViewModel!.EnqueueTask(Game, TaskType.DownloadOnly);
         });
     }
+    
+    private void OnDeviceChanged(AdbService.AdbDevice device)
+    {
+        switch (device.State)
+        {
+            case DeviceState.Online:
+                IsDeviceConnected = true;
+                break;
+            case DeviceState.Offline:
+                IsDeviceConnected = false;
+                break;
+        }
+    }
 
     private void PlayTrailer()
     {
@@ -110,7 +128,7 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel
         {
             using var media = new Media(_libVlc, trailerFilePath);
             MediaPlayer?.Play(media);
-            IsTrailerPlaying = true;
+            ShowTrailerPlayer = true;
             return;
         }
 
@@ -125,7 +143,7 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel
         var mediaPlayer = MediaPlayer;
         MediaPlayer = null;
         mediaPlayer.Stop();
-        IsTrailerPlaying = false;
+        ShowTrailerPlayer = false;
         mediaPlayer.Hwnd = IntPtr.Zero;
         mediaPlayer.XWindow = 0U;
         mediaPlayer.Dispose();

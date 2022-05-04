@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using AdvancedSharpAdbClient;
 using DynamicData;
 using QSideloader.Helpers;
 using QSideloader.Models;
@@ -48,6 +49,8 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         this.WhenActivated(disposables =>
         {
             cacheListBind.Subscribe().DisposeWith(disposables);
+            _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged).DisposeWith(disposables);
+            IsDeviceConnected = _adbService.CheckDeviceConnectionSimple();
         });
         Refresh = ReactiveCommand.CreateFromObservable(RefreshImpl);
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
@@ -64,6 +67,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] public bool MultiSelectEnabled { get; set; } = true;
     private bool FirstRefresh { get; set; } = true;
     [Reactive] public string SearchText { get; set; } = "";
+    [Reactive] public bool IsDeviceConnected { get; set; }
     public ViewModelActivator Activator { get; }
 
     private IObservable<Unit> RefreshImpl()
@@ -83,6 +87,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             if (!_adbService.CheckDeviceConnection())
             {
                 Log.Warning("AvailableGamesViewModel.InstallImpl: no device connection!");
+                IsDeviceConnected = false;
                 return;
             }
 
@@ -107,6 +112,19 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             }
         });
     }
+    
+    private void OnDeviceChanged(AdbService.AdbDevice device)
+    {
+        switch (device.State)
+        {
+            case DeviceState.Online:
+                IsDeviceConnected = true;
+                break;
+            case DeviceState.Offline:
+                IsDeviceConnected = false;
+                break;
+        }
+    }
 
     private void RefreshAvailableGames(bool redownload = false)
     {
@@ -116,6 +134,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private void RefreshProps()
     {
+        IsDeviceConnected = _adbService.CheckDeviceConnection();
         PopulateAvailableGames();
     }
 

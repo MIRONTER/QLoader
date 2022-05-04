@@ -53,21 +53,21 @@
                                Height="300"
                                VerticalAlignment="Stretch"
                                HorizontalAlignment="Stretch"
-                               IsVisible="{Binding IsTrailerPlaying}" />
+                               IsVisible="{Binding ShowTrailerPlayer}" />
                 <Image Grid.Row="2" Grid.Column="0"
                        Source="{Binding ThumbnailPath, Converter={StaticResource VariableImageFromFiles}}"
                        MaxWidth="505"
                        MaxHeight="300"
                        VerticalAlignment="Top"
                        HorizontalAlignment="Center" 
-                       IsVisible="{Binding !IsTrailerPlaying}"/>
+                       IsVisible="{Binding !ShowTrailerPlayer}"/>
                 <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="Auto,Auto,*"
                       RowDefinitions="Auto,Auto,Auto,*"
                       Margin="24,0,0,0">
-                    <Button Grid.Row="0" Grid.Column="0" Command="{Binding DownloadAndInstall}">Download &amp; Install</Button>
+                    <Button Grid.Row="0" Grid.Column="0" Command="{Binding DownloadAndInstall}" IsEnabled="{Binding IsDeviceConnected}">Download &amp; Install</Button>
                     <Button Grid.Row="0" Grid.Column="1" Margin="12,0,0,0" Command="{Binding DownloadOnly}">Download</Button>
                     <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" Margin="1,4,0,0" FontWeight="Light"
-                               Text="{Binding Game.GameSize, StringFormat={}Download size: {0}MB}" />
+                               Text="{Binding Game.GameSize, StringFormat={}Download size: {0} MB}" />
                     <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2"
                                Margin="0,12,0,0"
                                HorizontalAlignment="Left"
