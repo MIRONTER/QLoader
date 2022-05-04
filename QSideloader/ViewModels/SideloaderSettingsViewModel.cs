@@ -56,7 +56,7 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
     }
 
     [JsonProperty] private byte ConfigVersion { get; } = 1;
-    [Reactive] [JsonProperty] public bool CheckUpdatesOnLaunch { get; private set; }
+    [Reactive] [JsonProperty] public bool CheckUpdatesAutomatically { get; private set; }
     public string[] ConnectionTypes { get; } = {"USB", "Wireless"};
     [Reactive] [JsonProperty] public string? PreferredConnectionType { get; private set; }
     [Reactive] public string DownloadsLocationTextBoxText { get; private set; } = "";
@@ -88,7 +88,7 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
 
     private void InitDefaults()
     {
-        CheckUpdatesOnLaunch = true;
+        CheckUpdatesAutomatically = true;
         PreferredConnectionType = ConnectionTypes[0];
         DownloadsLocation = _defaultDownloadsLocation;
         DownloadsLocationTextBoxText = DownloadsLocation;

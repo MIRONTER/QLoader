@@ -19,7 +19,7 @@
                 <Button Grid.Column="2" HorizontalAlignment="Right" Command="{Binding RestoreDefaults}">Restore Defaults</Button>
             </Grid>
             <StackPanel Orientation="Horizontal">
-                <ToggleSwitch IsChecked="{Binding CheckUpdatesOnLaunch, Mode=TwoWay}">Check for updates automatically</ToggleSwitch>
+                <ToggleSwitch IsChecked="{Binding CheckUpdatesAutomatically, Mode=TwoWay}">Check for updates automatically</ToggleSwitch>
                 <Button VerticalAlignment="Bottom" Margin="20,0,0,8" Command="{Binding CheckUpdates}">Check Now</Button>
             </StackPanel>
             <TextBlock VerticalAlignment="Center">Preferred connection type</TextBlock>
