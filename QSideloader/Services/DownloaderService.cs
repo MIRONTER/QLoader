@@ -142,7 +142,7 @@ public class DownloaderService
                     throw;
                 case CommandExecutionException when e.Message.Contains("downloadQuotaExceeded"):
                     throw new DownloadQuotaExceededException($"Quota exceeded on mirror {MirrorName}", e);
-                case CommandExecutionException {ExitCode: 3 or 4 or 7}:
+                case CommandExecutionException {ExitCode: 1 or 3 or 4 or 7}:
                     throw new MirrorException($"Download error on mirror {MirrorName}", e);
             }
 
