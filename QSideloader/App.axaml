@@ -2,7 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:sty="using:FluentAvalonia.Styling"
              xmlns:local="using:QSideloader"
-             x:Class="QSideloader.App">
+             x:Class="QSideloader.App"
+             Name="Loader">
     <Application.DataTemplates>
         <local:ViewLocator />
     </Application.DataTemplates>
@@ -14,4 +15,8 @@
         <sty:FluentAvaloniaTheme />
     </Application.Styles>
 
+    <NativeMenu.Menu>
+        <NativeMenu>
+        </NativeMenu>
+    </NativeMenu.Menu>
 </Application>
