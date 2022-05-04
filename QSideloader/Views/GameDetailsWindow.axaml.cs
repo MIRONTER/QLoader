@@ -1,5 +1,5 @@
-﻿using Avalonia;
-using Avalonia.Controls;
+﻿using System.Diagnostics.CodeAnalysis;
+using Avalonia;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
@@ -7,10 +7,19 @@ using QSideloader.ViewModels;
 
 namespace QSideloader.Views;
 
-public partial class GameDetailsWindow : ReactiveWindow<GameDetailsViewModel>
+public class GameDetailsWindow : ReactiveWindow<GameDetailsViewModel>
 {
     public GameDetailsWindow()
     {
+        InitializeComponent();
+#if DEBUG
+        this.AttachDevTools();
+#endif
+    }
+    
+    public GameDetailsWindow(GameDetailsViewModel viewModel)
+    {
+        DataContext = viewModel;
         InitializeComponent();
 #if DEBUG
         this.AttachDevTools();
@@ -22,6 +31,7 @@ public partial class GameDetailsWindow : ReactiveWindow<GameDetailsViewModel>
         AvaloniaXamlLoader.Load(this);
     }
 
+    [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private void OnKeyUp(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.Escape)

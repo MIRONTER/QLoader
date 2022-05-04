@@ -1,6 +1,7 @@
 ﻿// Source: https://antonymale.co.uk/windows-atomic-file-writes.html
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -53,6 +54,7 @@ public class AtomicFileStream : FileStream
     }
 
     [Flags]
+    [SuppressMessage("ReSharper", "UnusedMember.Local")]
     private enum MoveFileFlags
     {
         None = 0,

@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace QSideloader.Views;
 
-public partial class SettingsView : UserControl
+public class SettingsView : UserControl
 {
     public SettingsView()
     {

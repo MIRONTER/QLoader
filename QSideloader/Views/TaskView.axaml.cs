@@ -6,7 +6,7 @@ using QSideloader.ViewModels;
 
 namespace QSideloader.Views;
 
-public partial class TaskView : ReactiveUserControl<TaskViewModel>
+public class TaskView : ReactiveUserControl<TaskViewModel>
 {
     public string TaskName => ViewModel?.TaskName ?? "N/A";
     public string? PackageName { get; }

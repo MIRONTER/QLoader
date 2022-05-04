@@ -14,7 +14,7 @@ namespace QSideloader.Models;
 [SuppressMessage("ReSharper", "PropertyCanBeMadeInitOnly.Global")]
 public class Game : INotifyPropertyChanged
 {
-    [FieldHidden] [JsonIgnoreAttribute] private bool _isSelected;
+    [FieldHidden] [JsonIgnore] private bool _isSelected;
 
     protected Game()
     {
@@ -42,7 +42,7 @@ public class Game : INotifyPropertyChanged
     public int GameSize { get; protected set; }
 
     [FieldHidden]
-    [JsonIgnoreAttribute]
+    [JsonIgnore]
     public bool IsSelected
     {
         get => _isSelected;
@@ -53,9 +53,9 @@ public class Game : INotifyPropertyChanged
         }
     }
 
-    [FieldHidden] [JsonIgnoreAttribute] public bool IsNoteAvailable { get; set; }
+    [FieldHidden] [JsonIgnore] public bool IsNoteAvailable { get; set; }
 
-    [FieldHidden] [JsonIgnoreAttribute] public string? Note { get; set; }
+    [FieldHidden] [JsonIgnore] public string? Note { get; set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

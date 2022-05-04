@@ -21,7 +21,6 @@
     </Design.DataContext>
 
     <Window.Resources>
-        <helpers:BitmapAssetValueConverter x:Key="VariableImageFromAssets" />
         <helpers:BitmapImageFileValueConverter x:Key="VariableImageFromFiles" />
     </Window.Resources>
 

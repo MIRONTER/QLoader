@@ -4,7 +4,7 @@ using QSideloader.ViewModels;
 
 namespace QSideloader.Views;
 
-public partial class DeviceInfoView : ReactiveUserControl<DeviceInfoViewModel>
+public class DeviceInfoView : ReactiveUserControl<DeviceInfoViewModel>
 {
     public DeviceInfoView()
     {

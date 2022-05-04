@@ -38,16 +38,21 @@
                                         IsVisible="{Binding MultiSelectEnabled}">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="x:Boolean">
+                            <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
                             <CheckBox IsChecked="{Binding IsSelected}" Margin="16,0,0,0" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
+                <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
                 <DataGridTextColumn Binding="{Binding GameName}" Header="Game Name" Width="auto" IsReadOnly="True"
                                     IsVisible="False" />
+                <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
                 <DataGridTextColumn Binding="{Binding ReleaseName}" Header="Release Name" Width="auto"
                                     IsReadOnly="True" />
+                <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
                 <DataGridTextColumn Binding="{Binding LastUpdated}" Header="Last Updated" Width="auto"
                                     IsReadOnly="True" />
+                <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
                 <DataGridTextColumn Binding="{Binding GameSize}" Header="Size (MB)" Width="auto" IsReadOnly="True" />
             </DataGrid.Columns>
             <DataGrid.Resources>

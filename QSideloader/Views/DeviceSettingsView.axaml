@@ -20,7 +20,7 @@
                     CornerRadius="6"
                     Padding="8" HorizontalAlignment="Left">
                 <StackPanel Orientation="Vertical">
-                    <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,0">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
                         <ComboBox Margin="0,0,0,0" PlaceholderText="Refresh rate"
                                   MinWidth="120"
                                   Items="{Binding RefreshRates}"

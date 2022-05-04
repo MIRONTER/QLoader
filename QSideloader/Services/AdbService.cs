@@ -1004,7 +1004,7 @@ public class AdbService
                             }
                             case "uninstall":
                             {
-                                var packageName = args.First();
+                                //var packageName = args.First();
                                 // TODO: backup for reinstall 
                                 //BackupGame(packageName);
                                 Log.Information("Ignoring uninstall command");
@@ -1026,7 +1026,7 @@ public class AdbService
                                 args = args.Select(x => x.Contains(' ') ? $"\"{x}\"" : x).ToList();
                                 if (args.Count > 2 && args[0] == "pm" && args[1] == "uninstall")
                                 {
-                                    var packageName = args[2];
+                                    //var packageName = args[2];
                                     // TODO: backup for reinstall 
                                     //BackupGame(packageName);
                                     Log.Information("Ignoring uninstall command");
@@ -1210,7 +1210,7 @@ public class AdbService
         {
             Log.Information("Backing up {PackageName}", packageName);
             var backupPath = Path.Combine(_sideloaderSettings.BackupsLocation, $"{DateTime.Now:yyyyMMddTHHmmss}_{packageName}");
-            var backupMetadataPath = Path.Combine(backupPath, "backup.json");
+            //var backupMetadataPath = Path.Combine(backupPath, "backup.json");
             var dataPath = $"/sdcard/Android/data/{packageName}/";
             var dataBackupPath = Path.Combine(backupPath, "data");
             var obbPath = $"/sdcard/Android/obb/{packageName}/";

@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Windows.Input;
 using AdvancedSharpAdbClient;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using QSideloader.Helpers;
 using QSideloader.Models;
@@ -18,17 +19,23 @@ namespace QSideloader.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
+    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
     private readonly AdbService _adbService;
     public MainWindowViewModel()
     {
         _adbService = ServiceContainer.AdbService;
-        ShowDialog = new Interaction<GameDetailsViewModel, GameViewModel?>();
         ShowGameDetailsCommand = ReactiveCommand.CreateFromTask<Game>(async game =>
         {
             if (Globals.AvailableGames is null) return;
             Log.Debug("Opening game details dialog for {GameName}", game.GameName);
             var gameDetails = new GameDetailsViewModel(game);
-            await ShowDialog.Handle(gameDetails);
+            var dialog = new GameDetailsWindow(gameDetails);
+            if (Application.Current is not null)
+            {
+                var mainWindow = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+                    ?.MainWindow;
+                await dialog.ShowDialog(mainWindow);
+            }
         });
         _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged);
         IsDeviceConnected = _adbService.CheckDeviceConnection();
@@ -67,5 +74,4 @@ public class MainWindowViewModel : ViewModelBase
     [Reactive] public ObservableCollection<TaskView> TaskList { get; set; } = new();
 
     public ICommand ShowGameDetailsCommand { get; }
-    public Interaction<GameDetailsViewModel, GameViewModel?> ShowDialog { get; }
 }

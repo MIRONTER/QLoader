@@ -9,7 +9,7 @@ using QSideloader.ViewModels;
 
 namespace QSideloader.Views;
 
-public partial class InstalledGamesView : ReactiveUserControl<InstalledGamesViewModel>
+public class InstalledGamesView : ReactiveUserControl<InstalledGamesViewModel>
 {
     public InstalledGamesView()
     {

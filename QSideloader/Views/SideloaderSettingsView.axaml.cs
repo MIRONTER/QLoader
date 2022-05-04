@@ -5,7 +5,7 @@ using QSideloader.ViewModels;
 
 namespace QSideloader.Views;
 
-public partial class SideloaderSettingsView : ReactiveUserControl<SideloaderSettingsViewModel>
+public class SideloaderSettingsView : ReactiveUserControl<SideloaderSettingsViewModel>
 {
     public SideloaderSettingsView()
     {

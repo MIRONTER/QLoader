@@ -1,7 +1,7 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
@@ -13,12 +13,11 @@ using NetSparkleUpdater.Enums;
 using NetSparkleUpdater.SignatureVerifiers;
 using QSideloader.Helpers;
 using QSideloader.ViewModels;
-using ReactiveUI;
 using Serilog;
 
 namespace QSideloader.Views;
 
-public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
+public class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
     public MainWindow()
@@ -38,8 +37,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         var navigationView = this.FindControl<NavigationView>("NavigationView");
         navigationView.SelectedItem = navigationView.MenuItems.OfType<NavigationViewItem>().First();
-
-        this.WhenActivated(d => d(ViewModel!.ShowDialog.RegisterHandler(DoShowDialogAsync)));
     }
 
     private void InitializeComponent()
@@ -47,6 +44,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         AvaloniaXamlLoader.Load(this);
     }
 
+    // ReSharper disable once UnusedParameter.Local
     private void NavigationView_OnSelectionChanged(object? sender, NavigationViewSelectionChangedEventArgs e)
     {
         if (e.IsSettingsSelected)
@@ -103,6 +101,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         }
     }
 
+    [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private void Window_OnOpened(object? sender, EventArgs e)
     {
         //var viewModel = (MainWindowViewModel) DataContext!;
@@ -121,7 +120,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             UIFactory = new NetSparkleUpdater.UI.Avalonia.UIFactory(Icon),
             RelaunchAfterUpdate = true,
             CustomInstallerArguments = "", 
-            //LogWriter = new LogWriter(true), // uncomment to enable logging to console
+            LogWriter = new LogWriter(true), // uncomment to enable logging to console
             ShowsUIOnMainThread = true
         };
         if (_sideloaderSettings.CheckUpdatesOnLaunch)
@@ -140,15 +139,4 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             taskListBox.ScrollIntoView(taskListBox.Items.OfType<TaskView>().Last());
         }
     }*/
-
-    private async Task DoShowDialogAsync(InteractionContext<GameDetailsViewModel, GameViewModel?> interaction)
-    {
-        var dialog = new GameDetailsWindow
-        {
-            DataContext = interaction.Input
-        };
-
-        var result = await dialog.ShowDialog<GameViewModel?>(this);
-        interaction.SetOutput(result);
-    }
 }
