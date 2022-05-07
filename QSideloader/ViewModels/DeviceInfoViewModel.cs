@@ -150,7 +150,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         SpaceFree = device.SpaceFree;
         BatteryLevel = device.BatteryLevel;
         FriendlyName = device.FriendlyName;
-        IsQuest1 = device.Product == "monterey";
+        IsQuest1 = device.Product is "monterey" or "vr_monterey";
         IsQuest2 = device.Product == "hollywood";
     }
 
