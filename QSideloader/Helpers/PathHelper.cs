@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace QSideloader.Helpers;
@@ -28,6 +30,41 @@ public static class PathHelper
                 RuntimeInformation.OSArchitecture == Architecture.Arm64 ? "arm64" : "x64", "rclone/FFA");
             SevenZipPath = @"./tools/darwin/7zz";
         }
+    }
+    
+    // Source: https://stackoverflow.com/a/55480402
+    public static string GetActualCaseForFileName(string pathAndFileName)
+    {
+        var directory = Path.GetDirectoryName(pathAndFileName) ??
+                           throw new InvalidOperationException("Path is not valid");
+        var pattern = Path.GetFileName(pathAndFileName);
+        string resultFileName;
+
+        // Enumerate all files in the directory, using the file name as a pattern
+        // This will list all case variants of the filename even on file systems that
+        // are case sensitive
+        var options = new EnumerationOptions
+        {
+            MatchCasing = MatchCasing.CaseInsensitive
+        };
+        var foundFiles = Directory.EnumerateFiles(directory, pattern, options).ToList();
+
+        if (foundFiles.Any())
+        {
+            if (foundFiles.Count > 1)
+            {
+                // More than two files with the same name but different case spelling found
+                throw new Exception("Ambiguous File reference for " + pathAndFileName);
+            }
+
+            resultFileName = foundFiles.First();
+        }
+        else
+        {
+            throw new FileNotFoundException("File not found" + pathAndFileName, pathAndFileName);
+        }
+
+        return resultFileName;
     }
 
     public static string AdbPath { get; } = "";

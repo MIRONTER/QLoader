@@ -74,6 +74,25 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel
             ThumbnailPath = jpgPath;
         else if (File.Exists(pngPath))
             ThumbnailPath = pngPath;
+        else
+        {
+            // Try finding a thumbnail using case-insensitive enumeration
+            try
+            {
+                ThumbnailPath = PathHelper.GetActualCaseForFileName(jpgPath);
+            }
+            catch (FileNotFoundException)
+            {
+                try
+                {
+                    ThumbnailPath = PathHelper.GetActualCaseForFileName(pngPath);
+                }
+                catch (FileNotFoundException)
+                {
+                    // ignored
+                }
+            }
+        }
         this.WhenActivated(disposables =>
         { 
             _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged).DisposeWith(disposables);
@@ -122,18 +141,21 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel
 
     private void PlayTrailer()
     {
-        if (_libVlc is null || MediaPlayer is null) return;
+        if (_libVlc is null || MediaPlayer is null || !Directory.Exists(PathHelper.TrailersPath)) return;
         var trailerFilePath = Path.Combine(PathHelper.TrailersPath, $"{Game.PackageName}.mp4");
-        if (File.Exists(trailerFilePath))
+        // Try finding a trailer using case-insensitive enumeration
+        try
         {
-            using var media = new Media(_libVlc, trailerFilePath);
+            var actualTrailerFilePath = PathHelper.GetActualCaseForFileName(trailerFilePath);
+            using var media = new Media(_libVlc, actualTrailerFilePath);
             MediaPlayer?.Play(media);
             ShowTrailerPlayer = true;
-            return;
         }
-
-        Log.Debug("Trailer file {TrailerFileName} not found, disabling player", Path.GetFileName(trailerFilePath));
-        DisposeMediaPlayer();
+        catch (FileNotFoundException)
+        {
+            Log.Debug("Trailer file {TrailerFileName} not found, disabling player", Path.GetFileName(trailerFilePath));
+            DisposeMediaPlayer(); 
+        }
     }
 
     private void DisposeMediaPlayer()
