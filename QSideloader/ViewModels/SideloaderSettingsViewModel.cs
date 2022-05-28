@@ -264,7 +264,11 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            if (Globals.Updater is null) return;
+            if (Globals.Updater is null)
+            {
+                Log.Error("Requested to check for updates, but updater is not initialized");
+                return;
+            }
             Dispatcher.UIThread.InvokeAsync(() => Globals.Updater.CheckForUpdatesAtUserRequest());
         });
     }
