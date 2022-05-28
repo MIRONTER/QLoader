@@ -9,6 +9,7 @@ using Avalonia.ReactiveUI;
 using FluentAvalonia.Styling;
 using FluentAvalonia.UI.Controls;
 using NetSparkleUpdater;
+using NetSparkleUpdater.Downloaders;
 using NetSparkleUpdater.Enums;
 using NetSparkleUpdater.SignatureVerifiers;
 using QSideloader.Helpers;

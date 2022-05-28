@@ -16,7 +16,7 @@ using Serilog;
 
 namespace QSideloader.ViewModels;
 
-public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel
+public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel, IDisposable
 {
     private readonly AdbService _adbService;
     private static LibVLC? _libVlc;
@@ -169,5 +169,10 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel
         mediaPlayer.Hwnd = IntPtr.Zero;
         mediaPlayer.XWindow = 0U;
         mediaPlayer.Dispose();
+    }
+
+    public void Dispose()
+    {
+        DisposeMediaPlayer();
     }
 }

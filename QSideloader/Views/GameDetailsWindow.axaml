@@ -15,7 +15,8 @@
         ExtendClientAreaToDecorationsHint="True"
         CanResize="False"
         SizeToContent="Manual"
-        KeyUp="OnKeyUp">
+        KeyUp="OnKeyUp"
+        Closing="Window_OnClosing">
     <Design.DataContext>
         <viewModels:GameDetailsViewModel />
     </Design.DataContext>

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using Avalonia;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
@@ -38,6 +39,14 @@ public class GameDetailsWindow : ReactiveWindow<GameDetailsViewModel>
         {
             e.Handled = true;
             Close();
+        }
+    }
+
+    private void Window_OnClosing(object? sender, CancelEventArgs e)
+    {
+        if (DataContext is GameDetailsViewModel viewModel)
+        {
+            viewModel.Dispose();
         }
     }
 }
