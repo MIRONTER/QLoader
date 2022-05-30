@@ -1,10 +1,12 @@
 ﻿using System;
+using System.IO;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using QSideloader.Helpers;
 using QSideloader.Models;
 using QSideloader.Services;
 using ReactiveUI;
@@ -19,6 +21,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private readonly Game _game;
     private readonly AdbService _adbService;
     private readonly DownloaderService _downloaderService;
+    private readonly SideloaderSettingsViewModel _sideloaderSettings;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly TaskType _taskType;
 
@@ -27,6 +30,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     {
         _adbService = ServiceContainer.AdbService;
         _downloaderService = ServiceContainer.DownloaderService;
+        _sideloaderSettings = Globals.SideloaderSettings;
         _game = new Game("GameName", "ReleaseName", 1337, "NoteText");
         GameName = "GameName";
         RunTask = ReactiveCommand.CreateFromTask(RunTaskImpl);
@@ -42,6 +46,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         }
         _adbService = ServiceContainer.AdbService;
         _downloaderService = ServiceContainer.DownloaderService;
+        _sideloaderSettings = Globals.SideloaderSettings;
         _game = game;
         GameName = game.GameName;
         _taskType = taskType;
@@ -63,6 +68,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             _gamePath = gamePath;
         _adbService = ServiceContainer.AdbService;
         _downloaderService = ServiceContainer.DownloaderService;
+        _sideloaderSettings = Globals.SideloaderSettings;
         _game = game;
         GameName = game.GameName;
         _taskType = taskType;
@@ -334,6 +340,12 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 () =>
                 {
                     AdbService.ReleasePackageOperationLock();
+                    if (_sideloaderSettings.DeleteAfterInstall)
+                    {
+                        Log.Information("Deleting downloaded files from {Path}", gamePath);
+                        Status = "Deleting downloaded files";
+                        Directory.Delete(gamePath, true);
+                    }
                     OnFinished("Installed");
                 });
     }
