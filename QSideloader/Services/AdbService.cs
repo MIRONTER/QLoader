@@ -397,7 +397,7 @@ public class AdbService
     }
 
     /// <summary>
-    /// Method that is called when current device is connected.
+    /// Method that is called when current device is disconnected.
     /// </summary>
     /// <param name="e">Event args for a disconnected device.</param>
     private void OnDeviceOffline(AdbDeviceEventArgs e)
