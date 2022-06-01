@@ -84,6 +84,8 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
+            if (IsBusy)
+                return;
             if (!_adbService.CheckDeviceConnection())
             {
                 Log.Warning("AvailableGamesViewModel.InstallImpl: no device connection!");
@@ -104,6 +106,8 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
+            if (IsBusy)
+                return;
             var selectedGames = _availableGamesSourceCache.Items.Where(game => game.IsSelected).ToList();
             foreach (var game in selectedGames)
             {
