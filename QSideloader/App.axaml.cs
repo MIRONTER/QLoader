@@ -58,6 +58,7 @@ public class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            desktop.ShutdownMode = ShutdownMode.OnMainWindowClose;
             Globals.MainWindowViewModel = new MainWindowViewModel();
             desktop.MainWindow = new MainWindow
             {

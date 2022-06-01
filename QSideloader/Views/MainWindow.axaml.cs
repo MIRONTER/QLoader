@@ -1,7 +1,9 @@
 using System;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
@@ -20,6 +22,7 @@ namespace QSideloader.Views;
 public class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
+    private bool _isClosing;
     public MainWindow()
     {
         InitializeComponent();
@@ -70,15 +73,6 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
             Log.Debug("Navigated to {View}", selectedItemTag);
         }
     }
-
-    /*private void TaskListView_OnItemClick(object? sender, ViewRoutedEventArgs e)
-    {
-        
-        var clickedItem = (Avalonia.Extensions.Controls.ListViewItem) e.ClickItem;
-        var taskView = (TaskView) clickedItem.GetLogicalChildren().First();
-        if (taskView.ViewModel!.IsFinished)
-            viewModel.TaskList.Remove(taskView);
-    }*/
 
     private void TaskListBox_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
@@ -139,4 +133,26 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
             taskListBox.ScrollIntoView(taskListBox.Items.OfType<TaskView>().Last());
         }
     }*/
+    private async void Window_OnClosing(object? sender, CancelEventArgs e)
+    {
+        if (_isClosing || ViewModel!.TaskList.Count == 0 || ViewModel.TaskList.All(x => x.IsFinished))
+        {
+            Log.Information("Closing application");
+            return;
+        }
+        e.Cancel = true;
+        Log.Information("Application close requested, cancelling tasks");
+        foreach (var task in ViewModel.TaskList)
+            task.Cancel();
+        // Give tasks time to cancel
+        // Check every 100ms for tasks to finish with a timeout of 2s
+        for (var i = 0; i < 20; i++)
+        {
+            await Task.Delay(100);
+            if (ViewModel.TaskList.All(x => x.IsFinished))
+                break;
+        }
+        _isClosing = true;
+        Close();
+    }
 }

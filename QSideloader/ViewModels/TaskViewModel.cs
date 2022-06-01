@@ -383,7 +383,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     public void Cancel()
     {
-        if (_cancellationTokenSource.IsCancellationRequested) return;
+        if (_cancellationTokenSource.IsCancellationRequested || IsFinished) return;
         _cancellationTokenSource.Cancel();
         Log.Information("Requested cancellation of task {TaskType} {TaskName}", _taskType, _game.GameName);
     }

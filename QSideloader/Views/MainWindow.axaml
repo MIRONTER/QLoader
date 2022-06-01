@@ -12,7 +12,8 @@
         MinHeight="600"
         MinWidth="860"
         WindowStartupLocation="CenterScreen"
-        Opened="Window_OnOpened">
+        Opened="Window_OnOpened"
+        Closing="Window_OnClosing">
     <!--TransparencyLevelHint="AcrylicBlur"
         Background="Transparent"
         TransparencyBackgroundFallback="Black"-->
