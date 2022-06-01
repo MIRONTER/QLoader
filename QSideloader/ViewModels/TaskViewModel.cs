@@ -137,7 +137,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         EnsureDeviceConnection(true);
         try
         {
-            _gamePath = await Download();
+            _gamePath = await DownloadAsync();
         }
         catch (Exception e)
         {
@@ -171,7 +171,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     {
         try
         {
-            _gamePath = await Download();
+            _gamePath = await DownloadAsync();
         }
         catch (Exception e)
         {
@@ -295,7 +295,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         }*/
     }
 
-    private async Task<string> Download()
+    private async Task<string> DownloadAsync()
     {
         var downloadStatsSubscription = Disposable.Empty;
         Status = "Download queued";
@@ -307,8 +307,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 .PollStats(TimeSpan.FromMilliseconds(100), ThreadPoolScheduler.Instance)
                 .SubscribeOn(RxApp.TaskpoolScheduler)
                 .Subscribe(RefreshDownloadStats);
-            var gamePath = await Task.Run(() => _downloaderService.DownloadGame(_game,
-                _cancellationTokenSource.Token));
+            var gamePath = await _downloaderService.DownloadGameAsync(_game, _cancellationTokenSource.Token);
             downloadStatsSubscription.Dispose();
             return gamePath;
         }
