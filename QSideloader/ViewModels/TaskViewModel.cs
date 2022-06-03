@@ -156,7 +156,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
         try
         {
-            await Install(_gamePath ?? throw new InvalidOperationException("gamePath is null"));
+            await Install(_gamePath ?? throw new InvalidOperationException("gamePath is null"),
+                _sideloaderSettings.DeleteAfterInstall);
         }
         catch (Exception e)
         {
@@ -322,7 +323,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         }
     }
     
-    private async Task Install(string gamePath)
+    private async Task Install(string gamePath, bool deleteAfterInstall = false)
     {
         Status = "Install queued";
         await AdbService.TakePackageOperationLockAsync(_cancellationTokenSource.Token);
@@ -342,7 +343,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 () =>
                 {
                     AdbService.ReleasePackageOperationLock();
-                    if (_sideloaderSettings.DeleteAfterInstall)
+                    if (deleteAfterInstall)
                     {
                         Log.Information("Deleting downloaded files from {Path}", gamePath);
                         Status = "Deleting downloaded files";
