@@ -33,6 +33,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         _sideloaderSettings = Globals.SideloaderSettings;
         _game = new Game("GameName", "ReleaseName", 1337, "NoteText");
         GameName = "GameName";
+        DownloadStats = "DownloadStats";
         RunTask = ReactiveCommand.CreateFromTask(RunTaskImpl);
         Activator = new ViewModelActivator();
     }
@@ -83,6 +84,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     public string? GameName { get; }
     [Reactive] public string Status { get; private set; } = "Status";
     [Reactive] public string DownloadStats { get; private set; } = "";
+    [Reactive] public string Hint { get; private set; } = "";
     
     public ViewModelActivator Activator { get; }
 
@@ -104,6 +106,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         if (_game is null)
             throw new InvalidOperationException("Game is not set");
 
+        Hint = "Click to cancel";
         switch (_taskType)
         {
             case TaskType.DownloadAndInstall:
@@ -374,6 +377,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private void OnFinished(string status)
     {
         if (IsFinished) return;
+        Hint = "Click to dismiss";
         IsFinished = true;
         Status = status;
         Log.Information("Task {TaskType} {TaskName} finished. Result: {Status}",

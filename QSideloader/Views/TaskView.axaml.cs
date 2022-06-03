@@ -1,5 +1,8 @@
 ﻿using System;
+using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
 using Avalonia.ReactiveUI;
 using QSideloader.Models;
 using QSideloader.ViewModels;
@@ -43,5 +46,25 @@ public class TaskView : ReactiveUserControl<TaskViewModel>
     public void Run()
     {
         ViewModel!.RunTask.Execute().Subscribe();
+    }
+
+    private void InputElement_OnPointerEnter(object? sender, PointerEventArgs e)
+    {
+        var border = this.FindControl<Border>("Border");
+        var downloadStatsText = this.FindControl<TextBlock>("DownloadStatsText");
+        var hintText = this.FindControl<TextBlock>("HintText");
+        border.Background = new SolidColorBrush(0x1F1F1F);
+        downloadStatsText.IsVisible = false;
+        hintText.IsVisible = true;
+    }
+
+    private void InputElement_OnPointerLeave(object? sender, PointerEventArgs e)
+    {
+        var border = this.FindControl<Border>("Border");
+        var downloadStatsText = this.FindControl<TextBlock>("DownloadStatsText");
+        var hintText = this.FindControl<TextBlock>("HintText");
+        border.Background = new SolidColorBrush(0x2C2C2C);
+        downloadStatsText.IsVisible = true;
+        hintText.IsVisible = false;
     }
 }
