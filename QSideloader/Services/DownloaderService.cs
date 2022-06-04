@@ -57,10 +57,12 @@ public class DownloaderService
                 if (await TryDownloadConfig())
                 {
                     Log.Information("Rclone config updated from {MirrorName}", MirrorName);
-                    // Reinitialize the mirror list with the new config
+                    // Reinitialize the mirror list with the new config and reselect mirror
                     IsMirrorListInitialized = false;
                     MirrorList = new List<string>();
                     EnsureMirrorListInitialized();
+                    MirrorName = "";
+                    EnsureMirrorSelected();
                     return;
                 }
                 SwitchMirror();
@@ -290,6 +292,9 @@ public class DownloaderService
             return;
 
         await GameListSemaphoreSlim.WaitAsync();
+        
+        while (RcloneConfigSemaphoreSlim.CurrentCount == 0)
+            await Task.Delay(100);
         try
         {
             EnsureMirrorSelected();
@@ -307,6 +312,11 @@ public class DownloaderService
                     try
                     {
                         Globals.AvailableGames = csvEngine.ReadFile(result.GameListPath);
+                        if (Globals.AvailableGames.Length == 0)
+                        {
+                            Log.Warning("Loaded empty game list from mirror {MirrorName}, retrying", MirrorName);
+                            continue;
+                        }
                         Log.Information("Loaded {Count} games", Globals.AvailableGames.Length);
                         break;
                     }
