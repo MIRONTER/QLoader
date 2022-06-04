@@ -404,8 +404,8 @@ public class AdbService
     {
         Log.Information("Device {Device} disconnected", e.Device);
         e.Device.State = DeviceState.Offline;
-        _deviceChangeSubject.OnNext(e.Device);
         Device = null;
+        _deviceChangeSubject.OnNext(e.Device);
     }
 
     /// <summary>
@@ -419,7 +419,7 @@ public class AdbService
         Device = e.Device;
         if (!FirstDeviceSearch)
             //DeviceOnline?.Invoke(this, e);
-            _deviceChangeSubject.OnNext(e.Device);
+            _deviceChangeSubject.OnNext(Device);
     }
 
     /// <summary>
@@ -661,6 +661,12 @@ public class AdbService
             HashedId = GetHashedId(TrueSerial ?? Serial);
             
             PackageManager = new PackageManager(_adb.AdbClient, this, true);
+
+            Task.Run(() =>
+            {
+                RefreshInstalledPackages();
+                _adbService._packageListChangeSubject.OnNext(new Unit());
+            });
         }
 
         /// <summary>
@@ -687,11 +693,14 @@ public class AdbService
         /// Refresh <see cref="InstalledPackages"/> list
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if <see cref="PackageManager"/> is null.</exception>
-        public void RefreshInstalledPackages()
+        private void RefreshInstalledPackages()
         {
+            var skip = PackagesSemaphoreSlim.CurrentCount == 0;
             PackagesSemaphoreSlim.Wait();
             try
             {
+                if (skip)
+                    return;
                 _ = PackageManager ?? throw new InvalidOperationException("PackageManager must be initialized");
                 PackageManager.RefreshPackages();
                 InstalledPackages = new List<string>(PackageManager.Packages.Keys);
@@ -765,6 +774,10 @@ public class AdbService
                 _ = Globals.AvailableGames ??
                     throw new InvalidOperationException("Globals.AvailableGames must be initialized");
                 _ = PackageManager ?? throw new InvalidOperationException("PackageManager must be initialized");
+                if (InstalledPackages.Count == 0)
+                {
+                    RefreshInstalledPackages();
+                }
                 // PackageManager.GetVersionInfo can return null
                 var query = from package in InstalledPackages
                     let versionInfo = PackageManager.GetVersionInfo(package)
@@ -947,6 +960,7 @@ public class AdbService
                     }
 
                     Log.Information("Installed game {GameName}", game.GameName);
+                    RefreshInstalledPackages();
                     _adbService._packageListChangeSubject.OnNext(new Unit());
                     observer.OnCompleted();
                 }
@@ -1073,6 +1087,7 @@ public class AdbService
                  Log.Warning("Package {PackageName} is not installed", game.PackageName);
             }
             CleanupRemnants(game);
+            RefreshInstalledPackages();
             _adbService._packageListChangeSubject.OnNext(new Unit());
         }
 
@@ -1256,7 +1271,7 @@ public class AdbService
         public float SpaceFree { get; private set; }
         public float SpaceTotal { get; private set; }
         public float BatteryLevel { get; private set; }
-        private List<string> InstalledPackages { get; set; } = new();
+        public List<string> InstalledPackages { get; set; } = new();
         public string FriendlyName { get; }
         private string HashedId { get; }
         public string? TrueSerial { get; }
