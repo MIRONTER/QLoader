@@ -816,9 +816,10 @@ public class AdbService
             var dirList = Directory.GetDirectories(localPath, "*", SearchOption.AllDirectories).ToList();
             var relativeDirList = dirList.Select(dirPath => Path.GetRelativePath(localPath, dirPath));
 
-            RunShellCommand($"mkdir -p \"{remotePath + localDir}/\"", true);
+            RunShellCommand($"mkdir -p \"{remotePath + localDir}/\"".Replace(@"\", "/"), true);
             foreach (var dirPath in relativeDirList)
-                RunShellCommand($"mkdir -p \"{remotePath + localDir + "/" + dirPath.Replace("./", "")}\"", true);
+                RunShellCommand(
+                    $"mkdir -p \"{remotePath + localDir + "/" + dirPath.Replace("./", "")}\"".Replace(@"\", "/"), true);
 
             var fileList = Directory.EnumerateFiles(localPath, "*.*", SearchOption.AllDirectories);
             var relativeFileList = fileList.Select(filePath => Path.GetRelativePath(localPath, filePath));
