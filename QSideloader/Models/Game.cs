@@ -15,6 +15,7 @@ namespace QSideloader.Models;
 public class Game : INotifyPropertyChanged
 {
     [FieldHidden] [JsonIgnore] private bool _isSelected;
+    [FieldHidden] [JsonIgnore] private bool _isInstalled;
 
     protected Game()
     {
@@ -28,6 +29,11 @@ public class Game : INotifyPropertyChanged
         if (note is null) return;
         Note = note;
         IsNoteAvailable = true;
+    }
+
+    public override string ToString()
+    {
+        return ReleaseName ?? "";
     }
 
     [FieldTrim(TrimMode.Right)] public string? GameName { get; protected set; }
@@ -54,7 +60,15 @@ public class Game : INotifyPropertyChanged
     }
 
     [FieldHidden] [JsonIgnore] public bool IsNoteAvailable { get; set; }
-
+    [FieldHidden] [JsonIgnore] public bool IsInstalled 
+    {
+        get => _isInstalled;
+        set
+        {
+            _isInstalled = value;
+            OnPropertyChanged();
+        }
+    }
     [FieldHidden] [JsonIgnore] public string? Note { get; set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;

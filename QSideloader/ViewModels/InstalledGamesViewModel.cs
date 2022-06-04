@@ -49,7 +49,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         {
             cacheListBind.Subscribe().DisposeWith(disposables);
             _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged).DisposeWith(disposables);
-            _adbService.WhenPackageListChanged.Subscribe(_ => OnPackageListChanged()).DisposeWith(disposables);
+            _adbService.WhenPackageListChanged.Subscribe(_ => Refresh.Execute().Subscribe()).DisposeWith(disposables);
             IsDeviceConnected = _adbService.CheckDeviceConnectionSimple();
         });
     }
@@ -183,10 +183,6 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         IsDeviceConnected = false;
         Dispatcher.UIThread.InvokeAsync(_installedGamesSourceCache.Clear);
     }
-    private void OnPackageListChanged()
-    {
-        Refresh.Execute().Subscribe();
-    }
 
     private void RefreshInstalledGames()
     {
@@ -199,8 +195,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
         IsDeviceConnected = true;
         _downloaderService.EnsureGameListAvailableAsync().GetAwaiter().GetResult();
-        _adbService.Device!.RefreshInstalledPackages();
-        var installedGames = _adbService.Device.GetInstalledGames();
+        var installedGames = _adbService.Device!.GetInstalledGames();
         _installedGamesSourceCache.Edit(innerCache =>
         {
             innerCache.Clear();

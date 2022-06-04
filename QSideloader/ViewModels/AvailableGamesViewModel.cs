@@ -50,7 +50,10 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         {
             cacheListBind.Subscribe().DisposeWith(disposables);
             _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged).DisposeWith(disposables);
+            _adbService.WhenPackageListChanged.Subscribe(_ => RefreshInstalled()).DisposeWith(disposables);
             IsDeviceConnected = _adbService.CheckDeviceConnectionSimple();
+            PopulateAvailableGames();
+            RefreshInstalled();
         });
         Refresh = ReactiveCommand.CreateFromObservable(RefreshImpl);
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
@@ -74,8 +77,10 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            RefreshAvailableGames(!FirstRefresh);
-            RefreshProps();
+            _downloaderService.EnsureGameListAvailableAsync(!FirstRefresh).GetAwaiter().GetResult();
+            IsDeviceConnected = _adbService.CheckDeviceConnection();
+            PopulateAvailableGames();
+            RefreshInstalled();
             FirstRefresh = false;
         });
     }
@@ -126,20 +131,9 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
                 break;
             case DeviceState.Offline:
                 IsDeviceConnected = false;
+                RefreshInstalled();
                 break;
         }
-    }
-
-    private void RefreshAvailableGames(bool redownload = false)
-    {
-        _downloaderService.EnsureGameListAvailableAsync(redownload).GetAwaiter().GetResult();
-        RefreshProps();
-    }
-
-    private void RefreshProps()
-    {
-        IsDeviceConnected = _adbService.CheckDeviceConnection();
-        PopulateAvailableGames();
     }
 
     private void PopulateAvailableGames()
@@ -150,22 +144,24 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             return;
         }
 
-        //var toAdd = Globals.AvailableGames.Except(AvailableGames).ToList();
         var toRemove = AvailableGames.Except(Globals.AvailableGames).ToList();
         _availableGamesSourceCache.Edit(innerCache =>
         {
             innerCache.AddOrUpdate(Globals.AvailableGames);
             innerCache.Remove(toRemove);
         });
-        // foreach (var addedGame in toAdd)
-        //     AvailableGames.Add(addedGame);
-        // foreach (var removedGame in toRemove)
-        //     AvailableGames.Remove(removedGame);
     }
 
-    public void ResetSelections()
+    private void RefreshInstalled()
     {
-        // ReSharper disable once ForCanBeConvertedToForeach
-        for (var i = 0; i < AvailableGames.Count; i++) AvailableGames[i].IsSelected = false;
+        var games = _availableGamesSourceCache.Items.ToList();
+        if (_adbService.Device is null)
+            foreach (var game in games)
+                game.IsInstalled = false;
+        else
+            foreach (var game in games.Where(game => game.PackageName is not null))
+            {
+                game.IsInstalled = _adbService.Device.InstalledPackages.Contains(game.PackageName!);
+            }
     }
 }

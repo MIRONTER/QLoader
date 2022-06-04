@@ -4,8 +4,12 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:aura="using:Aura.UI.Controls"
              xmlns:vm="using:QSideloader.ViewModels"
+             xmlns:helpers="clr-namespace:QSideloader.Helpers"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="450"
              x:Class="QSideloader.Views.AvailableGamesView">
+    <UserControl.Resources>
+        <helpers:OnDeviceStatusValueConverter x:Key="OnDeviceStatusFromBool" />
+    </UserControl.Resources>
     <Design.DataContext>
         <vm:AvailableGamesViewModel />
     </Design.DataContext>
@@ -54,6 +58,9 @@
                                     IsReadOnly="True" />
                 <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
                 <DataGridTextColumn Binding="{Binding GameSize}" Header="Size (MB)" Width="auto" IsReadOnly="True" />
+                <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+                <DataGridTextColumn Binding="{Binding IsInstalled, Converter={StaticResource OnDeviceStatusFromBool}}" Header="On Device" Width="auto" IsReadOnly="True" 
+                                    IsVisible="{Binding IsDeviceConnected}" />
             </DataGrid.Columns>
             <DataGrid.Resources>
                 <!-- ReSharper disable once Xaml.RedundantResource -->
