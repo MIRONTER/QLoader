@@ -4,7 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:QSideloader.ViewModels"
              mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="600"
-             x:Class="QSideloader.Views.SideloaderSettingsView">
+             x:Class="QSideloader.Views.SideloaderSettingsView"
+             AttachedToVisualTree="Visual_OnAttachedToVisualTree">
     <Design.DataContext>
         <viewModels:SideloaderSettingsViewModel />
     </Design.DataContext>
@@ -23,7 +24,12 @@
                 <Button VerticalAlignment="Bottom" Margin="20,0,0,8" Command="{Binding CheckUpdates}">Check Now</Button>
             </StackPanel>
             <TextBlock VerticalAlignment="Center">Preferred connection type</TextBlock>
-            <ComboBox Margin="0,4,0,0" Items="{Binding ConnectionTypes}" SelectedItem="{Binding PreferredConnectionType}" />
+            <ComboBox Margin="0,4,0,8" Items="{Binding ConnectionTypes}" SelectedItem="{Binding PreferredConnectionType}" />
+            <TextBlock VerticalAlignment="Center">Selected mirror</TextBlock>
+            <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
+                <ComboBox IsEnabled="{Binding !IsSwitchingMirror}" Items="{Binding MirrorList}" SelectedItem="{Binding SelectedMirror}" />
+                <ProgressRing Margin="10,0,0,0" IsEnabled="{Binding IsSwitchingMirror}" IsVisible="{Binding IsSwitchingMirror}" IsIndeterminate="True" Width="30" Height="30"></ProgressRing>
+            </StackPanel>
             <TextBlock Margin="0,8,0,0">Downloads location</TextBlock>
             <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
                 <TextBox MinWidth="250" Padding="10,5,10,6"

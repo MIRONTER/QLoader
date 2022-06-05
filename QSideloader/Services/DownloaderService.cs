@@ -40,8 +40,12 @@ public class DownloaderService
         });
     }
 
-    private string MirrorName { get; set; } = "";
+    public string MirrorName { get; private set; } = "";
     private List<string> MirrorList { get; set; } = new();
+    public IEnumerable<string> MirrorListReadOnly => MirrorList.AsReadOnly();
+
+    private bool CanSwitchMirror => RcloneConfigSemaphoreSlim.CurrentCount > 0 &&
+                                   MirrorListSemaphoreSlim.CurrentCount > 0 && GameListSemaphoreSlim.CurrentCount > 0;
     private bool IsMirrorListInitialized { get; set; }
     private HttpClient HttpClient { get; } = new();
     
@@ -114,12 +118,12 @@ public class DownloaderService
         try
         {
             Log.Debug("Updating thumbnails (async)");
-            var tasks = new List<Task> {RcloneTransferAsync($"Quest Games/.meta/thumbnails/", "./Resources/thumbnails/", operation: "sync",
+            var tasks = new List<Task> {RcloneTransferAsync($"Quest Games/.meta/thumbnails/", PathHelper.ThumbnailsPath, operation: "sync",
                 retries: 3)};
             if (Directory.Exists(PathHelper.TrailersPath))
             {
                 Log.Debug("Updating trailers (async)");
-                tasks.Add(RcloneTransferAsync($"Quest Games/.meta/videos/", "./Resources/videos/", operation: "sync", retries: 3));
+                tasks.Add(RcloneTransferAsync($"Quest Games/.meta/videos/", PathHelper.TrailersPath, operation: "sync", retries: 3));
             }
 
             await Task.WhenAll(tasks.ToArray());
@@ -146,7 +150,6 @@ public class DownloaderService
         return mirrorList;
     }
 
-    // TODO: allow selecting specific mirror
     private void SwitchMirror()
     {
         if (!string.IsNullOrEmpty(MirrorName))
@@ -171,12 +174,23 @@ public class DownloaderService
         Log.Information("Selected mirror: {MirrorName}", MirrorName);
     }
 
-    private void SwitchMirror(string mirrorName)
+    public bool TryManualSwitchMirror(string mirrorName)
     {
         if (!MirrorList.Contains(mirrorName))
-            throw new ArgumentOutOfRangeException(nameof(mirrorName));
+        {
+            Log.Warning("Attempted to switch to unknown mirror {MirrorName}", mirrorName);
+            return false;
+        }
+
+        if (!CanSwitchMirror)
+        {
+            Log.Warning("Could not switch to mirror {MirrorName} because of a concurrent operation", mirrorName);
+            return false;
+        }
         MirrorName = mirrorName;
         Log.Information("Switched to mirror: {MirrorName} (user request)", MirrorName);
+        EnsureGameListAvailableAsync(true).GetAwaiter().GetResult();
+        return true;
     }
 
     private void SwitchMirror(IList<string> mirrorList)
@@ -303,6 +317,7 @@ public class DownloaderService
             var notesPath = Path.Combine("metadata", "notes.json");
             if (Globals.AvailableGames is not null && !refresh)
                 return;
+            Globals.AvailableGames = null;
             Log.Information("Downloading game list");
             while (true)
             {

@@ -73,4 +73,6 @@ public static class PathHelper
     public static string SettingsPath => "settings.json";
     public static string ThumbnailsPath => Path.Combine("Resources", "thumbnails");
     public static string TrailersPath => Path.Combine("Resources", "videos");
+    public static string DefaultDownloadsPath => Path.Combine(Environment.CurrentDirectory, "downloads");
+    public static string DefaultBackupsPath => Path.Combine(Environment.CurrentDirectory, "backups");
 }

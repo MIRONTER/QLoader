@@ -1,4 +1,5 @@
-﻿using Avalonia.Markup.Xaml;
+﻿using Avalonia;
+using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
 using QSideloader.Helpers;
 using QSideloader.ViewModels;
@@ -17,5 +18,10 @@ public class SideloaderSettingsView : ReactiveUserControl<SideloaderSettingsView
     private void InitializeComponent()
     {
         AvaloniaXamlLoader.Load(this);
+    }
+
+    private void Visual_OnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+    {
+        ViewModel!.RefreshMirrorSelection();
     }
 }
