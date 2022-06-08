@@ -118,7 +118,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
             Log.Information("Running auto-update");
             var runningInstalls = Globals.MainWindowViewModel!.GetTaskList()
-                .Where(x => x.TaskType == TaskType.DownloadAndInstall && !x.IsFinished).ToList();
+                .Where(x => x.TaskType is TaskType.DownloadAndInstall or TaskType.InstallOnly && !x.IsFinished).ToList();
             // Find package name duplicates to avoid installing the wrong release
             var ambiguousReleases = _installedGamesSourceCache.Items.GroupBy(x => x.PackageName)
                 .Where(x => x.Skip(1).Any()).SelectMany(x => x).ToList();
