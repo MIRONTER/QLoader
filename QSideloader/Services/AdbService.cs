@@ -783,9 +783,8 @@ public class AdbService
                     let versionInfo = PackageManager.GetVersionInfo(package)
                     let versionCode = versionInfo?.VersionCode ?? 0
                     let games = Globals.AvailableGames.Where(g => g.PackageName == package)
-                    let gamesNonNull = games.Where(g => g is not null)
-                    where gamesNonNull.Any()
-                    from game in gamesNonNull
+                    where games.Any()
+                    from game in games
                     select new InstalledGame(game, versionCode);
                 var installedGames = query.ToList();
                 Log.Debug("Found {Count} installed games: {InstalledGames}", installedGames.Count,
