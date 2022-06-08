@@ -863,24 +863,25 @@ public class AdbService
         /// <param name="remotePath">Path to a directory on the device.</param>
         /// <param name="localPath">Local path to pull to.</param>
         /// <param name="excludeDirs">Names of directories to exclude from pulling.</param>
-        private void PullDirectory(string remotePath, string localPath, string[]? excludeDirs = default)
+        private void PullDirectory(string remotePath, string localPath, IEnumerable<string>? excludeDirs = default)
         {
             if (!remotePath.EndsWith("/"))
                 remotePath += "/";
             var remoteDirName = remotePath.Split('/').Last(x => !string.IsNullOrEmpty(x));
             var localDir = Path.Combine(localPath, remoteDirName);
+            var excludeDirsList = excludeDirs?.ToList() ?? new List<string>();
             Directory.CreateDirectory(localDir);
             Log.Debug("Pulling directory: \"{RemotePath}\" -> \"{LocalPath}\"",
                 remotePath, localDir);
             using var syncService = new SyncService(_adb.AdbClient, this);
             // Get listing for remote directory, excluding directories in excludeDirs
             var remoteDirectoryListing = syncService.GetDirectoryListing(remotePath).Where(x =>
-                excludeDirs is null || !excludeDirs.Contains(x.Path.Split('/').Last(s => !string.IsNullOrEmpty(s)))).ToList();
+                !excludeDirsList.Contains(x.Path.Split('/').Last(s => !string.IsNullOrEmpty(s)))).ToList();
             foreach (var remoteFile in remoteDirectoryListing.Where(x => x.Path != "." && x.Path != ".."))
             {
                 if (remoteFile.FileMode.HasFlag(UnixFileMode.Directory))
                 {
-                    PullDirectory(remotePath + remoteFile.Path, localDir, excludeDirs);
+                    PullDirectory(remotePath + remoteFile.Path, localDir, excludeDirsList);
                 }
                 else if (remoteFile.FileMode.HasFlag(UnixFileMode.Regular))
                 {
@@ -896,7 +897,7 @@ public class AdbService
         /// <returns>
         /// <see langword="true"/> if directory exists, <see langword="false"/> otherwise.
         /// </returns>
-        private bool DirectoryExists(string path)
+        private bool RemoteDirectoryExists(string path)
         {
             try
             {
@@ -948,7 +949,25 @@ public class AdbService
                         foreach (var apkPath in Directory.EnumerateFiles(gamePath, "*.apk"))
                         {
                             observer.OnNext("Installing APK");
-                            InstallPackage(apkPath, false, true);
+                            try
+                            {
+                                InstallPackage(apkPath, false, true);
+                            }
+                            catch (PackageInstallationException e)
+                            {
+                                if (e.Message.Contains("INSTALL_FAILED_UPDATE_INCOMPATIBLE") || e.Message.Contains("INSTALL_FAILED_VERSION_DOWNGRADE"))
+                                {
+                                    observer.OnNext("Incompatible update, reinstalling");
+                                    Log.Information("Incompatible update, reinstalling\nReason: {Message}", e.Message);
+                                    var backupPath = CreateBackup(game.PackageName!, "reinstall");
+                                    UninstallPackage(game.PackageName!);
+                                    InstallPackage(apkPath, false, true);
+                                    if (!string.IsNullOrEmpty(backupPath))
+                                        RestoreBackup(backupPath);
+                                }
+                                else
+                                    throw;
+                            }
                         }
 
                         if (game.PackageName is not null && Directory.Exists(Path.Combine(gamePath, game.PackageName)))
@@ -1020,11 +1039,15 @@ public class AdbService
                             }
                             case "uninstall":
                             {
-                                //var packageName = args.First();
-                                // TODO: backup for reinstall 
-                                //BackupGame(packageName);
-                                Log.Information("Ignoring uninstall command");
-                                //UninstallPackage(packageName);
+                                var packageName = args.First();
+                                CreateBackup(packageName);
+                                try
+                                {
+                                    UninstallPackage(packageName);
+                                }
+                                catch (PackageNotFoundException)
+                                {
+                                }
                                 break;
                             }
                             case "push":
@@ -1042,11 +1065,15 @@ public class AdbService
                                 args = args.Select(x => x.Contains(' ') ? $"\"{x}\"" : x).ToList();
                                 if (args.Count > 2 && args[0] == "pm" && args[1] == "uninstall")
                                 {
-                                    //var packageName = args[2];
-                                    // TODO: backup for reinstall 
-                                    //BackupGame(packageName);
-                                    Log.Information("Ignoring uninstall command");
-                                    //UninstallPackage(packageName);
+                                    var packageName = args[2];
+                                    CreateBackup(packageName);
+                                    try
+                                    {
+                                        UninstallPackage(packageName);
+                                    }
+                                    catch (PackageNotFoundException)
+                                    {
+                                    }
                                     break;
                                 }
 
@@ -1080,12 +1107,11 @@ public class AdbService
             _ = game.PackageName ?? throw new ArgumentException("game.PackageName must not be null");
             try
             {
-                Log.Information("Uninstalling package {PackageName}", game.PackageName);
+                Log.Information("Uninstalling game {GameName}", game.GameName);
                 UninstallPackage(game.PackageName);
             }
             catch (PackageNotFoundException)
             {
-                 Log.Warning("Package {PackageName} is not installed", game.PackageName);
             }
             CleanupRemnants(game);
             RefreshInstalledPackages();
@@ -1169,6 +1195,7 @@ public class AdbService
         {
             try
             {
+                Log.Information("Uninstalling package {PackageName}", packageName);
                 _adb.AdbClient.UninstallPackage(this, packageName);
             }
             catch (PackageInstallationException e)
@@ -1176,6 +1203,7 @@ public class AdbService
                 if (e.Message == "DELETE_FAILED_INTERNAL_ERROR" && string.IsNullOrWhiteSpace(
                         RunShellCommand($"pm list packages -3 | grep -w \"package:{packageName}\"")))
                 {
+                    Log.Warning("Package {PackageName} is not installed", packageName);
                     throw new PackageNotFoundException(packageName);
                 }
                 throw;
@@ -1206,51 +1234,76 @@ public class AdbService
         /// Backs up given game.
         /// </summary>
         /// <param name="game"><see cref="Game"/> to backup.</param>
+        /// <param name="backupNameSuffix">String to append to backup name</param>
         /// <param name="backupData">Should backup data.</param>
         /// <param name="backupApk">Should backup APK file.</param>
         /// <param name="backupObb">Should backup OBB files.</param>
-        /// <seealso cref="BackupGame(string,bool,bool,bool)"/>
-        public void BackupGame(Game game, bool backupData = true, bool backupApk = false, bool backupObb = false)
+        /// <returns>Path to backup, or empty string if nothing was backed up.</returns>
+        /// <seealso cref="CreateBackup(string,string,bool,bool,bool)"/>
+        public string CreateBackup(Game game, string backupNameSuffix = "", bool backupData = true, bool backupApk = false, bool backupObb = false)
         {
-            BackupGame(game.PackageName!, backupData, backupApk, backupObb);
+            return CreateBackup(game.PackageName!, backupNameSuffix, backupData, backupApk, backupObb);
         }
 
         /// <summary>
         /// Backs up app with given package name.
         /// </summary>
         /// <param name="packageName">Package name to backup.</param>
+        /// <param name="backupNameSuffix">String to append to backup name</param>
         /// <param name="backupData">Should backup data.</param>
         /// <param name="backupApk">Should backup APK file.</param>
         /// <param name="backupObb">Should backup OBB files.</param>
-        /// <seealso cref="BackupGame(QSideloader.Models.Game,bool,bool,bool)"/>
-        public void BackupGame(string packageName, bool backupData = true, bool backupApk = false, bool backupObb = false)
+        /// <returns>Path to backup, or empty string if nothing was backed up.</returns>
+        /// <seealso cref="CreateBackup(QSideloader.Models.Game,string,bool,bool,bool)"/>
+        public string CreateBackup(string packageName, string backupNameSuffix = "", bool backupData = true, bool backupApk = false, bool backupObb = false)
         {
             Log.Information("Backing up {PackageName}", packageName);
             var backupPath = Path.Combine(_sideloaderSettings.BackupsLocation, $"{DateTime.Now:yyyyMMddTHHmmss}_{packageName}");
-            //var backupMetadataPath = Path.Combine(backupPath, "backup.json");
-            var dataPath = $"/sdcard/Android/data/{packageName}/";
-            var dataBackupPath = Path.Combine(backupPath, "data");
+            if (!string.IsNullOrEmpty(backupNameSuffix))
+                backupPath += $"_{backupNameSuffix}";
+            var publicDataPath = $"/sdcard/Android/data/{packageName}/";
+            var privateDataPath = $"/data/data/{packageName}/";
             var obbPath = $"/sdcard/Android/obb/{packageName}/";
+            //var backupMetadataPath = Path.Combine(backupPath, "backup.json");
+            var publicDataBackupPath = Path.Combine(backupPath, "data");
+            var privateDataBackupPath = Path.Combine(backupPath, "data_private");
             var obbBackupPath = Path.Combine(backupPath, "obb");
             const string apkPathPattern = @"package:(\S+)";
             var apkPath = Regex.Match(RunShellCommand($"pm path {packageName}")!, apkPathPattern).Groups[1]
                 .ToString();
             Directory.CreateDirectory(backupPath);
+            File.Create(Path.Combine(backupPath, ".backup")).Dispose();
             var empty = true;
-            if (backupData && DirectoryExists(dataPath))
+            if (backupData)
             {
-                empty = false;
-                Directory.CreateDirectory(dataBackupPath);
-                PullDirectory(dataPath, dataBackupPath, new []{"cache"});
+                Log.Debug("Backing up private data");
+                Directory.CreateDirectory(privateDataBackupPath);
+                RunShellCommand(
+                    $"mkdir /sdcard/backup_tmp/; run-as {packageName} cp -av {privateDataPath} /sdcard/backup_tmp/{packageName}/", true);
+                PullDirectory($"/sdcard/backup_tmp/{packageName}/", privateDataBackupPath, new List<string>{"cache", "code_cache"});
+                RunShellCommand("rm -rf /sdcard/backup_tmp/", true);
+                var privateDataHasFiles = Directory.EnumerateFiles(privateDataBackupPath).Any();
+                if (!privateDataHasFiles)
+                    Directory.Delete(privateDataBackupPath, true);
+                empty = empty && !privateDataHasFiles;
+                if (RemoteDirectoryExists(publicDataPath))
+                {
+                    empty = false;
+                    Log.Debug("Backing up public data");
+                    Directory.CreateDirectory(publicDataBackupPath);
+                    PullDirectory(publicDataPath, publicDataBackupPath, new List<string>{"cache"});
+                }
             }
             if (backupApk)
             {
                 empty = false;
+                Log.Debug("Backing up APK");
                 PullFile(apkPath, backupPath);
             }
-            if (backupObb && DirectoryExists(obbPath))
+            if (backupObb && RemoteDirectoryExists(obbPath))
             {
                 empty = false;
+                Log.Debug("Backing up OBB");
                 Directory.CreateDirectory(obbBackupPath);
                 PullDirectory(obbPath, obbBackupPath);
             }
@@ -1259,12 +1312,69 @@ public class AdbService
             {
                 //var json = JsonConvert.SerializeObject(game);
                 //File.WriteAllText("game.json", json);
+                Log.Information("Backup created");
             }
             else
             {
                 Log.Information("Nothing to backup");
                 Directory.Delete(backupPath, true);
+                return "";
             }
+            return backupPath;
+        }
+
+        /// <summary>
+        /// Restores backup from given path.
+        /// </summary>
+        /// <param name="backupPath">Path to backup.</param>
+        /// <exception cref="DirectoryNotFoundException">Thrown if directory doesn't exist at given path.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if backup is invalid.</exception>
+        public void RestoreBackup(string backupPath)
+        {
+            if (!Directory.Exists(backupPath))
+            {
+                throw new DirectoryNotFoundException(backupPath);
+            }
+            if (!File.Exists(Path.Combine(backupPath, ".backup")))
+            {
+                Log.Error("Backup {BackupPath} is not valid", backupPath);
+                throw new InvalidOperationException("Backup is not valid");
+            }
+            Log.Information("Restoring backup from {BackupPath}", backupPath);
+            var publicDataBackupPath = Path.Combine(backupPath, "data");
+            var privateDataBackupPath = Path.Combine(backupPath, "data_private");
+            var obbBackupPath = Path.Combine(backupPath, "obb");
+            var apkPath = Directory.EnumerateFiles(backupPath, "*.apk", SearchOption.TopDirectoryOnly).FirstOrDefault();
+            if (apkPath is not null)
+            {
+                Log.Debug("Restoring APK {ApkName}", Path.GetFileName(apkPath));
+                InstallPackage(apkPath, true, true);
+            }
+            if (Directory.Exists(obbBackupPath))
+            {
+                Log.Debug("Restoring OBB");
+                PushDirectory(Directory.EnumerateDirectories(obbBackupPath).First(), "/sdcard/Android/obb/");
+            }
+            if (Directory.Exists(publicDataBackupPath))
+            {
+                Log.Debug("Restoring public data");
+                PushDirectory(Directory.EnumerateDirectories(publicDataBackupPath).First(), "/sdcard/Android/data/");
+            }
+            if (Directory.Exists(privateDataBackupPath))
+            {
+                
+                var packageName = Directory.EnumerateDirectories(privateDataBackupPath).FirstOrDefault()?.Split(Path.PathSeparator).Last();
+                if (packageName is not null)
+                {
+                    Log.Debug("Restoring private data");
+                    RunShellCommand("mkdir /sdcard/restore_tmp/", true);
+                    PushDirectory(Path.Combine(privateDataBackupPath, packageName), "/sdcard/restore_tmp/");
+                    RunShellCommand(
+                        $"run-as {packageName} cp -av /sdcard/restore_tmp/{packageName}/ /data/data/{packageName}/; rm -rf /sdcard/restore_tmp/",
+                        true);
+                }
+            }
+            Log.Information("Backup restored");
         }
 
         private PackageManager? PackageManager { get; }
