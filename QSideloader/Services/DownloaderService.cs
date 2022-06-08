@@ -233,38 +233,6 @@ public class DownloaderService
             throw new DownloaderServiceException("Failed to load mirror list");
         IsMirrorListInitialized = true;
     }
-
-    private void RcloneTransfer(string source, string destination, string operation, string additionalArgs = "", int retries = 1, 
-        bool ignoreConfigLock = false, CancellationToken ct = default)
-    {
-        if (!ignoreConfigLock)
-            while (RcloneConfigSemaphoreSlim.CurrentCount == 0)
-                Thread.Sleep(100);
-        try
-        {
-            EnsureMirrorSelected();
-            var bwLimit = !string.IsNullOrEmpty(_sideloaderSettings.DownloaderBandwidthLimit) ?
-                $"--bwlimit {_sideloaderSettings.DownloaderBandwidthLimit}" : "";
-            Cli.Wrap(PathHelper.RclonePath)
-                .WithArguments($"{operation} --retries {retries} {bwLimit} \"{MirrorName}:{source}\" \"{destination}\" {additionalArgs}")
-                .ExecuteBufferedAsync(ct)
-                .GetAwaiter().GetResult();
-        }
-        catch (Exception e)
-        {
-            switch (e)
-            {
-                case OperationCanceledException or TaskCanceledException:
-                    throw;
-                case CommandExecutionException when e.Message.Contains("downloadQuotaExceeded"):
-                    throw new DownloadQuotaExceededException($"Quota exceeded on mirror {MirrorName}", e);
-                case CommandExecutionException {ExitCode: 1 or 3 or 4 or 7}:
-                    throw new MirrorException($"Rclone {operation} error on mirror {MirrorName}", e);
-            }
-
-            throw new DownloaderServiceException($"Error executing rclone {operation}", e);
-        }
-    }
     
     private async Task RcloneTransferAsync(string source, string destination, string operation, string additionalArgs = "", int retries = 1, 
         bool ignoreConfigLock = false, CancellationToken ct = default)
