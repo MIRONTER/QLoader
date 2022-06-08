@@ -117,9 +117,15 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             }
 
             Log.Information("Running auto-update");
-            var runningInstalls = Globals.MainWindowViewModel!.GetTaskList().Where(x => x.TaskType == TaskType.DownloadAndInstall).ToList();
+            var runningInstalls = Globals.MainWindowViewModel!.GetTaskList()
+                .Where(x => x.TaskType == TaskType.DownloadAndInstall && !x.IsFinished).ToList();
+            // Find package name duplicates to avoid installing the wrong release
+            var ambiguousReleases = _installedGamesSourceCache.Items.GroupBy(x => x.PackageName)
+                .Where(x => x.Skip(1).Any()).SelectMany(x => x).ToList();
+            Log.Information("Found {AmbiguousReleasesCount} ambiguous releases, which will be ignored",
+                ambiguousReleases.Count);
             var selectedGames = _installedGamesSourceCache.Items
-                .Where(game => game.AvailableVersionCode > game.InstalledVersionCode).ToList();
+                .Where(game => game.AvailableVersionCode > game.InstalledVersionCode).Except(ambiguousReleases).ToList();
             if (selectedGames.Count == 0)
             {
                 Log.Information("No games to update");
