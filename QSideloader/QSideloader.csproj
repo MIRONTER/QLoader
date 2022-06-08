@@ -12,8 +12,8 @@
         <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
         <NeutralLanguage>en</NeutralLanguage>
         <AssemblyName>Loader</AssemblyName>
-        <AssemblyVersion>0.1.3.0</AssemblyVersion>
-        <InformationalVersion>v0.1.3-dev</InformationalVersion>
+        <AssemblyVersion>0.2.0.0</AssemblyVersion>
+        <InformationalVersion>v0.2.0-dev</InformationalVersion>
     </PropertyGroup>
     <ItemGroup>
         <IncludeTools Condition="$(RuntimeIdentifier.Contains('win')) Or '$(RuntimeIdentifier)'==''" Include="tools\windows\**\*" />
