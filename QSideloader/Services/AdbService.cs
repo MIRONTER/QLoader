@@ -665,7 +665,7 @@ public class AdbService
             Task.Run(() =>
             {
                 RefreshInstalledPackages();
-                _adbService._packageListChangeSubject.OnNext(new Unit());
+                _adbService._packageListChangeSubject.OnNext(Unit.Default);
             });
         }
 
@@ -962,7 +962,7 @@ public class AdbService
 
                     Log.Information("Installed game {GameName}", game.GameName);
                     RefreshInstalledPackages();
-                    _adbService._packageListChangeSubject.OnNext(new Unit());
+                    _adbService._packageListChangeSubject.OnNext(Unit.Default);
                     observer.OnCompleted();
                 }
                 catch (Exception e)
@@ -1089,7 +1089,7 @@ public class AdbService
             }
             CleanupRemnants(game);
             RefreshInstalledPackages();
-            _adbService._packageListChangeSubject.OnNext(new Unit());
+            _adbService._packageListChangeSubject.OnNext(Unit.Default);
         }
 
         /// <summary>

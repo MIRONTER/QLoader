@@ -50,9 +50,9 @@ public class TaskView : ReactiveUserControl<TaskViewModel>
 
     private void InputElement_OnPointerEnter(object? sender, PointerEventArgs e)
     {
-        var border = this.FindControl<Border>("Border");
-        var downloadStatsText = this.FindControl<TextBlock>("DownloadStatsText");
-        var hintText = this.FindControl<TextBlock>("HintText");
+        var border = this.Get<Border>("Border");
+        var downloadStatsText = this.Get<TextBlock>("DownloadStatsText");
+        var hintText = this.Get<TextBlock>("HintText");
         border.Background = new SolidColorBrush(0x1F1F1F);
         downloadStatsText.IsVisible = false;
         hintText.IsVisible = true;
@@ -60,9 +60,9 @@ public class TaskView : ReactiveUserControl<TaskViewModel>
 
     private void InputElement_OnPointerLeave(object? sender, PointerEventArgs e)
     {
-        var border = this.FindControl<Border>("Border");
-        var downloadStatsText = this.FindControl<TextBlock>("DownloadStatsText");
-        var hintText = this.FindControl<TextBlock>("HintText");
+        var border = this.Get<Border>("Border");
+        var downloadStatsText = this.Get<TextBlock>("DownloadStatsText");
+        var hintText = this.Get<TextBlock>("HintText");
         border.Background = new SolidColorBrush(0x2C2C2C);
         downloadStatsText.IsVisible = true;
         hintText.IsVisible = false;

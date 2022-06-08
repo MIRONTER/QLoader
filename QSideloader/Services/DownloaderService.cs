@@ -43,9 +43,8 @@ public class DownloaderService
     public string MirrorName { get; private set; } = "";
     private List<string> MirrorList { get; set; } = new();
     public IEnumerable<string> MirrorListReadOnly => MirrorList.AsReadOnly();
-
     private bool CanSwitchMirror => RcloneConfigSemaphoreSlim.CurrentCount > 0 &&
-                                   MirrorListSemaphoreSlim.CurrentCount > 0 && GameListSemaphoreSlim.CurrentCount > 0;
+                                    MirrorListSemaphoreSlim.CurrentCount > 0 && GameListSemaphoreSlim.CurrentCount > 0;
     private bool IsMirrorListInitialized { get; set; }
     private HttpClient HttpClient { get; } = new();
     
@@ -126,7 +125,7 @@ public class DownloaderService
                 tasks.Add(RcloneTransferAsync($"Quest Games/.meta/videos/", PathHelper.TrailersPath, operation: "sync", retries: 3));
             }
 
-            await Task.WhenAll(tasks.ToArray());
+            await Task.WhenAll(tasks.ToList());
             Log.Information("Finished resource update");
         }
         catch (Exception e)
