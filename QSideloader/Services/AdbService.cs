@@ -946,54 +946,49 @@ public class AdbService
                     if (game.PackageName is not null)
                         reinstall = PackageManager.Packages.ContainsKey(game.PackageName);
 
-                    if (File.Exists(Path.Combine(gamePath, "install.txt")))
+                    if (File.Exists(gamePath))
                     {
-                        observer.OnNext("Performing custom install");
-                        Log.Information("Running commands from install.txt");
-                        RunInstallScript(Path.Combine(gamePath, "install.txt"));
-                    }
-                    else if (File.Exists(Path.Combine(gamePath, "Install.txt")))
-                    {
-                        observer.OnNext("Performing custom install");
-                        Log.Information("Running commands from Install.txt");
-                        RunInstallScript(Path.Combine(gamePath, "Install.txt"));
-                    }
-                    else
-                        // install APKs, copy OBB dir
-                    {
-                        foreach (var apkPath in Directory.EnumerateFiles(gamePath, "*.apk"))
+                        if (gamePath.EndsWith(".apk"))
                         {
                             observer.OnNext("Installing APK");
-                            try
-                            {
-                                InstallPackage(apkPath, false, true);
-                            }
-                            catch (PackageInstallationException e)
-                            {
-                                if (e.Message.Contains("INSTALL_FAILED_UPDATE_INCOMPATIBLE") ||
-                                    e.Message.Contains("INSTALL_FAILED_VERSION_DOWNGRADE"))
-                                {
-                                    observer.OnNext("Incompatible update, reinstalling");
-                                    Log.Information("Incompatible update, reinstalling\nReason: {Message}", e.Message);
-                                    var backupPath = CreateBackup(game.PackageName!, "reinstall");
-                                    UninstallPackage(game.PackageName!);
-                                    InstallPackage(apkPath, false, true);
-                                    if (!string.IsNullOrEmpty(backupPath))
-                                        RestoreBackup(backupPath);
-                                }
-                                else
-                                {
-                                    throw;
-                                }
-                            }
+                            InstallApk(observer, gamePath);
                         }
-
-                        if (game.PackageName is not null && Directory.Exists(Path.Combine(gamePath, game.PackageName)))
+                        else
                         {
-                            Log.Information("Found OBB directory for {PackageName}, pushing to device",
-                                game.PackageName);
-                            observer.OnNext("Pushing OBB");
-                            PushDirectory(Path.Combine(gamePath, game.PackageName), "/sdcard/Android/obb/");
+                            throw new InvalidOperationException("Attempted to sideload a non-APK file");
+                        }
+                    }
+                    else
+                    {
+                        if (File.Exists(Path.Combine(gamePath, "install.txt")))
+                        {
+                            observer.OnNext("Performing custom install");
+                            Log.Information("Running commands from install.txt");
+                            RunInstallScript(Path.Combine(gamePath, "install.txt"));
+                        }
+                        else if (File.Exists(Path.Combine(gamePath, "Install.txt")))
+                        {
+                            observer.OnNext("Performing custom install");
+                            Log.Information("Running commands from Install.txt");
+                            RunInstallScript(Path.Combine(gamePath, "Install.txt"));
+                        }
+                        else
+                            // install APKs, copy OBB dir
+                        {
+                            foreach (var apkPath in Directory.EnumerateFiles(gamePath, "*.apk"))
+                            {
+                                observer.OnNext("Installing APK");
+                                InstallApk(observer, apkPath);
+                            }
+
+                            if (game.PackageName is not null &&
+                                Directory.Exists(Path.Combine(gamePath, game.PackageName)))
+                            {
+                                Log.Information("Found OBB directory for {PackageName}, pushing to device",
+                                    game.PackageName);
+                                observer.OnNext("Pushing OBB");
+                                PushDirectory(Path.Combine(gamePath, game.PackageName), "/sdcard/Android/obb/");
+                            }
                         }
                     }
 
@@ -1012,6 +1007,32 @@ public class AdbService
 
                 return Disposable.Empty;
             });
+
+            void InstallApk(IObserver<string> observer, string apkPath)
+            {
+                try
+                {
+                    InstallPackage(apkPath, false, true);
+                }
+                catch (PackageInstallationException e)
+                {
+                    if (e.Message.Contains("INSTALL_FAILED_UPDATE_INCOMPATIBLE") ||
+                        e.Message.Contains("INSTALL_FAILED_VERSION_DOWNGRADE"))
+                    {
+                        observer.OnNext("Incompatible update, reinstalling");
+                        Log.Information("Incompatible update, reinstalling\nReason: {Message}", e.Message);
+                        var backupPath = CreateBackup(game.PackageName!, "reinstall");
+                        UninstallPackage(game.PackageName!);
+                        InstallPackage(apkPath, false, true);
+                        if (!string.IsNullOrEmpty(backupPath))
+                            RestoreBackup(backupPath);
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                } 
+            }
         }
 
         /// <summary>

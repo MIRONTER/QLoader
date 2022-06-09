@@ -187,8 +187,14 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
         var dragDropPanel = this.Get<StackPanel>("DragDropPanel");
         if (e.Data.Contains(DataFormats.FileNames))
         {
-            var files = e.Data.GetFileNames();
-            Log.Debug("Dropped folders/files: {Files}", files);
+            var fileNames = e.Data.GetFileNames()?.ToList();
+            if (fileNames is null)
+            {
+                Log.Warning("e.Data.GetFileNames() returned null");
+                return;
+            }
+            Log.Debug("Dropped folders/files: {Files}", fileNames);
+            ViewModel!.HandleDroppedFiles(fileNames);
         }
         else
         {

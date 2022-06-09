@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows.Input;
 using AdvancedSharpAdbClient;
 using Avalonia;
@@ -57,6 +59,17 @@ public class MainWindowViewModel : ViewModelBase
         });
         Log.Information("Enqueued task {TaskType} {TaskName}", taskType, game.GameName);
     }
+    
+    public void EnqueueTask(Game game, TaskType taskType, string gamePath)
+    {
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            var taskView = new TaskView(game, taskType, gamePath);
+            taskView.Run();
+            TaskList.Add(taskView);
+        });
+        Log.Information("Enqueued task {TaskType} {TaskName}", taskType, game.GameName);
+    }
 
     public IEnumerable<TaskView> GetTaskList()
     {
@@ -73,6 +86,58 @@ public class MainWindowViewModel : ViewModelBase
             case DeviceState.Offline:
                 IsDeviceConnected = false;
                 break;
+        }
+    }
+
+    public void HandleDroppedFiles(IEnumerable<string> fileNames)
+    {
+        foreach (var fileName in fileNames)
+        {
+            if (Directory.Exists(fileName))
+            {
+                if (Directory.EnumerateFiles(fileName, ".backup", SearchOption.TopDirectoryOnly).Any())
+                {
+                    Log.Debug("Dropped folder {FileName} contains backup", fileName);
+                    var dirName = Path.GetFileName(fileName);
+                    var game = new Game(dirName, dirName);
+                    EnqueueTask(game, TaskType.Restore, fileName);
+                }
+                if (Directory.EnumerateFiles(fileName, "*.apk", SearchOption.TopDirectoryOnly).Any())
+                {
+                    Log.Debug("Dropped folder {FileName} contains APK", fileName);
+                    var dirName = Path.GetFileName(fileName);
+                    Game game;
+                    // Try to find OBB directory and set package name
+                    var dirNames = Directory.EnumerateDirectories(fileName, "*.*", SearchOption.TopDirectoryOnly).Select(Path.GetFileName);
+                    var obbDirName = dirNames.Where(d => d is not null).FirstOrDefault(d => Regex.IsMatch(d!, @"^([A-Za-z]{1}[A-Za-z\d_]*\.)+[A-Za-z][A-Za-z\d_]*$"));
+                    if (obbDirName is not null)
+                    {
+                        Log.Debug("Found OBB directory {ObbDirName}", obbDirName);
+                        game = new Game(dirName, dirName, obbDirName);
+                    }
+                    else
+                    {
+                        game = new Game(dirName, dirName);
+                    }
+                    EnqueueTask(game, TaskType.InstallOnly, fileName);
+                }
+                else
+                {
+                    Log.Warning("Dropped directory {FileName} does not contain APK files and is not a backup",
+                        fileName);
+                }
+            }
+            else if (File.Exists(fileName) && fileName.EndsWith(".apk"))
+            {
+                Log.Debug("Dropped file {FileName} is an APK", fileName);
+                var name = Path.GetFileName(fileName);
+                var game = new Game(name, name);
+                EnqueueTask(game, TaskType.InstallOnly, fileName);
+            }
+            else
+            {
+                Log.Warning("Unsupported dropped file {FileName}", fileName);
+            }
         }
     }
 }

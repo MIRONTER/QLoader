@@ -25,6 +25,15 @@ public class TaskView : ReactiveUserControl<TaskViewModel>
         DataContext = ViewModel;
         InitializeComponent();
     }
+    
+    public TaskView(Game game, TaskType taskType, string gamePath)
+    {
+        TaskType = taskType;
+        PackageName = game.PackageName;
+        ViewModel = new TaskViewModel(game, taskType, gamePath);
+        DataContext = ViewModel;
+        InitializeComponent();
+    }
 
     public string TaskName => ViewModel?.TaskName ?? "N/A";
     public string? PackageName { get; }

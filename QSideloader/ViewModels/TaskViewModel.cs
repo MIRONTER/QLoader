@@ -40,9 +40,12 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     public TaskViewModel(Game game, TaskType taskType)
     {
-        if (taskType == TaskType.InstallOnly)
-            // We need a game path to run installation
-            throw new ArgumentException("Game path not specified for InstallOnly task");
+        if (taskType is TaskType.InstallOnly or TaskType.Restore)
+        {
+            // We need a game path to run installation/restore a backup
+            Log.Error("Game path not specified for {TaskType} task", taskType);
+            throw new ArgumentException($"Game path not specified for {taskType} task");
+        }
         _adbService = ServiceContainer.AdbService;
         _downloaderService = ServiceContainer.DownloaderService;
         _sideloaderSettings = Globals.SideloaderSettings;
@@ -61,7 +64,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     public TaskViewModel(Game game, TaskType taskType, string gamePath)
     {
-        if (taskType != TaskType.InstallOnly)
+        if (taskType is not (TaskType.InstallOnly or TaskType.Restore))
             Log.Warning("Unneeded game path specified for {TaskType} task", taskType);
         else
             _gamePath = gamePath;
@@ -124,6 +127,9 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 break;
             case TaskType.Backup:
                 await RunBackupAsync();
+                break;
+            case TaskType.Restore:
+                await RunRestoreAsync();
                 break;
             case TaskType.PullAndUpload:
                 await RunPullAndUploadAsync();
@@ -224,9 +230,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         EnsureDeviceConnection(true);
         try
         {
-            Status = "Uninstalling";
             await Uninstall();
-            OnFinished("Uninstalled");
         }
         catch (Exception e)
         {
@@ -272,9 +276,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         EnsureDeviceConnection(true);
         try
         {
-            Status = "Backing up";
             await Backup();
-            OnFinished("Backed up");
         }
         catch (Exception e)
         {
@@ -285,6 +287,27 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             else
             {
                 OnFinished("Backup failed");
+                throw;
+            }
+        }
+    }
+
+    private async Task RunRestoreAsync()
+    {
+        EnsureDeviceConnection(true);
+        try
+        {
+            await Restore(_gamePath!);
+        }
+        catch (Exception e)
+        {
+            if (e is OperationCanceledException or TaskCanceledException)
+            {
+                OnFinished("Cancelled");
+            }
+            else
+            {
+                OnFinished("Restore failed");
                 throw;
             }
         }
@@ -377,6 +400,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             EnsureDeviceConnection();
             Status = "Uninstalling";
             await Task.Run(() => _adbService.Device!.UninstallGame(_game));
+            OnFinished("Uninstalled");
         }
         finally
         {
@@ -387,7 +411,26 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private async Task Backup()
     {
         EnsureDeviceConnection();
+        Status = "Creating backup";
         await Task.Run(() => _adbService.Device!.CreateBackup(_game));
+        OnFinished("Backup created");
+    }
+    
+    private async Task Restore(string backupPath)
+    {
+        Status = "Restore queued";
+        await AdbService.TakePackageOperationLockAsync(_cancellationTokenSource.Token);
+        try
+        {
+            EnsureDeviceConnection();
+            Status = "Restoring backup";
+            await Task.Run(() => _adbService.Device!.RestoreBackup(backupPath));
+            OnFinished("Backup restored");
+        }
+        finally
+        {
+            AdbService.ReleasePackageOperationLock();
+        }
     }
 
     private void OnFinished(string status)
@@ -424,5 +467,6 @@ public enum TaskType
     Uninstall,
     BackupAndUninstall,
     Backup,
+    Restore,
     PullAndUpload
 }

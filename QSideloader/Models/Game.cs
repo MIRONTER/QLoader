@@ -30,6 +30,19 @@ public class Game : INotifyPropertyChanged
         Note = note;
         IsNoteAvailable = true;
     }
+    
+    public Game(string gameName, string releaseName)
+    {
+        GameName = gameName;
+        ReleaseName = releaseName;
+    }
+    
+    public Game(string gameName, string releaseName, string packageName)
+    {
+        GameName = gameName;
+        ReleaseName = releaseName;
+        PackageName = packageName;
+    }
 
     [FieldTrim(TrimMode.Right)] public string? GameName { get; protected set; }
 
