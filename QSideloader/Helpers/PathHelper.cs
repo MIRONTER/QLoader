@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -31,12 +30,21 @@ public static class PathHelper
             SevenZipPath = @"./tools/darwin/7zz";
         }
     }
-    
+
+    public static string AdbPath { get; } = "";
+    public static string RclonePath { get; } = "";
+    public static string SevenZipPath { get; } = "";
+    public static string SettingsPath => "settings.json";
+    public static string ThumbnailsPath => Path.Combine("Resources", "thumbnails");
+    public static string TrailersPath => Path.Combine("Resources", "videos");
+    public static string DefaultDownloadsPath => Path.Combine(Environment.CurrentDirectory, "downloads");
+    public static string DefaultBackupsPath => Path.Combine(Environment.CurrentDirectory, "backups");
+
     // Source: https://stackoverflow.com/a/55480402
     public static string GetActualCaseForFileName(string pathAndFileName)
     {
         var directory = Path.GetDirectoryName(pathAndFileName) ??
-                           throw new InvalidOperationException("Path is not valid");
+                        throw new InvalidOperationException("Path is not valid");
         var pattern = Path.GetFileName(pathAndFileName);
         string resultFileName;
 
@@ -52,10 +60,8 @@ public static class PathHelper
         if (foundFiles.Any())
         {
             if (foundFiles.Count > 1)
-            {
                 // More than two files with the same name but different case spelling found
                 throw new Exception("Ambiguous File reference for " + pathAndFileName);
-            }
 
             resultFileName = foundFiles.First();
         }
@@ -66,13 +72,4 @@ public static class PathHelper
 
         return resultFileName;
     }
-
-    public static string AdbPath { get; } = "";
-    public static string RclonePath { get; } = "";
-    public static string SevenZipPath { get; } = "";
-    public static string SettingsPath => "settings.json";
-    public static string ThumbnailsPath => Path.Combine("Resources", "thumbnails");
-    public static string TrailersPath => Path.Combine("Resources", "videos");
-    public static string DefaultDownloadsPath => Path.Combine(Environment.CurrentDirectory, "downloads");
-    public static string DefaultBackupsPath => Path.Combine(Environment.CurrentDirectory, "backups");
 }

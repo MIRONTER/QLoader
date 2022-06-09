@@ -21,6 +21,7 @@ public class MainWindowViewModel : ViewModelBase
 {
     // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
     private readonly AdbService _adbService;
+
     public MainWindowViewModel()
     {
         _adbService = ServiceContainer.AdbService;
@@ -41,6 +42,11 @@ public class MainWindowViewModel : ViewModelBase
         IsDeviceConnected = _adbService.CheckDeviceConnection();
     }
 
+    [Reactive] public bool IsDeviceConnected { get; set; }
+    [Reactive] public ObservableCollection<TaskView> TaskList { get; set; } = new();
+
+    public ICommand ShowGameDetailsCommand { get; }
+
     public void EnqueueTask(Game game, TaskType taskType)
     {
         Dispatcher.UIThread.InvokeAsync(() =>
@@ -51,7 +57,7 @@ public class MainWindowViewModel : ViewModelBase
         });
         Log.Information("Enqueued task {TaskType} {TaskName}", taskType, game.GameName);
     }
-    
+
     public IEnumerable<TaskView> GetTaskList()
     {
         return TaskList.ToList();
@@ -69,9 +75,4 @@ public class MainWindowViewModel : ViewModelBase
                 break;
         }
     }
-
-    [Reactive] public bool IsDeviceConnected { get; set; }
-    [Reactive] public ObservableCollection<TaskView> TaskList { get; set; } = new();
-
-    public ICommand ShowGameDetailsCommand { get; }
 }

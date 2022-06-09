@@ -24,11 +24,14 @@
                 <Button VerticalAlignment="Bottom" Margin="20,0,0,8" Command="{Binding CheckUpdates}">Check Now</Button>
             </StackPanel>
             <TextBlock VerticalAlignment="Center">Preferred connection type</TextBlock>
-            <ComboBox Margin="0,4,0,8" Items="{Binding ConnectionTypes}" SelectedItem="{Binding PreferredConnectionType}" />
+            <ComboBox Margin="0,4,0,8" Items="{Binding ConnectionTypes}"
+                      SelectedItem="{Binding PreferredConnectionType}" />
             <TextBlock VerticalAlignment="Center">Selected mirror</TextBlock>
             <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
-                <ComboBox IsEnabled="{Binding !IsSwitchingMirror}" Items="{Binding MirrorList}" SelectedItem="{Binding SelectedMirror}" />
-                <ProgressRing Margin="10,0,0,0" IsEnabled="{Binding IsSwitchingMirror}" IsVisible="{Binding IsSwitchingMirror}" IsIndeterminate="True" Width="30" Height="30"></ProgressRing>
+                <ComboBox IsEnabled="{Binding !IsSwitchingMirror}" Items="{Binding MirrorList}"
+                          SelectedItem="{Binding SelectedMirror}" />
+                <ProgressRing Margin="10,0,0,0" IsEnabled="{Binding IsSwitchingMirror}"
+                              IsVisible="{Binding IsSwitchingMirror}" IsIndeterminate="True" Width="30" Height="30" />
             </StackPanel>
             <TextBlock Margin="0,8,0,0">Downloads location</TextBlock>
             <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
@@ -53,7 +56,10 @@
                 <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding SetDownloaderBandwidthLimit}">Set</Button>
             </StackPanel>
             <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding DeleteAfterInstall}">Delete files after install</ToggleSwitch>
-            <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding EnableDebugConsole}" IsVisible="{Binding IsConsoleToggleable}">Show debug console (relaunch to apply)</ToggleSwitch>
+            <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding EnableDebugConsole}"
+                          IsVisible="{Binding IsConsoleToggleable}">
+                Show debug console (relaunch to apply)
+            </ToggleSwitch>
             <Grid Margin="0,8,0,0" ColumnDefinitions="Auto,*,Auto">
                 <Button Grid.Column="0" IsEnabled="False">Clear log files</Button>
                 <TextBlock Grid.Column="2" VerticalAlignment="Bottom">

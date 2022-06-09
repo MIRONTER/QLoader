@@ -17,13 +17,13 @@ namespace QSideloader.ViewModels;
 
 public class TaskViewModel : ViewModelBase, IActivatableViewModel
 {
-    private string? _gamePath;
-    private readonly Game _game;
     private readonly AdbService _adbService;
-    private readonly DownloaderService _downloaderService;
-    private readonly SideloaderSettingsViewModel _sideloaderSettings;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private readonly DownloaderService _downloaderService;
+    private readonly Game _game;
+    private readonly SideloaderSettingsViewModel _sideloaderSettings;
     private readonly TaskType _taskType;
+    private string? _gamePath;
 
     // Dummy constructor for XAML, do not use
     public TaskViewModel()
@@ -37,14 +37,12 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         RunTask = ReactiveCommand.CreateFromTask(RunTaskImpl);
         Activator = new ViewModelActivator();
     }
-    
+
     public TaskViewModel(Game game, TaskType taskType)
     {
         if (taskType == TaskType.InstallOnly)
-        {
             // We need a game path to run installation
             throw new ArgumentException("Game path not specified for InstallOnly task");
-        }
         _adbService = ServiceContainer.AdbService;
         _downloaderService = ServiceContainer.DownloaderService;
         _sideloaderSettings = Globals.SideloaderSettings;
@@ -60,7 +58,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         });
         Activator = new ViewModelActivator();
     }
-    
+
     public TaskViewModel(Game game, TaskType taskType, string gamePath)
     {
         if (taskType != TaskType.InstallOnly)
@@ -85,7 +83,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] public string Status { get; private set; } = "Status";
     [Reactive] public string DownloadStats { get; private set; } = "";
     [Reactive] public string Hint { get; private set; } = "";
-    
+
     public ViewModelActivator Activator { get; }
 
     private void RefreshDownloadStats(DownloadStats stats)
@@ -134,7 +132,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 throw new ArgumentOutOfRangeException(nameof(_taskType));
         }
     }
-    
+
     private async Task RunDownloadAndInstallAsync()
     {
         EnsureDeviceConnection(true);
@@ -145,12 +143,15 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         catch (Exception e)
         {
             if (e is OperationCanceledException or TaskCanceledException)
+            {
                 OnFinished("Cancelled");
+            }
             else
             {
                 OnFinished("Download failed");
                 throw;
             }
+
             return;
         }
 
@@ -162,7 +163,9 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         catch (Exception e)
         {
             if (e is OperationCanceledException or TaskCanceledException)
+            {
                 OnFinished("Cancelled");
+            }
             else
             {
                 OnFinished("Install failed");
@@ -170,7 +173,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             }
         }
     }
-    
+
     private async Task RunDownloadOnlyAsync()
     {
         try
@@ -180,18 +183,21 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         catch (Exception e)
         {
             if (e is OperationCanceledException or TaskCanceledException)
+            {
                 OnFinished("Cancelled");
+            }
             else
             {
                 OnFinished("Download failed");
                 throw;
             }
+
             return;
         }
 
         OnFinished("Downloaded");
     }
-    
+
     private async Task RunInstallOnlyAsync()
     {
         EnsureDeviceConnection(true);
@@ -202,7 +208,9 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         catch (Exception e)
         {
             if (e is OperationCanceledException or TaskCanceledException)
+            {
                 OnFinished("Cancelled");
+            }
             else
             {
                 OnFinished("Install failed");
@@ -210,7 +218,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             }
         }
     }
-    
+
     private async Task RunUninstallAsync()
     {
         EnsureDeviceConnection(true);
@@ -223,7 +231,9 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         catch (Exception e)
         {
             if (e is OperationCanceledException or TaskCanceledException)
+            {
                 OnFinished("Cancelled");
+            }
             else
             {
                 OnFinished("Uninstall failed");
@@ -231,7 +241,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             }
         }
     }
-    
+
     private async Task RunBackupAndUninstallAsync()
     {
         EnsureDeviceConnection(true);
@@ -246,7 +256,9 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         catch (Exception e)
         {
             if (e is OperationCanceledException or TaskCanceledException)
+            {
                 OnFinished("Cancelled");
+            }
             else
             {
                 OnFinished("Uninstall failed");
@@ -254,7 +266,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             }
         }
     }
-    
+
     private async Task RunBackupAsync()
     {
         EnsureDeviceConnection(true);
@@ -267,7 +279,9 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         catch (Exception e)
         {
             if (e is OperationCanceledException or TaskCanceledException)
+            {
                 OnFinished("Cancelled");
+            }
             else
             {
                 OnFinished("Backup failed");
@@ -275,7 +289,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             }
         }
     }
-    
+
     private async Task RunPullAndUploadAsync()
     {
         EnsureDeviceConnection();
@@ -322,7 +336,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             DownloaderService.ReleaseDownloadLock();
         }
     }
-    
+
     private async Task Install(string gamePath, bool deleteAfterInstall = false)
     {
         Status = "Install queued";
@@ -349,6 +363,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                         Status = "Deleting downloaded files";
                         Directory.Delete(gamePath, true);
                     }
+
                     OnFinished("Installed");
                 });
     }
@@ -391,11 +406,11 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         _cancellationTokenSource.Cancel();
         Log.Information("Requested cancellation of task {TaskType} {TaskName}", _taskType, _game.GameName);
     }
-    
+
     private void EnsureDeviceConnection(bool simpleCheck = false)
     {
-        if (simpleCheck && _adbService.CheckDeviceConnectionSimple() ||
-            !simpleCheck && _adbService.CheckDeviceConnection()) return;
+        if ((simpleCheck && _adbService.CheckDeviceConnectionSimple()) ||
+            (!simpleCheck && _adbService.CheckDeviceConnection())) return;
         OnFinished("Failed: no device connection");
         throw new InvalidOperationException("No device connection");
     }

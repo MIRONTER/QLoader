@@ -25,24 +25,24 @@ using Serilog;
 namespace QSideloader.Services;
 
 /// <summary>
-/// Service for all ADB operations.
+///     Service for all ADB operations.
 /// </summary>
 public class AdbService
 {
-    private List<AdbDevice> _deviceList = new();
-    private readonly SideloaderSettingsViewModel _sideloaderSettings;
-    private readonly AdbServerClient _adb;
-    private DeviceMonitor? _deviceMonitor;
     private static readonly SemaphoreSlim DeviceSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim DeviceListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim AdbServerSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim PackageOperationSemaphoreSlim = new(1, 1);
+    private readonly AdbServerClient _adb;
     private readonly Subject<AdbDevice> _deviceChangeSubject = new();
-    private readonly Subject<Unit> _packageListChangeSubject = new();
     private readonly Subject<List<AdbDevice>> _deviceListChangeSubject = new();
+    private readonly Subject<Unit> _packageListChangeSubject = new();
+    private readonly SideloaderSettingsViewModel _sideloaderSettings;
+    private List<AdbDevice> _deviceList = new();
+    private DeviceMonitor? _deviceMonitor;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AdbService"/> class.
+    ///     Initializes a new instance of the <see cref="AdbService" /> class.
     /// </summary>
     public AdbService()
     {
@@ -60,17 +60,19 @@ public class AdbService
     private bool FirstDeviceSearch { get; set; } = true;
 
     public AdbDevice? Device { get; private set; }
+
     public IReadOnlyList<AdbDevice> DeviceList
     {
         get => _deviceList.AsReadOnly();
         private set => _deviceList = value.ToList();
     }
+
     public IObservable<AdbDevice> WhenDeviceChanged => _deviceChangeSubject.AsObservable();
     public IObservable<Unit> WhenPackageListChanged => _packageListChangeSubject.AsObservable();
     public IObservable<List<AdbDevice>> WhenDeviceListChanged => _deviceListChangeSubject.AsObservable();
 
     /// <summary>
-    /// Runs a shell command on the device.
+    ///     Runs a shell command on the device.
     /// </summary>
     /// <param name="device">Device to run the command on.</param>
     /// <param name="command">Command to run.</param>
@@ -99,11 +101,11 @@ public class AdbService
     }
 
     /// <summary>
-    /// Checks that device is connected and if not, tries to find an appropriate device and connect to it.
+    ///     Checks that device is connected and if not, tries to find an appropriate device and connect to it.
     /// </summary>
     /// <param name="assumeOffline">Assume that current device is offline and run full search</param>
     /// <returns>
-    /// <see langword="true"/> if device is connected, <see langword="false"/> if no device was found.
+    ///     <see langword="true" /> if device is connected, <see langword="false" /> if no device was found.
     /// </returns>
     public bool CheckDeviceConnection(bool assumeOffline = false)
     {
@@ -120,10 +122,7 @@ public class AdbService
         try
         {
             DeviceSemaphoreSlim.Wait();
-            if (Device is not null && !assumeOffline)
-            {
-                connectionStatus = PingDevice(Device);
-            }
+            if (Device is not null && !assumeOffline) connectionStatus = PingDevice(Device);
 
             if (!connectionStatus)
             {
@@ -144,7 +143,9 @@ public class AdbService
                     OnDeviceOnline(new AdbDeviceEventArgs(device));
                 }
                 else if (Device is not null && !connectionStatus)
+                {
                     OnDeviceOffline(new AdbDeviceEventArgs(Device));
+                }
             }
         }
         catch (Exception e)
@@ -161,11 +162,11 @@ public class AdbService
     }
 
     /// <summary>
-    /// Simple check of current connection status (no ping and no device list scanning).
-    /// For full check use <see cref="CheckDeviceConnection"/>.
+    ///     Simple check of current connection status (no ping and no device list scanning).
+    ///     For full check use <see cref="CheckDeviceConnection" />.
     /// </summary>
     /// <returns>
-    /// <see langword="true"/> if device is connected, <see langword="false"/> otherwise.
+    ///     <see langword="true" /> if device is connected, <see langword="false" /> otherwise.
     /// </returns>
     public bool CheckDeviceConnectionSimple()
     {
@@ -174,7 +175,7 @@ public class AdbService
     }
 
     /// <summary>
-    /// Refreshes the device list.
+    ///     Refreshes the device list.
     /// </summary>
     private void RefreshDeviceList()
     {
@@ -206,7 +207,7 @@ public class AdbService
     }
 
     /// <summary>
-    /// Checks the current connection type and switches to preferred type if necessary.
+    ///     Checks the current connection type and switches to preferred type if necessary.
     /// </summary>
     private void CheckConnectionPreference()
     {
@@ -219,10 +220,11 @@ public class AdbService
                 if (DeviceList.FirstOrDefault(x => x.TrueSerial == Device.TrueSerial && !x.IsWireless) is
                     { } preferredDevice)
                 {
-                    Log.Information("Auto-switching to preferred connection type ({ConnectionType})", 
+                    Log.Information("Auto-switching to preferred connection type ({ConnectionType})",
                         preferredConnectionType);
                     TrySwitchDevice(preferredDevice);
                 }
+
                 break;
             }
             case false when preferredConnectionType == "Wireless":
@@ -230,17 +232,18 @@ public class AdbService
                 if (DeviceList.FirstOrDefault(x => x.TrueSerial == Device.TrueSerial && x.IsWireless) is
                     { } preferredDevice)
                 {
-                    Log.Information("Auto-switching to preferred connection type ({ConnectionType})", 
+                    Log.Information("Auto-switching to preferred connection type ({ConnectionType})",
                         preferredConnectionType);
                     TrySwitchDevice(preferredDevice);
                 }
+
                 break;
             }
         }
     }
-    
+
     /// <summary>
-    /// Ensures that ADB server is running.
+    ///     Ensures that ADB server is running.
     /// </summary>
     /// <exception cref="AdbServiceException">Thrown if ADB server start failed.</exception>
     private void EnsureADBRunning()
@@ -319,20 +322,20 @@ public class AdbService
     }
 
     /// <summary>
-    /// Wakes up the device by sending a power button key event.
+    ///     Wakes up the device by sending a power button key event.
     /// </summary>
     /// <param name="device">Device to wake.</param>
     private void WakeDevice(DeviceData device)
     {
         RunShellCommand(device, "input keyevent KEYCODE_WAKEUP");
     }
-    
+
     /// <summary>
-    /// Pings the device to ensure it is still connected and responding.
+    ///     Pings the device to ensure it is still connected and responding.
     /// </summary>
     /// <param name="device">Device to ping.</param>
     /// <returns>
-    /// <see langword="true"/> if device responded, <see langword="false"/> otherwise.
+    ///     <see langword="true" /> if device responded, <see langword="false" /> otherwise.
     /// </returns>
     private bool PingDevice(DeviceData device)
     {
@@ -341,7 +344,7 @@ public class AdbService
     }
 
     /// <summary>
-    /// (Re)starts <see cref="DeviceMonitor"/>
+    ///     (Re)starts <see cref="DeviceMonitor" />
     /// </summary>
     /// <param name="restart">Should restart device monitor.</param>
     private void StartDeviceMonitor(bool restart)
@@ -352,6 +355,7 @@ public class AdbService
                 _deviceMonitor.DeviceChanged -= OnDeviceChanged;
             _deviceMonitor = new DeviceMonitor(new AdbSocket(new IPEndPoint(IPAddress.Loopback, 5037)));
         }
+
         if (_deviceMonitor.IsRunning) return;
         _deviceMonitor.DeviceChanged += OnDeviceChanged;
         _deviceMonitor.Start();
@@ -359,7 +363,7 @@ public class AdbService
     }
 
     /// <summary>
-    /// Method that is called by <see cref="DeviceMonitor"/> when status of any device changes.
+    ///     Method that is called by <see cref="DeviceMonitor" /> when status of any device changes.
     /// </summary>
     private void OnDeviceChanged(object? sender, DeviceDataEventArgs e)
     {
@@ -372,16 +376,20 @@ public class AdbService
                     RefreshDeviceList();
                     CheckConnectionPreference();
                 }
+
                 CheckDeviceConnection();
                 break;
             case DeviceState.Offline:
                 if (e.Device.Serial == Device?.Serial)
+                {
                     CheckDeviceConnection(true);
+                }
                 else
                 {
                     RefreshDeviceList();
                     CheckConnectionPreference();
                 }
+
                 break;
             case DeviceState.Unauthorized:
             case DeviceState.BootLoader:
@@ -397,7 +405,7 @@ public class AdbService
     }
 
     /// <summary>
-    /// Method that is called when current device is disconnected.
+    ///     Method that is called when current device is disconnected.
     /// </summary>
     /// <param name="e">Event args for a disconnected device.</param>
     private void OnDeviceOffline(AdbDeviceEventArgs e)
@@ -409,7 +417,7 @@ public class AdbService
     }
 
     /// <summary>
-    /// Method that is called when a device is connected.
+    ///     Method that is called when a device is connected.
     /// </summary>
     /// <param name="e">Event args for a connected device.</param>
     private void OnDeviceOnline(AdbDeviceEventArgs e)
@@ -423,10 +431,10 @@ public class AdbService
     }
 
     /// <summary>
-    /// Gets hashed ID from device serial number.
+    ///     Gets hashed ID from device serial number.
     /// </summary>
     /// <param name="deviceSerial">Device serial to convert.</param>
-    /// <returns>Hashed ID as <see cref="string"/>.</returns>
+    /// <returns>Hashed ID as <see cref="string" />.</returns>
     private static string GetHashedId(string deviceSerial)
     {
         using var sha256Hash = SHA256.Create();
@@ -437,9 +445,9 @@ public class AdbService
     }
 
     /// <summary>
-    /// Gets the list of Oculus devices.
+    ///     Gets the list of Oculus devices.
     /// </summary>
-    /// <returns><see cref="List{T}"/> of <see cref="AdbDevice"/>.</returns>
+    /// <returns><see cref="List{T}" /> of <see cref="AdbDevice" />.</returns>
     private List<AdbDevice> GetOculusDevices()
     {
         Log.Information("Searching for devices");
@@ -492,7 +500,7 @@ public class AdbService
     }
 
     /// <summary>
-    /// Tries to switch to another device.
+    ///     Tries to switch to another device.
     /// </summary>
     /// <param name="device">Device to switch to.</param>
     public void TrySwitchDevice(AdbDevice device)
@@ -504,12 +512,13 @@ public class AdbService
             RefreshDeviceList();
             return;
         }
+
         Log.Information("Switching to device {Device}", device);
         OnDeviceOnline(new AdbDeviceEventArgs(device));
     }
 
     /// <summary>
-    /// Enables Wireless ADB on the device.
+    ///     Enables Wireless ADB on the device.
     /// </summary>
     /// <param name="device">Device to enable Wireless ADB on.</param>
     public async Task EnableWirelessAdbAsync(AdbDevice device)
@@ -532,9 +541,9 @@ public class AdbService
             Log.Error(e, "Failed to enable Wireless ADB");
         }
     }
-    
+
     /// <summary>
-    /// Tries to connect to the wireless adb host.
+    ///     Tries to connect to the wireless adb host.
     /// </summary>
     /// <param name="host">Host to connect to.</param>
     /// <param name="silent">Don't send log messages.</param>
@@ -546,9 +555,10 @@ public class AdbService
                 Log.Debug("Wireless device on {Host} is already connected, skipping", host);
             return;
         }
+
         if (!silent)
             Log.Debug("Trying to connect wireless device, host {Host}", host);
-        
+
         try
         {
             await Task.Delay(1000);
@@ -574,7 +584,7 @@ public class AdbService
     }
 
     /// <summary>
-    /// Checks if device is an Oculus Quest device.
+    ///     Checks if device is an Oculus Quest device.
     /// </summary>
     /// <param name="device">Device to check.</param>
     /// <returns></returns>
@@ -584,7 +594,7 @@ public class AdbService
     }
 
     /// <summary>
-    /// Takes the package operation lock.
+    ///     Takes the package operation lock.
     /// </summary>
     /// <param name="ct">Cancellation token.</param>
     public static async Task TakePackageOperationLockAsync(CancellationToken ct = default)
@@ -593,7 +603,7 @@ public class AdbService
     }
 
     /// <summary>
-    /// Releases the package operation lock.
+    ///     Releases the package operation lock.
     /// </summary>
     public static void ReleasePackageOperationLock()
     {
@@ -601,7 +611,7 @@ public class AdbService
     }
 
     /// <summary>
-    /// Helper class to store <see cref="AdvancedAdbClient"/>-<see cref="AdbServer"/> pair.
+    ///     Helper class to store <see cref="AdvancedAdbClient" />-<see cref="AdbServer" /> pair.
     /// </summary>
     private class AdbServerClient
     {
@@ -611,25 +621,25 @@ public class AdbService
 
 
     /// <summary>
-    /// Adb device class for device-specific operations.
+    ///     Adb device class for device-specific operations.
     /// </summary>
     public class AdbDevice : DeviceData
     {
+        private static readonly SemaphoreSlim DeviceInfoSemaphoreSlim = new(1, 1);
+        private static readonly SemaphoreSlim PackagesSemaphoreSlim = new(1, 1);
         private readonly AdbServerClient _adb;
         private readonly AdbService _adbService;
         private readonly SideloaderSettingsViewModel _sideloaderSettings;
-        private static readonly SemaphoreSlim DeviceInfoSemaphoreSlim = new(1, 1);
-        private static readonly SemaphoreSlim PackagesSemaphoreSlim = new(1, 1);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AdbDevice"/> class.
+        ///     Initializes a new instance of the <see cref="AdbDevice" /> class.
         /// </summary>
         public AdbDevice(DeviceData deviceData, AdbService adbService)
         {
             _adbService = adbService;
             _adb = adbService._adb;
             _sideloaderSettings = Globals.SideloaderSettings;
-            
+
             Serial = deviceData.Serial;
             IsWireless = deviceData.Serial.Contains('.');
             try
@@ -659,7 +669,7 @@ public class AdbService
             };
 
             HashedId = GetHashedId(TrueSerial ?? Serial);
-            
+
             PackageManager = new PackageManager(_adb.AdbClient, this, true);
 
             Task.Run(() =>
@@ -669,17 +679,28 @@ public class AdbService
             });
         }
 
+        private PackageManager? PackageManager { get; }
+        public float SpaceUsed { get; private set; }
+        public float SpaceFree { get; private set; }
+        public float SpaceTotal { get; private set; }
+        public float BatteryLevel { get; private set; }
+        public List<string> InstalledPackages { get; set; } = new();
+        public string FriendlyName { get; }
+        private string HashedId { get; }
+        public string? TrueSerial { get; }
+        public bool IsWireless { get; }
+
         /// <summary>
-        /// Override the default device name with hashed serial
+        ///     Override the default device name with hashed serial
         /// </summary>
-        /// <returns>Device name as <see cref="string"/></returns>
+        /// <returns>Device name as <see cref="string" /></returns>
         public override string ToString()
         {
             return IsWireless ? $"{HashedId} (wireless)" : HashedId;
         }
 
         /// <summary>
-        /// Runs a shell command on the device.
+        ///     Runs a shell command on the device.
         /// </summary>
         /// <param name="command">Command to run.</param>
         /// <param name="logCommand">Should log the command and result.</param>
@@ -690,9 +711,9 @@ public class AdbService
         }
 
         /// <summary>
-        /// Refresh <see cref="InstalledPackages"/> list
+        ///     Refresh <see cref="InstalledPackages" /> list
         /// </summary>
-        /// <exception cref="InvalidOperationException">Thrown if <see cref="PackageManager"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if <see cref="PackageManager" /> is null.</exception>
         private void RefreshInstalledPackages()
         {
             var skip = PackagesSemaphoreSlim.CurrentCount == 0;
@@ -712,11 +733,11 @@ public class AdbService
         }
 
         /// <summary>
-        /// Refreshes device info.
+        ///     Refreshes device info.
         /// </summary>
         /// <remarks>
-        /// If this method is called while another device info refresh is in progress,
-        /// the call will wait until the other refresh is finished and then return.
+        ///     If this method is called while another device info refresh is in progress,
+        ///     the call will wait until the other refresh is finished and then return.
         /// </remarks>
         /// <exception cref="AdbServiceException">Thrown if df command failed</exception>
         public void RefreshInfo()
@@ -762,10 +783,13 @@ public class AdbService
         }
 
         /// <summary>
-        /// Gets list of installed games
+        ///     Gets list of installed games
         /// </summary>
-        /// <returns><see cref="List{T}"/> of <see cref="InstalledGame"/></returns>
-        /// <exception cref="InvalidOperationException">Thrown if <see cref="Globals.AvailableGames"/> or <see cref="PackageManager"/> is null</exception>
+        /// <returns><see cref="List{T}" /> of <see cref="InstalledGame" /></returns>
+        /// <exception cref="InvalidOperationException">
+        ///     Thrown if <see cref="Globals.AvailableGames" /> or
+        ///     <see cref="PackageManager" /> is null
+        /// </exception>
         public List<InstalledGame> GetInstalledGames()
         {
             PackagesSemaphoreSlim.Wait();
@@ -774,10 +798,7 @@ public class AdbService
                 _ = Globals.AvailableGames ??
                     throw new InvalidOperationException("Globals.AvailableGames must be initialized");
                 _ = PackageManager ?? throw new InvalidOperationException("PackageManager must be initialized");
-                if (InstalledPackages.Count == 0)
-                {
-                    RefreshInstalledPackages();
-                }
+                if (InstalledPackages.Count == 0) RefreshInstalledPackages();
                 // PackageManager.GetVersionInfo can return null
                 var query = from package in InstalledPackages
                     let versionInfo = PackageManager.GetVersionInfo(package)
@@ -803,7 +824,7 @@ public class AdbService
         }
 
         /// <summary>
-        /// Pushes a file to the device.
+        ///     Pushes a file to the device.
         /// </summary>
         /// <param name="localPath">Path to a local file.</param>
         /// <param name="remotePath">Remote path to push the file to.</param>
@@ -816,7 +837,7 @@ public class AdbService
         }
 
         /// <summary>
-        /// Pushes a directory to the device.
+        ///     Pushes a directory to the device.
         /// </summary>
         /// <param name="localPath">Path to a local directory.</param>
         /// <param name="remotePath">Remote path to push the file to.</param>
@@ -843,7 +864,7 @@ public class AdbService
         }
 
         /// <summary>
-        /// Pulls a file from the device.
+        ///     Pulls a file from the device.
         /// </summary>
         /// <param name="remotePath">Path to a file on the device.</param>
         /// <param name="localPath">Local path to pull to.</param>
@@ -854,11 +875,11 @@ public class AdbService
             Log.Debug("Pulling file: \"{RemotePath}\" -> \"{LocalPath}\"", remotePath, localFilePath);
             using var syncService = new SyncService(_adb.AdbClient, this);
             using var file = File.OpenWrite(localFilePath);
-            syncService.Pull(remotePath, file,  null, CancellationToken.None);
+            syncService.Pull(remotePath, file, null, CancellationToken.None);
         }
 
         /// <summary>
-        /// Recursively pulls a directory from the device.
+        ///     Recursively pulls a directory from the device.
         /// </summary>
         /// <param name="remotePath">Path to a directory on the device.</param>
         /// <param name="localPath">Local path to pull to.</param>
@@ -878,24 +899,18 @@ public class AdbService
             var remoteDirectoryListing = syncService.GetDirectoryListing(remotePath).Where(x =>
                 !excludeDirsList.Contains(x.Path.Split('/').Last(s => !string.IsNullOrEmpty(s)))).ToList();
             foreach (var remoteFile in remoteDirectoryListing.Where(x => x.Path != "." && x.Path != ".."))
-            {
                 if (remoteFile.FileMode.HasFlag(UnixFileMode.Directory))
-                {
                     PullDirectory(remotePath + remoteFile.Path, localDir, excludeDirsList);
-                }
                 else if (remoteFile.FileMode.HasFlag(UnixFileMode.Regular))
-                {
                     PullFile(remotePath + remoteFile.Path, localDir);
-                }
-            }
         }
 
         /// <summary>
-        /// Checks if specified directory exists on the device.
+        ///     Checks if specified directory exists on the device.
         /// </summary>
         /// <param name="path">Path to directory</param>
         /// <returns>
-        /// <see langword="true"/> if directory exists, <see langword="false"/> otherwise.
+        ///     <see langword="true" /> if directory exists, <see langword="false" /> otherwise.
         /// </returns>
         private bool RemoteDirectoryExists(string path)
         {
@@ -912,12 +927,12 @@ public class AdbService
         }
 
         /// <summary>
-        /// Sideloads the specified game to the device.
+        ///     Sideloads the specified game to the device.
         /// </summary>
-        /// <param name="game"><see cref="Game"/> to sideload.</param>
+        /// <param name="game"><see cref="Game" /> to sideload.</param>
         /// <param name="gamePath">Path to game files.</param>
-        /// <returns><see cref="IObservable{T}"/> that reports current status.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if <see cref="PackageManager"/> is null.</exception>
+        /// <returns><see cref="IObservable{T}" /> that reports current status.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if <see cref="PackageManager" /> is null.</exception>
         public IObservable<string> SideloadGame(Game game, string gamePath)
         {
             return Observable.Create<string>(observer =>
@@ -927,7 +942,7 @@ public class AdbService
                 {
                     _ = PackageManager ?? throw new InvalidOperationException("PackageManager must be initialized");
                     Log.Information("Sideloading game {GameName}", game.GameName);
-                    
+
                     if (game.PackageName is not null)
                         reinstall = PackageManager.Packages.ContainsKey(game.PackageName);
 
@@ -955,7 +970,8 @@ public class AdbService
                             }
                             catch (PackageInstallationException e)
                             {
-                                if (e.Message.Contains("INSTALL_FAILED_UPDATE_INCOMPATIBLE") || e.Message.Contains("INSTALL_FAILED_VERSION_DOWNGRADE"))
+                                if (e.Message.Contains("INSTALL_FAILED_UPDATE_INCOMPATIBLE") ||
+                                    e.Message.Contains("INSTALL_FAILED_VERSION_DOWNGRADE"))
                                 {
                                     observer.OnNext("Incompatible update, reinstalling");
                                     Log.Information("Incompatible update, reinstalling\nReason: {Message}", e.Message);
@@ -966,7 +982,9 @@ public class AdbService
                                         RestoreBackup(backupPath);
                                 }
                                 else
+                                {
                                     throw;
+                                }
                             }
                         }
 
@@ -997,7 +1015,7 @@ public class AdbService
         }
 
         /// <summary>
-        /// Runs custom install script.
+        ///     Runs custom install script.
         /// </summary>
         /// <param name="scriptPath">Path to install script.</param>
         /// <exception cref="ArgumentException">Thrown if install script not found.</exception>
@@ -1048,6 +1066,7 @@ public class AdbService
                                 catch (PackageNotFoundException)
                                 {
                                 }
+
                                 break;
                             }
                             case "push":
@@ -1074,6 +1093,7 @@ public class AdbService
                                     catch (PackageNotFoundException)
                                     {
                                     }
+
                                     break;
                                 }
 
@@ -1098,10 +1118,10 @@ public class AdbService
         }
 
         /// <summary>
-        /// Uninstalls the specified game.
+        ///     Uninstalls the specified game.
         /// </summary>
-        /// <param name="game"><see cref="Game"/> to uninstall.</param>
-        /// <exception cref="ArgumentException">Thrown if <see cref="Game.PackageName"/> is null.</exception>
+        /// <param name="game"><see cref="Game" /> to uninstall.</param>
+        /// <exception cref="ArgumentException">Thrown if <see cref="Game.PackageName" /> is null.</exception>
         public void UninstallGame(Game game)
         {
             _ = game.PackageName ?? throw new ArgumentException("game.PackageName must not be null");
@@ -1113,29 +1133,30 @@ public class AdbService
             catch (PackageNotFoundException)
             {
             }
+
             CleanupRemnants(game);
             RefreshInstalledPackages();
             _adbService._packageListChangeSubject.OnNext(Unit.Default);
         }
 
         /// <summary>
-        /// Cleans up game remnants from Android/data and Android/obb directories.
+        ///     Cleans up game remnants from Android/data and Android/obb directories.
         /// </summary>
-        /// <param name="game"><see cref="Game"/> to get package name from.</param>
-        /// <exception cref="ArgumentException">Thrown if <see cref="Game.PackageName"/> is null.</exception>
-        /// <seealso cref="CleanupRemnants(string)"/>
+        /// <param name="game"><see cref="Game" /> to get package name from.</param>
+        /// <exception cref="ArgumentException">Thrown if <see cref="Game.PackageName" /> is null.</exception>
+        /// <seealso cref="CleanupRemnants(string)" />
         private void CleanupRemnants(Game game)
         {
-            CleanupRemnants(game.PackageName 
+            CleanupRemnants(game.PackageName
                             ?? throw new ArgumentException("game.PackageName must not be null"));
         }
 
         /// <summary>
-        /// Cleans up game remnants from Android/data and Android/obb directories.
+        ///     Cleans up game remnants from Android/data and Android/obb directories.
         /// </summary>
         /// <param name="packageName">Package name to clean.</param>
-        /// <exception cref="ArgumentException">Thrown if <paramref name="packageName"/> is invalid.</exception>
-        /// <seealso cref="CleanupRemnants(QSideloader.Models.Game)"/>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="packageName" /> is invalid.</exception>
+        /// <seealso cref="CleanupRemnants(QSideloader.Models.Game)" />
         private void CleanupRemnants(string packageName)
         {
             try
@@ -1151,6 +1172,7 @@ public class AdbService
                 {
                     // ignored
                 }
+
                 RunShellCommand(
                     $"rm -r /sdcard/Android/data/{packageName}/; rm -r /sdcard/Android/obb/{packageName}/");
             }
@@ -1161,15 +1183,15 @@ public class AdbService
         }
 
         /// <summary>
-        /// Installs the package from the given path.
+        ///     Installs the package from the given path.
         /// </summary>
         /// <remarks>
-        /// Legacy install method is used to avoid rare hang issues.
+        ///     Legacy install method is used to avoid rare hang issues.
         /// </remarks>
         /// <param name="apkPath">Path to APK file.</param>
         /// <param name="reinstall">Set "-r" flag for pm.</param>
         /// <param name="grantRuntimePermissions">Grant all runtime permissions.</param>
-        /// <exception cref="InvalidOperationException">Thrown if <see cref="PackageManager"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if <see cref="PackageManager" /> is null.</exception>
         private void InstallPackage(string apkPath, bool reinstall, bool grantRuntimePermissions)
         {
             _ = PackageManager ?? throw new InvalidOperationException("PackageManager must be initialized");
@@ -1187,10 +1209,10 @@ public class AdbService
         }
 
         /// <summary>
-        /// Uninstalls the package with the given package name.
+        ///     Uninstalls the package with the given package name.
         /// </summary>
         /// <param name="packageName">Package name to uninstall.</param>
-        /// <exception cref="PackageNotFoundException">Thrown if <paramref name="packageName"/> is not installed.</exception>
+        /// <exception cref="PackageNotFoundException">Thrown if <paramref name="packageName" /> is not installed.</exception>
         private void UninstallPackage(string packageName)
         {
             try
@@ -1206,12 +1228,13 @@ public class AdbService
                     Log.Warning("Package {PackageName} is not installed", packageName);
                     throw new PackageNotFoundException(packageName);
                 }
+
                 throw;
             }
         }
 
         /// <summary>
-        /// Prepares device wifi settings and enable Wireless ADB.
+        ///     Prepares device wifi settings and enable Wireless ADB.
         /// </summary>
         /// <returns>Host IP address.</returns>
         public string EnableWirelessAdb()
@@ -1231,22 +1254,23 @@ public class AdbService
         }
 
         /// <summary>
-        /// Backs up given game.
+        ///     Backs up given game.
         /// </summary>
-        /// <param name="game"><see cref="Game"/> to backup.</param>
+        /// <param name="game"><see cref="Game" /> to backup.</param>
         /// <param name="backupNameSuffix">String to append to backup name</param>
         /// <param name="backupData">Should backup data.</param>
         /// <param name="backupApk">Should backup APK file.</param>
         /// <param name="backupObb">Should backup OBB files.</param>
         /// <returns>Path to backup, or empty string if nothing was backed up.</returns>
-        /// <seealso cref="CreateBackup(string,string,bool,bool,bool)"/>
-        public string CreateBackup(Game game, string backupNameSuffix = "", bool backupData = true, bool backupApk = false, bool backupObb = false)
+        /// <seealso cref="CreateBackup(string,string,bool,bool,bool)" />
+        public string CreateBackup(Game game, string backupNameSuffix = "", bool backupData = true,
+            bool backupApk = false, bool backupObb = false)
         {
             return CreateBackup(game.PackageName!, backupNameSuffix, backupData, backupApk, backupObb);
         }
 
         /// <summary>
-        /// Backs up app with given package name.
+        ///     Backs up app with given package name.
         /// </summary>
         /// <param name="packageName">Package name to backup.</param>
         /// <param name="backupNameSuffix">String to append to backup name</param>
@@ -1254,11 +1278,13 @@ public class AdbService
         /// <param name="backupApk">Should backup APK file.</param>
         /// <param name="backupObb">Should backup OBB files.</param>
         /// <returns>Path to backup, or empty string if nothing was backed up.</returns>
-        /// <seealso cref="CreateBackup(QSideloader.Models.Game,string,bool,bool,bool)"/>
-        public string CreateBackup(string packageName, string backupNameSuffix = "", bool backupData = true, bool backupApk = false, bool backupObb = false)
+        /// <seealso cref="CreateBackup(QSideloader.Models.Game,string,bool,bool,bool)" />
+        public string CreateBackup(string packageName, string backupNameSuffix = "", bool backupData = true,
+            bool backupApk = false, bool backupObb = false)
         {
             Log.Information("Backing up {PackageName}", packageName);
-            var backupPath = Path.Combine(_sideloaderSettings.BackupsLocation, $"{DateTime.Now:yyyyMMddTHHmmss}_{packageName}");
+            var backupPath = Path.Combine(_sideloaderSettings.BackupsLocation,
+                $"{DateTime.Now:yyyyMMddTHHmmss}_{packageName}");
             if (!string.IsNullOrEmpty(backupNameSuffix))
                 backupPath += $"_{backupNameSuffix}";
             var publicDataPath = $"/sdcard/Android/data/{packageName}/";
@@ -1279,8 +1305,10 @@ public class AdbService
                 Log.Debug("Backing up private data");
                 Directory.CreateDirectory(privateDataBackupPath);
                 RunShellCommand(
-                    $"mkdir /sdcard/backup_tmp/; run-as {packageName} cp -av {privateDataPath} /sdcard/backup_tmp/{packageName}/", true);
-                PullDirectory($"/sdcard/backup_tmp/{packageName}/", privateDataBackupPath, new List<string>{"cache", "code_cache"});
+                    $"mkdir /sdcard/backup_tmp/; run-as {packageName} cp -av {privateDataPath} /sdcard/backup_tmp/{packageName}/",
+                    true);
+                PullDirectory($"/sdcard/backup_tmp/{packageName}/", privateDataBackupPath,
+                    new List<string> {"cache", "code_cache"});
                 RunShellCommand("rm -rf /sdcard/backup_tmp/", true);
                 var privateDataHasFiles = Directory.EnumerateFiles(privateDataBackupPath).Any();
                 if (!privateDataHasFiles)
@@ -1291,15 +1319,17 @@ public class AdbService
                     empty = false;
                     Log.Debug("Backing up public data");
                     Directory.CreateDirectory(publicDataBackupPath);
-                    PullDirectory(publicDataPath, publicDataBackupPath, new List<string>{"cache"});
+                    PullDirectory(publicDataPath, publicDataBackupPath, new List<string> {"cache"});
                 }
             }
+
             if (backupApk)
             {
                 empty = false;
                 Log.Debug("Backing up APK");
                 PullFile(apkPath, backupPath);
             }
+
             if (backupObb && RemoteDirectoryExists(obbPath))
             {
                 empty = false;
@@ -1320,26 +1350,25 @@ public class AdbService
                 Directory.Delete(backupPath, true);
                 return "";
             }
+
             return backupPath;
         }
 
         /// <summary>
-        /// Restores backup from given path.
+        ///     Restores backup from given path.
         /// </summary>
         /// <param name="backupPath">Path to backup.</param>
         /// <exception cref="DirectoryNotFoundException">Thrown if directory doesn't exist at given path.</exception>
         /// <exception cref="InvalidOperationException">Thrown if backup is invalid.</exception>
         public void RestoreBackup(string backupPath)
         {
-            if (!Directory.Exists(backupPath))
-            {
-                throw new DirectoryNotFoundException(backupPath);
-            }
+            if (!Directory.Exists(backupPath)) throw new DirectoryNotFoundException(backupPath);
             if (!File.Exists(Path.Combine(backupPath, ".backup")))
             {
                 Log.Error("Backup {BackupPath} is not valid", backupPath);
                 throw new InvalidOperationException("Backup is not valid");
             }
+
             Log.Information("Restoring backup from {BackupPath}", backupPath);
             var publicDataBackupPath = Path.Combine(backupPath, "data");
             var privateDataBackupPath = Path.Combine(backupPath, "data_private");
@@ -1350,20 +1379,23 @@ public class AdbService
                 Log.Debug("Restoring APK {ApkName}", Path.GetFileName(apkPath));
                 InstallPackage(apkPath, true, true);
             }
+
             if (Directory.Exists(obbBackupPath))
             {
                 Log.Debug("Restoring OBB");
                 PushDirectory(Directory.EnumerateDirectories(obbBackupPath).First(), "/sdcard/Android/obb/");
             }
+
             if (Directory.Exists(publicDataBackupPath))
             {
                 Log.Debug("Restoring public data");
                 PushDirectory(Directory.EnumerateDirectories(publicDataBackupPath).First(), "/sdcard/Android/data/");
             }
+
             if (Directory.Exists(privateDataBackupPath))
             {
-                
-                var packageName = Directory.EnumerateDirectories(privateDataBackupPath).FirstOrDefault()?.Split(Path.PathSeparator).Last();
+                var packageName = Directory.EnumerateDirectories(privateDataBackupPath).FirstOrDefault()
+                    ?.Split(Path.PathSeparator).Last();
                 if (packageName is not null)
                 {
                     Log.Debug("Restoring private data");
@@ -1374,21 +1406,11 @@ public class AdbService
                         true);
                 }
             }
+
             Log.Information("Backup restored");
         }
-
-        private PackageManager? PackageManager { get; }
-        public float SpaceUsed { get; private set; }
-        public float SpaceFree { get; private set; }
-        public float SpaceTotal { get; private set; }
-        public float BatteryLevel { get; private set; }
-        public List<string> InstalledPackages { get; set; } = new();
-        public string FriendlyName { get; }
-        private string HashedId { get; }
-        public string? TrueSerial { get; }
-        public bool IsWireless { get; }
     }
-    
+
     public class AdbDeviceEventArgs : EventArgs
     {
         public AdbDeviceEventArgs(AdbDevice device)

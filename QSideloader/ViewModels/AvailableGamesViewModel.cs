@@ -17,11 +17,11 @@ namespace QSideloader.ViewModels;
 
 public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
 {
-    private readonly ObservableAsPropertyHelper<bool> _isBusy;
     private readonly AdbService _adbService;
-    private readonly DownloaderService _downloaderService;
-    private readonly SourceCache<Game, string> _availableGamesSourceCache = new(x => x.ReleaseName!);
     private readonly ReadOnlyObservableCollection<Game> _availableGames;
+    private readonly SourceCache<Game, string> _availableGamesSourceCache = new(x => x.ReleaseName!);
+    private readonly DownloaderService _downloaderService;
+    private readonly ObservableAsPropertyHelper<bool> _isBusy;
 
     public AvailableGamesViewModel()
     {
@@ -29,10 +29,13 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         _downloaderService = ServiceContainer.DownloaderService;
         Activator = new ViewModelActivator();
 
-        Func<Game, bool> GameFilter(string text) => game => string.IsNullOrEmpty(text)
-                                                            || text.Split()
-                                                                .All(x => game.ReleaseName!.ToLower()
-                                                                    .Contains(x.ToLower()));
+        Func<Game, bool> GameFilter(string text)
+        {
+            return game => string.IsNullOrEmpty(text)
+                           || text.Split()
+                               .All(x => game.ReleaseName!.ToLower()
+                                   .Contains(x.ToLower()));
+        }
 
         var filterPredicate = this.WhenAnyValue(x => x.SearchText)
             .Throttle(TimeSpan.FromMilliseconds(250))
@@ -106,7 +109,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             }
         });
     }
-    
+
     private IObservable<Unit> DownloadImpl()
     {
         return Observable.Start(() =>
@@ -121,7 +124,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             }
         });
     }
-    
+
     private void OnDeviceChanged(AdbService.AdbDevice device)
     {
         switch (device.State)
@@ -160,8 +163,6 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
                 game.IsInstalled = false;
         else
             foreach (var game in games.Where(game => game.PackageName is not null))
-            {
                 game.IsInstalled = _adbService.Device.InstalledPackages.Contains(game.PackageName!);
-            }
     }
 }

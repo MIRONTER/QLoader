@@ -34,11 +34,13 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
         SaveSettings = ReactiveCommand.CreateFromObservable(SaveSettingsImpl);
         SetDownloadLocation = ReactiveCommand.CreateFromObservable(SetDownloadLocationImpl, this.IsValid());
         SetBackupsLocation = ReactiveCommand.CreateFromObservable(SetBackupsLocationImpl, this.IsValid());
-        SetDownloaderBandwidthLimit = ReactiveCommand.CreateFromObservable(SetDownloaderBandwidthLimitImpl, this.IsValid());
+        SetDownloaderBandwidthLimit =
+            ReactiveCommand.CreateFromObservable(SetDownloaderBandwidthLimitImpl, this.IsValid());
         RestoreDefaults = ReactiveCommand.CreateFromObservable(RestoreDefaultsImpl);
         CheckUpdates = ReactiveCommand.CreateFromObservable(CheckUpdatesImpl);
         SwitchMirror = ReactiveCommand.CreateFromObservable(SwitchMirrorImpl);
-        SwitchMirror.IsExecuting.ToProperty(this, x => x.IsSwitchingMirror, out _isSwitchingMirror, false, RxApp.MainThreadScheduler);
+        SwitchMirror.IsExecuting.ToProperty(this, x => x.IsSwitchingMirror, out _isSwitchingMirror, false,
+            RxApp.MainThreadScheduler);
         InitDefaults();
         LoadSettings();
         ValidateSettings();
@@ -87,7 +89,7 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
 #else
     public bool IsConsoleToggleable { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 #endif
-    [Reactive] public List<string> MirrorList { get; private set; } = new ();
+    [Reactive] public List<string> MirrorList { get; private set; } = new();
     [Reactive] public string? SelectedMirror { get; set; } = "";
     public bool IsSwitchingMirror => _isSwitchingMirror.Value;
     private ReactiveCommand<Unit, Unit> SaveSettings { get; }
@@ -134,7 +136,7 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
                 saveNeeded = true;
             }
         }
-        
+
         if (!Directory.Exists(BackupsLocation))
         {
             if (BackupsLocation == _defaultBackupsLocation)
@@ -241,7 +243,7 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
                 DownloadsLocationTextBoxText);
         });
     }
-    
+
     private IObservable<Unit> SetBackupsLocationImpl()
     {
         return Observable.Start(() =>
@@ -254,25 +256,23 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
                 BackupsLocationTextBoxText);
         });
     }
-    
+
     private IObservable<Unit> SetDownloaderBandwidthLimitImpl()
     {
         return Observable.Start(() =>
         {
             if (DownloaderBandwidthLimitTextBoxText == DownloaderBandwidthLimit ||
-                !string.IsNullOrEmpty(DownloaderBandwidthLimitTextBoxText) &&
-                !int.TryParse(
-                    Regex.Match(DownloaderBandwidthLimitTextBoxText, @"^(\d+)[BKMGTP]{0,1}$").Groups[1].ToString(),
-                    out _)) return;
+                (!string.IsNullOrEmpty(DownloaderBandwidthLimitTextBoxText) &&
+                 !int.TryParse(
+                     Regex.Match(DownloaderBandwidthLimitTextBoxText, @"^(\d+)[BKMGTP]{0,1}$").Groups[1].ToString(),
+                     out _))) return;
             DownloaderBandwidthLimit = DownloaderBandwidthLimitTextBoxText;
             SaveSettings.Execute().Subscribe();
             if (!string.IsNullOrEmpty(DownloaderBandwidthLimitTextBoxText))
                 Log.Debug("Set new downloader bandwidth limit: {Limit}",
                     DownloaderBandwidthLimitTextBoxText);
             else
-            {
                 Log.Debug("Removed downloader bandwidth limit");
-            }
         });
     }
 
@@ -285,6 +285,7 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
                 Log.Error("Requested to check for updates, but updater is not initialized");
                 return;
             }
+
             Dispatcher.UIThread.InvokeAsync(() => Globals.Updater.CheckForUpdatesAtUserRequest());
         });
     }
@@ -297,7 +298,7 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
         MirrorList = downloaderService.MirrorListReadOnly.ToList();
         SelectedMirror = downloaderService.MirrorName;
     }
-    
+
     private IObservable<Unit> SwitchMirrorImpl()
     {
         return Observable.Start(() =>
@@ -311,8 +312,10 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
 
     private void AutoSave(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is null || typeof(SideloaderSettingsViewModel).GetProperty(e.PropertyName) is { } property && !Attribute.IsDefined(property,
-                typeof(JsonPropertyAttribute))) return;
+        if (e.PropertyName is null ||
+            (typeof(SideloaderSettingsViewModel).GetProperty(e.PropertyName) is { } property && !Attribute.IsDefined(
+                property,
+                typeof(JsonPropertyAttribute)))) return;
         AutoSaveDelayTimer.Stop();
         AutoSaveDelayTimer.Start();
     }

@@ -19,12 +19,12 @@ namespace QSideloader.ViewModels;
 
 public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 {
-    private readonly ObservableAsPropertyHelper<bool> _isBusy;
+    private static readonly SemaphoreSlim RefreshSemaphoreSlim = new(1, 1);
     private readonly AdbService _adbService;
     private readonly DownloaderService _downloaderService;
-    private readonly SourceCache<InstalledGame, string> _installedGamesSourceCache = new(x => x.ReleaseName!);
     private readonly ReadOnlyObservableCollection<InstalledGame> _installedGames;
-    private static readonly SemaphoreSlim RefreshSemaphoreSlim = new(1, 1);
+    private readonly SourceCache<InstalledGame, string> _installedGamesSourceCache = new(x => x.ReleaseName!);
+    private readonly ObservableAsPropertyHelper<bool> _isBusy;
 
     public InstalledGamesViewModel()
     {
@@ -104,7 +104,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             }
         });
     }
-    
+
     private IObservable<Unit> UpdateAllImpl()
     {
         return Observable.Start(() =>
@@ -118,19 +118,22 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
             Log.Information("Running auto-update");
             var runningInstalls = Globals.MainWindowViewModel!.GetTaskList()
-                .Where(x => x.TaskType is TaskType.DownloadAndInstall or TaskType.InstallOnly && !x.IsFinished).ToList();
+                .Where(x => x.TaskType is TaskType.DownloadAndInstall or TaskType.InstallOnly && !x.IsFinished)
+                .ToList();
             // Find package name duplicates to avoid installing the wrong release
             var ambiguousReleases = _installedGamesSourceCache.Items.GroupBy(x => x.PackageName)
                 .Where(x => x.Skip(1).Any()).SelectMany(x => x).ToList();
             Log.Information("Found {AmbiguousReleasesCount} ambiguous releases, which will be ignored",
                 ambiguousReleases.Count);
             var selectedGames = _installedGamesSourceCache.Items
-                .Where(game => game.AvailableVersionCode > game.InstalledVersionCode).Except(ambiguousReleases).ToList();
+                .Where(game => game.AvailableVersionCode > game.InstalledVersionCode).Except(ambiguousReleases)
+                .ToList();
             if (selectedGames.Count == 0)
             {
                 Log.Information("No games to update");
                 return;
             }
+
             foreach (var game in selectedGames)
             {
                 if (runningInstalls.Any(x => x.PackageName == game.PackageName))
@@ -138,6 +141,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
                     Log.Debug("Skipping {GameName} because it is already being installed", game.GameName);
                     continue;
                 }
+
                 game.IsSelected = false;
                 Globals.MainWindowViewModel.EnqueueTask(game, TaskType.DownloadAndInstall);
                 Log.Information("Queued for update: {ReleaseName}", game.ReleaseName);
@@ -177,13 +181,13 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
                 break;
         }
     }
-    
+
     private void OnDeviceOnline()
     {
         IsDeviceConnected = true;
         Refresh.Execute().Subscribe();
     }
-    
+
     private void OnDeviceOffline()
     {
         IsDeviceConnected = false;

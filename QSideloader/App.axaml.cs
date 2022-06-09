@@ -31,7 +31,6 @@ public class App : Application
             InitializeLogging();
 
         if (File.Exists("TrailersAddon.zip"))
-        {
             Task.Run(() =>
             {
                 Log.Information("Found trailers addon zip. Starting background install");
@@ -39,9 +38,7 @@ public class App : Application
                 Log.Information("Installed trailers addon");
                 File.Delete("TrailersAddon.zip");
             });
-        }
         if (File.Exists(Path.Combine("..", "TrailersAddon.zip")))
-        {
             Task.Run(() =>
             {
                 Log.Information("Found trailers addon zip. Starting background install");
@@ -49,7 +46,6 @@ public class App : Application
                 Log.Information("Installed trailers addon");
                 File.Delete(Path.Combine("..", "TrailersAddon.zip"));
             });
-        }
 
         AvaloniaXamlLoader.Load(this);
     }
@@ -122,17 +118,17 @@ public class App : Application
             .WriteTo.File(new RenderedCompactJsonFormatter(), jsonLogPath, fileSizeLimitBytes: 3000000)
             .WriteTo.Logger(consoleLogger)
             .CreateLogger();
-        
+
         if (Debugger.IsAttached)
             AppDomain.CurrentDomain.FirstChanceException += (_, e) =>
             {
                 if (!ShouldLogFirstChanceException(e)) return;
                 consoleLogger.Error(e.Exception, "FirstChanceException");
             };
-        
+
         bool ShouldLogFirstChanceException(FirstChanceExceptionEventArgs e)
         {
-            return !(e.Exception.StackTrace is not null && e.Exception.StackTrace.Contains("GetRcloneDownloadStats")
+            return !((e.Exception.StackTrace is not null && e.Exception.StackTrace.Contains("GetRcloneDownloadStats"))
                      || e.Exception.Message.Contains("127.0.0.1:48040")
                      || e.Exception.Message.Contains("does not contain a definition for 'bytes'")
                      || e.Exception.Message.Contains("does not contain a definition for 'speed'"));

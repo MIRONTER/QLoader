@@ -18,10 +18,10 @@ namespace QSideloader.ViewModels;
 
 public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
 {
+    private static readonly SemaphoreSlim RefreshSemaphoreSlim = new(1, 1);
+    private readonly AdbService _adbService;
     private readonly ObservableAsPropertyHelper<bool> _isBusy;
     private Timer? _refreshTimer;
-    private readonly AdbService _adbService;
-    private static readonly SemaphoreSlim RefreshSemaphoreSlim = new SemaphoreSlim(1, 1);
 
     public DeviceInfoViewModel()
     {
@@ -83,7 +83,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         Refresh.Execute().Subscribe();
         SetRefreshTimer(true);
     }
-    
+
     private void OnDeviceOffline()
     {
         IsDeviceConnected = false;
@@ -114,7 +114,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
             }
         });
     }
-    
+
     private async Task EnableWirelessAdbImpl()
     {
         if (!_adbService.CheckDeviceConnection())
@@ -123,6 +123,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
             OnDeviceOffline();
             return;
         }
+
         await _adbService.EnableWirelessAdbAsync(_adbService.Device!);
     }
 
@@ -163,7 +164,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         foreach (var device in toRemove)
             DeviceList.Remove(device);
     }
-    
+
     private void RefreshDeviceSelection()
     {
         CurrentDevice = DeviceList.FirstOrDefault(x => _adbService.Device?.Serial == x.Serial);

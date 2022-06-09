@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Security.Cryptography;
 
 // ReSharper disable InconsistentNaming
 
@@ -8,9 +10,9 @@ public static class ChecksumUtil
 {
     public static string GetChecksum(HashingAlgoTypes hashingAlgoType, string filename)
     {
-        using var hasher = System.Security.Cryptography.HashAlgorithm.Create(hashingAlgoType.ToString()) ??
+        using var hasher = HashAlgorithm.Create(hashingAlgoType.ToString()) ??
                            throw new ArgumentException($"{hashingAlgoType.ToString()} is not a valid hash algorithm");
-        using var stream = System.IO.File.OpenRead(filename);
+        using var stream = File.OpenRead(filename);
         var hash = hasher.ComputeHash(stream);
         return BitConverter.ToString(hash).Replace("-", "");
     }

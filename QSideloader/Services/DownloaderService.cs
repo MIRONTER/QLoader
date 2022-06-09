@@ -23,11 +23,11 @@ namespace QSideloader.Services;
 
 public class DownloaderService
 {
-    private readonly SideloaderSettingsViewModel _sideloaderSettings;
     private static readonly SemaphoreSlim MirrorListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim GameListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim DownloadSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim RcloneConfigSemaphoreSlim = new(1, 1);
+    private readonly SideloaderSettingsViewModel _sideloaderSettings;
 
     public DownloaderService()
     {
@@ -43,11 +43,13 @@ public class DownloaderService
     public string MirrorName { get; private set; } = "";
     private List<string> MirrorList { get; set; } = new();
     public IEnumerable<string> MirrorListReadOnly => MirrorList.AsReadOnly();
+
     private bool CanSwitchMirror => RcloneConfigSemaphoreSlim.CurrentCount > 0 &&
                                     MirrorListSemaphoreSlim.CurrentCount > 0 && GameListSemaphoreSlim.CurrentCount > 0;
+
     private bool IsMirrorListInitialized { get; set; }
     private HttpClient HttpClient { get; } = new();
-    
+
     private async Task UpdateRcloneConfigAsync()
     {
         await RcloneConfigSemaphoreSlim.WaitAsync();
@@ -68,6 +70,7 @@ public class DownloaderService
                     EnsureMirrorSelected();
                     return;
                 }
+
                 SwitchMirror();
             }
         }
@@ -84,7 +87,8 @@ public class DownloaderService
         {
             try
             {
-                await RcloneTransferAsync("Quest Games/.meta/FFA", Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, "FFA_config"),
+                await RcloneTransferAsync("Quest Games/.meta/FFA",
+                    Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, "FFA_config"),
                     ignoreConfigLock: true, operation: "copyto");
                 return true;
             }
@@ -93,7 +97,7 @@ public class DownloaderService
                 switch (e)
                 {
                     case DownloadQuotaExceededException:
-                        Log.Debug("Quota exceeded on rclone config on mirror {MirrorName}", 
+                        Log.Debug("Quota exceeded on rclone config on mirror {MirrorName}",
                             MirrorName);
                         break;
                     case MirrorException:
@@ -117,12 +121,16 @@ public class DownloaderService
         try
         {
             Log.Debug("Updating thumbnails (async)");
-            var tasks = new List<Task> {RcloneTransferAsync($"Quest Games/.meta/thumbnails/", PathHelper.ThumbnailsPath, operation: "sync",
-                retries: 3)};
+            var tasks = new List<Task>
+            {
+                RcloneTransferAsync("Quest Games/.meta/thumbnails/", PathHelper.ThumbnailsPath, "sync",
+                    retries: 3)
+            };
             if (Directory.Exists(PathHelper.TrailersPath))
             {
                 Log.Debug("Updating trailers (async)");
-                tasks.Add(RcloneTransferAsync($"Quest Games/.meta/videos/", PathHelper.TrailersPath, operation: "sync", retries: 3));
+                tasks.Add(RcloneTransferAsync("Quest Games/.meta/videos/", PathHelper.TrailersPath, "sync",
+                    retries: 3));
             }
 
             await Task.WhenAll(tasks.ToList());
@@ -186,6 +194,7 @@ public class DownloaderService
             Log.Warning("Could not switch to mirror {MirrorName} because of a concurrent operation", mirrorName);
             return false;
         }
+
         MirrorName = mirrorName;
         Log.Information("Switched to mirror: {MirrorName} (user request)", MirrorName);
         EnsureGameListAvailableAsync(true).GetAwaiter().GetResult();
@@ -233,8 +242,9 @@ public class DownloaderService
             throw new DownloaderServiceException("Failed to load mirror list");
         IsMirrorListInitialized = true;
     }
-    
-    private async Task RcloneTransferAsync(string source, string destination, string operation, string additionalArgs = "", int retries = 1, 
+
+    private async Task RcloneTransferAsync(string source, string destination, string operation,
+        string additionalArgs = "", int retries = 1,
         bool ignoreConfigLock = false, CancellationToken ct = default)
     {
         if (!ignoreConfigLock)
@@ -243,8 +253,9 @@ public class DownloaderService
         try
         {
             EnsureMirrorSelected();
-            var bwLimit = !string.IsNullOrEmpty(_sideloaderSettings.DownloaderBandwidthLimit) ?
-                $"--bwlimit {_sideloaderSettings.DownloaderBandwidthLimit}" : "";
+            var bwLimit = !string.IsNullOrEmpty(_sideloaderSettings.DownloaderBandwidthLimit)
+                ? $"--bwlimit {_sideloaderSettings.DownloaderBandwidthLimit}"
+                : "";
             await Cli.Wrap(PathHelper.RclonePath)
                 .WithArguments(
                     $"{operation} --retries {retries} {bwLimit} \"{MirrorName}:{source}\" \"{destination}\" {additionalArgs}")
@@ -273,7 +284,7 @@ public class DownloaderService
             return;
 
         await GameListSemaphoreSlim.WaitAsync();
-        
+
         while (RcloneConfigSemaphoreSlim.CurrentCount == 0)
             await Task.Delay(100);
         try
@@ -290,7 +301,6 @@ public class DownloaderService
             {
                 var result = await TryDownloadGameListAsync();
                 if (result.Success)
-                {
                     try
                     {
                         Globals.AvailableGames = csvEngine.ReadFile(result.GameListPath);
@@ -299,6 +309,7 @@ public class DownloaderService
                             Log.Warning("Loaded empty game list from mirror {MirrorName}, retrying", MirrorName);
                             continue;
                         }
+
                         Log.Information("Loaded {Count} games", Globals.AvailableGames.Length);
                         break;
                     }
@@ -306,7 +317,7 @@ public class DownloaderService
                     {
                         Log.Warning(e, "Failed to read game list from mirror {MirrorName}", MirrorName);
                     }
-                }
+
                 SwitchMirror();
             }
             /*if (!Directory.Exists("metadata"))
@@ -391,14 +402,15 @@ public class DownloaderService
                                 gameListName, MirrorName);
                             break;
                         case MirrorException:
-                            Log.Warning(e, "Error downloading list {GameList} from mirror {MirrorName} (is mirror down?)",
+                            Log.Warning(e,
+                                "Error downloading list {GameList} from mirror {MirrorName} (is mirror down?)",
                                 gameListName, MirrorName);
                             return (false, "");
                         default:
                             throw;
                     }
                 }
-            
+
             //Log.Warning("Quota exceeded on all game lists on mirror {MirrorName}", MirrorName);
             Log.Warning("Quota exceeded on game list on mirror {MirrorName}", MirrorName);
             return (false, "");
@@ -418,7 +430,8 @@ public class DownloaderService
                 try
                 {
                     await RcloneTransferAsync(srcPath, dstPath,
-                        "copy", "--progress --drive-acknowledge-abuse --rc --rc-addr :48040 --drive-stop-on-download-limit", 3,
+                        "copy",
+                        "--progress --drive-acknowledge-abuse --rc --rc-addr :48040 --drive-stop-on-download-limit", 3,
                         ct: ct);
                     var json = JsonConvert.SerializeObject(game);
                     await File.WriteAllTextAsync(Path.Combine(dstPath, "release.json"), json, ct);
@@ -437,6 +450,7 @@ public class DownloaderService
                         default:
                             throw;
                     }
+
                     SwitchMirror(localMirrorList);
                     Log.Information("Retrying download");
                 }

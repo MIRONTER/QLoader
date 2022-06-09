@@ -17,7 +17,7 @@ public class GameDetailsWindow : ReactiveWindow<GameDetailsViewModel>
         this.AttachDevTools();
 #endif
     }
-    
+
     public GameDetailsWindow(GameDetailsViewModel viewModel)
     {
         DataContext = viewModel;
@@ -44,9 +44,6 @@ public class GameDetailsWindow : ReactiveWindow<GameDetailsViewModel>
 
     private void Window_OnClosing(object? sender, CancelEventArgs e)
     {
-        if (DataContext is GameDetailsViewModel viewModel)
-        {
-            viewModel.Dispose();
-        }
+        if (DataContext is GameDetailsViewModel viewModel) viewModel.Dispose();
     }
 }

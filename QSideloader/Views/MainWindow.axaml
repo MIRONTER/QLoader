@@ -13,73 +13,91 @@
         MinWidth="860"
         WindowStartupLocation="CenterScreen"
         Opened="Window_OnOpened"
-        Closing="Window_OnClosing">
-    <!--TransparencyLevelHint="AcrylicBlur"
+        Closing="Window_OnClosing"
         Background="Transparent"
+        DragDrop.AllowDrop="True">
+    <!--TransparencyLevelHint="AcrylicBlur"
         TransparencyBackgroundFallback="Black"-->
 
     <Design.DataContext>
         <vm:MainWindowViewModel />
     </Design.DataContext>
 
-    <ui:NavigationView
-        x:Name="NavigationView"
-        ExpandedModeThresholdWidth="1252"
-        OpenPaneLength="200"
-        SelectionChanged="NavigationView_OnSelectionChanged"
-        IsSettingsVisible="True">
-        <ui:NavigationView.MenuItems>
-            <ui:NavigationViewItem Icon="AllApps" Content="Installed Games" Tag="InstalledGamesView" />
-            <ui:NavigationViewItem Icon="Download" Content="Available Games" Tag="AvailableGamesView" />
-        </ui:NavigationView.MenuItems>
-        <Grid RowDefinitions="*,Auto">
-            <ui:Frame x:Name="ContentFrame" Grid.Row="0" />
-            <views:DeviceInfoView Grid.Row="1" />
-            <ui:InfoBar Grid.Row="0" x:Name="MainInfoBar"
-                        Severity="Warning"
-                        Margin="12"
+    <Grid>
+        <ui:NavigationView
+            x:Name="NavigationView"
+            ExpandedModeThresholdWidth="1252"
+            OpenPaneLength="200"
+            SelectionChanged="NavigationView_OnSelectionChanged"
+            IsSettingsVisible="True">
+            <ui:NavigationView.MenuItems>
+                <ui:NavigationViewItem Icon="AllApps" Content="Installed Games" Tag="InstalledGamesView" />
+                <ui:NavigationViewItem Icon="Download" Content="Available Games" Tag="AvailableGamesView" />
+            </ui:NavigationView.MenuItems>
+            <Grid RowDefinitions="*,Auto">
+                <ui:Frame x:Name="ContentFrame" Grid.Row="0" />
+                <views:DeviceInfoView Grid.Row="1" />
+                <ui:InfoBar Grid.Row="0" x:Name="MainInfoBar"
+                            Severity="Warning"
+                            Margin="12"
+                            VerticalAlignment="Bottom"
+                            HorizontalAlignment="Center"
+                            IsIconVisible="True"
+                            IsOpen="{Binding !IsDeviceConnected}"
+                            IsClosable="False"
+                            Title="No device connection"
+                            Message="" />
+                <Border Grid.Row="0" Grid.RowSpan="2"
+                        MaxHeight="203"
+                        Width="302"
                         VerticalAlignment="Bottom"
-                        HorizontalAlignment="Center"
-                        IsIconVisible="True"
-                        IsOpen="{Binding !IsDeviceConnected}"
-                        IsClosable="False"
-                        Title="No device connection"
-                        Message="" />
-            <Border Grid.Row="0" Grid.RowSpan="2"
-                    MaxHeight="203"
-                    Width="302"
-                    VerticalAlignment="Bottom"
-                    HorizontalAlignment="Right"
-                    CornerRadius="6"
-                    Background="#1F1F1F"
-                    Margin="0,0,4,4"
-                    IsVisible="{Binding TaskList.Count}">
-                <StackPanel>
-                    <TextBlock HorizontalAlignment="Left" Margin="4,0">Tasks</TextBlock>
-                    <!--<ListView x:Name="TaskListView" 
-                              MaxHeight="180"
-                              Items="{Binding TaskList}"
-                              ItemClick="TaskListView_OnItemClick">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <views:TaskView Margin="0,4"/>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>-->
-                    <ListBox x:Name="TaskListBox"
-                             MaxHeight="180"
-                             VirtualizationMode="None"
-                             Items="{Binding TaskList}"
-                             SelectionChanged="TaskListBox_OnSelectionChanged">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <views:TaskView Margin="0,4" />
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </StackPanel>
-            </Border>
-        </Grid>
-    </ui:NavigationView>
+                        HorizontalAlignment="Right"
+                        CornerRadius="6"
+                        Background="#1F1F1F"
+                        Margin="0,0,4,4"
+                        IsVisible="{Binding TaskList.Count}">
+                    <StackPanel>
+                        <TextBlock HorizontalAlignment="Left" Margin="4,0">Tasks</TextBlock>
+                        <!--<ListView x:Name="TaskListView" 
+                                  MaxHeight="180"
+                                  Items="{Binding TaskList}"
+                                  ItemClick="TaskListView_OnItemClick">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <views:TaskView Margin="0,4"/>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>-->
+                        <ListBox x:Name="TaskListBox"
+                                 MaxHeight="180"
+                                 VirtualizationMode="None"
+                                 Items="{Binding TaskList}"
+                                 SelectionChanged="TaskListBox_OnSelectionChanged">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <views:TaskView Margin="0,4" />
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </ui:NavigationView>
+        <StackPanel Background="#2C2C2C"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    Orientation="Vertical"
+                    IsVisible="False"
+                    Name="DragDropPanel">
+            <Image Source="/Assets/dragdrop.png"
+                   Width="100"
+                   Height="100"
+                   Margin="96,36,96,24" />
+            <TextBlock MaxWidth="400" HorizontalAlignment="Center" TextAlignment="Center" Margin="12"
+                       TextWrapping="Wrap">
+                Drop APK to sideload, release folder to install or backup folder to restore
+            </TextBlock>
+        </StackPanel>
+    </Grid>
 
 </Window>

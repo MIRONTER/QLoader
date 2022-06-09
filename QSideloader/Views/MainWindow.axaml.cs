@@ -6,6 +6,8 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
 using FluentAvalonia.Styling;
@@ -13,6 +15,7 @@ using FluentAvalonia.UI.Controls;
 using NetSparkleUpdater;
 using NetSparkleUpdater.Enums;
 using NetSparkleUpdater.SignatureVerifiers;
+using NetSparkleUpdater.UI.Avalonia;
 using QSideloader.Helpers;
 using QSideloader.ViewModels;
 using Serilog;
@@ -23,6 +26,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
     private bool _isClosing;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -38,7 +42,10 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
             thm.RequestedTheme = FluentAvaloniaTheme.DarkModeString;
         }
 
-        var navigationView = this.FindControl<NavigationView>("NavigationView");
+        AddHandler(DragDrop.DragEnterEvent, DragEnter);
+        AddHandler(DragDrop.DragLeaveEvent, DragLeave);
+        AddHandler(DragDrop.DropEvent, Drop);
+        var navigationView = this.Get<NavigationView>("NavigationView");
         navigationView.SelectedItem = navigationView.MenuItems.OfType<NavigationViewItem>().First();
     }
 
@@ -55,7 +62,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
             const string pageName = "QSideloader.Views.SettingsView";
             var pageType = Type.GetType(pageName);
             if (pageType is null) return;
-            var contentFrame = this.FindControl<Frame>("ContentFrame");
+            var contentFrame = this.Get<Frame>("ContentFrame");
             contentFrame.BackStack.Clear();
             contentFrame.Navigate(pageType);
             Log.Debug("Navigated to {View}", "SettingsView");
@@ -67,7 +74,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
             var pageName = "QSideloader.Views." + selectedItemTag;
             var pageType = Type.GetType(pageName);
             if (pageType is null) return;
-            var contentFrame = this.FindControl<Frame>("ContentFrame");
+            var contentFrame = this.Get<Frame>("ContentFrame");
             contentFrame.BackStack.Clear();
             contentFrame.Navigate(pageType);
             Log.Debug("Navigated to {View}", selectedItemTag);
@@ -103,17 +110,18 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (!Design.IsDesignMode)
             InitializeUpdater();
     }
-    
+
     private void InitializeUpdater()
     {
         Log.Information("Initializing updater");
         Globals.Updater = new SparkleUpdater(
             "https://raw.githubusercontent.com/skrimix/QLoaderFiles/master/appcast.xml",
             new Ed25519Checker(SecurityMode.Unsafe)
-        ) {
-            UIFactory = new NetSparkleUpdater.UI.Avalonia.UIFactory(Icon),
+        )
+        {
+            UIFactory = new UIFactory(Icon),
             RelaunchAfterUpdate = true,
-            CustomInstallerArguments = "", 
+            CustomInstallerArguments = "",
             //LogWriter = new LogWriter(true), // uncomment to enable logging to console
             ShowsUIOnMainThread = true
         };
@@ -140,6 +148,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
             Log.Information("Closing application");
             return;
         }
+
         e.Cancel = true;
         Log.Information("Application close requested, cancelling tasks");
         foreach (var task in ViewModel.TaskList)
@@ -152,7 +161,41 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
             if (ViewModel.TaskList.All(x => x.IsFinished))
                 break;
         }
+
         _isClosing = true;
         Close();
+    }
+
+    private void DragEnter(object? sender, DragEventArgs e)
+    {
+        e.DragEffects = e.Data.Contains(DataFormats.FileNames) ? DragDropEffects.Copy : DragDropEffects.None;
+        var dragDropPanel = this.Get<StackPanel>("DragDropPanel");
+        dragDropPanel.IsVisible = true;
+        e.Handled = true;
+    }
+
+    private void DragLeave(object? sender, RoutedEventArgs e)
+    {
+        var dragDropPanel = this.Get<StackPanel>("DragDropPanel");
+        dragDropPanel.IsVisible = false;
+        e.Handled = true;
+    }
+
+    private void Drop(object? sender, DragEventArgs e)
+    {
+        Log.Debug("DragDrop.Drop event");
+        var dragDropPanel = this.Get<StackPanel>("DragDropPanel");
+        if (e.Data.Contains(DataFormats.FileNames))
+        {
+            var files = e.Data.GetFileNames();
+            Log.Debug("Dropped folders/files: {Files}", files);
+        }
+        else
+        {
+            Log.Warning("Drop data does not contain file names");
+        }
+
+        dragDropPanel.IsVisible = false;
+        e.Handled = true;
     }
 }

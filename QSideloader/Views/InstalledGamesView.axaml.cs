@@ -22,7 +22,7 @@ public class InstalledGamesView : ReactiveUserControl<InstalledGamesViewModel>
     {
         AvaloniaXamlLoader.Load(this);
     }
-    
+
     private void InstalledGamesDataGrid_OnDoubleTapped(object? sender, RoutedEventArgs e)
     {
         var dataGrid = (DataGrid?) sender;

@@ -14,12 +14,12 @@
         <vm:AvailableGamesViewModel />
     </Design.DataContext>
     <Grid RowDefinitions="Auto,*">
-        <TextBox Grid.Row="0" 
+        <TextBox Grid.Row="0"
                  Margin="8,0,0,0"
-                 HorizontalAlignment="Left" VerticalAlignment="Center" 
-                 Watermark="Search" 
+                 HorizontalAlignment="Left" VerticalAlignment="Center"
+                 Watermark="Search"
                  Width="400"
-                 Text="{Binding SearchText, Mode=TwoWay}"></TextBox>
+                 Text="{Binding SearchText, Mode=TwoWay}" />
         <StackPanel Grid.Row="0"
                     Orientation="Horizontal"
                     Spacing="12" Margin="8"
@@ -59,7 +59,8 @@
                 <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
                 <DataGridTextColumn Binding="{Binding GameSize}" Header="Size (MB)" Width="auto" IsReadOnly="True" />
                 <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
-                <DataGridTextColumn Binding="{Binding IsInstalled, Converter={StaticResource OnDeviceStatusFromBool}}" Header="On Device" Width="auto" IsReadOnly="True" 
+                <DataGridTextColumn Binding="{Binding IsInstalled, Converter={StaticResource OnDeviceStatusFromBool}}"
+                                    Header="On Device" Width="auto" IsReadOnly="True"
                                     IsVisible="{Binding IsDeviceConnected}" />
             </DataGrid.Columns>
             <DataGrid.Resources>

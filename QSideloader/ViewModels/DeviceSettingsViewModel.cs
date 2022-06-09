@@ -40,26 +40,6 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         });
     }
 
-    private void OnDeviceChanged(AdbService.AdbDevice device)
-    {
-        switch (device.State)
-        {
-            case DeviceState.Online:
-                IsDeviceConnected = true;
-                RefreshRates = device.Product switch
-                {
-                    "hollywood" => new[] {"Auto (recommended)", "72", "90", "120"},
-                    "monterey" => new[] {"Auto (recommended)", "60", "72"},
-                    _ => RefreshRates
-                };
-                LoadCurrentSettings();
-                break;
-            case DeviceState.Offline:
-                IsDeviceConnected = false;
-                break;
-        }
-    }
-
     [Reactive] public bool IsDeviceConnected { get; private set; }
     [Reactive] public string[] RefreshRates { get; private set; } = Array.Empty<string>();
     [Reactive] public string? SelectedRefreshRate { get; set; }
@@ -86,6 +66,26 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     public ReactiveCommand<Unit, Unit> LaunchHiddenSettings { get; }
     public ViewModelActivator Activator { get; }
 
+    private void OnDeviceChanged(AdbService.AdbDevice device)
+    {
+        switch (device.State)
+        {
+            case DeviceState.Online:
+                IsDeviceConnected = true;
+                RefreshRates = device.Product switch
+                {
+                    "hollywood" => new[] {"Auto (recommended)", "72", "90", "120"},
+                    "monterey" => new[] {"Auto (recommended)", "60", "72"},
+                    _ => RefreshRates
+                };
+                LoadCurrentSettings();
+                break;
+            case DeviceState.Offline:
+                IsDeviceConnected = false;
+                break;
+        }
+    }
+
     private void OnActivated()
     {
         if (_adbService.CheckDeviceConnectionSimple() || _adbService.CheckDeviceConnection())
@@ -93,7 +93,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         else
             IsDeviceConnected = false;
     }
-    
+
     private void LoadCurrentSettings()
     {
         Log.Debug("Loading device settings");
@@ -194,7 +194,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 if (SelectedRefreshRate.Contains("Auto") && CurrentRefreshRate is not null)
                 {
                     _adbService.Device!.RunShellCommand(
-                        $"setprop debug.oculus.refreshRate \"\"", true);
+                        "setprop debug.oculus.refreshRate \"\"", true);
                     CurrentRefreshRate = null;
                     Log.Information("Reset refresh rate to Auto");
                 }
@@ -212,7 +212,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 if (SelectedGpuLevel.Contains("Auto") && CurrentGpuLevel is not null)
                 {
                     _adbService.Device!.RunShellCommand(
-                        $"setprop debug.oculus.gpuLevel \"\"", true);
+                        "setprop debug.oculus.gpuLevel \"\"", true);
                     CurrentGpuLevel = null;
                     Log.Information("Reset GPU level to Auto");
                 }
@@ -230,7 +230,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 if (SelectedCpuLevel.Contains("Auto") && CurrentCpuLevel is not null)
                 {
                     _adbService.Device!.RunShellCommand(
-                        $"setprop debug.oculus.cpuLevel \"\"", true);
+                        "setprop debug.oculus.cpuLevel \"\"", true);
                     CurrentCpuLevel = null;
                     Log.Information("Reset CPU level to Auto");
                 }
@@ -249,9 +249,9 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 if (SelectedTextureSize.Contains("Auto") && CurrentTextureSize is not null)
                 {
                     _adbService.Device!.RunShellCommand(
-                        $"setprop debug.oculus.textureWidth \"\"", true);
+                        "setprop debug.oculus.textureWidth \"\"", true);
                     _adbService.Device.RunShellCommand(
-                        $"setprop debug.oculus.textureHeight \"\"", true);
+                        "setprop debug.oculus.textureHeight \"\"", true);
                     CurrentTextureSize = null;
                     Log.Information("Reset texture resolution to Auto");
                 }
@@ -421,6 +421,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 IsDeviceConnected = false;
                 return;
             }
+
             _adbService.Device!.RunShellCommand("svc usb setFunctions mtp true", true);
             Log.Information("Mounted device storage");
         });
@@ -436,6 +437,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 IsDeviceConnected = false;
                 return;
             }
+
             _adbService.Device!.RunShellCommand(
                 "am start -a android.intent.action.VIEW -d com.oculus.tv -e uri com.android.settings/.DevelopmentSettings com.oculus.vrshell/.MainActivity",
                 true);

@@ -16,7 +16,6 @@
     </Application.Styles>
 
     <NativeMenu.Menu>
-        <NativeMenu>
-        </NativeMenu>
+        <NativeMenu />
     </NativeMenu.Menu>
 </Application>

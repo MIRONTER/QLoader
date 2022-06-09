@@ -16,18 +16,10 @@ using Serilog;
 
 namespace QSideloader.ViewModels;
 
-public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel, IDisposable
+public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDisposable
 {
-    private readonly AdbService _adbService;
     private static LibVLC? _libVlc;
-    public Game Game { get; }
-    [Reactive] public string? ThumbnailPath { get; set; } = Path.Combine("Resources", "NoThumbnailImage.png");
-    public ReactiveCommand<Unit, Unit> DownloadAndInstall { get; }
-    public ReactiveCommand<Unit, Unit> DownloadOnly { get; }
-    [Reactive] public MediaPlayer? MediaPlayer { get; set; }
-    [Reactive] public bool ShowTrailerPlayer { get; set; }
-    [Reactive] public bool IsDeviceConnected { get; set; }
-    public ViewModelActivator Activator { get; }
+    private readonly AdbService _adbService;
 
     // Dummy constructor for XAML, do not use
     public GameDetailsViewModel()
@@ -44,6 +36,7 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel, IDispos
         {
             Log.Warning("Failed to initialize LibVLC");
         }
+
         DownloadAndInstall = ReactiveCommand.CreateFromObservable(DownloadAndInstallImpl);
         DownloadOnly = ReactiveCommand.CreateFromObservable(DownloadOnlyImpl);
     }
@@ -64,6 +57,7 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel, IDispos
             Log.Warning("Failed to initialize LibVLC");
             Log.Verbose(e, "Failed to initialize LibVLC");
         }
+
         DownloadAndInstall = ReactiveCommand.CreateFromObservable(DownloadAndInstallImpl);
         DownloadOnly = ReactiveCommand.CreateFromObservable(DownloadOnlyImpl);
         var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
@@ -75,7 +69,6 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel, IDispos
         else if (File.Exists(pngPath))
             ThumbnailPath = pngPath;
         else
-        {
             // Try finding a thumbnail using case-insensitive enumeration
             try
             {
@@ -92,14 +85,28 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel, IDispos
                     // ignored
                 }
             }
-        }
+
         this.WhenActivated(disposables =>
-        { 
+        {
             _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged).DisposeWith(disposables);
             IsDeviceConnected = _adbService.CheckDeviceConnectionSimple();
-           Observable.Timer(TimeSpan.FromSeconds(2)).Subscribe(_ => PlayTrailer());
-           Disposable.Create(DisposeMediaPlayer).DisposeWith(disposables);
+            Observable.Timer(TimeSpan.FromSeconds(2)).Subscribe(_ => PlayTrailer());
+            Disposable.Create(DisposeMediaPlayer).DisposeWith(disposables);
         });
+    }
+
+    public Game Game { get; }
+    [Reactive] public string? ThumbnailPath { get; set; } = Path.Combine("Resources", "NoThumbnailImage.png");
+    public ReactiveCommand<Unit, Unit> DownloadAndInstall { get; }
+    public ReactiveCommand<Unit, Unit> DownloadOnly { get; }
+    [Reactive] public MediaPlayer? MediaPlayer { get; set; }
+    [Reactive] public bool ShowTrailerPlayer { get; set; }
+    [Reactive] public bool IsDeviceConnected { get; set; }
+    public ViewModelActivator Activator { get; }
+
+    public void Dispose()
+    {
+        DisposeMediaPlayer();
     }
 
     private IObservable<Unit> DownloadAndInstallImpl()
@@ -112,20 +119,16 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel, IDispos
                 IsDeviceConnected = false;
                 return;
             }
-            
+
             Globals.MainWindowViewModel!.EnqueueTask(Game, TaskType.DownloadAndInstall);
         });
     }
-    
+
     private IObservable<Unit> DownloadOnlyImpl()
     {
-        return Observable.Start(() =>
-        {
-
-            Globals.MainWindowViewModel!.EnqueueTask(Game, TaskType.DownloadOnly);
-        });
+        return Observable.Start(() => { Globals.MainWindowViewModel!.EnqueueTask(Game, TaskType.DownloadOnly); });
     }
-    
+
     private void OnDeviceChanged(AdbService.AdbDevice device)
     {
         switch (device.State)
@@ -154,7 +157,7 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel, IDispos
         catch (FileNotFoundException)
         {
             Log.Debug("Trailer file {TrailerFileName} not found, disabling player", Path.GetFileName(trailerFilePath));
-            DisposeMediaPlayer(); 
+            DisposeMediaPlayer();
         }
     }
 
@@ -169,10 +172,5 @@ public class GameDetailsViewModel: ViewModelBase, IActivatableViewModel, IDispos
         mediaPlayer.Hwnd = IntPtr.Zero;
         mediaPlayer.XWindow = 0U;
         mediaPlayer.Dispose();
-    }
-
-    public void Dispose()
-    {
-        DisposeMediaPlayer();
     }
 }
