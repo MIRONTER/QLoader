@@ -87,9 +87,11 @@ public class DownloaderService
         {
             try
             {
-                await RcloneTransferAsync("Quest Games/.meta/FFA",
-                    Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, "FFA_config"),
-                    ignoreConfigLock: true, operation: "copyto");
+                var oldConfigPath = Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, "FFA_config");
+                var newConfigPath = Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, "FFA_config_new");
+                await RcloneTransferAsync("Quest Games/.meta/FFA", newConfigPath, ignoreConfigLock: true,
+                    operation: "copyto");
+                File.Move(newConfigPath, oldConfigPath, true);
                 return true;
             }
             catch (Exception e)
