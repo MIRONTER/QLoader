@@ -1369,7 +1369,7 @@ public class AdbService
             }
             else
             {
-                Log.Information("Nothing to backup");
+                Log.Information("Nothing was backed up");
                 Directory.Delete(backupPath, true);
                 return "";
             }
@@ -1397,10 +1397,12 @@ public class AdbService
             var privateDataBackupPath = Path.Combine(backupPath, "data_private");
             var obbBackupPath = Path.Combine(backupPath, "obb");
             var apkPath = Directory.EnumerateFiles(backupPath, "*.apk", SearchOption.TopDirectoryOnly).FirstOrDefault();
+            var packageListChanged = false;
             if (apkPath is not null)
             {
                 Log.Debug("Restoring APK {ApkName}", Path.GetFileName(apkPath));
                 InstallPackage(apkPath, true, true);
+                packageListChanged = true;
             }
 
             if (Directory.Exists(obbBackupPath))
@@ -1431,6 +1433,9 @@ public class AdbService
             }
 
             Log.Information("Backup restored");
+            if (!packageListChanged) return;
+            RefreshInstalledPackages();
+            _adbService._packageListChangeSubject.OnNext(Unit.Default);
         }
     }
 
