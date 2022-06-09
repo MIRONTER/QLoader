@@ -364,7 +364,15 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     {
         Status = "Install queued";
         await AdbService.TakePackageOperationLockAsync(_cancellationTokenSource.Token);
-        EnsureDeviceConnection();
+        try
+        {
+            EnsureDeviceConnection();
+        }
+        catch (InvalidOperationException)
+        {
+            AdbService.ReleasePackageOperationLock();
+            throw;
+        }
         Status = "Installing";
 
         // Here I assume that Install is the last step in the process, this might change in the future
