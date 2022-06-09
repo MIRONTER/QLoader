@@ -1419,8 +1419,8 @@ public class AdbService
 
             if (Directory.Exists(privateDataBackupPath))
             {
-                var packageName = Directory.EnumerateDirectories(privateDataBackupPath).FirstOrDefault()
-                    ?.Split(Path.PathSeparator).Last();
+                var packageName =
+                    Path.GetFileName(Directory.EnumerateDirectories(privateDataBackupPath).FirstOrDefault());
                 if (packageName is not null)
                 {
                     Log.Debug("Restoring private data");
