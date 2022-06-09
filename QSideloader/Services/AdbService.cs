@@ -799,17 +799,19 @@ public class AdbService
                     throw new InvalidOperationException("Globals.AvailableGames must be initialized");
                 _ = PackageManager ?? throw new InvalidOperationException("PackageManager must be initialized");
                 if (InstalledPackages.Count == 0) RefreshInstalledPackages();
-                // PackageManager.GetVersionInfo can return null
                 var query = from package in InstalledPackages
                     let versionInfo = PackageManager.GetVersionInfo(package)
-                    let versionCode = versionInfo?.VersionCode ?? 0
+                    // PackageManager.GetVersionInfo can return null
+                    let versionCode = versionInfo?.VersionCode ?? -1
+                    // We can't determine which particular release is installed, so we list all releases with appropriate package name
                     let games = Globals.AvailableGames.Where(g => g.PackageName == package)
                     where games.Any()
                     from game in games
                     select new InstalledGame(game, versionCode);
                 var installedGames = query.ToList();
+                var tupleList = installedGames.Select(g => (g.ReleaseName, g.PackageName)).ToList();
                 Log.Debug("Found {Count} installed games: {InstalledGames}", installedGames.Count,
-                    installedGames.Select(x => x.PackageName));
+                    tupleList);
                 return installedGames;
             }
             catch (Exception e)
