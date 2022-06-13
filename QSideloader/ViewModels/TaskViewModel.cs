@@ -28,8 +28,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     // Dummy constructor for XAML, do not use
     public TaskViewModel()
     {
-        _adbService = ServiceContainer.AdbService;
-        _downloaderService = ServiceContainer.DownloaderService;
+        _adbService = AdbService.Instance;
+        _downloaderService = DownloaderService.Instance;
         _sideloaderSettings = Globals.SideloaderSettings;
         _game = new Game("GameName", "ReleaseName", 1337, "NoteText");
         GameName = "GameName";
@@ -46,8 +46,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             Log.Error("Game path not specified for {TaskType} task", taskType);
             throw new ArgumentException($"Game path not specified for {taskType} task");
         }
-        _adbService = ServiceContainer.AdbService;
-        _downloaderService = ServiceContainer.DownloaderService;
+        _adbService = AdbService.Instance;
+        _downloaderService = DownloaderService.Instance;
         _sideloaderSettings = Globals.SideloaderSettings;
         _game = game;
         GameName = game.GameName;
@@ -68,8 +68,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             Log.Warning("Unneeded game path specified for {TaskType} task", taskType);
         else
             _gamePath = gamePath;
-        _adbService = ServiceContainer.AdbService;
-        _downloaderService = ServiceContainer.DownloaderService;
+        _adbService = AdbService.Instance;
+        _downloaderService = DownloaderService.Instance;
         _sideloaderSettings = Globals.SideloaderSettings;
         _game = game;
         GameName = game.GameName;

@@ -29,7 +29,10 @@ public class DownloaderService
     private static readonly SemaphoreSlim RcloneConfigSemaphoreSlim = new(1, 1);
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
 
-    public DownloaderService()
+    static DownloaderService()
+    {
+    }
+    private DownloaderService()
     {
         _sideloaderSettings = Globals.SideloaderSettings;
         Task.Run(async () =>
@@ -39,7 +42,8 @@ public class DownloaderService
             await UpdateResourcesAsync();
         });
     }
-
+    
+    public static DownloaderService Instance { get; } = new();
     public string MirrorName { get; private set; } = "";
     private List<string> MirrorList { get; set; } = new();
     public IEnumerable<string> MirrorListReadOnly => MirrorList.AsReadOnly();
@@ -370,7 +374,6 @@ public class DownloaderService
             foreach (var game in Globals.AvailableGames)
             {
                 if (!notesJsonDictionary.TryGetValue(game.ReleaseName!, out var note)) continue;
-                game.IsNoteAvailable = true;
                 game.Note = note;
             }
         }
@@ -423,7 +426,7 @@ public class DownloaderService
     {
         var stopWatch = Stopwatch.StartNew();
         var srcPath = $"Quest Games/{game.ReleaseName}";
-        var dstPath = Path.Combine(Globals.SideloaderSettings.DownloadsLocation, game.ReleaseName!);
+        var dstPath = Path.Combine(_sideloaderSettings.DownloadsLocation, game.ReleaseName!);
         try
         {
             Log.Information("Downloading release {ReleaseName}", game.ReleaseName);

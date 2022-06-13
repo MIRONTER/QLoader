@@ -41,10 +41,14 @@ public class AdbService
     private List<AdbDevice> _deviceList = new();
     private DeviceMonitor? _deviceMonitor;
 
+    static AdbService()
+    {
+    }
+
     /// <summary>
     ///     Initializes a new instance of the <see cref="AdbService" /> class.
     /// </summary>
-    public AdbService()
+    private AdbService()
     {
         _sideloaderSettings = Globals.SideloaderSettings;
         _adb = new AdbServerClient();
@@ -57,6 +61,7 @@ public class AdbService
         });
     }
 
+    public static AdbService Instance { get; } = new();
     private bool FirstDeviceSearch { get; set; } = true;
 
     public AdbDevice? Device { get; private set; }
@@ -491,7 +496,7 @@ public class AdbService
             return oculusDeviceList;
         }
 
-        return Globals.SideloaderSettings.PreferredConnectionType switch
+        return _sideloaderSettings.PreferredConnectionType switch
         {
             "USB" => oculusDeviceList.OrderBy(x => x.IsWireless).ToList(),
             "Wireless" => oculusDeviceList.OrderByDescending(x => x.IsWireless).ToList(),

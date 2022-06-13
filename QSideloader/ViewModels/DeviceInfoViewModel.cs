@@ -25,7 +25,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
 
     public DeviceInfoViewModel()
     {
-        _adbService = ServiceContainer.AdbService;
+        _adbService = AdbService.Instance;
         Activator = new ViewModelActivator();
         Refresh = ReactiveCommand.CreateFromObservable(RefreshImpl);
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);

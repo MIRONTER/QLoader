@@ -26,7 +26,7 @@ public class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel()
     {
-        _adbService = ServiceContainer.AdbService;
+        _adbService = AdbService.Instance;
         ShowGameDetailsCommand = ReactiveCommand.CreateFromTask<Game>(async game =>
         {
             if (Globals.AvailableGames is null) return;

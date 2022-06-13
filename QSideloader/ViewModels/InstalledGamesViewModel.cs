@@ -28,8 +28,8 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
     public InstalledGamesViewModel()
     {
-        _adbService = ServiceContainer.AdbService;
-        _downloaderService = ServiceContainer.DownloaderService;
+        _adbService = AdbService.Instance;
+        _downloaderService = DownloaderService.Instance;
         Activator = new ViewModelActivator();
         Refresh = ReactiveCommand.CreateFromObservable(RefreshImpl);
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);

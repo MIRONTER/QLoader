@@ -9,7 +9,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Timers;
+using System.Threading;
 using Avalonia.Threading;
 using Newtonsoft.Json;
 using QSideloader.Helpers;
@@ -18,19 +18,20 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using ReactiveUI.Validation.Extensions;
 using Serilog;
+using Timer = System.Timers.Timer;
 
 namespace QSideloader.ViewModels;
 
 [JsonObject(MemberSerialization.OptIn)]
-public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
+public class SideloaderSettingsViewModel : ViewModelBase
 {
     private readonly string _defaultDownloadsLocation = PathHelper.DefaultDownloadsPath;
     private readonly string _defaultBackupsLocation = PathHelper.DefaultBackupsPath;
+    private static readonly SemaphoreSlim MirrorSelectionRefreshSemaphoreSlim = new (1, 1);
     private readonly ObservableAsPropertyHelper<bool> _isSwitchingMirror;
-
+    
     public SideloaderSettingsViewModel()
     {
-        Activator = new ViewModelActivator();
         SaveSettings = ReactiveCommand.CreateFromObservable(SaveSettingsImpl);
         SetDownloadLocation = ReactiveCommand.CreateFromObservable(SetDownloadLocationImpl, this.IsValid());
         SetBackupsLocation = ReactiveCommand.CreateFromObservable(SetBackupsLocationImpl, this.IsValid());
@@ -60,7 +61,7 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
             ValidateSettings(false);
             SaveSettings.Execute().Subscribe();
         };
-        this.WhenAnyValue(x => x.SelectedMirror)
+        this.WhenAnyValue(x => x.SelectedMirror).Where(s => s is not null)
             .DistinctUntilChanged()
             .Subscribe(x =>
             {
@@ -90,7 +91,7 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
     public bool IsConsoleToggleable { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 #endif
     [Reactive] public List<string> MirrorList { get; private set; } = new();
-    [Reactive] public string? SelectedMirror { get; set; } = "";
+    [Reactive] public string? SelectedMirror { get; set; }
     public bool IsSwitchingMirror => _isSwitchingMirror.Value;
     private ReactiveCommand<Unit, Unit> SaveSettings { get; }
     private ReactiveCommand<Unit, Unit> RestoreDefaults { get; }
@@ -101,9 +102,7 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
     public ReactiveCommand<Unit, Unit> SwitchMirror { get; }
 
     private Timer AutoSaveDelayTimer { get; } = new() {AutoReset = false, Interval = 500};
-
-    public ViewModelActivator Activator { get; }
-
+    
     private void InitDefaults()
     {
         CheckUpdatesAutomatically = true;
@@ -292,18 +291,26 @@ public class SideloaderSettingsViewModel : ViewModelBase, IActivatableViewModel
 
     public void RefreshMirrorSelection()
     {
-        var downloaderService = ServiceContainer.DownloaderService;
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-        if (downloaderService is null || SelectedMirror is null) return;
-        MirrorList = downloaderService.MirrorListReadOnly.ToList();
-        SelectedMirror = downloaderService.MirrorName;
+        var downloaderService = DownloaderService.Instance;
+        if (MirrorSelectionRefreshSemaphoreSlim.CurrentCount == 0) return;
+        MirrorSelectionRefreshSemaphoreSlim.Wait();
+        try
+        {
+            MirrorList = downloaderService.MirrorListReadOnly.ToList();
+            SelectedMirror = downloaderService.MirrorName != "" ? downloaderService.MirrorName : null;
+        }
+        finally
+        {
+            MirrorSelectionRefreshSemaphoreSlim.Release();
+        }
     }
 
     private IObservable<Unit> SwitchMirrorImpl()
     {
         return Observable.Start(() =>
         {
-            var downloaderService = ServiceContainer.DownloaderService;
+            if (MirrorSelectionRefreshSemaphoreSlim.CurrentCount == 0) return;
+            var downloaderService = DownloaderService.Instance;
             if (SelectedMirror == downloaderService.MirrorName || SelectedMirror is null) return;
             downloaderService.TryManualSwitchMirror(SelectedMirror);
             RefreshMirrorSelection();

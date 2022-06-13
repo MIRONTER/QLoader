@@ -25,8 +25,8 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
 
     public AvailableGamesViewModel()
     {
-        _adbService = ServiceContainer.AdbService;
-        _downloaderService = ServiceContainer.DownloaderService;
+        _adbService = AdbService.Instance;
+        _downloaderService = DownloaderService.Instance;
         Activator = new ViewModelActivator();
 
         Func<Game, bool> GameFilter(string text)

@@ -20,7 +20,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
 
     public DeviceSettingsViewModel()
     {
-        _adbService = ServiceContainer.AdbService;
+        _adbService = AdbService.Instance;
         Activator = new ViewModelActivator();
         ApplySettings = ReactiveCommand.CreateFromObservable(ApplySettingsImpl, this.IsValid());
         MountStorage = ReactiveCommand.CreateFromObservable(MountStorageImpl);

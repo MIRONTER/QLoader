@@ -25,7 +25,7 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
     public GameDetailsViewModel()
     {
         Activator = new ViewModelActivator();
-        _adbService = ServiceContainer.AdbService;
+        _adbService = AdbService.Instance;
         Game = new Game("GameName", "ReleaseName", 1337, "NoteText");
         try
         {
@@ -44,7 +44,7 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
     public GameDetailsViewModel(Game game)
     {
         Activator = new ViewModelActivator();
-        _adbService = ServiceContainer.AdbService;
+        _adbService = AdbService.Instance;
         Game = game;
         try
         {
