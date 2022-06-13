@@ -31,6 +31,7 @@
         <aura:ProgressRing Grid.Row="1" x:Name="AvailableGamesPageProgressRing"
                            IsIndeterminate="{Binding IsBusy}"
                            IsVisible="{Binding IsBusy}" />
+        <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
         <DataGrid Grid.Row="1" x:Name="AvailableGamesDataGrid"
                   Items="{Binding AvailableGames}"
                   AutoGenerateColumns="False"
@@ -42,21 +43,16 @@
                                         IsVisible="{Binding MultiSelectEnabled}">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="x:Boolean">
-                            <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
                             <CheckBox IsChecked="{Binding IsSelected}" Margin="16,0,0,0" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
                 <DataGridTextColumn Binding="{Binding GameName}" Header="Game Name" Width="auto" IsReadOnly="True"
                                     IsVisible="False" />
-                <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
                 <DataGridTextColumn Binding="{Binding ReleaseName}" Header="Release Name" Width="auto"
                                     IsReadOnly="True" />
-                <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
                 <DataGridTextColumn Binding="{Binding LastUpdated}" Header="Last Updated" Width="auto"
                                     IsReadOnly="True" />
-                <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
                 <DataGridTextColumn Binding="{Binding GameSize}" Header="Size (MB)" Width="auto" IsReadOnly="True" />
                 <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
                 <DataGridTextColumn Binding="{Binding IsInstalled, Converter={StaticResource OnDeviceStatusFromBool}}"
@@ -64,9 +60,8 @@
                                     IsVisible="{Binding IsDeviceConnected}" />
             </DataGrid.Columns>
             <DataGrid.Resources>
-                <!-- ReSharper disable once Xaml.RedundantResource -->
+                <!-- ReSharper disable Xaml.RedundantResource -->
                 <SolidColorBrush x:Key="DataGridCellFocusVisualPrimaryBrush">Transparent</SolidColorBrush>
-                <!-- ReSharper disable once Xaml.RedundantResource -->
                 <SolidColorBrush x:Key="DataGridCellFocusVisualSecondaryBrush">Transparent</SolidColorBrush>
             </DataGrid.Resources>
         </DataGrid>
