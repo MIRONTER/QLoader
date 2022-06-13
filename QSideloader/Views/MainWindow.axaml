@@ -83,21 +83,25 @@
                 </Border>
             </Grid>
         </ui:NavigationView>
-        <StackPanel Background="#2C2C2C"
-                    VerticalAlignment="Center"
-                    HorizontalAlignment="Center"
-                    Orientation="Vertical"
-                    IsVisible="False"
-                    Name="DragDropPanel">
-            <Image Source="/Assets/dragdrop.png"
-                   Width="100"
-                   Height="100"
-                   Margin="96,36,96,24" />
-            <TextBlock MaxWidth="400" HorizontalAlignment="Center" TextAlignment="Center" Margin="12"
-                       TextWrapping="Wrap">
-                Drop APK to sideload, release folder to install or backup folder to restore
-            </TextBlock>
-        </StackPanel>
+        <Border BorderBrush="#424242"
+                BorderThickness="2"
+                CornerRadius="6"
+                Background="#2C2C2C"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                IsVisible="False"
+                Name="DragDropPanel">
+            <StackPanel Orientation="Vertical">
+                <Image Source="/Assets/dragdrop.png"
+                       Width="100"
+                       Height="100"
+                       Margin="96,36,96,24" />
+                <TextBlock MaxWidth="400" HorizontalAlignment="Center" TextAlignment="Center" Margin="12"
+                           TextWrapping="Wrap">
+                    Drop APK to sideload, release folder to install or backup folder to restore
+                </TextBlock>
+            </StackPanel>
+        </Border>
     </Grid>
 
 </Window>

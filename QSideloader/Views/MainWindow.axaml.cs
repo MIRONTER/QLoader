@@ -169,22 +169,22 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void DragEnter(object? sender, DragEventArgs e)
     {
         e.DragEffects = e.Data.Contains(DataFormats.FileNames) ? DragDropEffects.Copy : DragDropEffects.None;
-        var dragDropPanel = this.Get<StackPanel>("DragDropPanel");
+        var dragDropPanel = this.Get<Border>("DragDropPanel");
         dragDropPanel.IsVisible = true;
         e.Handled = true;
     }
 
     private void DragLeave(object? sender, RoutedEventArgs e)
     {
-        var dragDropPanel = this.Get<StackPanel>("DragDropPanel");
+        var dragDropPanel = this.Get<Border>("DragDropPanel");
         dragDropPanel.IsVisible = false;
         e.Handled = true;
     }
 
-    private void Drop(object? sender, DragEventArgs e)
+    private async void Drop(object? sender, DragEventArgs e)
     {
         Log.Debug("DragDrop.Drop event");
-        var dragDropPanel = this.Get<StackPanel>("DragDropPanel");
+        var dragDropPanel = this.Get<Border>("DragDropPanel");
         if (e.Data.Contains(DataFormats.FileNames))
         {
             var fileNames = e.Data.GetFileNames()?.ToList();
@@ -194,7 +194,8 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
                 return;
             }
             Log.Debug("Dropped folders/files: {Files}", fileNames);
-            ViewModel!.HandleDroppedFiles(fileNames);
+            var viewModel = ViewModel!;
+            await Task.Run(() => viewModel.HandleDroppedFiles(fileNames));
         }
         else
         {
