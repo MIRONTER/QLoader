@@ -141,16 +141,16 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private void PopulateAvailableGames()
     {
-        if (Globals.AvailableGames is null)
+        if (_downloaderService.AvailableGames is null)
         {
-            Log.Warning("PopulateAvailableGames: Globals.AvailableGames is not initialized!");
+            Log.Warning("PopulateAvailableGames: DownloaderService.AvailableGames is not initialized!");
             return;
         }
 
-        var toRemove = AvailableGames.Except(Globals.AvailableGames).ToList();
+        var toRemove = AvailableGames.Except(_downloaderService.AvailableGames).ToList();
         _availableGamesSourceCache.Edit(innerCache =>
         {
-            innerCache.AddOrUpdate(Globals.AvailableGames);
+            innerCache.AddOrUpdate(_downloaderService.AvailableGames);
             innerCache.Remove(toRemove);
         });
     }

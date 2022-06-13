@@ -21,15 +21,18 @@ namespace QSideloader.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
-    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+    // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
     private readonly AdbService _adbService;
+    private readonly DownloaderService _downloaderService;
+    // ReSharper restore PrivateFieldCanBeConvertedToLocalVariable
 
     public MainWindowViewModel()
     {
         _adbService = AdbService.Instance;
+        _downloaderService = DownloaderService.Instance;
         ShowGameDetailsCommand = ReactiveCommand.CreateFromTask<Game>(async game =>
         {
-            if (Globals.AvailableGames is null) return;
+            if (_downloaderService.AvailableGames is null) return;
             Log.Debug("Opening game details dialog for {GameName}", game.GameName);
             var gameDetails = new GameDetailsViewModel(game);
             var dialog = new GameDetailsWindow(gameDetails);

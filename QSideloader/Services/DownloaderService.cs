@@ -44,6 +44,7 @@ public class DownloaderService
     }
     
     public static DownloaderService Instance { get; } = new();
+    public List<Game>? AvailableGames { get; private set; }
     public string MirrorName { get; private set; } = "";
     private List<string> MirrorList { get; set; } = new();
     public IEnumerable<string> MirrorListReadOnly => MirrorList.AsReadOnly();
@@ -286,7 +287,7 @@ public class DownloaderService
     // TODO: offline mode
     public async Task EnsureGameListAvailableAsync(bool refresh = false)
     {
-        if (Globals.AvailableGames is not null && !refresh)
+        if (AvailableGames is not null && !refresh)
             return;
 
         await GameListSemaphoreSlim.WaitAsync();
@@ -299,9 +300,9 @@ public class DownloaderService
 
             var csvEngine = new FileHelperEngine<Game>();
             var notesPath = Path.Combine("metadata", "notes.json");
-            if (Globals.AvailableGames is not null && !refresh)
+            if (AvailableGames is not null && !refresh)
                 return;
-            Globals.AvailableGames = null;
+            AvailableGames = null;
             Log.Information("Downloading game list");
             while (true)
             {
@@ -309,14 +310,14 @@ public class DownloaderService
                 if (result.Success)
                     try
                     {
-                        Globals.AvailableGames = csvEngine.ReadFile(result.GameListPath);
-                        if (Globals.AvailableGames.Length == 0)
+                        AvailableGames = csvEngine.ReadFile(result.GameListPath).ToList();
+                        if (AvailableGames.Count == 0)
                         {
                             Log.Warning("Loaded empty game list from mirror {MirrorName}, retrying", MirrorName);
                             continue;
                         }
 
-                        Log.Information("Loaded {Count} games", Globals.AvailableGames.Length);
+                        Log.Information("Loaded {Count} games", AvailableGames.Count);
                         break;
                     }
                     catch (Exception e)
@@ -371,7 +372,7 @@ public class DownloaderService
             var notesJson = await File.ReadAllTextAsync(notesPath);
             var notesJsonDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(notesJson);
             if (notesJsonDictionary is null) return;
-            foreach (var game in Globals.AvailableGames)
+            foreach (var game in AvailableGames)
             {
                 if (!notesJsonDictionary.TryGetValue(game.ReleaseName!, out var note)) continue;
                 game.Note = note;
@@ -389,8 +390,8 @@ public class DownloaderService
         async Task<(bool Success, string GameListPath)> TryDownloadGameListAsync()
         {
             // Trying different list files seems useless, just wasting time
-            //string[] gameListNames = {"FFA.txt", "FFA2.txt", "FFA3.txt", "FFA4.txt"};
-            string[] gameListNames = {"FFA.txt"};
+            //List<string> gameListNames = new(){"FFA.txt", "FFA2.txt", "FFA3.txt", "FFA4.txt"};
+            List<string> gameListNames = new(){"FFA.txt"};
             foreach (var gameListName in gameListNames)
                 try
                 {

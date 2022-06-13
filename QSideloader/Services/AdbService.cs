@@ -635,6 +635,7 @@ public class AdbService
         private readonly AdbServerClient _adb;
         private readonly AdbService _adbService;
         private readonly SideloaderSettingsViewModel _sideloaderSettings;
+        private readonly DownloaderService _downloaderService;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="AdbDevice" /> class.
@@ -644,6 +645,7 @@ public class AdbService
             _adbService = adbService;
             _adb = adbService._adb;
             _sideloaderSettings = Globals.SideloaderSettings;
+            _downloaderService = DownloaderService.Instance;
 
             Serial = deviceData.Serial;
             IsWireless = deviceData.Serial.Contains('.');
@@ -792,7 +794,7 @@ public class AdbService
         /// </summary>
         /// <returns><see cref="List{T}" /> of <see cref="InstalledGame" /></returns>
         /// <exception cref="InvalidOperationException">
-        ///     Thrown if <see cref="Globals.AvailableGames" /> or
+        ///     Thrown if <see cref="DownloaderService.AvailableGames" /> or
         ///     <see cref="PackageManager" /> is null
         /// </exception>
         public List<InstalledGame> GetInstalledGames()
@@ -800,8 +802,8 @@ public class AdbService
             PackagesSemaphoreSlim.Wait();
             try
             {
-                _ = Globals.AvailableGames ??
-                    throw new InvalidOperationException("Globals.AvailableGames must be initialized");
+                _ = _downloaderService.AvailableGames ??
+                    throw new InvalidOperationException("DownloaderService.AvailableGames must be initialized");
                 _ = PackageManager ?? throw new InvalidOperationException("PackageManager must be initialized");
                 if (InstalledPackages.Count == 0) RefreshInstalledPackages();
                 var query = from package in InstalledPackages
@@ -809,7 +811,7 @@ public class AdbService
                     // PackageManager.GetVersionInfo can return null
                     let versionCode = versionInfo?.VersionCode ?? -1
                     // We can't determine which particular release is installed, so we list all releases with appropriate package name
-                    let games = Globals.AvailableGames.Where(g => g.PackageName == package)
+                    let games = _downloaderService.AvailableGames.Where(g => g.PackageName == package)
                     where games.Any()
                     from game in games
                     select new InstalledGame(game, versionCode);
