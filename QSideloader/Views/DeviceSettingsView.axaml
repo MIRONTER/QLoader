@@ -24,21 +24,18 @@
                         <ComboBox Margin="0,0,0,0" PlaceholderText="Refresh rate"
                                   MinWidth="120"
                                   Items="{Binding RefreshRates}"
-                                  SelectedItem="{Binding SelectedRefreshRate, Mode=TwoWay}">
-                            <ToolTip.Tip>Refresh rate</ToolTip.Tip>
-                        </ComboBox>
+                                  SelectedItem="{Binding SelectedRefreshRate, Mode=TwoWay}"
+                                  ToolTip.Tip="Refresh rate" />
                         <ComboBox Margin="8,0,0,0" PlaceholderText="GPU level"
                                   MinWidth="104"
                                   Items="{Binding GpuLevels, Mode=TwoWay}"
-                                  SelectedItem="{Binding SelectedGpuLevel}">
-                            <ToolTip.Tip>GPU level</ToolTip.Tip>
-                        </ComboBox>
+                                  SelectedItem="{Binding SelectedGpuLevel}"
+                                  ToolTip.Tip="GPU level" />
                         <ComboBox Margin="8,0,0,0" PlaceholderText="CPU level"
                                   MinWidth="104"
                                   Items="{Binding CpuLevels, Mode=TwoWay}"
-                                  SelectedItem="{Binding SelectedCpuLevel}">
-                            <ToolTip.Tip>CPU level</ToolTip.Tip>
-                        </ComboBox>
+                                  SelectedItem="{Binding SelectedCpuLevel}"
+                                  ToolTip.Tip="CPU level" />
                         <!--TextBox Margin="8,0,0,0" MinWidth="224" Watermark="Resolution (0 for auto)"
                              Text="{Binding ResolutionTextBoxText, Mode=TwoWay}">
                         <ToolTip.Tip>Resolution (leave empty for default)</ToolTip.Tip>
@@ -46,15 +43,13 @@
                         <ComboBox Margin="8,0,0,0" PlaceholderText="Default texture size"
                                   MinWidth="204"
                                   Items="{Binding TextureSizes, Mode=TwoWay}"
-                                  SelectedItem="{Binding SelectedTextureSize}">
-                            <ToolTip.Tip>Default texture size</ToolTip.Tip>
-                        </ComboBox>
+                                  SelectedItem="{Binding SelectedTextureSize}"
+                                  ToolTip.Tip="Default texture size" />
                     </StackPanel>
                     <StackPanel Margin="0,12,0,0" Orientation="Horizontal">
                         <TextBox MinWidth="240" Watermark="Username (leave empty for default)"
-                                 Text="{Binding UsernameTextBoxText}">
-                            <ToolTip.Tip>Username (leave empty for default)</ToolTip.Tip>
-                        </TextBox>
+                                 Text="{Binding UsernameTextBoxText}"
+                                 ToolTip.Tip="Username (leave empty for default)" />
                         <Button Margin="8,0,0,0" Command="{Binding ApplySettings}" VerticalAlignment="Center">Apply Settings</Button>
                     </StackPanel>
                 </StackPanel>

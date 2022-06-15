@@ -90,13 +90,13 @@
                       MinWidth="170"
                       PlaceholderText="Device list"
                       Items="{Binding DeviceList}"
-                      SelectedItem="{Binding CurrentDevice}">
+                      SelectedItem="{Binding CurrentDevice}"
+                      ToolTip.Tip="Device list">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding}" />
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
-                <ToolTip.Tip>Device list</ToolTip.Tip>
             </ComboBox>
             <Button Grid.Row="0" Grid.RowSpan="4" Grid.Column="2" Margin="8" IsVisible="{Binding !IsDeviceWireless}"
                     Command="{Binding EnableWirelessAdb}">
