@@ -28,24 +28,26 @@ public class App : Application
             Directory.SetCurrentDirectory(exePath);
 
         if (!Design.IsDesignMode)
+        {
             InitializeLogging();
 
-        if (File.Exists("TrailersAddon.zip"))
-            Task.Run(() =>
-            {
-                Log.Information("Found trailers addon zip. Starting background install");
-                ZipUtil.ExtractArchive("TrailersAddon.zip", Directory.GetCurrentDirectory());
-                Log.Information("Installed trailers addon");
-                File.Delete("TrailersAddon.zip");
-            });
-        if (File.Exists(Path.Combine("..", "TrailersAddon.zip")))
-            Task.Run(() =>
-            {
-                Log.Information("Found trailers addon zip. Starting background install");
-                ZipUtil.ExtractArchive(Path.Combine("..", "TrailersAddon.zip"), Directory.GetCurrentDirectory());
-                Log.Information("Installed trailers addon");
-                File.Delete(Path.Combine("..", "TrailersAddon.zip"));
-            });
+            if (File.Exists("TrailersAddon.zip"))
+                Task.Run(() =>
+                {
+                    Log.Information("Found trailers addon zip. Starting background install");
+                    ZipUtil.ExtractArchive("TrailersAddon.zip", Directory.GetCurrentDirectory());
+                    Log.Information("Installed trailers addon");
+                    File.Delete("TrailersAddon.zip");
+                });
+            if (File.Exists(Path.Combine("..", "TrailersAddon.zip")))
+                Task.Run(() =>
+                {
+                    Log.Information("Found trailers addon zip. Starting background install");
+                    ZipUtil.ExtractArchive(Path.Combine("..", "TrailersAddon.zip"), Directory.GetCurrentDirectory());
+                    Log.Information("Installed trailers addon");
+                    File.Delete(Path.Combine("..", "TrailersAddon.zip"));
+                });
+        }
 
         AvaloniaXamlLoader.Load(this);
     }
