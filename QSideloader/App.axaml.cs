@@ -98,8 +98,21 @@ public class App : Application
             .CreateLogger();
         AppDomain.CurrentDomain.FirstChanceException += (_, e) =>
         {
-            if (!ShouldLogFirstChanceException(e)) return;
+            if (!ShouldLogFirstChanceException(e.Exception)) return;
             firstChanceExceptionLogger.Error(e.Exception, "FirstChanceException");
+        };
+        
+        // Log unhandled exceptions
+        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+        {
+            var exception = (Exception) e.ExceptionObject;
+            if (e.IsTerminating)
+            {
+                Log.Fatal("------APPLICATION CRASH------");
+                Log.Fatal(exception, "UnhandledException");
+            }
+            else
+                Log.Error(exception, "UnhandledException");
         };
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Globals.SideloaderSettings.EnableDebugConsole)
@@ -124,16 +137,16 @@ public class App : Application
         if (Debugger.IsAttached)
             AppDomain.CurrentDomain.FirstChanceException += (_, e) =>
             {
-                if (!ShouldLogFirstChanceException(e)) return;
+                if (!ShouldLogFirstChanceException(e.Exception)) return;
                 consoleLogger.Error(e.Exception, "FirstChanceException");
             };
 
-        bool ShouldLogFirstChanceException(FirstChanceExceptionEventArgs e)
+        bool ShouldLogFirstChanceException(Exception e)
         {
-            return !((e.Exception.StackTrace is not null && e.Exception.StackTrace.Contains("GetRcloneDownloadStats"))
-                     || e.Exception.Message.Contains("127.0.0.1:48040")
-                     || e.Exception.Message.Contains("does not contain a definition for 'bytes'")
-                     || e.Exception.Message.Contains("does not contain a definition for 'speed'"));
+            return !((e.StackTrace is not null && e.StackTrace.Contains("GetRcloneDownloadStats"))
+                     || e.Message.Contains("127.0.0.1:48040")
+                     || e.Message.Contains("does not contain a definition for 'bytes'")
+                     || e.Message.Contains("does not contain a definition for 'speed'"));
         }
     }
 
