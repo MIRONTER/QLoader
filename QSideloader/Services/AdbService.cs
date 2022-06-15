@@ -1287,36 +1287,36 @@ public class AdbService
         ///     Backs up given game.
         /// </summary>
         /// <param name="game"><see cref="Game" /> to backup.</param>
-        /// <param name="backupNameSuffix">String to append to backup name</param>
+        /// <param name="backupNameAppend">String to append to backup name</param>
         /// <param name="backupData">Should backup data.</param>
         /// <param name="backupApk">Should backup APK file.</param>
         /// <param name="backupObb">Should backup OBB files.</param>
         /// <returns>Path to backup, or empty string if nothing was backed up.</returns>
         /// <seealso cref="CreateBackup(string,string,bool,bool,bool)" />
-        public string CreateBackup(Game game, string backupNameSuffix = "", bool backupData = true,
+        public string? CreateBackup(Game game, string backupNameAppend = "", bool backupData = true,
             bool backupApk = false, bool backupObb = false)
         {
-            return CreateBackup(game.PackageName!, backupNameSuffix, backupData, backupApk, backupObb);
+            return CreateBackup(game.PackageName!, backupNameAppend, backupData, backupApk, backupObb);
         }
 
         /// <summary>
         ///     Backs up app with given package name.
         /// </summary>
         /// <param name="packageName">Package name to backup.</param>
-        /// <param name="backupNameSuffix">String to append to backup name</param>
+        /// <param name="backupNameAppend">String to append to backup name</param>
         /// <param name="backupData">Should backup data.</param>
         /// <param name="backupApk">Should backup APK file.</param>
         /// <param name="backupObb">Should backup OBB files.</param>
-        /// <returns>Path to backup, or empty string if nothing was backed up.</returns>
+        /// <returns>Path to backup, or <c>null</c> if nothing was backed up.</returns>
         /// <seealso cref="CreateBackup(QSideloader.Models.Game,string,bool,bool,bool)" />
-        public string CreateBackup(string packageName, string backupNameSuffix = "", bool backupData = true,
+        public string? CreateBackup(string packageName, string backupNameAppend = "", bool backupData = true,
             bool backupApk = false, bool backupObb = false)
         {
             Log.Information("Backing up {PackageName}", packageName);
             var backupPath = Path.Combine(_sideloaderSettings.BackupsLocation,
                 $"{DateTime.Now:yyyyMMddTHHmmss}_{packageName}");
-            if (!string.IsNullOrEmpty(backupNameSuffix))
-                backupPath += $"_{backupNameSuffix}";
+            if (!string.IsNullOrEmpty(backupNameAppend))
+                backupPath += $"_{backupNameAppend}";
             var publicDataPath = $"/sdcard/Android/data/{packageName}/";
             var privateDataPath = $"/data/data/{packageName}/";
             var obbPath = $"/sdcard/Android/obb/{packageName}/";
@@ -1378,7 +1378,7 @@ public class AdbService
             {
                 Log.Information("Nothing was backed up");
                 Directory.Delete(backupPath, true);
-                return "";
+                return null;
             }
 
             return backupPath;
