@@ -9,6 +9,7 @@ using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using CliWrap;
 using CliWrap.Buffered;
 using CliWrap.Exceptions;
@@ -35,6 +36,7 @@ public class DownloaderService
     private DownloaderService()
     {
         _sideloaderSettings = Globals.SideloaderSettings;
+        if (Design.IsDesignMode) return;
         Task.Run(async () =>
         {
             await UpdateRcloneConfigAsync();

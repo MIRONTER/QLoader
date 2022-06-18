@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AdvancedSharpAdbClient;
 using AdvancedSharpAdbClient.DeviceCommands;
+using Avalonia.Controls;
 using CliWrap;
 using CliWrap.Buffered;
 using QSideloader.Helpers;
@@ -52,6 +53,7 @@ public class AdbService
     {
         _sideloaderSettings = Globals.SideloaderSettings;
         _adb = new AdbServerClient();
+        if (Design.IsDesignMode) return;
         Task.Run(async () =>
         {
             CheckDeviceConnection();
