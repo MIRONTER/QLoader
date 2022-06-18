@@ -493,9 +493,9 @@ public class DownloaderService
             Log.Warning("Attempted double release of download lock");
     }
 
-    public IObservable<DownloadStats> PollStats(TimeSpan interval, IScheduler scheduler)
+    public IObservable<(float downloadSpeedBytes, double downloadedBytes)?> PollStats(TimeSpan interval, IScheduler scheduler)
     {
-        return Observable.Create<DownloadStats>(observer =>
+        return Observable.Create<(float downloadSpeedBytes, double downloadedBytes)?>(observer =>
         {
             return scheduler.ScheduleAsync(async (ctrl, ct) =>
             {
@@ -509,21 +509,21 @@ public class DownloaderService
         });
     }
 
-    private async Task<DownloadStats> GetRcloneDownloadStats()
+    private async Task<(float downloadSpeedBytes, double downloadedBytes)?> GetRcloneDownloadStats()
     {
         try
         {
             var response = await HttpClient.PostAsync("http://127.0.0.1:48040/core/stats", null);
             var responseContent = await response.Content.ReadAsStringAsync();
             var results = JsonConvert.DeserializeObject<dynamic>(responseContent);
-            if (results is null || results["transferring"] is null) return new DownloadStats();
+            if (results is null || results["transferring"] is null) return null;
             float downloadSpeedBytes = results.speed.ToObject<float>();
             double downloadedBytes = results.bytes.ToObject<double>();
-            return new DownloadStats(downloadSpeedBytes, downloadedBytes);
+            return (downloadSpeedBytes, downloadedBytes);
         }
         catch
         {
-            return new DownloadStats();
+            return null;
         }
     }
 }

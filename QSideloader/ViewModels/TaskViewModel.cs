@@ -89,17 +89,19 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     public ViewModelActivator Activator { get; }
 
-    private void RefreshDownloadStats(DownloadStats stats)
+    private void RefreshDownloadStats((float downloadSpeedBytes, double downloadedBytes)? stats)
     {
-        if (stats.SpeedBytes is null || stats.DownloadedMBytes is null)
+        if (stats is null)
         {
             DownloadStats = "";
             return;
         }
+        
+        var speedMBytes = Math.Round((double) stats.Value.downloadSpeedBytes / 1000000, 2);
+        var downloadedMBytes = Math.Round( stats.Value.downloadedBytes / 1000000, 2);
+        var progressPercent = Math.Min(Math.Floor(downloadedMBytes / _game.GameSize * 97), 100);
 
-        var progressPercent = Math.Min(Math.Floor((double) stats.DownloadedMBytes / _game.GameSize * 97), 100);
-
-        DownloadStats = $"{progressPercent}%, {stats.SpeedMBytes}MB/s";
+        DownloadStats = $"{progressPercent}%, {speedMBytes}MB/s";
     }
 
     private async Task RunTaskImpl()
