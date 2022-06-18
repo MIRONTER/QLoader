@@ -1217,19 +1217,16 @@ public class AdbService
         /// <summary>
         ///     Installs the package from the given path.
         /// </summary>
-        /// <remarks>
-        ///     Legacy install method is used to avoid rare hang issues.
-        /// </remarks>
         /// <param name="apkPath">Path to APK file.</param>
         /// <param name="reinstall">Set "-r" flag for pm.</param>
         /// <param name="grantRuntimePermissions">Grant all runtime permissions.</param>
         /// <exception cref="InvalidOperationException">Thrown if <see cref="PackageManager" /> is null.</exception>
+        /// <remarks>Legacy install method is used to avoid rare hang issues.</remarks>
         private void InstallPackage(string apkPath, bool reinstall, bool grantRuntimePermissions)
         {
             _ = PackageManager ?? throw new InvalidOperationException("PackageManager must be initialized");
             Log.Information("Installing APK: {ApkFileName}", Path.GetFileName(apkPath));
-            // Using legacy method here as AdbClient.Install hangs occasionally
-            PackageManager.InstallPackage(apkPath, reinstall, grantRuntimePermissions);
+            
             // List<string> args = new ();
             // if (reinstall)
             //     args.Add("-r");
@@ -1237,6 +1234,9 @@ public class AdbService
             //     args.Add("-g");
             // using Stream stream = File.OpenRead(apkPath);
             // Adb.AdbClient.Install(this, stream, args.ToArray());
+            
+            // Using legacy PackageManager.InstallPackage method as AdbClient.Install hangs occasionally
+            PackageManager.InstallPackage(apkPath, reinstall, grantRuntimePermissions);
             Log.Information("Package installed");
         }
 
