@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -82,6 +83,11 @@ public class Game : INotifyPropertyChanged
     }
 
     [FieldHidden] [JsonIgnore] public string? Note { get; set; }
+
+    [FieldHidden]
+    [JsonIgnore]
+    // ReSharper disable once CollectionNeverQueried.Global
+    public Dictionary<string, int?> Popularity { get; } = new() {{"1D", null}, {"7D", null}, {"30D", null}};
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

@@ -4,8 +4,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,6 +58,7 @@ public class DownloaderService
 
     private bool IsMirrorListInitialized { get; set; }
     private HttpClient HttpClient { get; } = new();
+    private HttpClient ApiHttpClient { get; } = new() {BaseAddress = new Uri("https://qloader.5698452.xyz/api/v1/")};
 
     private async Task UpdateRcloneConfigAsync()
     {
@@ -329,6 +332,9 @@ public class DownloaderService
 
                 SwitchMirror();
             }
+            
+            await TryLoadPopularityAsync();
+            
             /*if (!Directory.Exists("metadata"))
                 Directory.CreateDirectory("metadata");
 
@@ -368,7 +374,7 @@ public class DownloaderService
                 await stream.CopyToAsync(outputStream);
             }
             else if (notesResponse.StatusCode != HttpStatusCode.NotModified)
-                Log.Error($"Unexpected http response: {notesResponse.ReasonPhrase}");*/
+                Log.Error($"Unexpected http response: {notesResponse.ReasonPhrase}");
 
             if (!File.Exists(notesPath)) return;
             var notesJson = await File.ReadAllTextAsync(notesPath);
@@ -378,7 +384,7 @@ public class DownloaderService
             {
                 if (!notesJsonDictionary.TryGetValue(game.ReleaseName!, out var note)) continue;
                 game.Note = note;
-            }
+            }*/
         }
         catch (Exception e)
         {
@@ -422,6 +428,41 @@ public class DownloaderService
             //Log.Warning("Quota exceeded on all game lists on mirror {MirrorName}", MirrorName);
             Log.Warning("Quota exceeded on game list on mirror {MirrorName}", MirrorName);
             return (false, "");
+        }
+
+        async Task TryLoadPopularityAsync()
+        {
+            try
+            {
+                var popularity =
+                    await ApiHttpClient.GetFromJsonAsync<List<Dictionary<string, JsonElement>>>("popularity");
+                if (popularity is not null)
+                {
+                    var popularityMax1D = popularity.Max(x => x["1D"].GetInt32());
+                    var popularityMax7D = popularity.Max(x => x["7D"].GetInt32());
+                    var popularityMax30D = popularity.Max(x => x["30D"].GetInt32());
+                    foreach (var game in AvailableGames)
+                    {
+                        var popularityEntry =
+                            popularity.FirstOrDefault(x => x["package_name"].GetString() == game.PackageName);
+                        if (popularityEntry is null) continue;
+                        game.Popularity["1D"] =
+                            (int) Math.Round(popularityEntry["1D"].GetInt32() / (double) popularityMax1D * 100);
+                        game.Popularity["7D"] =
+                            (int) Math.Round(popularityEntry["7D"].GetInt32() / (double) popularityMax7D * 100);
+                        game.Popularity["30D"] =
+                            (int) Math.Round(popularityEntry["30D"].GetInt32() / (double) popularityMax30D * 100);
+                    }
+                    Log.Information("Loaded popularity data");
+                    return;
+                }
+
+                Log.Warning("Failed to load popularity data");
+            }
+            catch (Exception e)
+            {
+                Log.Warning(e, "Failed to load popularity data");
+            }
         }
     }
 

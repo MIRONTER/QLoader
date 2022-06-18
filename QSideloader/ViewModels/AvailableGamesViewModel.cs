@@ -18,15 +18,18 @@ namespace QSideloader.ViewModels;
 public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
 {
     private readonly AdbService _adbService;
+    private readonly DownloaderService _downloaderService;
+    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+    private readonly SideloaderSettingsViewModel _sideloaderSettings;
     private readonly ReadOnlyObservableCollection<Game> _availableGames;
     private readonly SourceCache<Game, string> _availableGamesSourceCache = new(x => x.ReleaseName!);
-    private readonly DownloaderService _downloaderService;
     private readonly ObservableAsPropertyHelper<bool> _isBusy;
 
     public AvailableGamesViewModel()
     {
         _adbService = AdbService.Instance;
         _downloaderService = DownloaderService.Instance;
+        _sideloaderSettings = Globals.SideloaderSettings;
         Activator = new ViewModelActivator();
 
         Func<Game, bool> GameFilter(string text)
@@ -55,6 +58,9 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged).DisposeWith(disposables);
             _adbService.WhenPackageListChanged.Subscribe(_ => RefreshInstalled()).DisposeWith(disposables);
             IsDeviceConnected = _adbService.CheckDeviceConnectionSimple();
+            ShowPopularity30Days = _sideloaderSettings.PopularityRange == "30 days";
+            ShowPopularity7Days = _sideloaderSettings.PopularityRange == "7 days";
+            ShowPopularity1Day = _sideloaderSettings.PopularityRange == "1 day";
             PopulateAvailableGames();
             RefreshInstalled();
         });
@@ -74,6 +80,9 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
     private bool FirstRefresh { get; set; } = true;
     [Reactive] public string SearchText { get; set; } = "";
     [Reactive] public bool IsDeviceConnected { get; set; }
+    [Reactive] public bool ShowPopularity1Day { get; set; }
+    [Reactive] public bool ShowPopularity7Days { get; set; }
+    [Reactive] public bool ShowPopularity30Days { get; set; }
     public ViewModelActivator Activator { get; }
 
     private IObservable<Unit> RefreshImpl()

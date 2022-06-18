@@ -54,7 +54,11 @@
                 <DataGridTextColumn Binding="{Binding LastUpdated}" Header="Last Updated" Width="auto"
                                     IsReadOnly="True" />
                 <DataGridTextColumn Binding="{Binding GameSize}" Header="Size (MB)" Width="auto" IsReadOnly="True" />
-                <!-- ReSharper disable once Xaml.BindingWithContextNotResolved -->
+                
+                <DataGridTextColumn Binding="{Binding Popularity[1D]}" Header="Popularity (1 day)" Width="auto" IsReadOnly="True" IsVisible="{Binding ShowPopularity1Day}"/>
+                <DataGridTextColumn Binding="{Binding Popularity[7D]}" Header="Popularity (7 days)" Width="auto" IsReadOnly="True" IsVisible="{Binding ShowPopularity7Days}"/>
+                <DataGridTextColumn Binding="{Binding Popularity[30D]}" Header="Popularity (30 days)" Width="auto" IsReadOnly="True" IsVisible="{Binding ShowPopularity30Days}"/>
+                
                 <DataGridTextColumn Binding="{Binding IsInstalled, Converter={StaticResource OnDeviceStatusFromBool}}"
                                     Header="On Device" Width="auto" IsReadOnly="True"
                                     IsVisible="{Binding IsDeviceConnected}" />

@@ -93,6 +93,8 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [Reactive] public List<string> MirrorList { get; private set; } = new();
     [Reactive] public string? SelectedMirror { get; set; }
     public bool IsSwitchingMirror => _isSwitchingMirror.Value;
+    public string[] PopularityRanges { get; } = {"30 days", "7 days", "1 day", "None"};
+    [Reactive] [JsonProperty] public string? PopularityRange { get; private set; }
     private ReactiveCommand<Unit, Unit> SaveSettings { get; }
     private ReactiveCommand<Unit, Unit> RestoreDefaults { get; }
     public ReactiveCommand<Unit, Unit> SetDownloadLocation { get; }
@@ -116,6 +118,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
         DeleteAfterInstall = false;
         LastWirelessAdbHost = "";
         EnableDebugConsole = !IsConsoleToggleable;
+        PopularityRange = PopularityRanges[0];
     }
 
     private void ValidateSettings(bool save = true)
@@ -156,6 +159,13 @@ public class SideloaderSettingsViewModel : ViewModelBase
         {
             Log.Debug("Preferred connection type is invalid, resetting to default");
             PreferredConnectionType = ConnectionTypes[0];
+            saveNeeded = true;
+        }
+        
+        if (!PopularityRanges.Contains(PopularityRange))
+        {
+            Log.Debug("Popularity range is invalid, resetting to default");
+            PopularityRange = PopularityRanges[0];
             saveNeeded = true;
         }
 
