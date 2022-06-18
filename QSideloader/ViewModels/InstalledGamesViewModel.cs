@@ -83,12 +83,11 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         });
     }
 
-    // TODO: handle update failures (incompatible signatures, wrong version, etc.)
     private IObservable<Unit> UpdateImpl()
     {
         return Observable.Start(() =>
         {
-            if (!_adbService.CheckDeviceConnection())
+            if (!_adbService.CheckDeviceConnectionSimple())
             {
                 Log.Warning("InstalledGamesViewModel.UpdateImpl: no device connection!");
                 OnDeviceOffline();
@@ -109,7 +108,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            if (!_adbService.CheckDeviceConnection())
+            if (!_adbService.CheckDeviceConnectionSimple())
             {
                 Log.Warning("InstalledGamesViewModel.UpdateAllImpl: no device connection!");
                 OnDeviceOffline();
@@ -153,7 +152,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            if (!_adbService.CheckDeviceConnection())
+            if (!_adbService.CheckDeviceConnectionSimple())
             {
                 Log.Warning("InstalledGamesViewModel.UninstallImpl: no device connection!");
                 OnDeviceOffline();

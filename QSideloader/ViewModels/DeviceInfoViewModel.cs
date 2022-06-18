@@ -31,7 +31,6 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
         EnableWirelessAdb = ReactiveCommand.CreateFromTask(EnableWirelessAdbImpl);
         Refresh.Execute().Subscribe();
-        SetRefreshTimer(true);
         this.WhenActivated(disposables =>
         {
             _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged).DisposeWith(disposables);
@@ -137,6 +136,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         }
 
         IsDeviceConnected = true;
+        SetRefreshTimer(true);
         IsDeviceWireless = _adbService.Device!.IsWireless;
         _adbService.Device.RefreshInfo();
     }

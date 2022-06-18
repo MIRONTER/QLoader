@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using AdvancedSharpAdbClient;
 using Avalonia;
@@ -44,11 +45,11 @@ public class MainWindowViewModel : ViewModelBase
             }
         });
         _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged);
-        IsDeviceConnected = _adbService.CheckDeviceConnection();
+        Task.Run(() => IsDeviceConnected = _adbService.CheckDeviceConnection());
     }
 
-    [Reactive] public bool IsDeviceConnected { get; set; }
-    [Reactive] public ObservableCollection<TaskView> TaskList { get; set; } = new();
+    [Reactive] public bool IsDeviceConnected { get; private set; }
+    public ObservableCollection<TaskView> TaskList { get; } = new();
 
     public ICommand ShowGameDetailsCommand { get; }
 

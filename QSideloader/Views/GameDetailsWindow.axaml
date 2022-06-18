@@ -84,7 +84,7 @@
                                HorizontalAlignment="Left"
                                Width="400"
                                TextWrapping="Wrap"
-                               IsVisible="{Binding Game.IsNoteAvailable}"
+                               IsVisible="{Binding Game.Note, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                Text="{Binding Game.Note, StringFormat={}Note: {0}}" />
                 </Grid>
             </Grid>

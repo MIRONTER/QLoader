@@ -103,7 +103,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         {
             if (IsBusy)
                 return;
-            if (!_adbService.CheckDeviceConnection())
+            if (!_adbService.CheckDeviceConnectionSimple())
             {
                 Log.Warning("AvailableGamesViewModel.InstallImpl: no device connection!");
                 IsDeviceConnected = false;
@@ -140,6 +140,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         {
             case DeviceState.Online:
                 IsDeviceConnected = true;
+                RefreshInstalled();
                 break;
             case DeviceState.Offline:
                 IsDeviceConnected = false;

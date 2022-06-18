@@ -29,7 +29,6 @@ public class Game : INotifyPropertyChanged
         GameSize = gameSize;
         if (note is null) return;
         Note = note;
-        IsNoteAvailable = true;
     }
     
     public Game(string gameName, string releaseName)
@@ -46,14 +45,12 @@ public class Game : INotifyPropertyChanged
     }
 
     [FieldTrim(TrimMode.Right)] public string? GameName { get; protected set; }
-
     public string? ReleaseName { get; protected set; }
     public string? PackageName { get; protected set; }
     public int VersionCode { get; protected set; }
 
     [FieldConverter(ConverterKind.Date, "yyyy-MM-dd HH:mm UTC")]
     public DateTime LastUpdated { get; protected set; }
-
     public int GameSize { get; protected set; }
 
     [FieldHidden]
@@ -68,8 +65,6 @@ public class Game : INotifyPropertyChanged
         }
     }
 
-    [FieldHidden] [JsonIgnore] public bool IsNoteAvailable { get; set; }
-
     [FieldHidden]
     [JsonIgnore]
     public bool IsInstalled
@@ -81,7 +76,6 @@ public class Game : INotifyPropertyChanged
             OnPropertyChanged();
         }
     }
-
     [FieldHidden] [JsonIgnore] public string? Note { get; set; }
 
     [FieldHidden]

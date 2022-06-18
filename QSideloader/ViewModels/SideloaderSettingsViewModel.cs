@@ -292,7 +292,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             if (Globals.Updater is null)
             {
                 Log.Error("Requested to check for updates, but updater is not initialized");
-                return;
+                throw new InvalidOperationException("Updater is not initialized");
             }
 
             Dispatcher.UIThread.InvokeAsync(() => Globals.Updater.CheckForUpdatesAtUserRequest());

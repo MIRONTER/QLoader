@@ -57,7 +57,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         {
             Log.Error("Task {TaskType} {TaskName} failed with error: {Message}", _taskType, TaskName, ex.Message);
             Log.Verbose(ex, "Task {TaskType} failed with exception", _taskType);
-            OnFinished($"Task failed: {ex.Message}");
+            if (!IsFinished)
+                OnFinished($"Task failed: {ex.Message}");
         });
         Activator = new ViewModelActivator();
     }
@@ -106,9 +107,6 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task RunTaskImpl()
     {
-        if (_game is null)
-            throw new InvalidOperationException("Game is not set");
-
         Hint = "Click to cancel";
         switch (_taskType)
         {
@@ -253,9 +251,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         EnsureDeviceConnection(true);
         try
         {
-            Status = "Backing up";
             await Backup();
-            Status = "Uninstalling";
             await Uninstall();
             OnFinished("Uninstalled");
         }
@@ -279,6 +275,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         try
         {
             await Backup();
+            OnFinished("Backup created");
         }
         catch (Exception e)
         {
@@ -300,6 +297,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         try
         {
             await Restore(_gamePath!);
+            OnFinished("Backup restored");
         }
         catch (Exception e)
         {
@@ -410,7 +408,6 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             EnsureDeviceConnection();
             Status = "Uninstalling";
             await Task.Run(() => _adbService.Device!.UninstallGame(_game));
-            OnFinished("Uninstalled");
         }
         finally
         {
@@ -423,7 +420,6 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         EnsureDeviceConnection();
         Status = "Creating backup";
         await Task.Run(() => _adbService.Device!.CreateBackup(_game));
-        OnFinished("Backup created");
     }
     
     private async Task Restore(string backupPath)
@@ -435,7 +431,6 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             EnsureDeviceConnection();
             Status = "Restoring backup";
             await Task.Run(() => _adbService.Device!.RestoreBackup(backupPath));
-            OnFinished("Backup restored");
         }
         finally
         {
@@ -445,7 +440,12 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     private void OnFinished(string status)
     {
-        if (IsFinished) return;
+        if (IsFinished)
+        {
+            Log.Warning("Attempted to finish task {TaskType} {TaskName} which is already finished", _taskType,
+                TaskName);
+            return;
+        }
         Hint = "Click to dismiss";
         IsFinished = true;
         Status = status;
