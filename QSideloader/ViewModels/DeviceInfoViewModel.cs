@@ -60,6 +60,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] public bool IsDeviceConnected { get; set; }
     [Reactive] public bool IsDeviceWireless { get; set; }
     [Reactive] public AdbService.AdbDevice? CurrentDevice { get; set; }
+    [Reactive] public string? TrueSerial { get; set; }
     [Reactive] public ObservableCollection<AdbService.AdbDevice> DeviceList { get; set; } = new();
     public ViewModelActivator Activator { get; }
 
@@ -87,6 +88,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     {
         IsDeviceConnected = false;
         CurrentDevice = null;
+        TrueSerial = null;
         SetRefreshTimer(false);
     }
 
@@ -168,6 +170,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     private void RefreshDeviceSelection()
     {
         CurrentDevice = DeviceList.FirstOrDefault(x => _adbService.Device?.Serial == x.Serial);
+        TrueSerial = CurrentDevice?.TrueSerial;
     }
 
     private void SetRefreshTimer(bool start)

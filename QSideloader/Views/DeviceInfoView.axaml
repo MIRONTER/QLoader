@@ -91,7 +91,7 @@
                       PlaceholderText="Device list"
                       Items="{Binding DeviceList}"
                       SelectedItem="{Binding CurrentDevice}"
-                      ToolTip.Tip="Device list">
+                      ToolTip.Tip="{Binding TrueSerial, StringFormat={}Device list&#x0a;Current device serial: {0}}">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding}" />
