@@ -1209,7 +1209,7 @@ public class AdbService
                     throw new ArgumentException("packageName is invalid");
                 try
                 {
-                    UninstallPackage(packageName);
+                    UninstallPackage(packageName, true);
                 }
                 catch (PackageNotFoundException)
                 {
@@ -1255,12 +1255,14 @@ public class AdbService
         ///     Uninstalls the package with the given package name.
         /// </summary>
         /// <param name="packageName">Package name to uninstall.</param>
+        /// <param name="silent">Don't send log messages.</param>
         /// <exception cref="PackageNotFoundException">Thrown if <paramref name="packageName" /> is not installed.</exception>
-        private void UninstallPackage(string packageName)
+        private void UninstallPackage(string packageName, bool silent = false)
         {
             try
             {
-                Log.Information("Uninstalling package {PackageName}", packageName);
+                if (!silent)
+                    Log.Information("Uninstalling package {PackageName}", packageName);
                 _adb.AdbClient.UninstallPackage(this, packageName);
             }
             catch (PackageInstallationException e)
@@ -1268,7 +1270,8 @@ public class AdbService
                 if (e.Message == "DELETE_FAILED_INTERNAL_ERROR" && string.IsNullOrWhiteSpace(
                         RunShellCommand($"pm list packages -3 | grep -w \"package:{packageName}\"")))
                 {
-                    Log.Warning("Package {PackageName} is not installed", packageName);
+                    if (!silent)
+                        Log.Warning("Package {PackageName} is not installed", packageName);
                     throw new PackageNotFoundException(packageName);
                 }
 
