@@ -116,6 +116,7 @@ public class AdbService
     /// </returns>
     public bool CheckDeviceConnection(bool assumeOffline = false)
     {
+        if (Design.IsDesignMode) return false;
         try
         {
             EnsureADBRunning();
@@ -133,7 +134,7 @@ public class AdbService
 
             if (!connectionStatus)
             {
-                DeviceData? foundDevice = null;
+                AdbDevice? foundDevice = null;
                 RefreshDeviceList();
                 foreach (var device in DeviceList)
                 {
@@ -146,8 +147,7 @@ public class AdbService
                 if ((Device is null || Device?.Serial != foundDevice?.Serial) && foundDevice is not null &&
                     connectionStatus)
                 {
-                    var device = new AdbDevice(foundDevice, this);
-                    OnDeviceOnline(new AdbDeviceEventArgs(device));
+                    OnDeviceOnline(new AdbDeviceEventArgs(foundDevice));
                 }
                 else if (Device is not null && !connectionStatus)
                 {
