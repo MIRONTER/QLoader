@@ -442,12 +442,15 @@ public class AdbService
     /// </summary>
     /// <param name="deviceSerial">Device serial to convert.</param>
     /// <returns>Hashed ID as <see cref="string" />.</returns>
+    /// <remarks><see cref="GeneralUtils.GetHwid"/> or <see cref="GeneralUtils.GetHwidFallback"/> is used as salt.</remarks>
     private static string GetHashedId(string deviceSerial)
     {
+        var hwid = GeneralUtils.GetHwid() ?? GeneralUtils.GetHwidFallback();
+        var saltedSerial = hwid + deviceSerial;
         using var sha256Hash = SHA256.Create();
         var hashedId = Convert.ToHexString(
             sha256Hash.ComputeHash(
-                Encoding.ASCII.GetBytes(deviceSerial)))[..16];
+                Encoding.ASCII.GetBytes(saltedSerial)))[..16];
         return hashedId;
     }
 
@@ -695,7 +698,15 @@ public class AdbService
         public float BatteryLevel { get; private set; }
         public List<string> InstalledPackages { get; set; } = new();
         public string FriendlyName { get; }
+        
+        /// <summary>
+        /// Stores hashed id derived from serial.
+        /// </summary>
         private string HashedId { get; }
+        
+        /// <summary>
+        /// Stores true device serial even if it's a wireless connection.
+        /// </summary>
         public string? TrueSerial { get; }
         public bool IsWireless { get; }
 

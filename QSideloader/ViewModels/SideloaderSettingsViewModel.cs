@@ -32,7 +32,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     
     public SideloaderSettingsViewModel()
     {
-        SaveSettings = ReactiveCommand.CreateFromObservable(SaveSettingsImpl);
+        SaveSettings = ReactiveCommand.CreateFromObservable<bool, Unit>(SaveSettingsImpl);
         SetDownloadLocation = ReactiveCommand.CreateFromObservable(SetDownloadLocationImpl, this.IsValid());
         SetBackupsLocation = ReactiveCommand.CreateFromObservable(SetBackupsLocationImpl, this.IsValid());
         SetDownloaderBandwidthLimit =
@@ -95,7 +95,8 @@ public class SideloaderSettingsViewModel : ViewModelBase
     public bool IsSwitchingMirror => _isSwitchingMirror.Value;
     public string[] PopularityRanges { get; } = {"30 days", "7 days", "1 day", "None"};
     [Reactive] [JsonProperty] public string? PopularityRange { get; private set; }
-    private ReactiveCommand<Unit, Unit> SaveSettings { get; }
+    [JsonProperty] public Guid InstallationId { get; private set; } = Guid.NewGuid();
+    private ReactiveCommand<bool, Unit> SaveSettings { get; }
     private ReactiveCommand<Unit, Unit> RestoreDefaults { get; }
     public ReactiveCommand<Unit, Unit> SetDownloadLocation { get; }
     public ReactiveCommand<Unit, Unit> SetBackupsLocation { get; }
@@ -184,12 +185,14 @@ public class SideloaderSettingsViewModel : ViewModelBase
             {
                 var json = File.ReadAllText(PathHelper.SettingsPath);
                 JsonConvert.PopulateObject(json, this);
+                SaveSettings.Execute(true).Subscribe();
                 Log.Information("Loaded settings");
             }
             catch
             {
                 Log.Warning("Failed to load settings, using defaults");
                 InitDefaults();
+                SaveSettings.Execute().Subscribe();
             }
         }
         else
@@ -199,7 +202,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
         }
     }
 
-    private IObservable<Unit> SaveSettingsImpl()
+    private IObservable<Unit> SaveSettingsImpl(bool silent = false)
     {
         return Observable.Start(() =>
         {
@@ -220,11 +223,13 @@ public class SideloaderSettingsViewModel : ViewModelBase
                     File.Delete(tmpPath);
                 }
 
-                Log.Debug("Settings saved");
+                if (!silent)
+                    Log.Debug("Settings saved");
             }
             catch (Exception e)
             {
                 Log.Error(e, "Failed to save settings");
+                throw;
             }
         });
     }
