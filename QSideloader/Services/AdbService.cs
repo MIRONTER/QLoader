@@ -433,7 +433,6 @@ public class AdbService
         e.Device.State = DeviceState.Online;
         Device = e.Device;
         if (!FirstDeviceSearch)
-            //DeviceOnline?.Invoke(this, e);
             _deviceChangeSubject.OnNext(Device);
     }
 
@@ -691,7 +690,7 @@ public class AdbService
             });
         }
 
-        private PackageManager? PackageManager { get; }
+        private PackageManager PackageManager { get; }
         public float SpaceUsed { get; private set; }
         public float SpaceFree { get; private set; }
         public float SpaceTotal { get; private set; }
@@ -733,7 +732,6 @@ public class AdbService
         /// <summary>
         ///     Refresh <see cref="InstalledPackages" /> list
         /// </summary>
-        /// <exception cref="InvalidOperationException">Thrown if <see cref="PackageManager" /> is null.</exception>
         private void RefreshInstalledPackages()
         {
             var skip = PackagesSemaphoreSlim.CurrentCount == 0;
@@ -742,7 +740,6 @@ public class AdbService
             {
                 if (skip)
                     return;
-                _ = PackageManager ?? throw new InvalidOperationException("PackageManager must be initialized");
                 PackageManager.RefreshPackages();
                 InstalledPackages = new List<string>(PackageManager.Packages.Keys);
             }
@@ -807,8 +804,7 @@ public class AdbService
         /// </summary>
         /// <returns><see cref="List{T}" /> of <see cref="InstalledGame" /></returns>
         /// <exception cref="InvalidOperationException">
-        ///     Thrown if <see cref="DownloaderService.AvailableGames" /> or
-        ///     <see cref="PackageManager" /> is null
+        ///     Thrown if <see cref="DownloaderService.AvailableGames" /> is null
         /// </exception>
         public List<InstalledGame> GetInstalledGames()
         {
@@ -817,7 +813,6 @@ public class AdbService
             {
                 _ = _downloaderService.AvailableGames ??
                     throw new InvalidOperationException("DownloaderService.AvailableGames must be initialized");
-                _ = PackageManager ?? throw new InvalidOperationException("PackageManager must be initialized");
                 if (InstalledPackages.Count == 0) RefreshInstalledPackages();
                 var query = from package in InstalledPackages
                     let versionInfo = PackageManager.GetVersionInfo(package)
@@ -954,7 +949,6 @@ public class AdbService
         /// <param name="game"><see cref="Game" /> to sideload.</param>
         /// <param name="gamePath">Path to game files.</param>
         /// <returns><see cref="IObservable{T}" /> that reports current status.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if <see cref="PackageManager" /> is null.</exception>
         public IObservable<string> SideloadGame(Game game, string gamePath)
         {
             return Observable.Create<string>(observer =>
@@ -962,7 +956,6 @@ public class AdbService
                 var reinstall = false;
                 try
                 {
-                    _ = PackageManager ?? throw new InvalidOperationException("PackageManager must be initialized");
                     Log.Information("Sideloading game {GameName}", game.GameName);
 
                     if (game.PackageName is not null)
