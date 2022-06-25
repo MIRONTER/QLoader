@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using CliWrap;
 using CliWrap.Buffered;
+using Microsoft.Win32;
 using QSideloader.Models;
 using QSideloader.ViewModels;
 using Serilog;
@@ -23,7 +24,7 @@ public static class GeneralUtils
         var hash = hasher.ComputeHash(stream);
         return BitConverter.ToString(hash).Replace("-", "");
     }
-    
+
     public static ApkInfo GetApkInfo(string apkPath)
     {
         if (!File.Exists(apkPath))
@@ -32,7 +33,7 @@ public static class GeneralUtils
         var aaptOutput = Cli.Wrap(PathHelper.AaptPath)
             .WithArguments($"dump badging {apkPath}")
             .ExecuteBufferedAsync().GetAwaiter().GetResult();
-        
+
         var apkInfo = new ApkInfo
         {
             ApplicationLabel = Regex.Match(aaptOutput.StandardOutput, "application-label:'(.*?)'").Groups[1].Value,
@@ -44,10 +45,10 @@ public static class GeneralUtils
     }
 
     /// <summary>
-    /// Gets current system HWID.
+    ///     Gets current system HWID.
     /// </summary>
     /// <returns>HWID as <see cref="string" />.</returns>
-    public static string? GetHwid()
+    public static string GetHwid()
     {
         string? hwid = null;
         try
@@ -64,7 +65,7 @@ public static class GeneralUtils
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 var regKey =
-                    Microsoft.Win32.Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Cryptography", false);
+                    Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Cryptography", false);
                 var regValue = regKey?.GetValue("MachineGuid");
                 if (regValue != null)
                     hwid = regValue.ToString();
@@ -76,33 +77,38 @@ public static class GeneralUtils
                     .WithArguments("-rd1 -c IOPlatformExpertDevice")
                     .ExecuteBufferedAsync().GetAwaiter().GetResult();
                 var match = Regex.Match(ioregOutput.StandardOutput, "IOPlatformUUID\" = \"(.*?)\"");
-                return match.Success ? match.Groups[1].Value : null;
+                if (match.Success)
+                    hwid = match.Groups[1].Value;
+                else
+                    Log.Warning("Could not get HWID from ioreg");
             }
         }
         catch (Exception e)
         {
             Log.Error(e, "Error while getting HWID");
-            return null;
+            Log.Warning("Using InstallationId as fallback");
+            return GetHwidFallback();
         }
 
         if (hwid is null)
         {
             Log.Warning("Failed to get HWID");
-            return null;
+            Log.Warning("Using InstallationId as fallback");
+            return GetHwidFallback();
         }
-        
+
         var bytes = Encoding.UTF8.GetBytes(hwid);
         var sha256 = SHA256.Create();
         var hash = sha256.ComputeHash(bytes);
-        
+
         return BitConverter.ToString(hash).Replace("-", "");
     }
 
     /// <summary>
-    /// Gets fallback HWID replacement derived from current <see cref="SideloaderSettingsViewModel.InstallationId"/>.
+    ///     Gets fallback HWID replacement derived from current <see cref="SideloaderSettingsViewModel.InstallationId" />.
     /// </summary>
     /// <returns>HWID as <see cref="string" />.</returns>
-    public static string GetHwidFallback()
+    private static string GetHwidFallback()
     {
         var installationId = Globals.SideloaderSettings.InstallationId.ToString();
         var bytes = Encoding.UTF8.GetBytes(installationId);
