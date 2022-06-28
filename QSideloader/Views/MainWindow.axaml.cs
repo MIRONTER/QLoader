@@ -146,6 +146,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (_isClosing || ViewModel!.TaskList.Count == 0 || ViewModel.TaskList.All(x => x.IsFinished))
         {
             Log.Information("Closing application");
+            Log.CloseAndFlush();
             return;
         }
 

@@ -1066,7 +1066,7 @@ public class AdbService
                 var gamePath = Path.GetDirectoryName(scriptPath)!;
                 var scriptCommands = File.ReadAllLines(scriptPath);
                 foreach (var archivePath in Directory.GetFiles(gamePath, "*.7z", SearchOption.TopDirectoryOnly))
-                    ZipUtil.ExtractArchive(archivePath, gamePath);
+                    ZipUtil.ExtractArchiveAsync(archivePath, gamePath).GetAwaiter().GetResult();
                 foreach (var rawCommand in scriptCommands)
                 {
                     if (string.IsNullOrWhiteSpace(rawCommand) || rawCommand.StartsWith("#")) continue;

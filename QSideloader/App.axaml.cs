@@ -35,7 +35,8 @@ public class App : Application
                 Task.Run(() =>
                 {
                     Log.Information("Found trailers addon zip. Starting background install");
-                    ZipUtil.ExtractArchive("TrailersAddon.zip", Directory.GetCurrentDirectory());
+                    ZipUtil.ExtractArchiveAsync("TrailersAddon.zip", Directory.GetCurrentDirectory())
+                        .GetAwaiter().GetResult();
                     Log.Information("Installed trailers addon");
                     File.Delete("TrailersAddon.zip");
                 });
@@ -43,7 +44,8 @@ public class App : Application
                 Task.Run(() =>
                 {
                     Log.Information("Found trailers addon zip. Starting background install");
-                    ZipUtil.ExtractArchive(Path.Combine("..", "TrailersAddon.zip"), Directory.GetCurrentDirectory());
+                    ZipUtil.ExtractArchiveAsync(Path.Combine("..", "TrailersAddon.zip"),
+                        Directory.GetCurrentDirectory()).GetAwaiter().GetResult();
                     Log.Information("Installed trailers addon");
                     File.Delete(Path.Combine("..", "TrailersAddon.zip"));
                 });
@@ -70,12 +72,14 @@ public class App : Application
     private static void InitializeLogging()
     {
         const string humanReadableLogPath = "debug_log.txt";
-        const string jsonLogPath = "debug_log.json";
+        const string clefLogPath = "debug_log.clef";
         const string exceptionsLogPath = "debug_exceptions.txt";
         if (File.Exists(humanReadableLogPath) && new FileInfo(humanReadableLogPath).Length > 3000000)
             File.Delete(humanReadableLogPath);
-        if (File.Exists(jsonLogPath) && new FileInfo(jsonLogPath).Length > 5000000)
-            File.Delete(jsonLogPath);
+        if (File.Exists("debug_log.json"))
+            File.Delete("debug_log.json");
+        if (File.Exists(clefLogPath) && new FileInfo(clefLogPath).Length > 5000000)
+            File.Delete(clefLogPath);
         if (File.Exists(exceptionsLogPath) && new FileInfo(exceptionsLogPath).Length > 10000000)
             File.Delete(exceptionsLogPath);
 
@@ -87,7 +91,7 @@ public class App : Application
             .Enrich.WithThreadId().Enrich.WithThreadName()
             .Enrich.WithExceptionDetails()
             .WriteTo.Logger(humanReadableLogger)
-            .WriteTo.File(new JsonFormatter(renderMessage: true), jsonLogPath, fileSizeLimitBytes: 3000000)
+            .WriteTo.File(new CompactJsonFormatter(), clefLogPath, fileSizeLimitBytes: 3000000)
             .CreateLogger();
 
         LogStartMessage(Log.Logger);
@@ -110,6 +114,7 @@ public class App : Application
             {
                 Log.Fatal("------APPLICATION CRASH------");
                 Log.Fatal(exception, "UnhandledException");
+                Log.CloseAndFlush();
             }
             else
                 Log.Error(exception, "UnhandledException");
@@ -130,7 +135,7 @@ public class App : Application
             .Enrich.WithThreadId().Enrich.WithThreadName()
             .Enrich.WithExceptionDetails()
             .WriteTo.Logger(humanReadableLogger)
-            .WriteTo.File(new RenderedCompactJsonFormatter(), jsonLogPath, fileSizeLimitBytes: 3000000)
+            .WriteTo.File(new CompactJsonFormatter(), clefLogPath, fileSizeLimitBytes: 3000000)
             .WriteTo.Logger(consoleLogger)
             .CreateLogger();
 
