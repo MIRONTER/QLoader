@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:QSideloader.ViewModels"
              xmlns:aura="using:Aura.UI.Controls"
+             xmlns:views="clr-namespace:QSideloader.Views"
              mc:Ignorable="d" d:DesignWidth="1130" d:DesignHeight="450"
              x:Class="QSideloader.Views.InstalledGamesView">
     <Design.DataContext>
@@ -19,9 +20,6 @@
             <Button Command="{Binding Uninstall}">Uninstall Selected</Button>
             <Button Command="{Binding Refresh}">Refresh</Button>
         </StackPanel>
-        <aura:ProgressRing Grid.Row="1" x:Name="InstalledGamesPageProgressRing"
-                           IsIndeterminate="{Binding IsBusy}"
-                           IsVisible="{Binding IsBusy}" />
         <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
         <DataGrid Grid.Row="1" x:Name="InstalledGamesDataGrid"
                   Items="{Binding InstalledGames}"
@@ -51,5 +49,7 @@
                 <SolidColorBrush x:Key="DataGridCellFocusVisualSecondaryBrush">Transparent</SolidColorBrush>
             </DataGrid.Resources>
         </DataGrid>
+        <views:LoadingProgressRingView Grid.Row="0" Grid.RowSpan="2" 
+                                       IsVisible="{Binding IsBusy}"/>
     </Grid>
 </UserControl>

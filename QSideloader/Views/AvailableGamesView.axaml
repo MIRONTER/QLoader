@@ -5,6 +5,7 @@
              xmlns:aura="using:Aura.UI.Controls"
              xmlns:vm="using:QSideloader.ViewModels"
              xmlns:helpers="clr-namespace:QSideloader.Helpers"
+             xmlns:views="clr-namespace:QSideloader.Views"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="450"
              x:Class="QSideloader.Views.AvailableGamesView">
     <UserControl.Resources>
@@ -28,9 +29,6 @@
             <Button Command="{Binding Download}">Download Selected</Button>
             <Button Command="{Binding Refresh}">Refresh</Button>
         </StackPanel>
-        <aura:ProgressRing Grid.Row="1" x:Name="AvailableGamesPageProgressRing"
-                           IsIndeterminate="{Binding IsBusy}"
-                           IsVisible="{Binding IsBusy}" />
         <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
         <DataGrid Grid.Row="1" x:Name="AvailableGamesDataGrid"
                   Items="{Binding AvailableGames}"
@@ -69,5 +67,7 @@
                 <SolidColorBrush x:Key="DataGridCellFocusVisualSecondaryBrush">Transparent</SolidColorBrush>
             </DataGrid.Resources>
         </DataGrid>
+        <views:LoadingProgressRingView Grid.Row="0" Grid.RowSpan="2" 
+                                       IsVisible="{Binding IsBusy}"/>
     </Grid>
 </UserControl>
