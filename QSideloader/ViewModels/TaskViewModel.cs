@@ -6,6 +6,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AdvancedSharpAdbClient;
 using QSideloader.Helpers;
 using QSideloader.Models;
 using QSideloader.Services;
@@ -18,9 +19,12 @@ namespace QSideloader.ViewModels;
 public class TaskViewModel : ViewModelBase, IActivatableViewModel
 {
     private readonly AdbService _adbService;
+    private AdbService.AdbDevice? _adbDevice;
+    private bool _ensuredDeviceConnected;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly DownloaderService _downloaderService;
-    private readonly Game _game;
+    private readonly Game? _game;
+    private readonly InstalledApp? _app;
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
     private readonly TaskType _taskType;
     private string? _gamePath;
@@ -29,9 +33,11 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     public TaskViewModel()
     {
         _adbService = AdbService.Instance;
+        _adbDevice = _adbService.Device;
         _downloaderService = DownloaderService.Instance;
         _sideloaderSettings = Globals.SideloaderSettings;
         _game = new Game("GameName", "ReleaseName", 1337, "NoteText");
+        TaskName = "TaskName";
         GameName = "GameName";
         DownloadStats = "DownloadStats";
         RunTask = ReactiveCommand.CreateFromTask(RunTaskImpl);
@@ -40,23 +46,28 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     public TaskViewModel(Game game, TaskType taskType)
     {
-        if (taskType is TaskType.InstallOnly or TaskType.Restore)
+        switch (taskType)
         {
-            // We need a game path to run installation/restore a backup
-            Log.Error("Game path not specified for {TaskType} task", taskType);
-            throw new ArgumentException($"Game path not specified for {taskType} task");
+            case TaskType.InstallOnly or TaskType.Restore:
+                // We need a game path to run installation/restore a backup
+                Log.Error("Game path not specified for {TaskType} task", taskType);
+                throw new ArgumentException($"Game path not specified for {taskType} task");
+            case TaskType.PullAndUpload:
+                throw new InvalidOperationException("Wrong constructor for PullAndUpload task");
         }
+
         _adbService = AdbService.Instance;
+        _adbDevice = _adbService.Device;
         _downloaderService = DownloaderService.Instance;
         _sideloaderSettings = Globals.SideloaderSettings;
         _game = game;
+        TaskName = _game?.GameName ?? "N/A";
         GameName = game.GameName;
         _taskType = taskType;
         RunTask = ReactiveCommand.CreateFromTask(RunTaskImpl);
         RunTask.ThrownExceptions.Subscribe(ex =>
         {
-            Log.Error("Task {TaskType} {TaskName} failed with error: {Message}", _taskType, TaskName, ex.Message);
-            Log.Verbose(ex, "Task {TaskType} failed with exception", _taskType);
+            Log.Error(ex, "Task {TaskType} {TaskName} failed", _taskType, TaskName);
             if (!IsFinished)
                 OnFinished($"Task failed: {ex.Message}");
         });
@@ -69,11 +80,30 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             Log.Warning("Unneeded game path specified for {TaskType} task", taskType);
         else
             _gamePath = gamePath;
+        if (taskType is TaskType.PullAndUpload)
+            throw new InvalidOperationException("Wrong constructor for PullAndUpload task");
         _adbService = AdbService.Instance;
+        _adbDevice = _adbService.Device;
         _downloaderService = DownloaderService.Instance;
         _sideloaderSettings = Globals.SideloaderSettings;
         _game = game;
+        TaskName = _game?.GameName ?? "N/A";
         GameName = game.GameName;
+        _taskType = taskType;
+        RunTask = ReactiveCommand.CreateFromTask(RunTaskImpl);
+        Activator = new ViewModelActivator();
+    }
+
+    public TaskViewModel(InstalledApp app, TaskType taskType)
+    {
+        if (taskType is not TaskType.PullAndUpload)
+            throw new InvalidOperationException("This constructor is only for PullAndUpload task");
+        _adbService = AdbService.Instance;
+        _adbDevice = _adbService.Device!;
+        _downloaderService = DownloaderService.Instance;
+        _sideloaderSettings = Globals.SideloaderSettings;
+        _app = app;
+        TaskName = _app?.Name ?? "N/A";
         _taskType = taskType;
         RunTask = ReactiveCommand.CreateFromTask(RunTaskImpl);
         Activator = new ViewModelActivator();
@@ -81,7 +111,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     public ReactiveCommand<Unit, Unit> RunTask { get; }
 
-    public string TaskName => _game.GameName ?? "N/A";
+    public string TaskName { get; }
     public bool IsFinished { get; private set; }
     public string? GameName { get; }
     [Reactive] public string Status { get; private set; } = "Status";
@@ -100,7 +130,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         
         var speedMBytes = Math.Round((double) stats.Value.downloadSpeedBytes / 1000000, 2);
         var downloadedMBytes = Math.Round( stats.Value.downloadedBytes / 1000000, 2);
-        var progressPercent = Math.Min(Math.Floor(downloadedMBytes / _game.GameSize * 97), 100);
+        var progressPercent = Math.Min(Math.Floor(downloadedMBytes / _game!.GameSize * 97), 100);
 
         DownloadStats = $"{progressPercent}%, {speedMBytes}MB/s";
     }
@@ -141,7 +171,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task RunDownloadAndInstallAsync()
     {
-        EnsureDeviceConnection(true);
+        EnsureDeviceConnected(true);
         try
         {
             _gamePath = await DownloadAsync();
@@ -163,7 +193,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
         try
         {
-            await Install(_gamePath ?? throw new InvalidOperationException("gamePath is null"),
+            await InstallAsync(_gamePath ?? throw new InvalidOperationException("gamePath is null"),
                 _sideloaderSettings.DeleteAfterInstall);
         }
         catch (Exception e)
@@ -206,10 +236,10 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task RunInstallOnlyAsync()
     {
-        EnsureDeviceConnection(true);
+        EnsureDeviceConnected(true);
         try
         {
-            await Install(_gamePath ?? throw new InvalidOperationException("gamePath is null"));
+            await InstallAsync(_gamePath ?? throw new InvalidOperationException("gamePath is null"));
         }
         catch (Exception e)
         {
@@ -227,10 +257,10 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task RunUninstallAsync()
     {
-        EnsureDeviceConnection(true);
+        EnsureDeviceConnected(true);
         try
         {
-            await Uninstall();
+            await UninstallAsync();
         }
         catch (Exception e)
         {
@@ -248,11 +278,11 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task RunBackupAndUninstallAsync()
     {
-        EnsureDeviceConnection(true);
+        EnsureDeviceConnected(true);
         try
         {
-            await Backup();
-            await Uninstall();
+            await BackupAsync();
+            await UninstallAsync();
             OnFinished("Uninstalled");
         }
         catch (Exception e)
@@ -271,10 +301,10 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task RunBackupAsync()
     {
-        EnsureDeviceConnection(true);
+        EnsureDeviceConnected(true);
         try
         {
-            await Backup();
+            await BackupAsync();
             OnFinished("Backup created");
         }
         catch (Exception e)
@@ -293,7 +323,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task RunRestoreAsync()
     {
-        EnsureDeviceConnection(true);
+        EnsureDeviceConnected(true);
         try
         {
             await Restore(_gamePath!);
@@ -315,25 +345,35 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task RunPullAndUploadAsync()
     {
-        EnsureDeviceConnection();
-        /*try
+        EnsureDeviceConnected();
+        await Task.Run(async () =>
         {
-            Status = "Pulling";
-            var localPath = await Pull();
+            Status = "Pulling from device";
+            var path = _adbDevice!.PullApp(_app!.PackageName, "donations");
+            Status = "Preparing to upload";
+            var apkInfo = GeneralUtils.GetApkInfo(Path.Combine(path, _app.PackageName + ".apk"));
+            var archiveName = $"{apkInfo.ApplicationLabel} v{apkInfo.VersionCode} {apkInfo.PackageName}.zip";
+            await File.WriteAllTextAsync(Path.Combine(path, "HWID.txt"),
+                GeneralUtils.GetHwid());
+            await ZipUtil.CreateArchiveAsync(path, "donations",
+                archiveName, _cancellationTokenSource.Token);
+            Directory.Delete(path, true);
             Status = "Uploading";
-            await Task.Run(() => _downloaderService.UploadDonation(_game, localPath));
-            OnFinished("Uploaded");
-        }
-        catch (Exception e)
+            await _downloaderService.UploadDonationAsync(Path.Combine("donations", archiveName), _cancellationTokenSource.Token);
+            Globals.MainWindowViewModel!.OnGameDonated(apkInfo.PackageName, apkInfo.VersionCode);
+        }).ContinueWith(t =>
         {
-            if (e is OperationCanceledException or TaskCanceledException)
-                OnFinished("Cancelled");
-            else
+            if (t.IsFaulted)
             {
-                OnFinished("Upload failed");
-                throw;
+                Log.Error(t.Exception!, "Failed to pull and upload");
+                OnFinished("Donation failed");
+                throw t.Exception!;
             }
-        }*/
+            if (t.IsCanceled)
+                OnFinished("Cancelled");
+            else if (t.IsCompletedSuccessfully)
+                OnFinished("Uploaded");
+        });
     }
 
     private async Task<string> DownloadAsync()
@@ -348,7 +388,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 .PollStats(TimeSpan.FromMilliseconds(100), ThreadPoolScheduler.Instance)
                 .SubscribeOn(RxApp.TaskpoolScheduler)
                 .Subscribe(RefreshDownloadStats);
-            var gamePath = await _downloaderService.DownloadGameAsync(_game, _cancellationTokenSource.Token);
+            var gamePath = await _downloaderService.DownloadGameAsync(_game!, _cancellationTokenSource.Token);
             downloadStatsSubscription.Dispose();
             return gamePath;
         }
@@ -360,13 +400,13 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         }
     }
 
-    private async Task Install(string gamePath, bool deleteAfterInstall = false)
+    private async Task InstallAsync(string gamePath, bool deleteAfterInstall = false)
     {
         Status = "Install queued";
         await AdbService.TakePackageOperationLockAsync(_cancellationTokenSource.Token);
         try
         {
-            EnsureDeviceConnection();
+            EnsureDeviceConnected();
         }
         catch (InvalidOperationException)
         {
@@ -376,7 +416,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         Status = "Installing";
 
         // Here I assume that Install is the last step in the process, this might change in the future
-        _adbService.Device!.SideloadGame(_game, gamePath)
+        _adbDevice!.SideloadGame(_game!, gamePath)
             .SubscribeOn(RxApp.TaskpoolScheduler)
             .Subscribe(
                 x => Status = x,
@@ -399,15 +439,15 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 });
     }
 
-    private async Task Uninstall()
+    private async Task UninstallAsync()
     {
         Status = "Uninstall queued";
         await AdbService.TakePackageOperationLockAsync(_cancellationTokenSource.Token);
         try
         {
-            EnsureDeviceConnection();
+            EnsureDeviceConnected();
             Status = "Uninstalling";
-            await Task.Run(() => _adbService.Device!.UninstallGame(_game));
+            await Task.Run(() => _adbDevice!.UninstallGame(_game!));
         }
         finally
         {
@@ -415,11 +455,11 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         }
     }
 
-    private async Task Backup()
+    private async Task BackupAsync()
     {
-        EnsureDeviceConnection();
+        EnsureDeviceConnected();
         Status = "Creating backup";
-        await Task.Run(() => _adbService.Device!.CreateBackup(_game));
+        await Task.Run(() => _adbDevice!.CreateBackup(_game!));
     }
     
     private async Task Restore(string backupPath)
@@ -428,9 +468,9 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         await AdbService.TakePackageOperationLockAsync(_cancellationTokenSource.Token);
         try
         {
-            EnsureDeviceConnection();
+            EnsureDeviceConnected();
             Status = "Restoring backup";
-            await Task.Run(() => _adbService.Device!.RestoreBackup(backupPath));
+            await Task.Run(() => _adbDevice!.RestoreBackup(backupPath));
         }
         finally
         {
@@ -450,20 +490,38 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         IsFinished = true;
         Status = status;
         Log.Information("Task {TaskType} {TaskName} finished. Result: {Status}",
-            _taskType, _game.GameName, status);
+            _taskType, TaskName, status);
     }
 
     public void Cancel()
     {
         if (_cancellationTokenSource.IsCancellationRequested || IsFinished) return;
         _cancellationTokenSource.Cancel();
-        Log.Information("Requested cancellation of task {TaskType} {TaskName}", _taskType, _game.GameName);
+        Log.Information("Requested cancellation of task {TaskType} {TaskName}", _taskType, TaskName);
     }
 
-    private void EnsureDeviceConnection(bool simpleCheck = false)
+    private void EnsureDeviceConnected(bool simpleCheck = false)
     {
-        if ((simpleCheck && _adbService.CheckDeviceConnectionSimple()) ||
-            (!simpleCheck && _adbService.CheckDeviceConnection())) return;
+        if (!_ensuredDeviceConnected)
+        {
+            if ((simpleCheck && _adbService.CheckDeviceConnectionSimple()) ||
+                (!simpleCheck && _adbService.CheckDeviceConnection()))
+            {
+                // If user switched to another device during download, here we can safely assign the new device
+                _adbDevice = _adbService.Device!;
+                _ensuredDeviceConnected = true;
+                return;
+            }
+        }
+        // If we have already ensured that a device is connected, we stick to that device
+        else
+        {
+            if (_adbDevice is not null && 
+                ((simpleCheck && _adbDevice.State == DeviceState.Online) ||
+                (!simpleCheck && _adbService.PingDevice(_adbDevice)))
+                ) 
+                return;
+        }
         OnFinished("Failed: no device connection");
         throw new InvalidOperationException("No device connection");
     }

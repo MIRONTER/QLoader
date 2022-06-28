@@ -2,46 +2,44 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="using:QSideloader.ViewModels"
              xmlns:aura="using:Aura.UI.Controls"
+             xmlns:vm="clr-namespace:QSideloader.ViewModels"
              xmlns:views="clr-namespace:QSideloader.Views"
-             mc:Ignorable="d" d:DesignWidth="1130" d:DesignHeight="450"
-             x:Class="QSideloader.Views.InstalledGamesView">
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="QSideloader.Views.GameDonationView">
     <Design.DataContext>
-        <vm:InstalledGamesViewModel />
+        <vm:GameDonationViewModel />
     </Design.DataContext>
     <Grid RowDefinitions="Auto,*" IsEnabled="{Binding IsDeviceConnected}">
         <StackPanel Grid.Row="0"
                     Orientation="Horizontal"
                     Spacing="12" Margin="8"
                     HorizontalAlignment="Right">
-            <Button Command="{Binding UpdateAll}">Update All</Button>
-            <Button Command="{Binding Update}">Update Selected</Button>
-            <Button Command="{Binding Uninstall}">Uninstall Selected</Button>
-            <Button Command="{Binding ManualRefresh}" IsEnabled="{Binding !IsBusy}">Refresh</Button>
+            <Button Command="{Binding DonateAll}">Donate All</Button>
+            <Button Command="{Binding Donate}">Donate Selected</Button>
+            <Button Command="{Binding Ignore}">Ignore Selected</Button>
+            <Button Command="{Binding ManualRefresh}">Refresh</Button>
         </StackPanel>
         <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
         <DataGrid Grid.Row="1" x:Name="InstalledGamesDataGrid"
-                  Items="{Binding InstalledGames}"
-                  AutoGenerateColumns="False"
-                  DoubleTapped="InstalledGamesDataGrid_OnDoubleTapped">
+                  Items="{Binding InstalledApps}"
+                  AutoGenerateColumns="False">
             <DataGrid.Columns>
                 <DataGridTemplateColumn Width="52"
                                         IsReadOnly="False"
-                                        CanUserResize="False"
-                                        IsVisible="{Binding MultiSelectEnabled}">
+                                        CanUserResize="False">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="x:Boolean">
                             <CheckBox IsChecked="{Binding IsSelected}" Margin="16,0,0,0" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Binding="{Binding GameName}" Header="Game Name" Width="auto" IsReadOnly="True" />
-                <DataGridTextColumn Binding="{Binding ReleaseName}" Header="Latest Release Name" Width="auto"
+                <DataGridTextColumn Binding="{Binding Name}" Header="Name" Width="auto" IsReadOnly="True" />
+                <DataGridTextColumn Binding="{Binding VersionName}" Header="Version name" Width="auto" MaxWidth="300" 
                                     IsReadOnly="True" />
-                <DataGridTextColumn Binding="{Binding GameSize}" Header="Size (MB)" Width="auto" IsReadOnly="True" />
-                <DataGridTextColumn Binding="{Binding UpdateStatus}" Header="Update Status" Width="auto"
+                <DataGridTextColumn Binding="{Binding VersionCode}" Header="Version code" Width="auto"
                                     IsReadOnly="True" />
+                <DataGridTextColumn Binding="{Binding DonationStatus}" Header="Status" Width="auto" IsReadOnly="True" />
             </DataGrid.Columns>
             <DataGrid.Resources>
                 <!-- ReSharper disable Xaml.RedundantResource -->

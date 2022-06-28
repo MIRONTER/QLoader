@@ -21,7 +21,6 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 {
     private static readonly SemaphoreSlim RefreshSemaphoreSlim = new(1, 1);
     private readonly AdbService _adbService;
-    private readonly DownloaderService _downloaderService;
     private readonly ReadOnlyObservableCollection<InstalledGame> _installedGames;
     private readonly SourceCache<InstalledGame, string> _installedGamesSourceCache = new(x => x.ReleaseName!);
     private readonly ObservableAsPropertyHelper<bool> _isBusy;
@@ -29,10 +28,13 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
     public InstalledGamesViewModel()
     {
         _adbService = AdbService.Instance;
-        _downloaderService = DownloaderService.Instance;
         Activator = new ViewModelActivator();
-        Refresh = ReactiveCommand.CreateFromObservable(RefreshImpl);
-        Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
+        Refresh = ReactiveCommand.CreateFromObservable(() => RefreshImpl());
+        ManualRefresh = ReactiveCommand.CreateFromObservable(() => RefreshImpl(true));
+        var isBusyCombined = Observable.Empty<bool>().StartWith(false)
+            .CombineLatest(Refresh.IsExecuting, (x, y) => x || y)
+            .CombineLatest(ManualRefresh.IsExecuting, (x, y) => x || y);
+        isBusyCombined.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
         Update = ReactiveCommand.CreateFromObservable(UpdateImpl);
         UpdateAll = ReactiveCommand.CreateFromObservable(UpdateAllImpl);
         Uninstall = ReactiveCommand.CreateFromObservable(UninstallImpl);
@@ -42,19 +44,18 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             .ObserveOn(RxApp.MainThreadScheduler)
             .Bind(out _installedGames)
             .DisposeMany();
-        // Placing refresh outside of WhenActivated may cause the data to be outdated
-        // But I think it's better than refreshing every time (refresh takes 1-1.5s)
-        Refresh.Execute().Subscribe();
         this.WhenActivated(disposables =>
         {
             cacheListBind.Subscribe().DisposeWith(disposables);
             _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged).DisposeWith(disposables);
             _adbService.WhenPackageListChanged.Subscribe(_ => Refresh.Execute().Subscribe()).DisposeWith(disposables);
             IsDeviceConnected = _adbService.CheckDeviceConnectionSimple();
+            Refresh.Execute().Subscribe();
         });
     }
 
     public ReactiveCommand<Unit, Unit> Refresh { get; }
+    public ReactiveCommand<Unit, Unit> ManualRefresh { get; }
     public ReactiveCommand<Unit, Unit> Update { get; }
     public ReactiveCommand<Unit, Unit> UpdateAll { get; }
     public ReactiveCommand<Unit, Unit> Uninstall { get; }
@@ -64,7 +65,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] public bool MultiSelectEnabled { get; set; } = true;
     public ViewModelActivator Activator { get; }
 
-    private IObservable<Unit> RefreshImpl()
+    private IObservable<Unit> RefreshImpl(bool rescanGames = false)
     {
         return Observable.Start(() =>
         {
@@ -73,8 +74,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             RefreshSemaphoreSlim.Wait();
             try
             {
-                Log.Information("Refreshing list of installed games");
-                RefreshInstalledGames();
+                RefreshInstalledGames(rescanGames);
             }
             finally
             {
@@ -193,9 +193,10 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         Dispatcher.UIThread.InvokeAsync(_installedGamesSourceCache.Clear);
     }
 
-    private void RefreshInstalledGames()
+    private void RefreshInstalledGames(bool rescanGames)
     {
-        if (!_adbService.CheckDeviceConnection())
+        if ((rescanGames && !_adbService.CheckDeviceConnection()) ||
+            !rescanGames && !_adbService.CheckDeviceConnectionSimple())
         {
             Log.Warning("InstalledGamesViewModel.RefreshInstalledGames: no device connection!");
             OnDeviceOffline();
@@ -203,12 +204,19 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         }
 
         IsDeviceConnected = true;
-        _downloaderService.EnsureGameListAvailableAsync().GetAwaiter().GetResult();
-        var installedGames = _adbService.Device!.GetInstalledGames();
+        if (rescanGames)
+            _adbService.Device!.RefreshInstalledGames();
+        while (_adbService.Device!.IsRefreshingInstalledGames)
+        {
+            Thread.Sleep(100);
+            if (_adbService.Device is null)
+                return;
+        }
         _installedGamesSourceCache.Edit(innerCache =>
         {
-            innerCache.Clear();
-            innerCache.AddOrUpdate(installedGames);
+            innerCache.AddOrUpdate(_adbService.Device!.InstalledGames);
+            innerCache.Remove(_installedGamesSourceCache.Items.Except(_adbService.Device!.InstalledGames));
         });
+        
     }
 }

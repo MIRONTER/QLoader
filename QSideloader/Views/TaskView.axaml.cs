@@ -34,6 +34,15 @@ public class TaskView : ReactiveUserControl<TaskViewModel>
         DataContext = ViewModel;
         InitializeComponent();
     }
+    
+    public TaskView(InstalledApp app, TaskType taskType)
+    {
+        TaskType = taskType;
+        PackageName = app.PackageName;
+        ViewModel = new TaskViewModel(app, taskType);
+        DataContext = ViewModel;
+        InitializeComponent();
+    }
 
     public string TaskName => ViewModel?.TaskName ?? "N/A";
     public string? PackageName { get; }
@@ -59,7 +68,7 @@ public class TaskView : ReactiveUserControl<TaskViewModel>
         ViewModel!.RunTask.Execute().Subscribe();
     }
 
-    private void InputElement_OnPointerEnter(object? sender, PointerEventArgs e)
+    private void TaskView_OnPointerEnter(object? sender, PointerEventArgs e)
     {
         var border = this.Get<Border>("Border");
         var downloadStatsText = this.Get<TextBlock>("DownloadStatsText");
@@ -69,7 +78,7 @@ public class TaskView : ReactiveUserControl<TaskViewModel>
         hintText.IsVisible = true;
     }
 
-    private void InputElement_OnPointerLeave(object? sender, PointerEventArgs e)
+    private void TaskView_OnPointerLeave(object? sender, PointerEventArgs e)
     {
         var border = this.Get<Border>("Border");
         var downloadStatsText = this.Get<TextBlock>("DownloadStatsText");

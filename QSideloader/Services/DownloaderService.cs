@@ -49,6 +49,7 @@ public class DownloaderService
     
     public static DownloaderService Instance { get; } = new();
     public List<Game>? AvailableGames { get; private set; }
+    public List<string> DonationBlacklistedPackages { get; private set; } = new();
     public string MirrorName { get; private set; } = "";
     private List<string> MirrorList { get; set; } = new();
     public IEnumerable<string> MirrorListReadOnly => MirrorList.AsReadOnly();
@@ -71,12 +72,13 @@ public class DownloaderService
             {
                 if (await TryDownloadConfig())
                 {
-                    Log.Information("Rclone config updated from {MirrorName}", MirrorName);
-                    Log.Information("Reinitializing rclone settings");
-                    // Reinitialize the mirror list with the new config and reselect mirror
+                    Log.Information("Rclone config updated from {MirrorName}. Reloading mirror list", MirrorName);
+                    // Reinitialize the mirror list with the new config and reselect mirror, if needed
                     IsMirrorListInitialized = false;
                     MirrorList = new List<string>();
                     EnsureMirrorListInitialized();
+                    if (MirrorList.Contains(MirrorName)) return;
+                    Log.Information("Mirror {MirrorName} not found in new mirror list", MirrorName);
                     MirrorName = "";
                     EnsureMirrorSelected();
                     return;
@@ -100,8 +102,7 @@ public class DownloaderService
             {
                 var oldConfigPath = Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, "FFA_config");
                 var newConfigPath = Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, "FFA_config_new");
-                await RcloneTransferAsync("Quest Games/.meta/FFA", newConfigPath, ignoreConfigLock: true,
-                    operation: "copyto");
+                await RcloneTransferInternalAsync($"{MirrorName}:Quest Games/.meta/FFA", newConfigPath, operation: "copyto");
                 File.Move(newConfigPath, oldConfigPath, true);
                 return true;
             }
@@ -257,12 +258,18 @@ public class DownloaderService
     }
 
     private async Task RcloneTransferAsync(string source, string destination, string operation,
-        string additionalArgs = "", int retries = 1,
-        bool ignoreConfigLock = false, CancellationToken ct = default)
+        string additionalArgs = "", int retries = 1, CancellationToken ct = default)
     {
-        if (!ignoreConfigLock)
-            while (RcloneConfigSemaphoreSlim.CurrentCount == 0)
-                await Task.Delay(100, ct);
+        await RcloneConfigSemaphoreSlim.WaitAsync(ct);
+        RcloneConfigSemaphoreSlim.Release();
+        EnsureMirrorSelected();
+        source = $"{MirrorName}:{source}";
+        await RcloneTransferInternalAsync(source, destination, operation, additionalArgs, retries, ct);
+    }
+
+    private async Task RcloneTransferInternalAsync(string source, string destination, string operation,
+        string additionalArgs = "", int retries = 1, CancellationToken ct = default)
+    {
         try
         {
             EnsureMirrorSelected();
@@ -271,7 +278,7 @@ public class DownloaderService
                 : "";
             await Cli.Wrap(PathHelper.RclonePath)
                 .WithArguments(
-                    $"{operation} --retries {retries} {bwLimit} \"{MirrorName}:{source}\" \"{destination}\" {additionalArgs}")
+                    $"{operation} --retries {retries} {bwLimit} \"{source}\" \"{destination}\" {additionalArgs}")
                 .ExecuteBufferedAsync(ct);
         }
         catch (Exception e)
@@ -293,7 +300,7 @@ public class DownloaderService
     // TODO: offline mode
     public async Task EnsureGameListAvailableAsync(bool refresh = false)
     {
-        if (AvailableGames is not null && !refresh)
+        if (AvailableGames is not null && !refresh || Design.IsDesignMode)
             return;
 
         await GameListSemaphoreSlim.WaitAsync();
@@ -312,11 +319,10 @@ public class DownloaderService
             Log.Information("Downloading game list");
             while (true)
             {
-                var result = await TryDownloadGameListAsync();
-                if (result.Success)
+                if (await TryDownloadGameListAsync())
                     try
                     {
-                        AvailableGames = csvEngine.ReadFile(result.GameListPath).ToList();
+                        AvailableGames = csvEngine.ReadFile(Path.Combine("metadata", "FFA.txt")).ToList();
                         if (AvailableGames.Count == 0)
                         {
                             Log.Warning("Loaded empty game list from mirror {MirrorName}, retrying", MirrorName);
@@ -335,7 +341,10 @@ public class DownloaderService
             }
             
             await TryLoadPopularityAsync();
+
+            await TryLoadDonationBlacklistAsync();
             
+
             /*if (!Directory.Exists("metadata"))
                 Directory.CreateDirectory("metadata");
 
@@ -396,7 +405,7 @@ public class DownloaderService
             GameListSemaphoreSlim.Release();
         }
 
-        async Task<(bool Success, string GameListPath)> TryDownloadGameListAsync()
+        async Task<bool> TryDownloadGameListAsync()
         {
             // Trying different list files seems useless, just wasting time
             //List<string> gameListNames = new(){"FFA.txt", "FFA2.txt", "FFA3.txt", "FFA4.txt"};
@@ -404,9 +413,8 @@ public class DownloaderService
             foreach (var gameListName in gameListNames)
                 try
                 {
-                    await RcloneTransferAsync($"Quest Games/{gameListName}", "./metadata/", "copy");
-                    var gameListPath = "metadata" + Path.DirectorySeparatorChar + gameListName;
-                    return (true, gameListPath);
+                    await RcloneTransferAsync($"Quest Games/{gameListName}", "./metadata/FFA.txt", "copyto");
+                    return true;
                 }
                 catch (Exception e)
                 {
@@ -420,7 +428,7 @@ public class DownloaderService
                             Log.Warning(e,
                                 "Error downloading list {GameList} from mirror {MirrorName} (is mirror down?)",
                                 gameListName, MirrorName);
-                            return (false, "");
+                            return false;
                         default:
                             throw;
                     }
@@ -428,7 +436,7 @@ public class DownloaderService
 
             //Log.Warning("Quota exceeded on all game lists on mirror {MirrorName}", MirrorName);
             Log.Warning("Quota exceeded on game list on mirror {MirrorName}", MirrorName);
-            return (false, "");
+            return false;
         }
 
         async Task TryLoadPopularityAsync()
@@ -463,6 +471,31 @@ public class DownloaderService
             catch (Exception e)
             {
                 Log.Warning(e, "Failed to load popularity data");
+            }
+        }
+        
+        async Task TryLoadDonationBlacklistAsync()
+        {
+            try
+            {
+                await RcloneTransferAsync("Quest Games/.meta/nouns/blacklist.txt", "./metadata/blacklist_new.txt", "copyto");
+                File.Move(Path.Combine("metadata", "blacklist_new.txt"), Path.Combine("metadata", "blacklist.txt"), true);
+                Log.Debug("Downloaded donation blacklist");
+            }
+            catch (Exception e)
+            {
+                Log.Warning(e, "Failed to download donation blacklist");
+            }
+            try
+            {
+                if (File.Exists(Path.Combine("metadata", "blacklist.txt")))
+                    DonationBlacklistedPackages =
+                        (await File.ReadAllLinesAsync(Path.Combine("metadata", "blacklist.txt"))).ToList();
+                Log.Debug("Loaded {BlacklistedPackagesCount} blacklisted packages", DonationBlacklistedPackages.Count);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Failed to load donation blacklist");
             }
         }
     }
@@ -567,6 +600,23 @@ public class DownloaderService
         {
             return null;
         }
+    }
+
+    public async Task UploadDonationAsync(string path, CancellationToken ct = default)
+    {
+        if (!File.Exists(path))
+            throw new FileNotFoundException("Archive not found", path);
+        var archiveName = Path.GetFileName(path);
+        if (!Regex.IsMatch(archiveName, @"^.+ v\d+ .+\.zip$"))
+            throw new ArgumentException("Invalid archive name", nameof(path));
+        Log.Information("Uploading donation {ArchiveName}", archiveName);
+        var md5Sum = GeneralUtils.GetFileChecksum(HashingAlgoTypes.MD5, path).ToLower();
+        await File.WriteAllTextAsync(path + ".md5sum", md5Sum, ct);
+        await RcloneConfigSemaphoreSlim.WaitAsync(ct);
+        RcloneConfigSemaphoreSlim.Release();
+        await RcloneTransferInternalAsync(path, "FFA-DD:/_donations/", "copy", ct: ct);
+        await RcloneTransferInternalAsync(path + ".md5sum", "FFA-DD:/md5sum/", "copy",
+            ct: ct);
     }
 }
 

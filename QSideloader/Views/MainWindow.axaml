@@ -33,6 +33,11 @@
             <ui:NavigationView.MenuItems>
                 <ui:NavigationViewItem Icon="AllApps" Content="Installed Games" Tag="InstalledGamesView" />
                 <ui:NavigationViewItem Icon="Download" Content="Available Games" Tag="AvailableGamesView" />
+                <ui:NavigationViewItem Icon="Upload" Content="Donate Games" Tag="GameDonationView">
+                    <ui:NavigationViewItem.InfoBadge>
+                        <ui:InfoBadge Value="{Binding DonatableAppsCount}" IsVisible="{Binding DonatableAppsCount}"/>
+                    </ui:NavigationViewItem.InfoBadge>
+                </ui:NavigationViewItem>
             </ui:NavigationView.MenuItems>
             <Grid RowDefinitions="*,Auto">
                 <ui:Frame x:Name="ContentFrame" Grid.Row="0" />

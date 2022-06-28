@@ -344,7 +344,7 @@ public class AdbService
     /// <returns>
     ///     <see langword="true" /> if device responded, <see langword="false" /> otherwise.
     /// </returns>
-    private bool PingDevice(DeviceData device)
+    public bool PingDevice(DeviceData device)
     {
         WakeDevice(device);
         return device.State == DeviceState.Online && RunShellCommand(device, "echo 1")?.Trim() == "1";
@@ -632,8 +632,8 @@ public class AdbService
     /// </summary>
     public class AdbDevice : DeviceData
     {
-        private static readonly SemaphoreSlim DeviceInfoSemaphoreSlim = new(1, 1);
-        private static readonly SemaphoreSlim PackagesSemaphoreSlim = new(1, 1);
+        private readonly SemaphoreSlim _deviceInfoSemaphoreSlim = new(1, 1);
+        private readonly SemaphoreSlim _packagesSemaphoreSlim = new(1, 1);
         private readonly AdbServerClient _adb;
         private readonly AdbService _adbService;
         private readonly SideloaderSettingsViewModel _sideloaderSettings;
@@ -681,11 +681,7 @@ public class AdbService
 
             PackageManager = new PackageManager(_adb.AdbClient, this, true);
 
-            Task.Run(() =>
-            {
-                RefreshInstalledPackages();
-                _adbService._packageListChangeSubject.OnNext(Unit.Default);
-            });
+            Task.Run(OnPackageListChanged);
         }
 
         private PackageManager PackageManager { get; }
@@ -693,7 +689,10 @@ public class AdbService
         public float SpaceFree { get; private set; }
         public float SpaceTotal { get; private set; }
         public float BatteryLevel { get; private set; }
-        public List<string> InstalledPackages { get; set; } = new();
+        public List<(string packageName, VersionInfo? versionInfo)> InstalledPackages { get; private set; } = new();
+        public List<InstalledGame> InstalledGames { get; set; } = new();
+        public List<InstalledApp> InstalledApps { get; set; } = new();
+        public bool IsRefreshingInstalledGames => _packagesSemaphoreSlim.CurrentCount == 0;
         public string FriendlyName { get; }
         
         /// <summary>
@@ -732,18 +731,27 @@ public class AdbService
         /// </summary>
         private void RefreshInstalledPackages()
         {
-            var skip = PackagesSemaphoreSlim.CurrentCount == 0;
-            PackagesSemaphoreSlim.Wait();
+            var skip = _packagesSemaphoreSlim.CurrentCount == 0;
+            _packagesSemaphoreSlim.Wait();
             try
             {
                 if (skip)
                     return;
+                if (_adbService.Device == this)
+                    Log.Debug("Refreshing installed packages");
+                else
+                    Log.Verbose("Refreshing installed packages on {Device}", this);
                 PackageManager.RefreshPackages();
-                InstalledPackages = new List<string>(PackageManager.Packages.Keys);
+                foreach (var package in PackageManager.Packages.Keys.Where(package =>
+                             InstalledPackages.All(x => x.packageName != package)).ToList())
+                    InstalledPackages.Add((package, PackageManager.GetVersionInfo(package)));
+                foreach (var package in InstalledPackages.Where(package =>
+                             !PackageManager.Packages.ContainsKey(package.packageName)).ToList())
+                    InstalledPackages.Remove(package);
             }
             finally
             {
-                PackagesSemaphoreSlim.Release();
+                _packagesSemaphoreSlim.Release();
             }
         }
 
@@ -758,8 +766,8 @@ public class AdbService
         public void RefreshInfo()
         {
             // Check whether refresh is already running
-            var alreadyRefreshing = DeviceInfoSemaphoreSlim.CurrentCount < 1;
-            DeviceInfoSemaphoreSlim.Wait();
+            var alreadyRefreshing = _deviceInfoSemaphoreSlim.CurrentCount < 1;
+            _deviceInfoSemaphoreSlim.Wait();
             try
             {
                 Log.Debug("Refreshing device info");
@@ -793,8 +801,16 @@ public class AdbService
             }
             finally
             {
-                DeviceInfoSemaphoreSlim.Release();
+                _deviceInfoSemaphoreSlim.Release();
             }
+        }
+        
+        public void OnPackageListChanged()
+        {
+            RefreshInstalledPackages();
+            RefreshInstalledGames();
+            RefreshInstalledApps();
+            _adbService._packageListChangeSubject.OnNext(Unit.Default);
         }
 
         /// <summary>
@@ -804,38 +820,68 @@ public class AdbService
         /// <exception cref="InvalidOperationException">
         ///     Thrown if <see cref="DownloaderService.AvailableGames" /> is null
         /// </exception>
-        public List<InstalledGame> GetInstalledGames()
+        public void RefreshInstalledGames()
         {
-            PackagesSemaphoreSlim.Wait();
+            var skip = _packagesSemaphoreSlim.CurrentCount == 0;
+            _packagesSemaphoreSlim.Wait();
             try
             {
-                _ = _downloaderService.AvailableGames ??
-                    throw new InvalidOperationException("DownloaderService.AvailableGames must be initialized");
+                if (skip)
+                    return;
+                if (_adbService.Device == this)
+                    Log.Information("Refreshing list of installed games");
+                else
+                    Log.Verbose("Refreshing list of installed games on {Device}", this);
+                _downloaderService.EnsureGameListAvailableAsync().GetAwaiter().GetResult();
                 if (InstalledPackages.Count == 0) RefreshInstalledPackages();
                 var query = from package in InstalledPackages
-                    let versionInfo = PackageManager.GetVersionInfo(package)
-                    // PackageManager.GetVersionInfo can return null
-                    let versionCode = versionInfo?.VersionCode ?? -1
+                    where package.versionInfo is not null
                     // We can't determine which particular release is installed, so we list all releases with appropriate package name
-                    let games = _downloaderService.AvailableGames.Where(g => g.PackageName == package)
+                    let games = _downloaderService.AvailableGames!.Where(g => g.PackageName == package.packageName)
                     where games.Any()
                     from game in games
-                    select new InstalledGame(game, versionCode);
-                var installedGames = query.ToList();
-                var tupleList = installedGames.Select(g => (g.ReleaseName, g.PackageName)).ToList();
-                Log.Debug("Found {Count} installed games: {InstalledGames}", installedGames.Count,
-                    tupleList);
-                return installedGames;
+                    select new InstalledGame(game, package.versionInfo.VersionCode);
+                InstalledGames = query.ToList();
+                var tupleList = InstalledGames.Select(g => (g.ReleaseName, g.PackageName)).ToList();
+                if (_adbService.Device == this)
+                    Log.Debug("Found {Count} installed games: {InstalledGames}", InstalledGames.Count,
+                        tupleList);
+                else
+                    Log.Verbose("Found {Count} installed games on {Device}: {InstalledGames}", InstalledGames.Count, this,
+                        tupleList);
             }
             catch (Exception e)
             {
-                Log.Error(e, "Failed to get installed games");
-                return new List<InstalledGame>();
+                Log.Error(e, "Failed to refresh installed games");
+                InstalledGames = new List<InstalledGame>();
             }
             finally
             {
-                PackagesSemaphoreSlim.Release();
+                _packagesSemaphoreSlim.Release();
             }
+        }
+
+        public void RefreshInstalledApps()
+        {
+            _downloaderService.EnsureGameListAvailableAsync().GetAwaiter().GetResult();
+            if (_adbService.Device == this)
+                Log.Debug("Refreshing list of installed apps");
+            else
+                Log.Verbose("Refreshing list of installed apps on {Device}", this);
+            var query = from package in InstalledPackages
+                let packageName = package.packageName
+                let versionName = package.versionInfo?.VersionName ?? "N/A"
+                let versionCode = package.versionInfo?.VersionCode ?? -1
+                let name = InstalledGames.FirstOrDefault(g => g.PackageName == packageName)?.GameName ?? packageName
+                let isBlacklisted = _downloaderService.DonationBlacklistedPackages.Contains(packageName)
+                let isNew = _downloaderService.AvailableGames!.All(g => g.PackageName != packageName)
+                let isIgnored = _sideloaderSettings.IgnoredDonationPackages.Any(i => i == packageName)
+                let isDonated = _sideloaderSettings.DonatedPackages.Any(i => i.packageName == packageName && i.versionCode >= versionCode)
+                let isNewVersion =  _downloaderService.AvailableGames!.Where(g => g.PackageName == packageName).Any(g => versionCode > g.VersionCode)
+                let isHiddenFromDonation = isBlacklisted || isIgnored || isDonated || !(isNew || isNewVersion)
+                let donationStatus = !isHiddenFromDonation ? isNewVersion ? "New version" : "New App" : isDonated ? "Donated" : isIgnored ? "Ignored" : ""
+                select new InstalledApp(name, packageName, versionName, versionCode, isHiddenFromDonation, donationStatus);
+            InstalledApps = query.ToList();
         }
 
         /// <summary>
@@ -1006,8 +1052,7 @@ public class AdbService
                     }
 
                     Log.Information("Installed game {GameName}", game.GameName);
-                    RefreshInstalledPackages();
-                    _adbService._packageListChangeSubject.OnNext(Unit.Default);
+                    OnPackageListChanged();
                     observer.OnCompleted();
                 }
                 catch (Exception e)
@@ -1169,8 +1214,7 @@ public class AdbService
             }
 
             CleanupRemnants(game);
-            RefreshInstalledPackages();
-            _adbService._packageListChangeSubject.OnNext(Unit.Default);
+            OnPackageListChanged();
         }
 
         /// <summary>
@@ -1226,7 +1270,6 @@ public class AdbService
         /// <remarks>Legacy install method is used to avoid rare hang issues.</remarks>
         private void InstallPackage(string apkPath, bool reinstall, bool grantRuntimePermissions)
         {
-            _ = PackageManager ?? throw new InvalidOperationException("PackageManager must be initialized");
             Log.Information("Installing APK: {ApkFileName}", Path.GetFileName(apkPath));
             
             // List<string> args = new ();
@@ -1448,8 +1491,27 @@ public class AdbService
 
             Log.Information("Backup restored");
             if (!packageListChanged) return;
-            RefreshInstalledPackages();
-            _adbService._packageListChangeSubject.OnNext(Unit.Default);
+            OnPackageListChanged();
+        }
+        
+        public string PullApp(string packageName, string outputPath)
+        {
+            Log.Information("Pulling app {PackageName} from device", packageName);
+            var path = Path.Combine(outputPath, packageName);
+            if (Directory.Exists(path))
+                Directory.Delete(path, true);
+            Directory.CreateDirectory(path);
+            var apkPath = Regex.Match(RunShellCommand($"pm path {packageName}")!, @"package:(\S+)").Groups[1]
+                .ToString();
+            var localApkPath = Path.Combine(path, Path.GetFileName(apkPath));
+            var obbPath = $"/sdcard/Android/obb/{packageName}/";
+            PullFile(apkPath, path);
+            File.Move(localApkPath, Path.Combine(path, packageName + ".apk"));
+            localApkPath = Path.Combine(path, packageName + ".apk");
+            if (RemoteDirectoryExists(obbPath))
+                PullDirectory(obbPath, path);
+            var apkInfo = GeneralUtils.GetApkInfo(localApkPath);
+            return path;
         }
     }
 

@@ -64,20 +64,23 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             PopulateAvailableGames();
             RefreshInstalled();
         });
-        Refresh = ReactiveCommand.CreateFromObservable(RefreshImpl);
-        Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
+        Refresh = ReactiveCommand.CreateFromObservable(() => RefreshImpl());
+        ManualRefresh = ReactiveCommand.CreateFromObservable(() => RefreshImpl(true));
+        var isBusyCombined = Refresh.IsExecuting
+            .CombineLatest(ManualRefresh.IsExecuting, (x, y) => x || y);
+        isBusyCombined.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
         Install = ReactiveCommand.CreateFromObservable(InstallImpl);
         Download = ReactiveCommand.CreateFromObservable(DownloadImpl);
         Refresh.Execute().Subscribe();
     }
 
     public ReactiveCommand<Unit, Unit> Refresh { get; }
+    public ReactiveCommand<Unit, Unit> ManualRefresh { get; }
     public ReactiveCommand<Unit, Unit> Install { get; }
     public ReactiveCommand<Unit, Unit> Download { get; }
     public ReadOnlyObservableCollection<Game> AvailableGames => _availableGames;
     public bool IsBusy => _isBusy.Value;
     [Reactive] public bool MultiSelectEnabled { get; set; } = true;
-    private bool FirstRefresh { get; set; } = true;
     [Reactive] public string SearchText { get; set; } = "";
     [Reactive] public bool IsDeviceConnected { get; set; }
     [Reactive] public bool ShowPopularity1Day { get; set; }
@@ -85,15 +88,14 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] public bool ShowPopularity30Days { get; set; }
     public ViewModelActivator Activator { get; }
 
-    private IObservable<Unit> RefreshImpl()
+    private IObservable<Unit> RefreshImpl(bool force = false)
     {
         return Observable.Start(() =>
         {
-            _downloaderService.EnsureGameListAvailableAsync(!FirstRefresh).GetAwaiter().GetResult();
-            IsDeviceConnected = _adbService.CheckDeviceConnection();
+            _downloaderService.EnsureGameListAvailableAsync(force).GetAwaiter().GetResult();
+            IsDeviceConnected = _adbService.CheckDeviceConnectionSimple();
             PopulateAvailableGames();
             RefreshInstalled();
-            FirstRefresh = false;
         });
     }
 
@@ -157,7 +159,8 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             return;
         }
 
-        var toRemove = AvailableGames.Except(_downloaderService.AvailableGames).ToList();
+        var toRemove = _availableGamesSourceCache.Items
+            .Where(game => _downloaderService.AvailableGames.All(game2 => game.ReleaseName != game2.ReleaseName)).ToList();
         _availableGamesSourceCache.Edit(innerCache =>
         {
             innerCache.AddOrUpdate(_downloaderService.AvailableGames);
@@ -173,6 +176,6 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
                 game.IsInstalled = false;
         else
             foreach (var game in games.Where(game => game.PackageName is not null))
-                game.IsInstalled = _adbService.Device.InstalledPackages.Contains(game.PackageName!);
+                game.IsInstalled = _adbService.Device.InstalledPackages.Any(p => p.packageName == game.PackageName!);
     }
 }

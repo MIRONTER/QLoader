@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -25,12 +28,15 @@ public class MainWindowViewModel : ViewModelBase
     // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
     private readonly AdbService _adbService;
     private readonly DownloaderService _downloaderService;
+    private readonly SideloaderSettingsViewModel _sideloaderSettings;
     // ReSharper restore PrivateFieldCanBeConvertedToLocalVariable
+    private readonly Subject<Unit> _gameDonateSubject = new ();
 
     public MainWindowViewModel()
     {
         _adbService = AdbService.Instance;
         _downloaderService = DownloaderService.Instance;
+        _sideloaderSettings = Globals.SideloaderSettings;
         ShowGameDetailsCommand = ReactiveCommand.CreateFromTask<Game>(async game =>
         {
             if (_downloaderService.AvailableGames is null) return;
@@ -45,11 +51,14 @@ public class MainWindowViewModel : ViewModelBase
             }
         });
         _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged);
+        _adbService.WhenPackageListChanged.Subscribe(_ => RefreshGameDonationBadge());
         Task.Run(() => IsDeviceConnected = _adbService.CheckDeviceConnection());
     }
 
     [Reactive] public bool IsDeviceConnected { get; private set; }
     public ObservableCollection<TaskView> TaskList { get; } = new();
+    [Reactive] public int DonatableAppsCount { get; private set; }
+    public IObservable<Unit> WhenGameDonated => _gameDonateSubject.AsObservable();
 
     public ICommand ShowGameDetailsCommand { get; }
 
@@ -60,8 +69,31 @@ public class MainWindowViewModel : ViewModelBase
             var taskView = new TaskView(game, taskType);
             taskView.Run();
             TaskList.Add(taskView);
-        });
-        Log.Information("Enqueued task {TaskType} {TaskName}", taskType, game.GameName);
+            Log.Information("Enqueued task {TaskType} {TaskName}", taskType, taskView.TaskName);
+        }).ContinueWith(t =>
+        {
+            if (t.IsFaulted)
+            {
+                Log.Error(t.Exception!, "Error while enqueuing task");
+            }
+        }, TaskContinuationOptions.OnlyOnFaulted);
+    }
+    
+    public void EnqueueTask(InstalledApp app, TaskType taskType)
+    {
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            var taskView = new TaskView(app, taskType);
+            taskView.Run();
+            TaskList.Add(taskView);
+            Log.Information("Enqueued task {TaskType} {TaskName}", taskType, taskView.TaskName);
+        }).ContinueWith(t =>
+        {
+            if (t.IsFaulted)
+            {
+                Log.Error(t.Exception!, "Error while enqueuing task");
+            }
+        }, TaskContinuationOptions.OnlyOnFaulted);
     }
     
     public void EnqueueTask(Game game, TaskType taskType, string gamePath)
@@ -91,6 +123,7 @@ public class MainWindowViewModel : ViewModelBase
                 IsDeviceConnected = false;
                 break;
         }
+        RefreshGameDonationBadge();
     }
 
     public void HandleDroppedFiles(IEnumerable<string> fileNames)
@@ -143,5 +176,29 @@ public class MainWindowViewModel : ViewModelBase
                 Log.Warning("Unsupported dropped file {FileName}", fileName);
             }
         }
+    }
+    
+    public void RefreshGameDonationBadge()
+    {
+        DonatableAppsCount = _adbService.CheckDeviceConnectionSimple()
+            ? _adbService.Device!.InstalledApps.Count(app => !app.IsHiddenFromDonation)
+            : 0;
+    }
+    
+    public void OnGameDonated(string packageName, int versionCode)
+    {
+        var existingDonatedPackage =
+            _sideloaderSettings.DonatedPackages.FirstOrDefault(p => p.packageName == packageName);
+        if (existingDonatedPackage != default)
+        {
+            _sideloaderSettings.DonatedPackages.Remove(existingDonatedPackage);
+            existingDonatedPackage.Item2 = versionCode;
+            _sideloaderSettings.DonatedPackages.Add(existingDonatedPackage);
+        }
+        else
+            _sideloaderSettings.DonatedPackages.Add((packageName, versionCode));
+        _adbService.Device?.RefreshInstalledApps();
+        RefreshGameDonationBadge();
+        _gameDonateSubject.OnNext(Unit.Default);
     }
 }

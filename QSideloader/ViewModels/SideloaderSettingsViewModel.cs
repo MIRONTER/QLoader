@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -46,6 +48,8 @@ public class SideloaderSettingsViewModel : ViewModelBase
         LoadSettings();
         ValidateSettings();
         PropertyChanged += AutoSave;
+        DonatedPackages.CollectionChanged += OnCollectionChanged;
+        IgnoredDonationPackages.CollectionChanged += OnCollectionChanged;
         this.ValidationRule(viewModel => viewModel.DownloadsLocationTextBoxText,
             Directory.Exists,
             "Invalid path");
@@ -96,6 +100,8 @@ public class SideloaderSettingsViewModel : ViewModelBase
     public string[] PopularityRanges { get; } = {"30 days", "7 days", "1 day", "None"};
     [Reactive] [JsonProperty] public string? PopularityRange { get; private set; }
     [JsonProperty] public Guid InstallationId { get; private set; } = Guid.NewGuid();
+    [JsonProperty] public ObservableCollection<(string packageName, int versionCode)> DonatedPackages { get; private set; } = new();
+    [JsonProperty] public ObservableCollection<string> IgnoredDonationPackages { get; private set; } = new();
     private ReactiveCommand<bool, Unit> SaveSettings { get; }
     private ReactiveCommand<Unit, Unit> RestoreDefaults { get; }
     public ReactiveCommand<Unit, Unit> SetDownloadLocation { get; }
@@ -120,6 +126,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
         LastWirelessAdbHost = "";
         EnableDebugConsole = !IsConsoleToggleable;
         PopularityRange = PopularityRanges[0];
+        IgnoredDonationPackages = new ObservableCollection<string>();
     }
 
     private void ValidateSettings(bool save = true)
@@ -338,6 +345,12 @@ public class SideloaderSettingsViewModel : ViewModelBase
             (typeof(SideloaderSettingsViewModel).GetProperty(e.PropertyName) is { } property && !Attribute.IsDefined(
                 property,
                 typeof(JsonPropertyAttribute)))) return;
+        AutoSaveDelayTimer.Stop();
+        AutoSaveDelayTimer.Start();
+    }
+    
+    private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
         AutoSaveDelayTimer.Stop();
         AutoSaveDelayTimer.Start();
     }
