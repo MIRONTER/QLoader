@@ -103,8 +103,14 @@ public class MainWindowViewModel : ViewModelBase
             var taskView = new TaskView(game, taskType, gamePath);
             taskView.Run();
             TaskList.Add(taskView);
-        });
-        Log.Information("Enqueued task {TaskType} {TaskName}", taskType, game.GameName);
+            Log.Information("Enqueued task {TaskType} {TaskName}", taskType, game.GameName);
+        }).ContinueWith(t =>
+        {
+            if (t.IsFaulted)
+            {
+                Log.Error(t.Exception!, "Error while enqueuing task");
+            }
+        }, TaskContinuationOptions.OnlyOnFaulted);
     }
 
     public IEnumerable<TaskView> GetTaskList()
