@@ -22,6 +22,7 @@ using QSideloader.Helpers;
 using QSideloader.Models;
 using QSideloader.ViewModels;
 using Serilog;
+using Serilog.Events;
 using SerilogTimings;
 
 namespace QSideloader.Services;
@@ -766,7 +767,7 @@ public class AdbService
         /// <exception cref="AdbServiceException">Thrown if df command failed</exception>
         public void RefreshInfo()
         {
-            using var op = Operation.Begin("Refreshing device info");
+            using var op = Operation.At(LogEventLevel.Debug).Begin("Refreshing device info");
             // Check whether refresh is already running
             var alreadyRefreshing = _deviceInfoSemaphoreSlim.CurrentCount < 1;
             _deviceInfoSemaphoreSlim.Wait();
@@ -1119,7 +1120,7 @@ public class AdbService
                 var gamePath = Path.GetDirectoryName(scriptPath)!;
                 var scriptCommands = File.ReadAllLines(scriptPath);
                 foreach (var archivePath in Directory.GetFiles(gamePath, "*.7z", SearchOption.TopDirectoryOnly))
-                    ZipUtil.ExtractArchiveAsync(archivePath, gamePath).GetAwaiter().GetResult();
+                    ZipUtil.ExtractArchive(archivePath, gamePath);
                 foreach (var rawCommand in scriptCommands)
                 {
                     if (string.IsNullOrWhiteSpace(rawCommand) || rawCommand.StartsWith("#")) continue;

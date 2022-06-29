@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
@@ -10,12 +9,12 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using QSideloader.Helpers;
+using QSideloader.Services;
 using QSideloader.ViewModels;
 using QSideloader.Views;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Formatting.Compact;
-using Serilog.Formatting.Json;
 
 namespace QSideloader;
 
@@ -31,23 +30,19 @@ public class App : Application
         {
             InitializeLogging();
 
+            var trailersAddonPath = "";
             if (File.Exists("TrailersAddon.zip"))
-                Task.Run(() =>
-                {
-                    Log.Information("Found trailers addon zip. Starting background install");
-                    ZipUtil.ExtractArchiveAsync("TrailersAddon.zip", Directory.GetCurrentDirectory())
-                        .GetAwaiter().GetResult();
-                    Log.Information("Installed trailers addon");
-                    File.Delete("TrailersAddon.zip");
-                });
+                trailersAddonPath = "TrailersAddon.zip";
             if (File.Exists(Path.Combine("..", "TrailersAddon.zip")))
-                Task.Run(() =>
+                trailersAddonPath = Path.Combine("..", "TrailersAddon.zip");
+            
+            if (!string.IsNullOrEmpty(trailersAddonPath))
+                Task.Run(async () =>
                 {
                     Log.Information("Found trailers addon zip. Starting background install");
-                    ZipUtil.ExtractArchiveAsync(Path.Combine("..", "TrailersAddon.zip"),
-                        Directory.GetCurrentDirectory()).GetAwaiter().GetResult();
+                    await ZipUtil.ExtractArchiveAsync(trailersAddonPath, Directory.GetCurrentDirectory());
                     Log.Information("Installed trailers addon");
-                    File.Delete(Path.Combine("..", "TrailersAddon.zip"));
+                    File.Delete(trailersAddonPath);
                 });
         }
 
@@ -76,12 +71,14 @@ public class App : Application
         const string exceptionsLogPath = "debug_exceptions.txt";
         if (File.Exists(humanReadableLogPath) && new FileInfo(humanReadableLogPath).Length > 3000000)
             File.Delete(humanReadableLogPath);
-        if (File.Exists("debug_log.json"))
-            File.Delete("debug_log.json");
         if (File.Exists(clefLogPath) && new FileInfo(clefLogPath).Length > 5000000)
             File.Delete(clefLogPath);
         if (File.Exists(exceptionsLogPath) && new FileInfo(exceptionsLogPath).Length > 10000000)
             File.Delete(exceptionsLogPath);
+        
+        // Delete old log file with invalid format
+        if (File.Exists("debug_log.json"))
+            File.Delete("debug_log.json");
 
         var humanReadableLogger = new LoggerConfiguration().MinimumLevel.Verbose()
             .WriteTo.File(humanReadableLogPath, fileSizeLimitBytes: 3000000)
@@ -149,7 +146,7 @@ public class App : Application
         bool ShouldLogFirstChanceException(Exception e)
         {
             return !((e.StackTrace is not null && e.StackTrace.Contains("GetRcloneDownloadStats"))
-                     || e.Message.Contains("127.0.0.1:48040")
+                     || e.Message.Contains($"127.0.0.1:{DownloaderService.RcloneStatsPort}")
                      || e.Message.Contains("does not contain a definition for 'bytes'")
                      || e.Message.Contains("does not contain a definition for 'speed'"));
         }

@@ -67,8 +67,8 @@ public class MainWindowViewModel : ViewModelBase
         Dispatcher.UIThread.InvokeAsync(() =>
         {
             var taskView = new TaskView(game, taskType);
-            taskView.Run();
             TaskList.Add(taskView);
+            taskView.Run();
             Log.Information("Enqueued task {TaskType} {TaskName}", taskType, taskView.TaskName);
         }).ContinueWith(t =>
         {
@@ -84,8 +84,8 @@ public class MainWindowViewModel : ViewModelBase
         Dispatcher.UIThread.InvokeAsync(() =>
         {
             var taskView = new TaskView(app, taskType);
-            taskView.Run();
             TaskList.Add(taskView);
+            taskView.Run();
             Log.Information("Enqueued task {TaskType} {TaskName}", taskType, taskView.TaskName);
         }).ContinueWith(t =>
         {
@@ -101,8 +101,8 @@ public class MainWindowViewModel : ViewModelBase
         Dispatcher.UIThread.InvokeAsync(() =>
         {
             var taskView = new TaskView(game, taskType, gamePath);
-            taskView.Run();
             TaskList.Add(taskView);
+            taskView.Run();
             Log.Information("Enqueued task {TaskType} {TaskName}", taskType, game.GameName);
         }).ContinueWith(t =>
         {

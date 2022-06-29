@@ -54,6 +54,7 @@ public class DownloaderService
     public string MirrorName { get; private set; } = "";
     private List<string> MirrorList { get; set; } = new();
     public IEnumerable<string> MirrorListReadOnly => MirrorList.AsReadOnly();
+    public static int RcloneStatsPort => 48040;
 
     private bool CanSwitchMirror => RcloneConfigSemaphoreSlim.CurrentCount > 0 &&
                                     MirrorListSemaphoreSlim.CurrentCount > 0 && GameListSemaphoreSlim.CurrentCount > 0;
@@ -520,8 +521,8 @@ public class DownloaderService
                 {
                     await RcloneTransferAsync(srcPath, dstPath,
                         "copy",
-                        "--progress --drive-acknowledge-abuse --rc --rc-addr :48040 --drive-stop-on-download-limit", 3,
-                        ct: ct);
+                        $"--progress --drive-acknowledge-abuse --rc --rc-addr :{RcloneStatsPort} --drive-stop-on-download-limit",
+                        3, ct: ct);
                     var json = JsonConvert.SerializeObject(game);
                     await File.WriteAllTextAsync(Path.Combine(dstPath, "release.json"), json, ct);
                     break;

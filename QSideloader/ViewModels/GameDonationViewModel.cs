@@ -147,7 +147,7 @@ public class GameDonationViewModel: ViewModelBase, IActivatableViewModel
                 }
                 
                 app.IsSelected = false;
-                Globals.MainWindowViewModel.EnqueueTask(app, TaskType.PullAndUpload);
+                Globals.MainWindowViewModel!.EnqueueTask(app, TaskType.PullAndUpload);
                 Log.Information("Queued for donation: {Name}", app.Name);
             }
         });
