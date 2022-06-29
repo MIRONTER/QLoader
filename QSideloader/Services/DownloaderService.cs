@@ -21,6 +21,7 @@ using QSideloader.Helpers;
 using QSideloader.Models;
 using QSideloader.ViewModels;
 using Serilog;
+using SerilogTimings;
 
 namespace QSideloader.Services;
 
@@ -270,9 +271,10 @@ public class DownloaderService
     private async Task RcloneTransferInternalAsync(string source, string destination, string operation,
         string additionalArgs = "", int retries = 1, CancellationToken ct = default)
     {
+        using var op = Operation.Begin("Rclone {Operation} \"{Source}\" -> \"{Destination}\"", operation, source,
+            destination);
         try
         {
-            EnsureMirrorSelected();
             var bwLimit = !string.IsNullOrEmpty(_sideloaderSettings.DownloaderBandwidthLimit)
                 ? $"--bwlimit {_sideloaderSettings.DownloaderBandwidthLimit}"
                 : "";
@@ -280,6 +282,7 @@ public class DownloaderService
                 .WithArguments(
                     $"{operation} --retries {retries} {bwLimit} \"{source}\" \"{destination}\" {additionalArgs}")
                 .ExecuteBufferedAsync(ct);
+            op.Complete();
         }
         catch (Exception e)
         {
@@ -443,8 +446,12 @@ public class DownloaderService
         {
             try
             {
-                var popularity =
-                    await ApiHttpClient.GetFromJsonAsync<List<Dictionary<string, JsonElement>>>("popularity");
+                List<Dictionary<string, JsonElement>>? popularity;
+                using (var op = Operation.Time("Requesting popularity from API"))
+                {
+                    popularity =
+                        await ApiHttpClient.GetFromJsonAsync<List<Dictionary<string, JsonElement>>>("popularity");
+                }
                 if (popularity is not null)
                 {
                     var popularityMax1D = popularity.Max(x => x["1D"].GetInt32());
@@ -502,7 +509,6 @@ public class DownloaderService
 
     public async Task<string> DownloadGameAsync(Game game, CancellationToken ct = default)
     {
-        var stopWatch = Stopwatch.StartNew();
         var srcPath = $"Quest Games/{game.ReleaseName}";
         var dstPath = Path.Combine(_sideloaderSettings.DownloadsLocation, game.ReleaseName!);
         try
@@ -538,7 +544,6 @@ public class DownloaderService
                     Log.Information("Retrying download");
                 }
 
-            Log.Debug("Rclone download took {TotalSeconds} seconds", Math.Round(stopWatch.Elapsed.TotalSeconds, 2));
             Log.Information("Release {ReleaseName} downloaded", game.ReleaseName);
             return dstPath;
         }
@@ -548,10 +553,6 @@ public class DownloaderService
                 throw;
             Log.Error(e, "Error downloading release");
             throw new DownloaderServiceException("Error downloading release", e);
-        }
-        finally
-        {
-            stopWatch.Stop();
         }
     }
 

@@ -22,6 +22,7 @@ using QSideloader.Helpers;
 using QSideloader.Models;
 using QSideloader.ViewModels;
 using Serilog;
+using SerilogTimings;
 
 namespace QSideloader.Services;
 
@@ -765,16 +766,16 @@ public class AdbService
         /// <exception cref="AdbServiceException">Thrown if df command failed</exception>
         public void RefreshInfo()
         {
+            using var op = Operation.Begin("Refreshing device info");
             // Check whether refresh is already running
             var alreadyRefreshing = _deviceInfoSemaphoreSlim.CurrentCount < 1;
             _deviceInfoSemaphoreSlim.Wait();
             try
             {
-                Log.Debug("Refreshing device info");
                 // If device info has just been refreshed we can skip
                 if (alreadyRefreshing)
                 {
-                    Log.Debug("Device info already refreshed, skipping");
+                    op.Cancel();
                     return;
                 }
 
@@ -790,22 +791,24 @@ public class AdbService
                                     throw new AdbServiceException(
                                         "RefreshInfo: dumpsys RunShellCommand returned null");
                 BatteryLevel = int.Parse(Regex.Match(dumpsysOutput, @"[0-9]{1,3}").ToString());
-                Log.Debug("Refreshed device info");
+                op.Complete();
             }
-            catch
+            catch (Exception e)
             {
                 SpaceTotal = 0;
                 SpaceUsed = 0;
                 SpaceFree = 0;
-                Log.Debug("Failed to refresh device info");
+                BatteryLevel = 0;
+                op.SetException(e);
+                op.Abandon();
             }
             finally
             {
                 _deviceInfoSemaphoreSlim.Release();
             }
         }
-        
-        public void OnPackageListChanged()
+
+        private void OnPackageListChanged()
         {
             RefreshInstalledPackages();
             RefreshInstalledGames();
@@ -997,13 +1000,14 @@ public class AdbService
         {
             return Observable.Create<string>(observer =>
             {
+                using var op = Operation.Begin("Sideloading game {GameName}", game.GameName ?? "Unknown");
                 var reinstall = false;
                 try
                 {
                     Log.Information("Sideloading game {GameName}", game.GameName);
 
                     if (game.PackageName is not null)
-                        reinstall = PackageManager.Packages.ContainsKey(game.PackageName);
+                        reinstall = InstalledPackages.Any(x => x.packageName == game.PackageName);
 
                     if (File.Exists(gamePath))
                     {
@@ -1051,13 +1055,14 @@ public class AdbService
                         }
                     }
 
-                    Log.Information("Installed game {GameName}", game.GameName);
+                    op.Complete();
                     OnPackageListChanged();
                     observer.OnCompleted();
                 }
                 catch (Exception e)
                 {
-                    Log.Error(e, "Error installing game");
+                    op.SetException(e);
+                    op.Abandon();
                     if (!reinstall)
                     {
                         Log.Information("Cleaning up failed install");
