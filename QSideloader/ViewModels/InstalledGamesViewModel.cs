@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
@@ -11,6 +12,7 @@ using DynamicData;
 using QSideloader.Helpers;
 using QSideloader.Models;
 using QSideloader.Services;
+using QSideloader.Views;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Serilog;
@@ -116,9 +118,13 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             }
 
             Log.Information("Running auto-update");
-            var runningInstalls = Globals.MainWindowViewModel!.GetTaskList()
-                .Where(x => x.TaskType is TaskType.DownloadAndInstall or TaskType.InstallOnly && !x.IsFinished)
-                .ToList();
+            var runningInstalls = new List<TaskView>();
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                runningInstalls = Globals.MainWindowViewModel!.GetTaskList()
+                    .Where(x => x.TaskType is TaskType.DownloadAndInstall or TaskType.InstallOnly && !x.IsFinished)
+                    .ToList();
+            }).Wait();
             // Find package name duplicates to avoid installing the wrong release
             var ambiguousReleases = _installedGamesSourceCache.Items.GroupBy(x => x.PackageName)
                 .Where(x => x.Skip(1).Any()).SelectMany(x => x).ToList();
@@ -142,7 +148,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
                 }
 
                 game.IsSelected = false;
-                Globals.MainWindowViewModel.EnqueueTask(game, TaskType.DownloadAndInstall);
+                Globals.MainWindowViewModel!.EnqueueTask(game, TaskType.DownloadAndInstall);
                 Log.Information("Queued for update: {ReleaseName}", game.ReleaseName);
             }
         });

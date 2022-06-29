@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
@@ -11,6 +12,7 @@ using DynamicData;
 using QSideloader.Helpers;
 using QSideloader.Models;
 using QSideloader.Services;
+using QSideloader.Views;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Serilog;
@@ -124,8 +126,12 @@ public class GameDonationViewModel: ViewModelBase, IActivatableViewModel
             }
 
             Log.Information("Donating all eligible apps");
-            var runningDonations = Globals.MainWindowViewModel!.GetTaskList()
-                .Where(x => x.TaskType == TaskType.PullAndUpload && !x.IsFinished).ToList();
+            var runningDonations = new List<TaskView>();
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                runningDonations = Globals.MainWindowViewModel!.GetTaskList()
+                    .Where(x => x.TaskType == TaskType.PullAndUpload && !x.IsFinished).ToList();
+            }).Wait();
             if (InstalledApps.Count == 0)
             {
                 Log.Warning("No apps to donate!");
