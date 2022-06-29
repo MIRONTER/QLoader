@@ -564,7 +564,7 @@ public class AdbService
         }
 
         if (!silent)
-            Log.Debug("Trying to connect wireless device, host {Host}", host);
+            Log.Debug("Trying to connect to wireless device, host {Host}", host);
 
         try
         {
@@ -585,7 +585,7 @@ public class AdbService
         catch
         {
             if (!silent)
-                Log.Warning("Couldn't connect wireless device");
+                Log.Warning("Couldn't connect to wireless device");
             _sideloaderSettings.LastWirelessAdbHost = "";
         }
     }
@@ -738,9 +738,9 @@ public class AdbService
                 if (skip)
                     return;
                 if (_adbService.Device == this)
-                    Log.Debug("Refreshing installed packages");
+                    Log.Debug("Refreshing list of installed packages");
                 else
-                    Log.Verbose("Refreshing installed packages on {Device}", this);
+                    Log.Verbose("Refreshing list of installed packages on {Device}", this);
                 PackageManager.RefreshPackages();
                 foreach (var package in PackageManager.Packages.Keys.Where(package =>
                              InstalledPackages.All(x => x.packageName != package)).ToList())
@@ -1059,7 +1059,10 @@ public class AdbService
                 {
                     Log.Error(e, "Error installing game");
                     if (!reinstall)
+                    {
+                        Log.Information("Cleaning up failed install");
                         CleanupRemnants(game);
+                    }
                     observer.OnError(new AdbServiceException("Error installing game", e));
                 }
 
@@ -1078,7 +1081,7 @@ public class AdbService
                         e.Message.Contains("INSTALL_FAILED_VERSION_DOWNGRADE"))
                     {
                         observer.OnNext("Incompatible update, reinstalling");
-                        Log.Information("Incompatible update, reinstalling\nReason: {Message}", e.Message);
+                        Log.Information("Incompatible update, reinstalling. Reason: {Message}", e.Message);
                         var backupPath = CreateBackup(game.PackageName!, "reinstall");
                         UninstallPackage(game.PackageName!);
                         InstallPackage(apkPath, false, true);
