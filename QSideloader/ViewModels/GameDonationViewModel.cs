@@ -30,7 +30,6 @@ public class GameDonationViewModel: ViewModelBase, IActivatableViewModel
         Activator = new ViewModelActivator();
         _adbService = AdbService.Instance;
         _sideloaderSettings = Globals.SideloaderSettings;
-        Activator = new ViewModelActivator();
         Refresh = ReactiveCommand.CreateFromObservable(() => RefreshImpl());
         ManualRefresh = ReactiveCommand.CreateFromObservable(() => RefreshImpl(true));
         var isBusyCombined = Refresh.IsExecuting
