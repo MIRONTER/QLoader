@@ -523,7 +523,7 @@ public class DownloaderService
                         "copy",
                         $"--progress --drive-acknowledge-abuse --rc --rc-addr :{RcloneStatsPort} --drive-stop-on-download-limit",
                         3, ct: ct);
-                    var json = JsonConvert.SerializeObject(game);
+                    var json = JsonConvert.SerializeObject(game, Formatting.Indented);
                     await File.WriteAllTextAsync(Path.Combine(dstPath, "release.json"), json, ct);
                     break;
                 }

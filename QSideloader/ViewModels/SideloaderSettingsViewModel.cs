@@ -215,7 +215,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
         {
             try
             {
-                var json = JsonConvert.SerializeObject(this);
+                var json = JsonConvert.SerializeObject(this, Formatting.Indented);
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     using FileStream stream = AtomicFileStream.Open(PathHelper.SettingsPath, FileMode.Create,
