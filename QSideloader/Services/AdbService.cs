@@ -745,12 +745,20 @@ public class AdbService
                 else
                     Log.Verbose("Refreshing list of installed packages on {Device}", this);
                 PackageManager.RefreshPackages();
+                for (var i = 0; i < InstalledPackages.Count; i++)
+                {
+                    var package = InstalledPackages[i];
+                    if (PackageManager.Packages.ContainsKey(package.packageName))
+                    {
+                        package.versionInfo = PackageManager.GetVersionInfo(package.packageName);
+                        InstalledPackages[i] = package;
+                    }
+                    else
+                        InstalledPackages.Remove(package);
+                }
                 foreach (var package in PackageManager.Packages.Keys.Where(package =>
                              InstalledPackages.All(x => x.packageName != package)).ToList())
                     InstalledPackages.Add((package, PackageManager.GetVersionInfo(package)));
-                foreach (var package in InstalledPackages.Where(package =>
-                             !PackageManager.Packages.ContainsKey(package.packageName)).ToList())
-                    InstalledPackages.Remove(package);
             }
             finally
             {
