@@ -179,8 +179,9 @@ public class AdbService
     /// </returns>
     public bool CheckDeviceConnectionSimple()
     {
-        if (Device is not null) return Device.State == DeviceState.Online;
-        return false;
+        if (Device is null || Device.State != DeviceState.Online) return false;
+        Task.Run(() => WakeDevice(Device));
+        return true;
     }
 
     /// <summary>
