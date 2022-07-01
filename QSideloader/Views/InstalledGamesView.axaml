@@ -37,6 +37,7 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTextColumn Binding="{Binding GameName}" Header="Game Name" Width="auto" IsReadOnly="True" />
+                <DataGridTextColumn Binding="{Binding InstalledVersionName}" Header="Version name" MaxWidth="300" Width="auto" IsReadOnly="True" />
                 <DataGridTextColumn Binding="{Binding ReleaseName}" Header="Latest Release Name" Width="auto"
                                     IsReadOnly="True" />
                 <DataGridTextColumn Binding="{Binding GameSize}" Header="Size (MB)" Width="auto" IsReadOnly="True" />

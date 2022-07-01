@@ -844,7 +844,7 @@ public class AdbService
                     let games = _downloaderService.AvailableGames!.Where(g => g.PackageName == package.packageName)
                     where games.Any()
                     from game in games
-                    select new InstalledGame(game, package.versionInfo.VersionCode);
+                    select new InstalledGame(game, package.versionInfo.VersionCode, package.versionInfo.VersionName);
                 InstalledGames = query.ToList();
                 var tupleList = InstalledGames.Select(g => (g.ReleaseName, g.PackageName)).ToList();
                 if (_adbService.Device == this)
