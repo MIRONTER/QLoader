@@ -1024,17 +1024,23 @@ public class AdbService
                     }
                     else
                     {
-                        if (File.Exists(Path.Combine(gamePath, "install.txt")))
+                        var installScriptPath = "";
+                        try
                         {
-                            observer.OnNext("Performing custom install");
-                            Log.Information("Running commands from install.txt");
-                            RunInstallScript(Path.Combine(gamePath, "install.txt"));
+                            installScriptPath =
+                                PathHelper.GetActualCaseForFileName(Path.Combine(gamePath, "install.txt"));
                         }
-                        else if (File.Exists(Path.Combine(gamePath, "Install.txt")))
+                        catch (Exception)
+                        {
+                            // ignored
+                        }
+
+                        if (File.Exists(installScriptPath))
                         {
                             observer.OnNext("Performing custom install");
-                            Log.Information("Running commands from Install.txt");
-                            RunInstallScript(Path.Combine(gamePath, "Install.txt"));
+                            var installScriptName = Path.GetFileName(installScriptPath);
+                            Log.Information("Running commands from {InstallScriptName}", installScriptName);
+                            RunInstallScript(installScriptPath);
                         }
                         else
                             // install APKs, copy OBB dir
