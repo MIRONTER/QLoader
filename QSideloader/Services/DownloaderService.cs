@@ -304,10 +304,14 @@ public class DownloaderService
     // TODO: offline mode
     public async Task EnsureGameListAvailableAsync(bool refresh = false)
     {
-        if (AvailableGames is not null && !refresh || Design.IsDesignMode)
-            return;
+        var skip = AvailableGames is not null && !refresh || Design.IsDesignMode;
 
         await GameListSemaphoreSlim.WaitAsync();
+        if (skip)
+        {
+            GameListSemaphoreSlim.Release();
+            return;
+        }
 
         while (RcloneConfigSemaphoreSlim.CurrentCount == 0)
             await Task.Delay(100);
