@@ -53,6 +53,7 @@ public class DownloaderService
     public List<string> DonationBlacklistedPackages { get; private set; } = new();
     public string MirrorName { get; private set; } = "";
     private List<string> MirrorList { get; set; } = new();
+    private List<string> ExcludedMirrorList { get; } = new();
     public IEnumerable<string> MirrorListReadOnly => MirrorList.AsReadOnly();
     public static int RcloneStatsPort => 48040;
 
@@ -181,6 +182,7 @@ public class DownloaderService
             try
             {
                 Log.Information("Excluding mirror {MirrorName} for this session", MirrorName);
+                ExcludedMirrorList.Add(MirrorName);
                 MirrorList.Remove(MirrorName);
                 MirrorName = "";
             }
@@ -252,7 +254,7 @@ public class DownloaderService
     private void EnsureMirrorListInitialized()
     {
         if (IsMirrorListInitialized) return;
-        MirrorList = GetMirrorList();
+        MirrorList = GetMirrorList().Where(x => !ExcludedMirrorList.Contains(x)).ToList();
         Log.Debug("Loaded mirrors: {MirrorList}", MirrorList);
         if (MirrorList.Count == 0)
             throw new DownloaderServiceException("Failed to load mirror list");
