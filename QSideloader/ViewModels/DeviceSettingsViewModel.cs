@@ -23,6 +23,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         _adbService = AdbService.Instance;
         Activator = new ViewModelActivator();
         ApplySettings = ReactiveCommand.CreateFromObservable(ApplySettingsImpl, this.IsValid());
+        ApplySettings.ThrownExceptions.Subscribe(ex => Log.Error(ex, "Error applying device settings"));
         MountStorage = ReactiveCommand.CreateFromObservable(MountStorageImpl);
         LaunchHiddenSettings = ReactiveCommand.CreateFromObservable(LaunchHiddenSettingsImpl);
         // this.ValidationRule(viewModel => viewModel.ResolutionTextBoxText,
@@ -78,7 +79,14 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                     "monterey" => new[] {"Auto (recommended)", "60", "72"},
                     _ => RefreshRates
                 };
-                LoadCurrentSettings();
+                try
+                {
+                    LoadCurrentSettings();
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "Failed to load current device settings");
+                }
                 break;
             case DeviceState.Offline:
                 IsDeviceConnected = false;
