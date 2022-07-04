@@ -1263,12 +1263,11 @@ public class AdbService
                 Log.Information("Uninstalling game {GameName}", game.GameName);
                 UninstallPackage(game.PackageName);
             }
-            catch (PackageNotFoundException)
+            finally
             {
+                CleanupRemnants(game);
+                OnPackageListChanged();
             }
-
-            CleanupRemnants(game);
-            OnPackageListChanged();
         }
 
         /// <summary>
