@@ -87,7 +87,8 @@ public class AdbService
     /// <param name="command">Command to run.</param>
     /// <param name="logCommand">Should log the command and result.</param>
     /// <returns>Output of executed command.</returns>
-    private string? RunShellCommand(DeviceData device, string command, bool logCommand = false)
+    /// <exception cref="AdbServiceException">Thrown if an error occured when running the command.</exception>
+    private string RunShellCommand(DeviceData device, string command, bool logCommand = false)
     {
         ConsoleOutputReceiver receiver = new();
         try
@@ -96,10 +97,9 @@ public class AdbService
                 Log.Debug("Running shell command: {Command}", command);
             _adb.AdbClient.ExecuteRemoteCommand(command, device, receiver);
         }
-        catch
+        catch (Exception e)
         {
-            // TODO: throw exception instead of returning null
-            return null;
+            throw new AdbServiceException("Error running shell command: " + command, e);
         }
 
         var result = receiver.ToString().Trim();
@@ -337,7 +337,14 @@ public class AdbService
     /// <param name="device">Device to wake.</param>
     private void WakeDevice(DeviceData device)
     {
-        RunShellCommand(device, "input keyevent KEYCODE_WAKEUP");
+        try
+        {
+            RunShellCommand(device, "input keyevent KEYCODE_WAKEUP");
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Failed to send wake command to device {Device}", device);
+        }
     }
 
     /// <summary>
@@ -350,7 +357,17 @@ public class AdbService
     public bool PingDevice(DeviceData device)
     {
         WakeDevice(device);
-        return device.State == DeviceState.Online && RunShellCommand(device, "echo 1")?.Trim() == "1";
+        if (device.State != DeviceState.Online) return false;
+        try
+        {
+            return RunShellCommand(device, "echo 1").Trim() == "1";
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Failed to ping device {Device}", device);
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -657,7 +674,14 @@ public class AdbService
             try
             {
                 // corrected serial for wireless connection
-                TrueSerial = _adbService.RunShellCommand(deviceData, "getprop ro.boot.serialno") ?? deviceData.Serial;
+                try
+                {
+                    TrueSerial = _adbService.RunShellCommand(deviceData, "getprop ro.boot.serialno");
+                }
+                catch
+                {
+                    TrueSerial = Serial;
+                }
             }
             catch
             {
@@ -724,7 +748,8 @@ public class AdbService
         /// <param name="command">Command to run.</param>
         /// <param name="logCommand">Should log the command and result.</param>
         /// <returns>Output of executed command.</returns>
-        public string? RunShellCommand(string command, bool logCommand = false)
+        /// <exception cref="AdbServiceException">Thrown if an error occured when running the command.</exception>
+        public string RunShellCommand(string command, bool logCommand = false)
         {
             return _adbService.RunShellCommand(this, command, logCommand);
         }
@@ -773,7 +798,6 @@ public class AdbService
         ///     If this method is called while another device info refresh is in progress,
         ///     the call will wait until the other refresh is finished and then return.
         /// </remarks>
-        /// <exception cref="AdbServiceException">Thrown if df command failed</exception>
         public void RefreshInfo()
         {
             using var op = Operation.At(LogEventLevel.Debug).Begin("Refreshing device info");
@@ -789,17 +813,14 @@ public class AdbService
                     return;
                 }
 
-                var dfOutput = RunShellCommand("df /storage/emulated") ??
-                               throw new AdbServiceException("RefreshInfo: df RunShellCommand returned null");
+                var dfOutput = RunShellCommand("df /storage/emulated");
                 var dfOutputSplit = dfOutput.Split(new[] {"\r\n", "\r", "\n"}, StringSplitOptions.None);
                 var line = Regex.Split(dfOutputSplit[1], @"\s{1,}");
                 SpaceTotal = (float) Math.Round(float.Parse(line[1]) / 1000000, 2);
                 SpaceUsed = (float) Math.Round(float.Parse(line[2]) / 1000000, 2);
                 SpaceFree = (float) Math.Round(float.Parse(line[3]) / 1000000, 2);
 
-                var dumpsysOutput = RunShellCommand("dumpsys battery | grep level") ??
-                                    throw new AdbServiceException(
-                                        "RefreshInfo: dumpsys RunShellCommand returned null");
+                var dumpsysOutput = RunShellCommand("dumpsys battery | grep level");
                 BatteryLevel = int.Parse(Regex.Match(dumpsysOutput, @"[0-9]{1,3}").ToString());
                 op.Complete();
             }
@@ -1345,12 +1366,13 @@ public class AdbService
         {
             const int port = 5555;
             const string ipAddressPattern = @"src ([\d]{1,3}.[\d]{1,3}.[\d]{1,3}.[\d]{1,3})";
-            RunShellCommand("settings put global wifi_wakeup_available 1");
-            RunShellCommand("settings put global wifi_wakeup_enabled 1");
-            RunShellCommand("settings put global wifi_sleep_policy 2");
-            RunShellCommand("settings put global wifi_suspend_optimizations_enabled 0");
-            RunShellCommand("settings put global wifi_watchdog_poor_network_test_enabled 0");
-            RunShellCommand("svc wifi enable");
+            RunShellCommand(
+                "settings put global wifi_wakeup_available 1 " +
+                "&& settings put global wifi_wakeup_enabled 1 " +
+                "&& settings put global wifi_sleep_policy 2 " +
+                "&& settings put global wifi_suspend_optimizations_enabled 0 " +
+                "&& settings put global wifi_watchdog_poor_network_test_enabled 0 " +
+                "&& svc wifi enable");
             var ipRouteOutput = RunShellCommand("ip route");
             var ipAddress = Regex.Match(ipRouteOutput!, ipAddressPattern).Groups[1].ToString();
             _adb.AdbClient.TcpIp(this, port);
