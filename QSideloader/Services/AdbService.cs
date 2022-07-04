@@ -1290,11 +1290,9 @@ public class AdbService
         /// <seealso cref="CleanupRemnants(QSideloader.Models.Game)" />
         private void CleanupRemnants(string packageName)
         {
+            EnsureValidPackageName(packageName);
             try
             {
-                const string packageNamePattern = @"^([A-Za-z]{1}[A-Za-z\d_]*\.)+[A-Za-z][A-Za-z\d_]*$";
-                if (string.IsNullOrWhiteSpace(packageName) || !Regex.IsMatch(packageName, packageNamePattern))
-                    throw new ArgumentException("packageName is invalid");
                 try
                 {
                     UninstallPackage(packageName, true);
@@ -1345,6 +1343,7 @@ public class AdbService
         /// <exception cref="PackageNotFoundException">Thrown if package is not installed.</exception>
         private void UninstallPackage(string packageName, bool silent = false)
         {
+            EnsureValidPackageName(packageName);
             try
             {
                 if (!silent)
@@ -1415,6 +1414,7 @@ public class AdbService
         public string? CreateBackup(string packageName, string backupNameAppend = "", bool backupData = true,
             bool backupApk = false, bool backupObb = false)
         {
+            EnsureValidPackageName(packageName);
             Log.Information("Backing up {PackageName}", packageName);
             var backupPath = Path.Combine(_sideloaderSettings.BackupsLocation,
                 $"{DateTime.Now:yyyyMMddTHHmmss}_{packageName}");
@@ -1555,6 +1555,7 @@ public class AdbService
         /// <returns>Path to the directory with pulled app.</returns>
         public string PullApp(string packageName, string outputPath)
         {
+            EnsureValidPackageName(packageName);
             Log.Information("Pulling app {PackageName} from device", packageName);
             var path = Path.Combine(outputPath, packageName);
             if (Directory.Exists(path))
@@ -1569,6 +1570,20 @@ public class AdbService
             if (RemoteDirectoryExists(obbPath))
                 PullDirectory(obbPath, path);
             return path;
+        }
+
+        /// <summary>
+        /// Ensures that given package name is valid.
+        /// </summary>
+        /// <param name="packageName">Package name to validate.</param>
+        /// <exception cref="ArgumentException">Thrown if provided package name is not valid.</exception>
+        private static void EnsureValidPackageName(string packageName)
+        {
+            const string packageNamePattern = @"^([A-Za-z]{1}[A-Za-z\d_]*\.)+[A-Za-z][A-Za-z\d_]*$";
+            if (string.IsNullOrEmpty(packageName))
+                throw new ArgumentException("Package name cannot be empty", nameof(packageName));
+            if (!Regex.IsMatch(packageName, packageNamePattern))
+                throw new ArgumentException("Package name is not valid", nameof(packageName));
         }
     }
 
