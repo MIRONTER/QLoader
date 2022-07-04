@@ -13,7 +13,7 @@
         <NeutralLanguage>en</NeutralLanguage>
         <AssemblyName>Loader</AssemblyName>
         <AssemblyVersion>0.2.0.0</AssemblyVersion>
-        <InformationalVersion>v0.2.0-dev</InformationalVersion>
+        <InformationalVersion>v0.2.0-alpha</InformationalVersion>
     </PropertyGroup>
     <ItemGroup>
         <IncludeTools Condition="$(RuntimeIdentifier.Contains('win')) Or '$(RuntimeIdentifier)'==''" Include="tools\windows\**\*" />
