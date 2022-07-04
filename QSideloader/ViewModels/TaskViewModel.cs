@@ -509,7 +509,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             {
                 // If user switched to another device during download, here we can safely assign the new device
                 _adbDevice = _adbService.Device!;
-                _ensuredDeviceConnected = true;
+                if (!simpleCheck)
+                    _ensuredDeviceConnected = true;
                 return;
             }
         }
