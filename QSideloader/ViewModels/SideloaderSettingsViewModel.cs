@@ -195,16 +195,16 @@ public class SideloaderSettingsViewModel : ViewModelBase
                 SaveSettings.Execute(true).Subscribe();
                 Log.Information("Loaded settings");
             }
-            catch
+            catch (Exception e)
             {
-                Log.Warning("Failed to load settings, using defaults");
+                Log.Error(e, "Failed to load settings, resetting to defaults");
                 InitDefaults();
                 SaveSettings.Execute().Subscribe();
             }
         }
         else
         {
-            Log.Information("No settings file, using defaults");
+            Log.Information("No settings file, loading defaults");
             SaveSettings.Execute().Subscribe();
         }
     }

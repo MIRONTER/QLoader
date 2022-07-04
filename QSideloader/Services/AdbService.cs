@@ -734,7 +734,7 @@ public class AdbService
         public bool IsWireless { get; }
 
         /// <summary>
-        ///     Override the default device name with hashed serial
+        ///     Overrides the default device name with hashed serial
         /// </summary>
         /// <returns>Device name as <see cref="string" /></returns>
         public override string ToString()
@@ -755,7 +755,7 @@ public class AdbService
         }
 
         /// <summary>
-        ///     Refresh <see cref="InstalledPackages" /> list
+        ///     Refreshes the <see cref="InstalledPackages" /> list
         /// </summary>
         private void RefreshInstalledPackages()
         {
@@ -848,12 +848,8 @@ public class AdbService
         }
 
         /// <summary>
-        ///     Gets list of installed games
+        ///     Refreshes the <see cref="InstalledGames" /> list
         /// </summary>
-        /// <returns><see cref="List{T}" /> of <see cref="InstalledGame" /></returns>
-        /// <exception cref="InvalidOperationException">
-        ///     Thrown if <see cref="DownloaderService.AvailableGames" /> is null
-        /// </exception>
         public void RefreshInstalledGames()
         {
             var skip = _packagesSemaphoreSlim.CurrentCount == 0;
@@ -865,7 +861,7 @@ public class AdbService
                 if (_adbService.Device == this)
                     Log.Information("Refreshing list of installed games");
                 else
-                    Log.Verbose("Refreshing list of installed games on {Device}", this);
+                    Log.Debug("Refreshing list of installed games on {Device}", this);
                 _downloaderService.EnsureGameListAvailableAsync().GetAwaiter().GetResult();
                 if (InstalledPackages.Count == 0) RefreshInstalledPackages();
                 var query = from package in InstalledPackages
@@ -895,6 +891,9 @@ public class AdbService
             }
         }
 
+        /// <summary>
+        ///     Refreshes the <see cref="InstalledApps" /> list
+        /// </summary>
         public void RefreshInstalledApps()
         {
             _downloaderService.EnsureGameListAvailableAsync().GetAwaiter().GetResult();
@@ -1086,7 +1085,7 @@ public class AdbService
                             {
                                 Log.Information("Found OBB directory for {PackageName}, pushing to device",
                                     game.PackageName);
-                                observer.OnNext("Pushing OBB");
+                                observer.OnNext("Pushing OBB files");
                                 PushDirectory(Path.Combine(gamePath, game.PackageName), "/sdcard/Android/obb/");
                             }
                         }
@@ -1142,14 +1141,14 @@ public class AdbService
         ///     Runs custom install script.
         /// </summary>
         /// <param name="scriptPath">Path to install script.</param>
-        /// <exception cref="ArgumentException">Thrown if install script not found.</exception>
-        /// <exception cref="AdbServiceException">Thrown if and error occured when running the script.</exception>
+        /// <exception cref="FileNotFoundException">Thrown if install script not found.</exception>
+        /// <exception cref="AdbServiceException">Thrown if an error occured when running the script.</exception>
         private void RunInstallScript(string scriptPath)
         {
             try
             {
                 if (!File.Exists(scriptPath))
-                    throw new ArgumentException("Install script path is not valid");
+                    throw new FileNotFoundException("Install script not found", scriptPath);
                 var scriptName = Path.GetFileName(scriptPath);
                 // Regex pattern to split command into list of arguments
                 const string argsPattern = @"[\""].+?[\""]|[^ ]+";
@@ -1248,7 +1247,7 @@ public class AdbService
         /// <exception cref="ArgumentException">Thrown if <see cref="Game.PackageName" /> is null.</exception>
         public void UninstallGame(Game game)
         {
-            _ = game.PackageName ?? throw new ArgumentException("game.PackageName must not be null");
+            _ = game.PackageName ?? throw new ArgumentException("game.PackageName must not be null", nameof(game));
             try
             {
                 Log.Information("Uninstalling game {GameName}", game.GameName);
@@ -1271,7 +1270,7 @@ public class AdbService
         private void CleanupRemnants(Game game)
         {
             CleanupRemnants(game.PackageName
-                            ?? throw new ArgumentException("game.PackageName must not be null"));
+                            ?? throw new ArgumentException("game.PackageName must not be null", nameof(game)));
         }
 
         /// <summary>
@@ -1309,9 +1308,8 @@ public class AdbService
         ///     Installs the package from the given path.
         /// </summary>
         /// <param name="apkPath">Path to APK file.</param>
-        /// <param name="reinstall">Set "-r" flag for pm.</param>
+        /// <param name="reinstall">Set reinstall flag for pm.</param>
         /// <param name="grantRuntimePermissions">Grant all runtime permissions.</param>
-        /// <exception cref="InvalidOperationException">Thrown if <see cref="PackageManager" /> is null.</exception>
         /// <remarks>Legacy install method is used to avoid rare hang issues.</remarks>
         private void InstallPackage(string apkPath, bool reinstall, bool grantRuntimePermissions)
         {
@@ -1335,7 +1333,7 @@ public class AdbService
         /// </summary>
         /// <param name="packageName">Package name to uninstall.</param>
         /// <param name="silent">Don't send log messages.</param>
-        /// <exception cref="PackageNotFoundException">Thrown if <paramref name="packageName" /> is not installed.</exception>
+        /// <exception cref="PackageNotFoundException">Thrown if package is not installed.</exception>
         private void UninstallPackage(string packageName, bool silent = false)
         {
             try
@@ -1485,14 +1483,14 @@ public class AdbService
         /// </summary>
         /// <param name="backupPath">Path to backup.</param>
         /// <exception cref="DirectoryNotFoundException">Thrown if directory doesn't exist at given path.</exception>
-        /// <exception cref="InvalidOperationException">Thrown if backup is invalid.</exception>
+        /// <exception cref="ArgumentException">Thrown if backup is invalid.</exception>
         public void RestoreBackup(string backupPath)
         {
             if (!Directory.Exists(backupPath)) throw new DirectoryNotFoundException(backupPath);
             if (!File.Exists(Path.Combine(backupPath, ".backup")))
             {
-                Log.Error("Backup {BackupPath} is not valid", backupPath);
-                throw new InvalidOperationException("Backup is not valid");
+                Log.Error("{BackupPath} is not a valid backup", backupPath);
+                throw new ArgumentException("Backup is not valid", backupPath);
             }
 
             Log.Information("Restoring backup from {BackupPath}", backupPath);
@@ -1540,6 +1538,12 @@ public class AdbService
             OnPackageListChanged();
         }
         
+        /// <summary>
+        /// Pulls app with the given package name from the device to the given path.
+        /// </summary>
+        /// <param name="packageName">Package name of app to pull.</param>
+        /// <param name="outputPath">Path to pull the app to.</param>
+        /// <returns>Path to the directory with pulled app.</returns>
         public string PullApp(string packageName, string outputPath)
         {
             Log.Information("Pulling app {PackageName} from device", packageName);
@@ -1553,10 +1557,8 @@ public class AdbService
             var obbPath = $"/sdcard/Android/obb/{packageName}/";
             PullFile(apkPath, path);
             File.Move(localApkPath, Path.Combine(path, packageName + ".apk"));
-            localApkPath = Path.Combine(path, packageName + ".apk");
             if (RemoteDirectoryExists(obbPath))
                 PullDirectory(obbPath, path);
-            var apkInfo = GeneralUtils.GetApkInfo(localApkPath);
             return path;
         }
     }

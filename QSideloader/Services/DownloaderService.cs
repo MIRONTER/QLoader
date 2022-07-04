@@ -116,7 +116,7 @@ public class DownloaderService
                         Log.Debug("Quota exceeded on rclone config on mirror {MirrorName}",
                             MirrorName);
                         break;
-                    case MirrorErrorException:
+                    case RcloneTransferException:
                         Log.Warning(e, "Error downloading rclone config from mirror {MirrorName} (is mirror down?)",
                             MirrorName);
                         return false;
@@ -292,9 +292,9 @@ public class DownloaderService
                 case OperationCanceledException or TaskCanceledException:
                     throw;
                 case CommandExecutionException when e.Message.Contains("downloadQuotaExceeded"):
-                    throw new DownloadQuotaExceededException($"Quota exceeded on mirror {MirrorName}", e);
+                    throw new DownloadQuotaExceededException(MirrorName, source, e);
                 case CommandExecutionException {ExitCode: 1 or 3 or 4 or 7}:
-                    throw new MirrorErrorException($"Rclone {operation} error on mirror {MirrorName}", e);
+                    throw new RcloneTransferException($"Rclone {operation} error on mirror {MirrorName}", e);
             }
 
             throw new DownloaderServiceException($"Error executing rclone {operation}", e);
@@ -428,7 +428,7 @@ public class DownloaderService
                             Log.Debug("Quota exceeded on list {GameList} on mirror {MirrorName}",
                                 gameListName, MirrorName);
                             break;
-                        case MirrorErrorException:
+                        case RcloneTransferException:
                             Log.Warning(e,
                                 "Error downloading list {GameList} from mirror {MirrorName} (is mirror down?)",
                                 gameListName, MirrorName);
@@ -534,7 +534,7 @@ public class DownloaderService
                         case DownloadQuotaExceededException:
                             Log.Warning("Quota exceeded on mirror {MirrorName}", MirrorName);
                             break;
-                        case MirrorErrorException:
+                        case RcloneTransferException:
                             Log.Warning(e, "Download error on mirror {MirrorName}", MirrorName);
                             break;
                         default:
@@ -637,25 +637,31 @@ public class DownloaderServiceException : Exception
 
 public class DownloadQuotaExceededException : DownloaderServiceException
 {
-    public DownloadQuotaExceededException(string message)
-        : base(message)
+    public string MirrorName { get; }
+    public string RemotePath { get; }
+    public DownloadQuotaExceededException(string mirrorName, string remotePath)
+        : base($"Quota exceeded on mirror {mirrorName} for path {remotePath}")
     {
+        MirrorName = mirrorName;
+        RemotePath = remotePath;
     }
 
-    public DownloadQuotaExceededException(string message, Exception inner)
-        : base(message, inner)
+    public DownloadQuotaExceededException(string mirrorName, string remotePath, Exception inner)
+        : base($"Quota exceeded on mirror {mirrorName}", inner)
     {
+        MirrorName = mirrorName;
+        RemotePath = remotePath;
     }
 }
 
-public class MirrorErrorException : DownloaderServiceException
+public class RcloneTransferException : DownloaderServiceException
 {
-    public MirrorErrorException(string message)
+    public RcloneTransferException(string message)
         : base(message)
     {
     }
 
-    public MirrorErrorException(string message, Exception inner)
+    public RcloneTransferException(string message, Exception inner)
         : base(message, inner)
     {
     }

@@ -481,11 +481,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private void OnFinished(string status)
     {
         if (IsFinished)
-        {
-            Log.Warning("Attempted to finish task {TaskType} {TaskName} which is already finished", _taskType,
-                TaskName);
             return;
-        }
         Hint = "Click to dismiss";
         IsFinished = true;
         Status = status;
