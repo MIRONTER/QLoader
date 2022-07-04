@@ -204,10 +204,16 @@ public class AdbService
 
             if (skipScan) return;
             var deviceList = GetOculusDevices();
-            var listChanged = deviceList.Any(device => DeviceList.All(x => x.Serial != device.Serial))
-                              || DeviceList.Any(device => deviceList.All(x => x.Serial != device.Serial));
-            if (!listChanged) return;
-            DeviceList = deviceList;
+            var addedDevices = deviceList.Where(d => _deviceList.All(x => x.Serial != d.Serial)).ToList();
+            var removedDevices = _deviceList.Where(d => deviceList.All(x => x.Serial != d.Serial)).ToList();
+            if (!addedDevices.Any() && !removedDevices.Any()) return;
+
+            foreach (var device in addedDevices)
+            {
+                device.Initialize();
+                _deviceList.Add(device);
+            }
+            _deviceList.RemoveAll(d => removedDevices.Any(x => x.Serial == d.Serial));
             _deviceListChangeSubject.OnNext(deviceList);
         }
         finally
@@ -708,7 +714,6 @@ public class AdbService
 
             PackageManager = new PackageManager(_adb.AdbClient, this, true);
 
-            Task.Run(OnPackageListChanged);
         }
 
         private PackageManager PackageManager { get; }
@@ -716,7 +721,7 @@ public class AdbService
         public float SpaceFree { get; private set; }
         public float SpaceTotal { get; private set; }
         public float BatteryLevel { get; private set; }
-        public List<(string packageName, VersionInfo? versionInfo)> InstalledPackages { get; private set; } = new();
+        public List<(string packageName, VersionInfo? versionInfo)> InstalledPackages { get; } = new();
         public List<InstalledGame> InstalledGames { get; set; } = new();
         public List<InstalledApp> InstalledApps { get; set; } = new();
         public bool IsRefreshingInstalledGames => _packagesSemaphoreSlim.CurrentCount == 0;
@@ -740,6 +745,11 @@ public class AdbService
         public override string ToString()
         {
             return IsWireless ? $"{HashedId} (wireless)" : HashedId;
+        }
+        
+        public void Initialize()
+        {
+            Task.Run(OnPackageListChanged);
         }
 
         /// <summary>
