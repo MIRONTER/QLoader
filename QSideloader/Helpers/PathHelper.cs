@@ -18,17 +18,28 @@ public static class PathHelper
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            AdbPath = @"./tools/linux/platform-tools/adb";
-            RclonePath = @"./tools/linux/rclone/FFA";
-            SevenZipPath = @"./tools/linux/7zz";
-            AaptPath = @"./tools/linux/platform-tools/aapt2";
+            var architectureString = RuntimeInformation.ProcessArchitecture switch
+            {
+                Architecture.X64 => "x64",
+                Architecture.Arm64 => "arm64",
+                _ => throw new NotImplementedException("Unsupported architecture")
+            };
+            AdbPath = Path.Combine("./tools/linux/", architectureString, "platform-tools/adb");
+            RclonePath = Path.Combine("./tools/linux/", architectureString, "rclone/FFA");
+            SevenZipPath = Path.Combine("./tools/linux/", architectureString, "7zz");
+            AaptPath = Path.Combine("./tools/linux/", architectureString, "platform-tools/aapt2");
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
+            var architectureString = RuntimeInformation.ProcessArchitecture switch
+            {
+                Architecture.X64 => "x64",
+                Architecture.Arm64 => "arm64",
+                _ => throw new NotImplementedException("Unsupported architecture")
+            };
             AdbPath = @"./tools/darwin/platform-tools/adb";
             RclonePath = @"./tools/darwin/rclone/FFA";
-            RclonePath = Path.Combine("./tools/darwin/",
-                RuntimeInformation.OSArchitecture == Architecture.Arm64 ? "arm64" : "x64", "rclone/FFA");
+            RclonePath = Path.Combine("./tools/darwin/", architectureString, "rclone/FFA");
             SevenZipPath = @"./tools/darwin/7zz";
             AaptPath = @"./tools/darwin/platform-tools/aapt2";
         }
