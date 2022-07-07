@@ -15,6 +15,11 @@ chmod +x linux-x64/Loader
 chmod -R +x linux-x64/tools/
 tar cvzf linux-x64.tar.gz linux-x64
 
+echo "Packing linux-arm64 build"
+chmod +x linux-arm64/Loader
+chmod -R +x linux-arm64/tools/
+tar cvzf linux-arm64.tar.gz linux-arm64
+
 echo "Packing osx-x64 build"
 chmod +x osx-x64/Loader
 chmod -R +x osx-x64/tools/

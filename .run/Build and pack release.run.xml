@@ -15,6 +15,7 @@
     <method v="2">
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="Publish win-x64" run_configuration_type="DotNetFolderPublish" />
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="Publish linux-x64" run_configuration_type="DotNetFolderPublish" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Publish linux-arm64" run_configuration_type="DotNetFolderPublish" />
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="Publish osx-x64" run_configuration_type="DotNetFolderPublish" />
     </method>
   </configuration>

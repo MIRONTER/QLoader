@@ -12,6 +12,7 @@
         <option value="$PROJECT_DIR$/QSideloader/bin/publish/Debug/osx-x64" />
         <option value="$PROJECT_DIR$/QSideloader/bin/publish/Debug/osx-arm64" />
         <option value="$PROJECT_DIR$/QSideloader/bin/publish/Release/osx-arm64" />
+        <option value="$PROJECT_DIR$/QSideloader/bin/publish/Debug/linux-arm64" />
       </list>
     </option>
   </component>
