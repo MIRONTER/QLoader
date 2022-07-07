@@ -129,9 +129,9 @@ public class AdbService
         }
 
         var connectionStatus = false;
+        DeviceSemaphoreSlim.Wait();
         try
         {
-            DeviceSemaphoreSlim.Wait();
             if (Device is not null && !assumeOffline) connectionStatus = PingDevice(Device);
 
             if (!connectionStatus)
@@ -179,6 +179,8 @@ public class AdbService
     /// </returns>
     public bool CheckDeviceConnectionSimple()
     {
+        if (FirstDeviceSearch)
+            return CheckDeviceConnection();
         if (Device is null || Device.State != DeviceState.Online) return false;
         Task.Run(() => WakeDevice(Device));
         return true;
