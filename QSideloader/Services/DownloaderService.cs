@@ -43,7 +43,7 @@ public class DownloaderService
         Task.Run(async () =>
         {
             await UpdateRcloneConfigAsync();
-            await EnsureGameListAvailableAsync();
+            await EnsureMetadataAvailableAsync();
             await UpdateResourcesAsync();
         });
     }
@@ -73,7 +73,7 @@ public class DownloaderService
             EnsureMirrorSelected();
             while (true)
             {
-                if (await TryDownloadConfig())
+                if (await TryDownloadConfigAsync())
                 {
                     Log.Information("Rclone config updated from {MirrorName}. Reloading mirror list", MirrorName);
                     // Reinitialize the mirror list with the new config and reselect mirror, if needed
@@ -99,7 +99,7 @@ public class DownloaderService
             RcloneConfigSemaphoreSlim.Release();
         }
 
-        async Task<bool> TryDownloadConfig()
+        async Task<bool> TryDownloadConfigAsync()
         {
             try
             {
@@ -215,7 +215,7 @@ public class DownloaderService
 
         MirrorName = mirrorName;
         Log.Information("Switched to mirror: {MirrorName} (user request)", MirrorName);
-        EnsureGameListAvailableAsync(true).GetAwaiter().GetResult();
+        EnsureMetadataAvailableAsync(true).GetAwaiter().GetResult();
         return true;
     }
 
@@ -304,7 +304,7 @@ public class DownloaderService
     }
 
     // TODO: offline mode
-    public async Task EnsureGameListAvailableAsync(bool refresh = false)
+    public async Task EnsureMetadataAvailableAsync(bool refresh = false)
     {
         var skip = AvailableGames is not null && !refresh || Design.IsDesignMode;
 

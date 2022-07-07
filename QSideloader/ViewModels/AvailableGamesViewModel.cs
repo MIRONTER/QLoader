@@ -92,7 +92,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            _downloaderService.EnsureGameListAvailableAsync(force).GetAwaiter().GetResult();
+            _downloaderService.EnsureMetadataAvailableAsync(force).GetAwaiter().GetResult();
             IsDeviceConnected = _adbService.CheckDeviceConnectionSimple();
             PopulateAvailableGames();
             RefreshInstalled();

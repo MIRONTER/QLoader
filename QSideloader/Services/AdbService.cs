@@ -872,7 +872,7 @@ public class AdbService
                     Log.Information("Refreshing list of installed games");
                 else
                     Log.Debug("Refreshing list of installed games on {Device}", this);
-                _downloaderService.EnsureGameListAvailableAsync().GetAwaiter().GetResult();
+                _downloaderService.EnsureMetadataAvailableAsync().GetAwaiter().GetResult();
                 if (InstalledPackages.Count == 0) RefreshInstalledPackages();
                 var query = from package in InstalledPackages
                     where package.versionInfo is not null
@@ -906,7 +906,7 @@ public class AdbService
         /// </summary>
         public void RefreshInstalledApps()
         {
-            _downloaderService.EnsureGameListAvailableAsync().GetAwaiter().GetResult();
+            _downloaderService.EnsureMetadataAvailableAsync().GetAwaiter().GetResult();
             if (_adbService.Device == this)
                 Log.Debug("Refreshing list of installed apps");
             else
