@@ -103,7 +103,24 @@ public class MainWindowViewModel : ViewModelBase
             var taskView = new TaskView(game, taskType, gamePath);
             TaskList.Add(taskView);
             taskView.Run();
-            Log.Information("Enqueued task {TaskType} {TaskName}", taskType, game.GameName);
+            Log.Information("Enqueued task {TaskType} {TaskName}", taskType, taskView.TaskName);
+        }).ContinueWith(t =>
+        {
+            if (t.IsFaulted)
+            {
+                Log.Error(t.Exception!, "Error while enqueuing task");
+            }
+        }, TaskContinuationOptions.OnlyOnFaulted);
+    }
+    
+    public void EnqueueTask(TaskType taskType)
+    {
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            var taskView = new TaskView(taskType);
+            TaskList.Add(taskView);
+            taskView.Run();
+            Log.Information("Enqueued task {TaskType} {TaskName}", taskType, taskView.TaskName);
         }).ContinueWith(t =>
         {
             if (t.IsFaulted)

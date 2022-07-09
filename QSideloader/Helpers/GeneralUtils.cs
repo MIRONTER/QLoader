@@ -5,12 +5,14 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using CliWrap;
 using CliWrap.Buffered;
 using Microsoft.Win32;
 using QSideloader.Models;
 using QSideloader.ViewModels;
 using Serilog;
+using SerilogTimings;
 
 namespace QSideloader.Helpers;
 
@@ -115,6 +117,15 @@ public static class GeneralUtils
         var sha256 = SHA256.Create();
         var hash = sha256.ComputeHash(bytes);
         return BitConverter.ToString(hash).Replace("-", "");
+    }
+
+    public static async Task InstallTrailersAddonAsync(string path, bool delete)
+    {
+        using var op = Operation.Begin("Installing trailers addon");
+        await ZipUtil.ExtractArchiveAsync(path, Directory.GetCurrentDirectory());
+        if (delete)
+            File.Delete(path);
+        op.Complete();
     }
 }
 

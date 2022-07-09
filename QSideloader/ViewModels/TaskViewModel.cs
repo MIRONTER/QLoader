@@ -16,6 +16,8 @@ using Serilog;
 
 namespace QSideloader.ViewModels;
 
+// TODO: This whole class is a mess, need to refactor it.
+
 public class TaskViewModel : ViewModelBase, IActivatableViewModel
 {
     private readonly AdbService _adbService;
@@ -52,8 +54,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 // We need a game path to run installation/restore a backup
                 Log.Error("Game path not specified for {TaskType} task", taskType);
                 throw new ArgumentException($"Game path not specified for {taskType} task");
-            case TaskType.PullAndUpload:
-                throw new InvalidOperationException("Wrong constructor for PullAndUpload task");
+            case TaskType.PullAndUpload or TaskType.DownloadAndInstallTrailersAddon:
+                throw new InvalidOperationException($"Wrong constructor for {taskType} task");
         }
 
         _adbService = AdbService.Instance;
@@ -80,8 +82,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             Log.Warning("Unneeded game path specified for {TaskType} task", taskType);
         else
             _gamePath = gamePath;
-        if (taskType is TaskType.PullAndUpload)
-            throw new InvalidOperationException("Wrong constructor for PullAndUpload task");
+        if (taskType is TaskType.PullAndUpload or TaskType.DownloadAndInstallTrailersAddon)
+            throw new InvalidOperationException($"Wrong constructor for {taskType} task");
         _adbService = AdbService.Instance;
         _adbDevice = _adbService.Device;
         _downloaderService = DownloaderService.Instance;
@@ -91,6 +93,12 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         GameName = game.GameName;
         _taskType = taskType;
         RunTask = ReactiveCommand.CreateFromTask(RunTaskImpl);
+        RunTask.ThrownExceptions.Subscribe(ex =>
+        {
+            Log.Error(ex, "Task {TaskType} {TaskName} failed", _taskType, TaskName);
+            if (!IsFinished)
+                OnFinished($"Task failed: {ex.Message}");
+        });
         Activator = new ViewModelActivator();
     }
 
@@ -104,6 +112,26 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         _sideloaderSettings = Globals.SideloaderSettings;
         _app = app;
         TaskName = _app?.Name ?? "N/A";
+        _taskType = taskType;
+        RunTask = ReactiveCommand.CreateFromTask(RunTaskImpl);
+        RunTask.ThrownExceptions.Subscribe(ex =>
+        {
+            Log.Error(ex, "Task {TaskType} {TaskName} failed", _taskType, TaskName);
+            if (!IsFinished)
+                OnFinished($"Task failed: {ex.Message}");
+        });
+        Activator = new ViewModelActivator();
+    }
+
+    public TaskViewModel(TaskType taskType)
+    {
+        if (taskType is not TaskType.DownloadAndInstallTrailersAddon)
+            throw new InvalidOperationException("This constructor is only for DownloadAndInstallTrailersAddon task");
+        _adbService = AdbService.Instance;
+        _adbDevice = _adbService.Device!;
+        _downloaderService = DownloaderService.Instance;
+        _sideloaderSettings = Globals.SideloaderSettings;
+        TaskName = "Trailers addon";
         _taskType = taskType;
         RunTask = ReactiveCommand.CreateFromTask(RunTaskImpl);
         Activator = new ViewModelActivator();
@@ -163,6 +191,9 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 break;
             case TaskType.PullAndUpload:
                 await RunPullAndUploadAsync();
+                break;
+            case TaskType.DownloadAndInstallTrailersAddon:
+                await RunDownloadAndInstallTrailersAddonAsync();
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(_taskType));
@@ -326,7 +357,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         EnsureDeviceConnected(true);
         try
         {
-            await Restore(_gamePath!);
+            await RestoreAsync(_gamePath!);
             OnFinished("Backup restored");
         }
         catch (Exception e)
@@ -374,6 +405,29 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             else if (t.IsCompletedSuccessfully)
                 OnFinished("Uploaded");
         });
+    }
+
+    private async Task RunDownloadAndInstallTrailersAddonAsync()
+    {
+        try
+        {
+            if (Directory.Exists(PathHelper.TrailersPath))
+                OnFinished("Already downloaded");
+            await DownloadAndInstallTrailersAddonAsync();
+            OnFinished("Installed");
+        }
+        catch (Exception e)
+        {
+            if (e is OperationCanceledException or TaskCanceledException)
+            {
+                OnFinished("Cancelled");
+            }
+            else
+            {
+                OnFinished("Install failed");
+                throw;
+            }
+        }
     }
 
     private async Task<string> DownloadAsync()
@@ -462,7 +516,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         await Task.Run(() => _adbDevice!.CreateBackup(_game!));
     }
     
-    private async Task Restore(string backupPath)
+    private async Task RestoreAsync(string backupPath)
     {
         Status = "Restore queued";
         await AdbService.TakePackageOperationLockAsync(_cancellationTokenSource.Token);
@@ -476,6 +530,15 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         {
             AdbService.ReleasePackageOperationLock();
         }
+    }
+
+    private async Task DownloadAndInstallTrailersAddonAsync()
+    {
+        Status = "Downloading";
+        var path = await _downloaderService.DownloadTrailersAddon(_cancellationTokenSource.Token);
+        Status = "Installing";
+        await GeneralUtils.InstallTrailersAddonAsync(path, true);
+        OnFinished("Installed");
     }
 
     private void OnFinished(string status)
@@ -533,5 +596,6 @@ public enum TaskType
     BackupAndUninstall,
     Backup,
     Restore,
-    PullAndUpload
+    PullAndUpload,
+    DownloadAndInstallTrailersAddon
 }

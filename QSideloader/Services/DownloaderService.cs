@@ -31,6 +31,7 @@ public class DownloaderService
     private static readonly SemaphoreSlim GameListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim DownloadSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim RcloneConfigSemaphoreSlim = new(1, 1);
+    private static readonly SemaphoreSlim TrailersAddonSemaphoreSlim = new(1, 1);
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
 
     static DownloaderService()
@@ -614,6 +615,7 @@ public class DownloaderService
     {
         if (!File.Exists(path))
             throw new FileNotFoundException("Archive not found", path);
+        using var op = Operation.Begin("Uploading donation");
         var archiveName = Path.GetFileName(path);
         if (!Regex.IsMatch(archiveName, @"^.+ v\d+ .+\.zip$"))
             throw new ArgumentException("Invalid archive name", nameof(path));
@@ -625,6 +627,50 @@ public class DownloaderService
         await RcloneTransferInternalAsync(path, "FFA-DD:/_donations/", "copy", ct: ct);
         await RcloneTransferInternalAsync(path + ".md5sum", "FFA-DD:/md5sum/", "copy",
             ct: ct);
+        op.Complete();
+    }
+
+    public async Task<string> DownloadTrailersAddon(CancellationToken ct = default)
+    {
+        if (TrailersAddonSemaphoreSlim.CurrentCount == 0)
+            throw new DownloaderServiceException("Trailers addon is already downloading");
+        await TrailersAddonSemaphoreSlim.WaitAsync(ct);
+        using var op = Operation.Begin("Downloading trailers addon");
+        var trailersAddonPath = Path.Combine(_sideloaderSettings.DownloadsLocation, "TrailersAddon.zip");
+        try
+        {
+            const string trailersAddonUrl =
+                "https://github.com/skrimix/QLoaderFiles/releases/latest/download/TrailersAddon.zip";
+            Log.Information("Downloading trailers addon from {TrailersAddonUrl}", trailersAddonUrl);
+            if (File.Exists(trailersAddonPath))
+                File.Delete(trailersAddonPath);
+            await using var stream = await HttpClient.GetStreamAsync(trailersAddonUrl, ct);
+            await using (var fileStream = new FileStream(trailersAddonPath, FileMode.CreateNew))
+            {
+                await stream.CopyToAsync(fileStream, ct);
+                await fileStream.FlushAsync(ct);
+            }
+
+            op.Complete();
+            return trailersAddonPath;
+        }
+        catch (Exception e)
+        {
+            if (e is OperationCanceledException or TaskCanceledException)
+            {
+                if (File.Exists(trailersAddonPath))
+                    File.Delete(trailersAddonPath);
+                op.Cancel();
+                throw;
+            }
+            op.SetException(e);
+            op.Abandon();
+            throw;
+        }
+        finally
+        {
+            TrailersAddonSemaphoreSlim.Release();
+        }
     }
 }
 

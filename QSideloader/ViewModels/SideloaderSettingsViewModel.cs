@@ -12,6 +12,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using Newtonsoft.Json;
 using QSideloader.Helpers;
@@ -35,7 +38,9 @@ public class SideloaderSettingsViewModel : ViewModelBase
     public SideloaderSettingsViewModel()
     {
         SaveSettings = ReactiveCommand.CreateFromObservable<bool, Unit>(SaveSettingsImpl);
+        BrowseDownloadsDirectory = ReactiveCommand.CreateFromTask(BrowseDownloadsDirectoryImpl);
         SetDownloadLocation = ReactiveCommand.CreateFromObservable(SetDownloadLocationImpl, this.IsValid());
+        BrowseBackupsDirectory = ReactiveCommand.CreateFromTask(BrowseBackupsDirectoryImpl);
         SetBackupsLocation = ReactiveCommand.CreateFromObservable(SetBackupsLocationImpl, this.IsValid());
         SetDownloaderBandwidthLimit =
             ReactiveCommand.CreateFromObservable(SetDownloaderBandwidthLimitImpl, this.IsValid());
@@ -44,6 +49,8 @@ public class SideloaderSettingsViewModel : ViewModelBase
         SwitchMirror = ReactiveCommand.CreateFromObservable(SwitchMirrorImpl);
         SwitchMirror.IsExecuting.ToProperty(this, x => x.IsSwitchingMirror, out _isSwitchingMirror, false,
             RxApp.MainThreadScheduler);
+        IsTrailersAddonInstalled = Directory.Exists(PathHelper.TrailersPath);
+        InstallTrailersAddon = ReactiveCommand.CreateFromObservable(InstallTrailersAddonImpl);
         InitDefaults();
         LoadSettings();
         ValidateSettings();
@@ -102,13 +109,17 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [JsonProperty] public Guid InstallationId { get; private set; } = Guid.NewGuid();
     [JsonProperty] public ObservableCollection<(string packageName, int versionCode)> DonatedPackages { get; private set; } = new();
     [JsonProperty] public ObservableCollection<string> IgnoredDonationPackages { get; private set; } = new();
+    [Reactive] public bool IsTrailersAddonInstalled { get; set; }
     private ReactiveCommand<bool, Unit> SaveSettings { get; }
     private ReactiveCommand<Unit, Unit> RestoreDefaults { get; }
+    public ReactiveCommand<Unit, Unit> BrowseDownloadsDirectory { get; }
     public ReactiveCommand<Unit, Unit> SetDownloadLocation { get; }
+    public ReactiveCommand<Unit, Unit> BrowseBackupsDirectory { get; }
     public ReactiveCommand<Unit, Unit> SetBackupsLocation { get; }
     public ReactiveCommand<Unit, Unit> SetDownloaderBandwidthLimit { get; }
     public ReactiveCommand<Unit, Unit> CheckUpdates { get; }
     public ReactiveCommand<Unit, Unit> SwitchMirror { get; }
+    public ReactiveCommand<Unit, Unit> InstallTrailersAddon { get; }
 
     private Timer AutoSaveDelayTimer { get; } = new() {AutoReset = false, Interval = 500};
     
@@ -337,6 +348,55 @@ public class SideloaderSettingsViewModel : ViewModelBase
             downloaderService.TryManualSwitchMirror(SelectedMirror);
             RefreshMirrorSelection();
         });
+    }
+    
+    private IObservable<Unit> InstallTrailersAddonImpl()
+    {
+        return Observable.Start(() =>
+        {
+            if (Directory.Exists(PathHelper.TrailersPath))
+            {
+                IsTrailersAddonInstalled = true;
+                return;
+            }
+            Globals.MainWindowViewModel!.EnqueueTask(TaskType.DownloadAndInstallTrailersAddon);
+        });
+    }
+    
+    private async Task BrowseDownloadsDirectoryImpl()
+    {
+        if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            var mainWindow = desktop.MainWindow;
+            var result = await new OpenFolderDialog
+            {
+                Title = "Select downloads folder",
+                Directory = DownloadsLocation
+            }.ShowAsync(mainWindow);
+            if (result is not null)
+            {
+                DownloadsLocationTextBoxText = result;
+                SetDownloadLocation.Execute().Subscribe();
+            }
+        }
+    }
+    
+    private async Task BrowseBackupsDirectoryImpl()
+    {
+        if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            var mainWindow = desktop.MainWindow;
+            var result = await new OpenFolderDialog
+            {
+                Title = "Select backups folder",
+                Directory = BackupsLocation
+            }.ShowAsync(mainWindow);
+            if (result is not null)
+            {
+                BackupsLocationTextBoxText = result;
+                SetBackupsLocation.Execute().Subscribe();
+            }
+        }
     }
 
     private void AutoSave(object? sender, PropertyChangedEventArgs e)
