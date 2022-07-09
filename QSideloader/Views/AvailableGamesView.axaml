@@ -15,8 +15,12 @@
         <vm:AvailableGamesViewModel />
     </Design.DataContext>
     <Grid RowDefinitions="Auto,*">
+        <!-- ReSharper disable once Xaml.StyleClassNotFound -->
         <TextBox Grid.Row="0"
                  Margin="8,0,0,0"
+                 Classes="clearButton"
+                 AcceptsReturn="False"
+                 IsReadOnly="False"
                  HorizontalAlignment="Left" VerticalAlignment="Center"
                  Watermark="Search"
                  Width="400"
