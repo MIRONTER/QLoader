@@ -37,11 +37,12 @@ public class AdbService
     private static readonly SemaphoreSlim AdbServerSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim PackageOperationSemaphoreSlim = new(1, 1);
     private readonly AdbServerClient _adb;
-    private readonly Subject<AdbDevice> _deviceChangeSubject = new();
+    private readonly Subject<DeviceState> _deviceStateChangeSubject = new();
     private readonly Subject<List<AdbDevice>> _deviceListChangeSubject = new();
     private readonly Subject<Unit> _packageListChangeSubject = new();
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
     private List<AdbDevice> _deviceList = new();
+    private List<DeviceData> _unauthorizedDeviceList = new();
     private DeviceMonitor? _deviceMonitor;
 
     static AdbService()
@@ -76,7 +77,7 @@ public class AdbService
         private set => _deviceList = value.ToList();
     }
 
-    public IObservable<AdbDevice> WhenDeviceChanged => _deviceChangeSubject.AsObservable();
+    public IObservable<DeviceState> WhenDeviceStateChanged => _deviceStateChangeSubject.AsObservable();
     public IObservable<Unit> WhenPackageListChanged => _packageListChangeSubject.AsObservable();
     public IObservable<List<AdbDevice>> WhenDeviceListChanged => _deviceListChangeSubject.AsObservable();
 
@@ -149,11 +150,18 @@ public class AdbService
                 if ((Device is null || Device?.Serial != foundDevice?.Serial) && foundDevice is not null &&
                     connectionStatus)
                 {
-                    OnDeviceOnline(new AdbDeviceEventArgs(foundDevice));
+                    OnDeviceOnline(foundDevice);
                 }
                 else if (Device is not null && !connectionStatus)
                 {
-                    OnDeviceOffline(new AdbDeviceEventArgs(Device));
+                    OnDeviceOffline(Device);
+                }
+                if (DeviceList.Count == 0)
+                {
+                    if (_unauthorizedDeviceList.Count > 0)
+                        OnDeviceUnauthorized(_unauthorizedDeviceList[0]);
+                    else
+                        OnDeviceOffline(null);
                 }
             }
         }
@@ -205,7 +213,8 @@ public class AdbService
             }
 
             if (skipScan) return;
-            var deviceList = GetOculusDevices();
+            var deviceList = GetOculusDevices(out var unauthorizedDevices);
+            _unauthorizedDeviceList = unauthorizedDevices;
             var addedDevices = deviceList.Where(d => _deviceList.All(x => x.Serial != d.Serial)).ToList();
             var removedDevices = _deviceList.Where(d => deviceList.All(x => x.Serial != d.Serial)).ToList();
             if (!addedDevices.Any() && !removedDevices.Any()) return;
@@ -423,10 +432,13 @@ public class AdbService
                 {
                     RefreshDeviceList();
                     CheckConnectionPreference();
+                    CheckDeviceConnection();
                 }
 
                 break;
             case DeviceState.Unauthorized:
+                CheckDeviceConnection();
+                break;
             case DeviceState.BootLoader:
             case DeviceState.Host:
             case DeviceState.Recovery:
@@ -442,26 +454,40 @@ public class AdbService
     /// <summary>
     ///     Method that is called when current device is disconnected.
     /// </summary>
-    /// <param name="e">Event args for a disconnected device.</param>
-    private void OnDeviceOffline(AdbDeviceEventArgs e)
+    /// <param name="device">Disconnected device.</param>
+    private void OnDeviceOffline(AdbDevice? device)
     {
-        Log.Information("Device {Device} disconnected", e.Device);
-        e.Device.State = DeviceState.Offline;
+        if (device is not null)
+            Log.Information("Device {Device} disconnected", device);
+        else
+            Log.Information("Device disconnected");
         Device = null;
-        _deviceChangeSubject.OnNext(e.Device);
+        _deviceStateChangeSubject.OnNext(DeviceState.Offline);
     }
 
     /// <summary>
     ///     Method that is called when a device is connected.
     /// </summary>
-    /// <param name="e">Event args for a connected device.</param>
-    private void OnDeviceOnline(AdbDeviceEventArgs e)
+    /// <param name="device">Connected device.</param>
+    private void OnDeviceOnline(AdbDevice device)
     {
-        Log.Information("Connected to device {Device}", e.Device);
-        e.Device.State = DeviceState.Online;
-        Device = e.Device;
+        Log.Information("Connected to device {Device}", device);
+        device.State = DeviceState.Online;
+        Device = device;
         if (!FirstDeviceSearch)
-            _deviceChangeSubject.OnNext(Device);
+            _deviceStateChangeSubject.OnNext(DeviceState.Online);
+    }
+    
+    /// <summary>
+    ///     Method that is called when adb is not authorized for debugging of the device.
+    /// </summary>
+    /// <param name="device">Device in <see cref="DeviceState.Unauthorized"/> state.</param>
+    /// <remarks>This method should be called only when there are no other usable devices.</remarks>
+    private void OnDeviceUnauthorized(DeviceData device)
+    {
+        Log.Warning("Not authorized for debugging of device {Device}", GetHashedId(device.Serial));
+        device.State = DeviceState.Unauthorized;
+        _deviceStateChangeSubject.OnNext(DeviceState.Unauthorized);
     }
 
     /// <summary>
@@ -483,9 +509,10 @@ public class AdbService
     ///     Gets the list of Oculus devices.
     /// </summary>
     /// <returns><see cref="List{T}" /> of <see cref="AdbDevice" />.</returns>
-    private List<AdbDevice> GetOculusDevices()
+    private List<AdbDevice> GetOculusDevices(out List<DeviceData> unauthorizedDevices)
     {
         Log.Information("Searching for devices");
+        unauthorizedDevices = new List<DeviceData>();
         List<AdbDevice> oculusDeviceList = new();
         var deviceList = _adb.AdbClient.GetDevices();
         if (deviceList.Count == 0)
@@ -512,12 +539,22 @@ public class AdbService
 
                 continue;
             }
-
-            if (device.State == DeviceState.Online)
-                Log.Information("Not an Oculus Quest device! ({HashedDeviceId} - {Product})", hashedDeviceId,
-                    device.Product);
-            else
-                Log.Information("Found device in {State} state! ({HashedDeviceId})", device.State, hashedDeviceId);
+            
+            // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
+            switch (device.State)
+            {
+                case DeviceState.Online:
+                    Log.Information("Not an Oculus Quest device! ({HashedDeviceId} - {Product})", hashedDeviceId,
+                        device.Product);
+                    break;
+                case DeviceState.Unauthorized:
+                    unauthorizedDevices.Add(device);
+                    Log.Information("Found device in {State} state! ({HashedDeviceId})", device.State, hashedDeviceId);
+                    break;
+                default:
+                    Log.Information("Found device in {State} state! ({HashedDeviceId})", device.State, hashedDeviceId);
+                    break;
+            }
         }
 
         if (oculusDeviceList.Count == 0)
@@ -549,7 +586,7 @@ public class AdbService
         }
 
         Log.Information("Switching to device {Device}", device);
-        OnDeviceOnline(new AdbDeviceEventArgs(device));
+        OnDeviceOnline(device);
     }
 
     /// <summary>
@@ -771,16 +808,17 @@ public class AdbService
         /// </summary>
         private void RefreshInstalledPackages()
         {
+            using var op = Operation.At(LogEventLevel.Debug).Begin("Refreshing installed packages on {Device}", this);
             var skip = _packagesSemaphoreSlim.CurrentCount == 0;
             _packagesSemaphoreSlim.Wait();
             try
             {
                 if (skip)
+                {
+                    op.Cancel();
                     return;
-                if (_adbService.Device == this)
-                    Log.Debug("Refreshing list of installed packages");
-                else
-                    Log.Verbose("Refreshing list of installed packages on {Device}", this);
+                }
+                Log.Debug("Refreshing list of installed packages on {Device}", this);
                 PackageManager.RefreshPackages();
                 for (var i = 0; i < InstalledPackages.Count; i++)
                 {
@@ -796,6 +834,7 @@ public class AdbService
                 foreach (var package in PackageManager.Packages.Keys.Where(package =>
                              InstalledPackages.All(x => x.packageName != package)).ToList())
                     InstalledPackages.Add((package, PackageManager.GetVersionInfo(package)));
+                op.Complete();
             }
             finally
             {
@@ -864,16 +903,17 @@ public class AdbService
         /// </summary>
         public void RefreshInstalledGames()
         {
+            using var op = Operation.At(LogEventLevel.Debug).Begin("Refreshing installed games on {Device}", this);
             var skip = _packagesSemaphoreSlim.CurrentCount == 0;
             _packagesSemaphoreSlim.Wait();
             try
             {
                 if (skip)
+                {
+                    op.Cancel();
                     return;
-                if (_adbService.Device == this)
-                    Log.Information("Refreshing list of installed games");
-                else
-                    Log.Debug("Refreshing list of installed games on {Device}", this);
+                }
+                Log.Information("Refreshing list of installed games on {Device}", this);
                 _downloaderService.EnsureMetadataAvailableAsync().GetAwaiter().GetResult();
                 if (InstalledPackages.Count == 0) RefreshInstalledPackages();
                 var query = from package in InstalledPackages
@@ -885,12 +925,9 @@ public class AdbService
                     select new InstalledGame(game, package.versionInfo.VersionCode, package.versionInfo.VersionName);
                 InstalledGames = query.ToList();
                 var tupleList = InstalledGames.Select(g => (g.ReleaseName, g.PackageName)).ToList();
-                if (_adbService.Device == this)
-                    Log.Debug("Found {Count} installed games: {InstalledGames}", InstalledGames.Count,
-                        tupleList);
-                else
-                    Log.Verbose("Found {Count} installed games on {Device}: {InstalledGames}", InstalledGames.Count, this,
-                        tupleList);
+                Log.Debug("Found {Count} installed games on {Device}: {InstalledGames}", InstalledGames.Count, this,
+                    tupleList);
+                op.Complete();
             }
             catch (Exception e)
             {
@@ -908,11 +945,9 @@ public class AdbService
         /// </summary>
         public void RefreshInstalledApps()
         {
+            using var op = Operation.At(LogEventLevel.Debug).Begin("Refreshing installed apps on {Device}", this);
             _downloaderService.EnsureMetadataAvailableAsync().GetAwaiter().GetResult();
-            if (_adbService.Device == this)
-                Log.Debug("Refreshing list of installed apps");
-            else
-                Log.Verbose("Refreshing list of installed apps on {Device}", this);
+            Log.Debug("Refreshing list of installed apps on {Device}", this);
             var query = from package in InstalledPackages
                 let packageName = package.packageName
                 let versionName = package.versionInfo?.VersionName ?? "N/A"
@@ -927,6 +962,9 @@ public class AdbService
                 let donationStatus = !isHiddenFromDonation ? isNewVersion ? "New version" : "New App" : isDonated ? "Donated" : isIgnored ? "Ignored" : ""
                 select new InstalledApp(name, packageName, versionName, versionCode, isHiddenFromDonation, donationStatus);
             InstalledApps = query.ToList();
+            Log.Debug("Found {Count} installed apps: {InstalledApps}", InstalledApps.Count,
+                InstalledApps.Select(x => x.Name));
+            op.Complete();
         }
 
         /// <summary>
@@ -1587,16 +1625,6 @@ public class AdbService
             if (!Regex.IsMatch(packageName, packageNamePattern))
                 throw new ArgumentException("Package name is not valid", nameof(packageName));
         }
-    }
-
-    public class AdbDeviceEventArgs : EventArgs
-    {
-        public AdbDeviceEventArgs(AdbDevice device)
-        {
-            Device = device;
-        }
-
-        public AdbDevice Device { get; }
     }
 }
 

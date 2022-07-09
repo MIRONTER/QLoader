@@ -55,7 +55,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         this.WhenActivated(disposables =>
         {
             cacheListBind.Subscribe().DisposeWith(disposables);
-            _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged).DisposeWith(disposables);
+            _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged).DisposeWith(disposables);
             _adbService.WhenPackageListChanged.Subscribe(_ => RefreshInstalled()).DisposeWith(disposables);
             IsDeviceConnected = _adbService.CheckDeviceConnectionSimple();
             ShowPopularity30Days = _sideloaderSettings.PopularityRange == "30 days";
@@ -136,9 +136,9 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         });
     }
 
-    private void OnDeviceChanged(AdbService.AdbDevice device)
+    private void OnDeviceStateChanged(DeviceState state)
     {
-        switch (device.State)
+        switch (state)
         {
             case DeviceState.Online:
                 IsDeviceConnected = true;

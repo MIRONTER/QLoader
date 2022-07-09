@@ -50,12 +50,13 @@ public class MainWindowViewModel : ViewModelBase
                 await dialog.ShowDialog(mainWindow);
             }
         });
-        _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged);
+        _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged);
         _adbService.WhenPackageListChanged.Subscribe(_ => RefreshGameDonationBadge());
         Task.Run(() => IsDeviceConnected = _adbService.CheckDeviceConnection());
     }
 
     [Reactive] public bool IsDeviceConnected { get; private set; }
+    [Reactive] public bool IsDeviceUnauthorized { get; private set; }
     public ObservableCollection<TaskView> TaskList { get; } = new();
     [Reactive] public int DonatableAppsCount { get; private set; }
     public IObservable<Unit> WhenGameDonated => _gameDonateSubject.AsObservable();
@@ -135,18 +136,24 @@ public class MainWindowViewModel : ViewModelBase
         return TaskList.ToList();
     }
 
-    private void OnDeviceChanged(AdbService.AdbDevice device)
+    private void OnDeviceStateChanged(DeviceState state)
     {
-        switch (device.State)
+        switch (state)
         {
             case DeviceState.Online:
                 IsDeviceConnected = true;
+                IsDeviceUnauthorized = false;
                 break;
             case DeviceState.Offline:
                 IsDeviceConnected = false;
+                IsDeviceUnauthorized = false;
+                break;
+            case DeviceState.Unauthorized:
+                IsDeviceConnected = false;
+                IsDeviceUnauthorized = true;
                 break;
         }
-        RefreshGameDonationBadge();
+        Task.Run(RefreshGameDonationBadge);
     }
 
     public void HandleDroppedFiles(IEnumerable<string> fileNames)

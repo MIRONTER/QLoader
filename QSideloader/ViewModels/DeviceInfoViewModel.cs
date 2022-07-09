@@ -33,7 +33,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         Refresh.Execute().Subscribe();
         this.WhenActivated(disposables =>
         {
-            _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged).DisposeWith(disposables);
+            _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged).DisposeWith(disposables);
             _adbService.WhenPackageListChanged.Subscribe(_ => OnPackageListChanged()).DisposeWith(disposables);
             _adbService.WhenDeviceListChanged.Subscribe(OnDeviceListChanged).DisposeWith(disposables);
             this.WhenAnyValue(x => x.CurrentDevice).Where(x => x is not null && x.Serial != _adbService.Device?.Serial)
@@ -64,9 +64,9 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] public ObservableCollection<AdbService.AdbDevice> DeviceList { get; set; } = new();
     public ViewModelActivator Activator { get; }
 
-    private void OnDeviceChanged(AdbService.AdbDevice device)
+    private void OnDeviceStateChanged(DeviceState state)
     {
-        switch (device.State)
+        switch (state)
         {
             case DeviceState.Online:
                 OnDeviceOnline();

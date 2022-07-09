@@ -37,7 +37,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         {
             Task.Run(OnActivated);
 
-            _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged).DisposeWith(disposables);
+            _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged).DisposeWith(disposables);
         });
     }
 
@@ -67,13 +67,13 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     public ReactiveCommand<Unit, Unit> LaunchHiddenSettings { get; }
     public ViewModelActivator Activator { get; }
 
-    private void OnDeviceChanged(AdbService.AdbDevice device)
+    private void OnDeviceStateChanged(DeviceState state)
     {
-        switch (device.State)
+        switch (state)
         {
             case DeviceState.Online:
                 IsDeviceConnected = true;
-                RefreshRates = device.Product switch
+                RefreshRates = _adbService.Device!.Product switch
                 {
                     "hollywood" => new[] {"Auto (recommended)", "72", "90", "120"},
                     "monterey" => new[] {"Auto (recommended)", "60", "72"},
@@ -97,7 +97,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     private void OnActivated()
     {
         if (_adbService.CheckDeviceConnectionSimple() || _adbService.CheckDeviceConnection())
-            OnDeviceChanged(_adbService.Device!);
+            OnDeviceStateChanged(DeviceState.Online);
         else
             IsDeviceConnected = false;
     }

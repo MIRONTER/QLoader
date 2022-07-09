@@ -88,7 +88,7 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
 
         this.WhenActivated(disposables =>
         {
-            _adbService.WhenDeviceChanged.Subscribe(OnDeviceChanged).DisposeWith(disposables);
+            _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged).DisposeWith(disposables);
             IsDeviceConnected = _adbService.CheckDeviceConnectionSimple();
             Observable.Timer(TimeSpan.FromSeconds(2)).Subscribe(_ => PlayTrailer());
             Disposable.Create(DisposeMediaPlayer).DisposeWith(disposables);
@@ -129,9 +129,9 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
         return Observable.Start(() => { Globals.MainWindowViewModel!.EnqueueTask(Game, TaskType.DownloadOnly); });
     }
 
-    private void OnDeviceChanged(AdbService.AdbDevice device)
+    private void OnDeviceStateChanged(DeviceState state)
     {
-        switch (device.State)
+        switch (state)
         {
             case DeviceState.Online:
                 IsDeviceConnected = true;

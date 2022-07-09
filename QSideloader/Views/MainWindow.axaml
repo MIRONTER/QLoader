@@ -42,16 +42,38 @@
             <Grid RowDefinitions="*,Auto">
                 <ui:Frame x:Name="ContentFrame" Grid.Row="0" />
                 <views:DeviceInfoView Grid.Row="1" />
-                <ui:InfoBar Grid.Row="0" x:Name="MainInfoBar"
+                <ui:InfoBar Grid.Row="0" x:Name="NoDeviceConnectionInfoBar"
                             Severity="Warning"
                             Margin="12"
                             VerticalAlignment="Bottom"
                             HorizontalAlignment="Center"
                             IsIconVisible="True"
-                            IsOpen="{Binding !IsDeviceConnected}"
                             IsClosable="False"
                             Title="No device connection"
-                            Message="" />
+                            Message="">
+                    <ui:InfoBar.IsOpen>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="!IsDeviceConnected" />
+                            <Binding Path="!IsDeviceUnauthorized" />
+                        </MultiBinding>
+                    </ui:InfoBar.IsOpen>
+                </ui:InfoBar>
+                <ui:InfoBar Grid.Row="0" x:Name="DeviceUnauthorizedInfoBar"
+                            Severity="Error"
+                            Margin="12"
+                            VerticalAlignment="Bottom"
+                            HorizontalAlignment="Center"
+                            IsIconVisible="True"
+                            IsClosable="False"
+                            Title="ADB unauthorized"
+                            Message="">
+                    <ui:InfoBar.IsOpen>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="!IsDeviceConnected" />
+                            <Binding Path="IsDeviceUnauthorized" />
+                        </MultiBinding>
+                    </ui:InfoBar.IsOpen>
+                </ui:InfoBar>
                 <Border Grid.Row="0" Grid.RowSpan="2"
                         MaxHeight="203"
                         Width="302"
