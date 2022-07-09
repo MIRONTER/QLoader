@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:aura="using:Aura.UI.Controls"
              xmlns:vm="using:QSideloader.ViewModels"
              xmlns:helpers="clr-namespace:QSideloader.Helpers"
              xmlns:views="clr-namespace:QSideloader.Views"
@@ -74,6 +73,7 @@
                 <!-- ReSharper disable Xaml.RedundantResource -->
                 <SolidColorBrush x:Key="DataGridCellFocusVisualPrimaryBrush">Transparent</SolidColorBrush>
                 <SolidColorBrush x:Key="DataGridCellFocusVisualSecondaryBrush">Transparent</SolidColorBrush>
+                <!-- ReSharper restore Xaml.RedundantResource -->
             </DataGrid.Resources>
         </DataGrid>
         <views:LoadingProgressRingView Grid.Row="0" Grid.RowSpan="2" 
