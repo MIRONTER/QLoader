@@ -1,5 +1,4 @@
 ﻿using NetSparkleUpdater;
-using QSideloader.Models;
 using QSideloader.ViewModels;
 
 namespace QSideloader.Helpers;

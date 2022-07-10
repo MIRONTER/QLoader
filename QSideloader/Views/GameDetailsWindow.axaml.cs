@@ -42,6 +42,7 @@ public class GameDetailsWindow : ReactiveWindow<GameDetailsViewModel>
         }
     }
 
+    [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private void Window_OnClosing(object? sender, CancelEventArgs e)
     {
         if (DataContext is GameDetailsViewModel viewModel) viewModel.Dispose();

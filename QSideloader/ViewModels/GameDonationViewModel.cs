@@ -34,9 +34,9 @@ public class GameDonationViewModel: ViewModelBase, IActivatableViewModel
         _sideloaderSettings = Globals.SideloaderSettings;
         Refresh = ReactiveCommand.CreateFromObservable(() => RefreshImpl());
         ManualRefresh = ReactiveCommand.CreateFromObservable(() => RefreshImpl(true));
-        var isBusyCombined = Refresh.IsExecuting
+        var isExecutingCombined = Refresh.IsExecuting
             .CombineLatest(ManualRefresh.IsExecuting, (x, y) => x || y);
-        isBusyCombined.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
+        isExecutingCombined.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
         Donate = ReactiveCommand.CreateFromObservable(DonateImpl);
         DonateAll = ReactiveCommand.CreateFromObservable(DonateAllImpl);
         Ignore = ReactiveCommand.CreateFromObservable(IgnoreImpl);

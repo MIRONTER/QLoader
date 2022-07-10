@@ -71,11 +71,7 @@ public class AdbService
 
     public AdbDevice? Device { get; private set; }
 
-    public IReadOnlyList<AdbDevice> DeviceList
-    {
-        get => _deviceList.AsReadOnly();
-        private set => _deviceList = value.ToList();
-    }
+    public IReadOnlyList<AdbDevice> DeviceList => _deviceList.AsReadOnly();
 
     public IObservable<DeviceState> WhenDeviceStateChanged => _deviceStateChangeSubject.AsObservable();
     public IObservable<Unit> WhenPackageListChanged => _packageListChangeSubject.AsObservable();
@@ -1420,7 +1416,7 @@ public class AdbService
                 "&& settings put global wifi_watchdog_poor_network_test_enabled 0 " +
                 "&& svc wifi enable");
             var ipRouteOutput = RunShellCommand("ip route");
-            var ipAddress = Regex.Match(ipRouteOutput!, ipAddressPattern).Groups[1].ToString();
+            var ipAddress = Regex.Match(ipRouteOutput, ipAddressPattern).Groups[1].ToString();
             _adb.AdbClient.TcpIp(this, port);
             return ipAddress;
         }
@@ -1468,7 +1464,7 @@ public class AdbService
             var privateDataBackupPath = Path.Combine(backupPath, "data_private");
             var obbBackupPath = Path.Combine(backupPath, "obb");
             const string apkPathPattern = @"package:(\S+)";
-            var apkPath = Regex.Match(RunShellCommand($"pm path {packageName}")!, apkPathPattern).Groups[1]
+            var apkPath = Regex.Match(RunShellCommand($"pm path {packageName}"), apkPathPattern).Groups[1]
                 .ToString();
             Directory.CreateDirectory(backupPath);
             File.Create(Path.Combine(backupPath, ".backup")).Dispose();
@@ -1601,7 +1597,7 @@ public class AdbService
             if (Directory.Exists(path))
                 Directory.Delete(path, true);
             Directory.CreateDirectory(path);
-            var apkPath = Regex.Match(RunShellCommand($"pm path {packageName}")!, @"package:(\S+)").Groups[1]
+            var apkPath = Regex.Match(RunShellCommand($"pm path {packageName}"), @"package:(\S+)").Groups[1]
                 .ToString();
             var localApkPath = Path.Combine(path, Path.GetFileName(apkPath));
             var obbPath = $"/sdcard/Android/obb/{packageName}/";

@@ -14,7 +14,7 @@ namespace QSideloader.Helpers;
 ///     </para>
 ///     <para>
 ///         The asset must be in the same assembly as the program. If it isn't,
-///         specify "avares://<assemblynamehere>/" in front of the path to the asset.
+///         specify "avares://assemblynamehere/" in front of the path to the asset.
 ///     </para>
 /// </summary>
 public class BitmapAssetValueConverter : IValueConverter

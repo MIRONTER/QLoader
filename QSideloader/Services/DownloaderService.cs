@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -323,7 +322,6 @@ public class DownloaderService
             EnsureMirrorSelected();
 
             var csvEngine = new FileHelperEngine<Game>();
-            var notesPath = Path.Combine("metadata", "notes.json");
             if (AvailableGames is not null && !refresh)
                 return;
             AvailableGames = null;
@@ -455,7 +453,7 @@ public class DownloaderService
             try
             {
                 List<Dictionary<string, JsonElement>>? popularity;
-                using (var op = Operation.Time("Requesting popularity from API"))
+                using (var _ = Operation.Time("Requesting popularity from API"))
                 {
                     popularity =
                         await ApiHttpClient.GetFromJsonAsync<List<Dictionary<string, JsonElement>>>("popularity");

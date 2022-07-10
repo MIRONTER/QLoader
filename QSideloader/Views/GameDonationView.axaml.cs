@@ -1,12 +1,10 @@
-﻿using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
+﻿using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
 using QSideloader.ViewModels;
 
 namespace QSideloader.Views;
 
-public partial class GameDonationView : ReactiveUserControl<GameDonationViewModel>
+public class GameDonationView : ReactiveUserControl<GameDonationViewModel>
 {
     public GameDonationView()
     {

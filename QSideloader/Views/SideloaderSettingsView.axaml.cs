@@ -1,4 +1,5 @@
-﻿using Avalonia;
+﻿using System.Diagnostics.CodeAnalysis;
+using Avalonia;
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
 using QSideloader.Helpers;
@@ -20,6 +21,7 @@ public class SideloaderSettingsView : ReactiveUserControl<SideloaderSettingsView
         AvaloniaXamlLoader.Load(this);
     }
 
+    [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private void Visual_OnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
     {
         ViewModel!.RefreshMirrorSelection();

@@ -33,10 +33,9 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         Activator = new ViewModelActivator();
         Refresh = ReactiveCommand.CreateFromObservable(() => RefreshImpl());
         ManualRefresh = ReactiveCommand.CreateFromObservable(() => RefreshImpl(true));
-        var isBusyCombined = Observable.Empty<bool>().StartWith(false)
-            .CombineLatest(Refresh.IsExecuting, (x, y) => x || y)
+        var isExecutingCombined = Refresh.IsExecuting
             .CombineLatest(ManualRefresh.IsExecuting, (x, y) => x || y);
-        isBusyCombined.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
+        isExecutingCombined.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
         Update = ReactiveCommand.CreateFromObservable(UpdateImpl);
         UpdateAll = ReactiveCommand.CreateFromObservable(UpdateAllImpl);
         Uninstall = ReactiveCommand.CreateFromObservable(UninstallImpl);

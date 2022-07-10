@@ -74,7 +74,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
         };
         this.WhenAnyValue(x => x.SelectedMirror).Where(s => s is not null)
             .DistinctUntilChanged()
-            .Subscribe(x =>
+            .Subscribe(_ =>
             {
                 SwitchMirror.Execute().Subscribe();
                 RefreshMirrorSelection();

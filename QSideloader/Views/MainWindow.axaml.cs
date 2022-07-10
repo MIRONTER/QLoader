@@ -53,8 +53,8 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         AvaloniaXamlLoader.Load(this);
     }
-
-    // ReSharper disable once UnusedParameter.Local
+    
+    [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private void NavigationView_OnSelectionChanged(object? sender, NavigationViewSelectionChangedEventArgs e)
     {
         if (e.IsSettingsSelected)
@@ -141,6 +141,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
             taskListBox.ScrollIntoView(taskListBox.Items.OfType<TaskView>().Last());
         }
     }*/
+    [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private async void Window_OnClosing(object? sender, CancelEventArgs e)
     {
         if (_isClosing || ViewModel!.TaskList.Count == 0 || ViewModel.TaskList.All(x => x.IsFinished))

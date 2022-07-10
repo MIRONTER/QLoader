@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
@@ -76,6 +77,7 @@ public class TaskView : ReactiveUserControl<TaskViewModel>
         ViewModel!.RunTask.Execute().Subscribe();
     }
 
+    [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private void TaskView_OnPointerEnter(object? sender, PointerEventArgs e)
     {
         var border = this.Get<Border>("Border");
@@ -86,6 +88,7 @@ public class TaskView : ReactiveUserControl<TaskViewModel>
         hintText.IsVisible = true;
     }
 
+    [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private void TaskView_OnPointerLeave(object? sender, PointerEventArgs e)
     {
         var border = this.Get<Border>("Border");
