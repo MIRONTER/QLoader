@@ -11,8 +11,11 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using AdvancedSharpAdbClient;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
+using FluentAvalonia.UI.Controls;
 using QSideloader.Helpers;
 using QSideloader.Models;
 using QSideloader.Services;
@@ -31,12 +34,14 @@ public class MainWindowViewModel : ViewModelBase
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
     // ReSharper restore PrivateFieldCanBeConvertedToLocalVariable
     private readonly Subject<Unit> _gameDonateSubject = new ();
+    private readonly IManagedNotificationManager _notificationManager;
 
-    public MainWindowViewModel()
+    public MainWindowViewModel(IManagedNotificationManager notificationManager)
     {
         _adbService = AdbService.Instance;
         _downloaderService = DownloaderService.Instance;
         _sideloaderSettings = Globals.SideloaderSettings;
+        _notificationManager = notificationManager;
         ShowGameDetailsCommand = ReactiveCommand.CreateFromTask<Game>(async game =>
         {
             if (_downloaderService.AvailableGames is null) return;
@@ -76,6 +81,7 @@ public class MainWindowViewModel : ViewModelBase
             if (t.IsFaulted)
             {
                 Log.Error(t.Exception!, "Error while enqueuing task");
+                Globals.ShowErrorNotification(t.Exception!, "Error while enqueuing task");
             }
         }, TaskContinuationOptions.OnlyOnFaulted);
     }
@@ -93,6 +99,7 @@ public class MainWindowViewModel : ViewModelBase
             if (t.IsFaulted)
             {
                 Log.Error(t.Exception!, "Error while enqueuing task");
+                Globals.ShowErrorNotification(t.Exception!, "Error while enqueuing task");
             }
         }, TaskContinuationOptions.OnlyOnFaulted);
     }
@@ -110,6 +117,7 @@ public class MainWindowViewModel : ViewModelBase
             if (t.IsFaulted)
             {
                 Log.Error(t.Exception!, "Error while enqueuing task");
+                Globals.ShowErrorNotification(t.Exception!, "Error while enqueuing task");
             }
         }, TaskContinuationOptions.OnlyOnFaulted);
     }
@@ -127,6 +135,7 @@ public class MainWindowViewModel : ViewModelBase
             if (t.IsFaulted)
             {
                 Log.Error(t.Exception!, "Error while enqueuing task");
+                Globals.ShowErrorNotification(t.Exception!, "Error while enqueuing task");
             }
         }, TaskContinuationOptions.OnlyOnFaulted);
     }
@@ -230,5 +239,51 @@ public class MainWindowViewModel : ViewModelBase
         _adbService.Device?.RefreshInstalledApps();
         RefreshGameDonationBadge();
         _gameDonateSubject.OnNext(Unit.Default);
+    }
+    
+    public void ShowNotification(string title, string message, NotificationType type, TimeSpan? expiration = null)
+    {
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            _notificationManager.Show(
+                new Avalonia.Controls.Notifications.Notification(title, message, type, expiration));
+        });
+    }
+    
+    public void ShowErrorNotification(Exception e, string? message, NotificationType type = NotificationType.Error, TimeSpan? expiration = null)
+    {
+        expiration ??= TimeSpan.Zero;
+        // Remove invalid characters to avoid cutting off when copying to clipboard
+        var filteredException = Regex.Replace(e.ToString(), @"[^\w\d\s\p{P}]", "");
+        var text = message + "\n" + filteredException;
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            _notificationManager.Show(new Avalonia.Controls.Notifications.Notification("Error", message,
+                NotificationType.Error, expiration, onClick: () =>
+                {
+                    var dialog = new ContentDialog
+                    {
+                        Title = "Error",
+                        Content = new ScrollViewer
+                        {
+                            Content = new TextBox
+                            {
+                                Text = text,
+                                IsReadOnly = true,
+                                AcceptsReturn = true
+                            }
+                        },
+                        CloseButtonText = "Close",
+                        PrimaryButtonText = "Copy to clipboard",
+                        PrimaryButtonCommand = ReactiveCommand.Create(async () =>
+                        {
+                            await Application.Current!.Clipboard!.SetTextAsync(text);
+                            ShowNotification("Copied to clipboard", "The exception has been copied to clipboard",
+                                NotificationType.Success);
+                        })
+                    };
+                    dialog.ShowAsync();
+                }));
+        });
     }
 }

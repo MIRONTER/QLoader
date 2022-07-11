@@ -5,6 +5,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using AdvancedSharpAdbClient;
 using Avalonia;
+using Avalonia.Controls.Notifications;
 using Avalonia.Platform;
 using LibVLCSharp.Shared;
 using QSideloader.Helpers;
@@ -46,22 +47,24 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
         Activator = new ViewModelActivator();
         _adbService = AdbService.Instance;
         Game = game;
-        try
-        {
-            // Repeat videos maximum allowed number of times. No loop functionality in libVLC 3
-            _libVlc ??= new LibVLC("--input-repeat=65535");
-            MediaPlayer = new MediaPlayer(_libVlc);
-        }
-        catch (Exception e)
-        {
-            Log.Warning("Failed to initialize LibVLC");
-            Log.Verbose(e, "Failed to initialize LibVLC");
-        }
-
         DownloadAndInstall = ReactiveCommand.CreateFromObservable(DownloadAndInstallImpl);
         DownloadOnly = ReactiveCommand.CreateFromObservable(DownloadOnlyImpl);
-        var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
-        if (assets is null) return;
+        
+        // Initialize LibVLC only if trailers are installed
+        if (Directory.Exists(PathHelper.TrailersPath))
+            try
+            {
+                // Repeat videos maximum allowed number of times. No loop functionality in libVLC 3
+                _libVlc ??= new LibVLC("--input-repeat=65535");
+                MediaPlayer = new MediaPlayer(_libVlc);
+            }
+            catch (Exception e)
+            {
+                Log.Warning(e, "Failed to initialize LibVLC");
+                Globals.ShowErrorNotification(e, "Failed to initialize video player", NotificationType.Warning,
+                    TimeSpan.FromSeconds(5));
+            }
+        
         var jpgPath = Path.Combine(PathHelper.ThumbnailsPath, $"{Game.PackageName}.jpg");
         var pngPath = Path.Combine(PathHelper.ThumbnailsPath, $"{Game.PackageName}.png");
         if (File.Exists(jpgPath))

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Notifications;
 using Avalonia.Markup.Xaml;
 using QSideloader.Helpers;
 using QSideloader.Services;
@@ -51,11 +52,14 @@ public class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.ShutdownMode = ShutdownMode.OnMainWindowClose;
-            Globals.MainWindowViewModel = new MainWindowViewModel();
-            desktop.MainWindow = new MainWindow
+            desktop.MainWindow = new MainWindow();
+            var notificationManager = new WindowNotificationManager(desktop.MainWindow)
             {
-                DataContext = Globals.MainWindowViewModel
+                Position = NotificationPosition.TopRight,
+                MaxItems = 3
             };
+            Globals.MainWindowViewModel = new MainWindowViewModel(notificationManager);
+            desktop.MainWindow.DataContext = Globals.MainWindowViewModel;
         }
 
         base.OnFrameworkInitializationCompleted();

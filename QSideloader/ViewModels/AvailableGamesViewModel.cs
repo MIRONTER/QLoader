@@ -5,6 +5,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using AdvancedSharpAdbClient;
+using Avalonia.Controls.Notifications;
 using DynamicData;
 using QSideloader.Helpers;
 using QSideloader.Models;
@@ -113,6 +114,13 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             }
 
             var selectedGames = _availableGamesSourceCache.Items.Where(game => game.IsSelected).ToList();
+            if (selectedGames.Count == 0)
+            {
+                Log.Warning("No games selected for download and install");
+                Globals.ShowNotification("Download & Install", "No games selected", NotificationType.Information,
+                    TimeSpan.FromSeconds(2));
+                return;
+            }
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
@@ -128,6 +136,13 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             if (IsBusy)
                 return;
             var selectedGames = _availableGamesSourceCache.Items.Where(game => game.IsSelected).ToList();
+            if (selectedGames.Count == 0)
+            {
+                Log.Warning("No games selected for download");
+                Globals.ShowNotification("Download", "No games selected", NotificationType.Information,
+                    TimeSpan.FromSeconds(2));
+                return;
+            }
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;

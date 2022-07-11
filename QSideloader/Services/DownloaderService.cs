@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Controls.Notifications;
 using CliWrap;
 using CliWrap.Buffered;
 using CliWrap.Exceptions;
@@ -408,6 +409,7 @@ public class DownloaderService
         catch (Exception e)
         {
             Log.Error(e, "Error downloading game list");
+            Globals.ShowErrorNotification(e, "Error downloading game list");
         }
         finally
         {
@@ -480,10 +482,14 @@ public class DownloaderService
                 }
 
                 Log.Warning("Failed to load popularity data");
+                Globals.ShowNotification("Error", "Failed to load popularity data", NotificationType.Warning,
+                    TimeSpan.FromSeconds(3));
             }
             catch (Exception e)
             {
                 Log.Warning(e, "Failed to load popularity data");
+                Globals.ShowErrorNotification(e, "Failed to load popularity data", NotificationType.Warning,
+                    TimeSpan.FromSeconds(3));
             }
         }
         

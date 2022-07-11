@@ -7,6 +7,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using AdvancedSharpAdbClient;
+using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
 using DynamicData;
 using QSideloader.Helpers;
@@ -103,6 +104,8 @@ public class GameDonationViewModel: ViewModelBase, IActivatableViewModel
             if (selectedApps.Count == 0)
             {
                 Log.Warning("No apps selected for donation");
+                Globals.ShowNotification("Donate", "No apps selected", NotificationType.Information,
+                    TimeSpan.FromSeconds(2));
                 return;
             }
             foreach (var app in selectedApps)
@@ -135,6 +138,8 @@ public class GameDonationViewModel: ViewModelBase, IActivatableViewModel
             if (InstalledApps.Count == 0)
             {
                 Log.Warning("No apps to donate!");
+                Globals.ShowNotification("Donate", "No apps to donate", NotificationType.Information,
+                    TimeSpan.FromSeconds(2));
                 return;
             }
 
@@ -161,6 +166,8 @@ public class GameDonationViewModel: ViewModelBase, IActivatableViewModel
             if (selectedApps.Count == 0)
             {
                 Log.Warning("No apps selected to add to ignore list");
+                Globals.ShowNotification("Ignore", "No apps selected", NotificationType.Information,
+                    TimeSpan.FromSeconds(2));
                 return;
             }
             foreach (var app in selectedApps)

@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
 using Newtonsoft.Json;
 using QSideloader.Helpers;
@@ -247,6 +248,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             catch (Exception e)
             {
                 Log.Error(e, "Failed to save settings");
+                Globals.ShowErrorNotification(e, "Failed to save settings");
                 throw;
             }
         });
@@ -260,6 +262,8 @@ public class SideloaderSettingsViewModel : ViewModelBase
             InitDefaults();
             AutoSaveDelayTimer.Stop();
             AutoSaveDelayTimer.Start();
+            Globals.ShowNotification("Info", "Restored default settings", NotificationType.Success,
+                TimeSpan.FromSeconds(3));
         });
     }
 
@@ -273,6 +277,8 @@ public class SideloaderSettingsViewModel : ViewModelBase
             SaveSettings.Execute().Subscribe();
             Log.Debug("Set new downloads location: {Location}",
                 DownloadsLocationTextBoxText);
+            Globals.ShowNotification("Info", "New downloads location set", NotificationType.Success,
+                TimeSpan.FromSeconds(2));
         });
     }
 
@@ -286,6 +292,8 @@ public class SideloaderSettingsViewModel : ViewModelBase
             SaveSettings.Execute().Subscribe();
             Log.Debug("Set new backups location: {Location}",
                 BackupsLocationTextBoxText);
+            Globals.ShowNotification("Info", "New backups location set", NotificationType.Success,
+                TimeSpan.FromSeconds(2));
         });
     }
 
@@ -301,10 +309,18 @@ public class SideloaderSettingsViewModel : ViewModelBase
             DownloaderBandwidthLimit = DownloaderBandwidthLimitTextBoxText;
             SaveSettings.Execute().Subscribe();
             if (!string.IsNullOrEmpty(DownloaderBandwidthLimitTextBoxText))
+            {
                 Log.Debug("Set new downloader bandwidth limit: {Limit}",
                     DownloaderBandwidthLimitTextBoxText);
+                Globals.ShowNotification("Info", "New downloader bandwidth limit set",
+                    NotificationType.Success, TimeSpan.FromSeconds(2));
+            }
             else
+            {
                 Log.Debug("Removed downloader bandwidth limit");
+                Globals.ShowNotification("Info", "Removed downloader bandwidth limit",
+                    NotificationType.Success, TimeSpan.FromSeconds(2));
+            }
         });
     }
 

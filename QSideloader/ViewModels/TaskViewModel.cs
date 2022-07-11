@@ -7,6 +7,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AdvancedSharpAdbClient;
+using Avalonia.Controls.Notifications;
 using QSideloader.Helpers;
 using QSideloader.Models;
 using QSideloader.Services;
@@ -71,7 +72,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         {
             Log.Error(ex, "Task {TaskType} {TaskName} failed", _taskType, TaskName);
             if (!IsFinished)
-                OnFinished($"Task failed: {ex.Message}");
+                OnFinished($"Task failed: {ex.Message}", false, ex);
         });
         Activator = new ViewModelActivator();
     }
@@ -97,7 +98,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         {
             Log.Error(ex, "Task {TaskType} {TaskName} failed", _taskType, TaskName);
             if (!IsFinished)
-                OnFinished($"Task failed: {ex.Message}");
+                OnFinished($"Task failed: {ex.Message}", false, ex);
         });
         Activator = new ViewModelActivator();
     }
@@ -118,7 +119,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         {
             Log.Error(ex, "Task {TaskType} {TaskName} failed", _taskType, TaskName);
             if (!IsFinished)
-                OnFinished($"Task failed: {ex.Message}");
+                OnFinished($"Task failed: {ex.Message}", false, ex);
         });
         Activator = new ViewModelActivator();
     }
@@ -215,7 +216,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             }
             else
             {
-                OnFinished("Download failed");
+                OnFinished("Download failed", false, e);
                 throw;
             }
 
@@ -235,7 +236,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             }
             else
             {
-                OnFinished("Install failed");
+                OnFinished("Install failed", false, e);
                 throw;
             }
         }
@@ -246,6 +247,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         try
         {
             _gamePath = await DownloadAsync();
+            OnFinished("Downloaded");
         }
         catch (Exception e)
         {
@@ -255,14 +257,10 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             }
             else
             {
-                OnFinished("Download failed");
+                OnFinished("Download failed", false, e);
                 throw;
             }
-
-            return;
         }
-
-        OnFinished("Downloaded");
     }
 
     private async Task RunInstallOnlyAsync()
@@ -280,7 +278,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             }
             else
             {
-                OnFinished("Install failed");
+                OnFinished("Install failed", false, e);
                 throw;
             }
         }
@@ -301,7 +299,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             }
             else
             {
-                OnFinished("Uninstall failed");
+                OnFinished("Uninstall failed", false, e);
                 throw;
             }
         }
@@ -324,7 +322,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             }
             else
             {
-                OnFinished("Uninstall failed");
+                OnFinished("Uninstall failed", false, e);
                 throw;
             }
         }
@@ -346,7 +344,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             }
             else
             {
-                OnFinished("Backup failed");
+                OnFinished("Backup failed", false, e);
                 throw;
             }
         }
@@ -368,7 +366,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             }
             else
             {
-                OnFinished("Restore failed");
+                OnFinished("Restore failed", false, e);
                 throw;
             }
         }
@@ -397,7 +395,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             if (t.IsFaulted)
             {
                 Log.Error(t.Exception!, "Failed to pull and upload");
-                OnFinished("Donation failed");
+                OnFinished("Donation failed", false, t.Exception);
                 throw t.Exception!;
             }
             if (t.IsCanceled)
@@ -424,7 +422,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             }
             else
             {
-                OnFinished("Install failed");
+                OnFinished("Install failed", false, e);
                 throw;
             }
         }
@@ -474,10 +472,10 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             .SubscribeOn(RxApp.TaskpoolScheduler)
             .Subscribe(
                 x => Status = x,
-                _ =>
+                e =>
                 {
                     AdbService.ReleasePackageOperationLock();
-                    OnFinished("Install failed");
+                    OnFinished("Install failed", false, e);
                 },
                 () =>
                 {
@@ -541,7 +539,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         OnFinished("Installed");
     }
 
-    private void OnFinished(string status)
+    private void OnFinished(string status, bool isSuccess = true, Exception? e = null)
     {
         if (IsFinished)
             return;
@@ -550,6 +548,12 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         Status = status;
         Log.Information("Task {TaskType} {TaskName} finished. Result: {Status}",
             _taskType, TaskName, status);
+        if (isSuccess) return;
+        if (e is not null)
+            Globals.ShowErrorNotification(e, $"Task \"{TaskName}\" failed");
+        else
+            Globals.ShowNotification("Error", $"Task \"{TaskName}\" failed", NotificationType.Error,
+                TimeSpan.Zero);
     }
 
     public void Cancel()
@@ -582,7 +586,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 ) 
                 return;
         }
-        OnFinished("Failed: no device connection");
+        OnFinished("Failed: no device connection", false);
         throw new InvalidOperationException("No device connection");
     }
 }

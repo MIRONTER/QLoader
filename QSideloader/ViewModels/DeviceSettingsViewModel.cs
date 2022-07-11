@@ -5,7 +5,9 @@ using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AdvancedSharpAdbClient;
+using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
+using QSideloader.Helpers;
 using QSideloader.Services;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -23,7 +25,11 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         _adbService = AdbService.Instance;
         Activator = new ViewModelActivator();
         ApplySettings = ReactiveCommand.CreateFromObservable(ApplySettingsImpl, this.IsValid());
-        ApplySettings.ThrownExceptions.Subscribe(ex => Log.Error(ex, "Error applying device settings"));
+        ApplySettings.ThrownExceptions.Subscribe(ex =>
+        {
+            Log.Error(ex, "Error applying device settings");
+            Globals.ShowErrorNotification(ex, "Error applying device settings");
+        });
         MountStorage = ReactiveCommand.CreateFromObservable(MountStorageImpl);
         LaunchHiddenSettings = ReactiveCommand.CreateFromObservable(LaunchHiddenSettingsImpl);
         // this.ValidationRule(viewModel => viewModel.ResolutionTextBoxText,
@@ -86,6 +92,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 catch (Exception e)
                 {
                     Log.Error(e, "Failed to load current device settings");
+                    Globals.ShowErrorNotification(e, "Failed to load current device settings");
                 }
                 break;
             case DeviceState.Offline:
@@ -287,81 +294,11 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                     Log.Information("Set username: {Username}", UsernameTextBoxText);
                 }
             }
+            Log.Information("Applied device settings");
+            Globals.ShowNotification("Info", "Applied device settings", NotificationType.Success,
+                TimeSpan.FromSeconds(2));
         });
     }
-
-    /*private static bool TryParseResolutionString(string? input, out int width, out int height)
-    {
-        if (input is null)
-        {
-            width = 0;
-            height = 0;
-            return false;
-        }
-        
-        if (input.Length is 3 or 4 && int.TryParse(input, out var value))
-        {
-            switch (value)
-            {
-                case 512:
-                    width = value;
-                    height = 563;
-                    return true;
-                case 768:
-                    width = value;
-                    height = 845;
-                    return true;
-                case 1024:
-                    width = value;
-                    height = 1127;
-                    return true;
-                case 1216:
-                    width = value;
-                    height = 1344;
-                    return true;
-                case 1440:
-                    width = value;
-                    height = 1584;
-                    return true;
-                case 1536:
-                    width = value;
-                    height = 1590;
-                    return true;
-                case 2048:
-                    width = value;
-                    height = 2253;
-                    return true;
-                case 2560:
-                    width = value;
-                    height = 2816;
-                    return true;
-                case 3072:
-                    width = value;
-                    height = 3380;
-                    return true;
-                default:
-                    width = 0;
-                    height = 0;
-                    return false;
-            }
-        }
-
-        if (input.Contains('x'))
-        {
-            const string resolutionStringPattern = @"^(\d{3,4})x(\d{3,4})$";
-            var match = Regex.Match(input, resolutionStringPattern);
-            if (match.Success)
-            {
-                width = int.Parse(match.Groups[1].ToString());
-                height = int.Parse(match.Groups[2].ToString());
-                return true;
-            }
-        }
-
-        width = 0;
-        height = 0;
-        return false;
-    }*/
 
     private static void ResolutionValueToDimensions(string input, out int width, out int height)
     {
@@ -432,6 +369,8 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
 
             _adbService.Device!.RunShellCommand("svc usb setFunctions mtp true", true);
             Log.Information("Mounted device storage");
+            Globals.ShowNotification("Info", "Device storage mounted", NotificationType.Success,
+                TimeSpan.FromSeconds(2));
         });
     }
 

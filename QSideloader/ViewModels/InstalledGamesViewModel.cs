@@ -7,6 +7,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using AdvancedSharpAdbClient;
+using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
 using DynamicData;
 using QSideloader.Helpers;
@@ -96,6 +97,12 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             }
 
             var selectedGames = _installedGamesSourceCache.Items.Where(game => game.IsSelected).ToList();
+            if (selectedGames.Count == 0)
+            {
+                Log.Warning("No games selected for update");
+                Globals.ShowNotification("Update", "No games selected", NotificationType.Information, TimeSpan.FromSeconds(2));
+                return;
+            }
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
@@ -135,6 +142,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             if (selectedGames.Count == 0)
             {
                 Log.Information("No games to update");
+                Globals.ShowNotification("Update", "No games to update", NotificationType.Information, TimeSpan.FromSeconds(2));
                 return;
             }
 
@@ -165,6 +173,12 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             }
 
             var selectedGames = _installedGamesSourceCache.Items.Where(game => game.IsSelected).ToList();
+            if (selectedGames.Count == 0)
+            {
+                Log.Warning("No games selected for uninstall");
+                Globals.ShowNotification("Uninstall", "No games selected", NotificationType.Information, TimeSpan.FromSeconds(2));
+                return;
+            }
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;

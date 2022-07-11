@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using AdvancedSharpAdbClient;
 using AdvancedSharpAdbClient.DeviceCommands;
 using Avalonia.Controls;
+using Avalonia.Controls.Notifications;
 using CliWrap;
 using CliWrap.Buffered;
 using QSideloader.Helpers;
@@ -164,6 +165,7 @@ public class AdbService
         catch (Exception e)
         {
             Log.Error(e, "Error while checking device connection");
+            Globals.ShowErrorNotification(e, "Error while checking device connection");
         }
         finally
         {
@@ -325,12 +327,15 @@ public class AdbService
             {
                 // TODO: handle failures
                 Log.Error(e, "Failed to start ADB server");
+                Globals.ShowErrorNotification(e, "Failed to start ADB server");
                 throw new AdbServiceException("Failed to start ADB server", e);
             }
 
             if (!_adb.AdbServer.GetStatus().IsRunning)
             {
                 Log.Error("Failed to start ADB server");
+                Globals.ShowNotification("ADB", "Failed to start ADB server", NotificationType.Error,
+                    TimeSpan.Zero);
                 throw new AdbServiceException("Failed to start ADB server");
             }
 
@@ -607,6 +612,7 @@ public class AdbService
         catch (Exception e)
         {
             Log.Error(e, "Failed to enable Wireless ADB");
+            Globals.ShowErrorNotification(e, "Failed to enable Wireless ADB");
         }
     }
 
@@ -928,6 +934,7 @@ public class AdbService
             catch (Exception e)
             {
                 Log.Error(e, "Failed to refresh installed games");
+                Globals.ShowErrorNotification(e, "Failed to refresh installed games");
                 InstalledGames = new List<InstalledGame>();
             }
             finally
