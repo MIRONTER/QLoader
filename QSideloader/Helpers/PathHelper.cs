@@ -82,7 +82,7 @@ public static class PathHelper
         }
         else
         {
-            throw new FileNotFoundException("File not found" + pathAndFileName, pathAndFileName);
+            throw new FileNotFoundException("File not found " + pathAndFileName, pathAndFileName);
         }
 
         return resultFileName;
