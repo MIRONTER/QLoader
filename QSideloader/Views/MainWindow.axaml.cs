@@ -113,6 +113,11 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     private void InitializeUpdater()
     {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            Log.Warning("Running on Windows, skipping updater initialization");
+            return;
+        }
         Log.Information("Initializing updater");
         Globals.Updater = new SparkleUpdater(
             "https://raw.githubusercontent.com/skrimix/QLoaderFiles/master/appcast.xml",

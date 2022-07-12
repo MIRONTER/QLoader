@@ -99,7 +99,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             var selectedGames = _installedGamesSourceCache.Items.Where(game => game.IsSelected).ToList();
             if (selectedGames.Count == 0)
             {
-                Log.Warning("No games selected for update");
+                Log.Information("No games selected for update");
                 Globals.ShowNotification("Update", "No games selected", NotificationType.Information, TimeSpan.FromSeconds(2));
                 return;
             }
@@ -137,12 +137,25 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             Log.Information("Found {AmbiguousReleasesCount} ambiguous releases, which will be ignored",
                 ambiguousReleases.Count);
             var selectedGames = _installedGamesSourceCache.Items
-                .Where(game => game.AvailableVersionCode > game.InstalledVersionCode).Except(ambiguousReleases)
-                .ToList();
+                .Where(game => game.AvailableVersionCode > game.InstalledVersionCode).ToList();
+            var skippedCount = selectedGames.Count;
+            selectedGames.RemoveAll(x => ambiguousReleases.Contains(x));
+            skippedCount -= selectedGames.Count;
+            
             if (selectedGames.Count == 0)
             {
-                Log.Information("No games to update");
-                Globals.ShowNotification("Update", "No games to update", NotificationType.Information, TimeSpan.FromSeconds(2));
+                if (skippedCount == 0)
+                {
+                    Log.Information("No games to update");
+                    Globals.ShowNotification("Update", "No games to update", NotificationType.Information,
+                        TimeSpan.FromSeconds(2));
+                }
+                else
+                {
+                    Log.Information("No games to update ({SkippedCount} skipped)", skippedCount);
+                    Globals.ShowNotification("Update", $"No games to update ({skippedCount} skipped)",
+                        NotificationType.Information, TimeSpan.FromSeconds(2));
+                }
                 return;
             }
 
@@ -175,7 +188,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             var selectedGames = _installedGamesSourceCache.Items.Where(game => game.IsSelected).ToList();
             if (selectedGames.Count == 0)
             {
-                Log.Warning("No games selected for uninstall");
+                Log.Information("No games selected for uninstall");
                 Globals.ShowNotification("Uninstall", "No games selected", NotificationType.Information, TimeSpan.FromSeconds(2));
                 return;
             }

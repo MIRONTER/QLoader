@@ -10,18 +10,19 @@
         <vm:InstalledAppsViewModel />
     </Design.DataContext>
     <Grid RowDefinitions="Auto,*" IsEnabled="{Binding IsDeviceConnected}">
-        <CheckBox Grid.Row="0"
-                  HorizontalAlignment="Left" 
-                  Margin="8,0,0,0"
-                  IsChecked="{Binding IsShowHiddenFromDonation}">Show hidden</CheckBox>
         <StackPanel Grid.Row="0"
                     Orientation="Horizontal"
                     Spacing="12" Margin="8"
                     HorizontalAlignment="Right">
-            <Button Command="{Binding DonateAll}">Donate All</Button>
-            <Button Command="{Binding Donate}">Donate Selected</Button>
-            <Button Command="{Binding Ignore}">Ignore Selected</Button>
-            <Button Command="{Binding ManualRefresh}">Refresh</Button>
+            <CheckBox IsChecked="{Binding IsShowHiddenFromDonation}">Show hidden</CheckBox>
+            <Button Command="{Binding DonateAll}" ToolTip.Tip="Upload all eligible games"
+                    >Donate All</Button>
+            <Button Command="{Binding Donate}" ToolTip.Tip="Upload selected games"
+                    >Donate Selected</Button>
+            <Button Command="{Binding Ignore}" ToolTip.Tip="Hide selected apps from donation list (select ignored apps to inverse)"
+                    >Ignore Selected</Button>
+            <Button Command="{Binding ManualRefresh}" ToolTip.Tip="Rescan list of installed apps"
+                    >Refresh</Button>
         </StackPanel>
         <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
         <DataGrid Grid.Row="1" x:Name="InstalledGamesDataGrid"

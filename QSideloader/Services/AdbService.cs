@@ -964,7 +964,7 @@ public class AdbService
                 let isNewVersion = _downloaderService.AvailableGames!.Where(g => g.PackageName == packageName)
                     .Any(g => versionCode > g.VersionCode)
                 let isHiddenFromDonation = isBlacklisted || isIgnored || isDonated || !(isNew || isNewVersion)
-                let donationStatus = !isHiddenFromDonation ? isNewVersion ? "New version" : "New App" :
+                let donationStatus = !isHiddenFromDonation ? isNew ? "New App" : "New version" :
                     isDonated ? "Donated" :
                     isIgnored ? "Ignored" :
                     isBlacklisted ? "Blacklisted" : "Up To Date"
@@ -1296,7 +1296,7 @@ public class AdbService
             }
             catch (Exception e)
             {
-                throw new AdbServiceException("Failed to run install script", e);
+                throw new AdbServiceException("Error running install script", e);
             }
         }
 

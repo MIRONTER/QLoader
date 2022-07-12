@@ -70,13 +70,13 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
             .DisposeMany();
         this.WhenActivated(disposables =>
         {
-            IsShowHiddenFromDonation = false;
             cacheListBind.Subscribe().DisposeWith(disposables);
             _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged).DisposeWith(disposables);
             _adbService.WhenPackageListChanged.Subscribe(_ => Refresh.Execute().Subscribe()).DisposeWith(disposables);
             Globals.MainWindowViewModel!.WhenGameDonated.Subscribe(_ => Refresh.Execute().Subscribe()).DisposeWith(disposables);
             IsDeviceConnected = _adbService.CheckDeviceConnectionSimple();
             Refresh.Execute().Subscribe();
+            IsShowHiddenFromDonation = false;
         });
     }
     
@@ -126,7 +126,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
             var selectedApps = _installedAppsSourceCache.Items.Where(app => app.IsSelected).ToList();
             if (selectedApps.Count == 0)
             {
-                Log.Warning("No apps selected for donation");
+                Log.Information("No apps selected for donation");
                 Globals.ShowNotification("Donate", "No apps selected", NotificationType.Information,
                     TimeSpan.FromSeconds(2));
                 return;
@@ -161,7 +161,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
             var eligibleApps = _installedAppsSourceCache.Items.Where(app => !app.IsHiddenFromDonation).ToList();
             if (eligibleApps.Count == 0)
             {
-                Log.Warning("No apps to donate");
+                Log.Information("No apps to donate");
                 Globals.ShowNotification("Donate", "No apps to donate", NotificationType.Information,
                     TimeSpan.FromSeconds(2));
                 return;
@@ -189,18 +189,45 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
             var selectedApps = _installedAppsSourceCache.Items.Where(app => app.IsSelected).ToList();
             if (selectedApps.Count == 0)
             {
-                Log.Warning("No apps selected to add to ignore list");
+                Log.Information("No apps selected to add to ignore list");
                 Globals.ShowNotification("Ignore", "No apps selected", NotificationType.Information,
                     TimeSpan.FromSeconds(2));
                 return;
             }
+
+            var inverse =
+                selectedApps.All(app => _sideloaderSettings.IgnoredDonationPackages.Contains(app.PackageName));
+            var count = 0;
             foreach (var app in selectedApps)
             {
                 app.IsSelected = false;
-                _sideloaderSettings.IgnoredDonationPackages.Add(app.PackageName);
+                switch (inverse)
+                {
+                    case false when !_sideloaderSettings.IgnoredDonationPackages.Contains(app.PackageName) && !app.IsHiddenFromDonation:
+                        _sideloaderSettings.IgnoredDonationPackages.Add(app.PackageName);
+                        count++;
+                        break;
+                    case true when _sideloaderSettings.IgnoredDonationPackages.Contains(app.PackageName):
+                        _sideloaderSettings.IgnoredDonationPackages.Remove(app.PackageName);
+                        count++;
+                        break;
+                }
             }
-            _adbService.Device?.RefreshInstalledApps();
-            RefreshInstalledApps(false);
+            
+            if (!inverse)
+            {
+                Globals.ShowNotification("Ignore", $"{count} apps added to ignore list", NotificationType.Success,
+                    TimeSpan.FromSeconds(2));
+                Log.Information("Added {Count} apps to ignore list", count);
+            }
+            else
+            {
+                Globals.ShowNotification("Ignore", $"{count} apps removed from ignore list", NotificationType.Success,
+                    TimeSpan.FromSeconds(2));
+                Log.Information("Removed {Count} apps from ignore list", count);
+            }
+            if (count == 0) return;
+            RefreshInstalledApps(true);
             Globals.MainWindowViewModel!.RefreshGameDonationBadge();
         });
     }
@@ -219,7 +246,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
             var selectedGames = _installedAppsSourceCache.Items.Where(game => game.IsSelected).ToList();
             if (selectedGames.Count == 0)
             {
-                Log.Warning("No apps selected for uninstall");
+                Log.Information("No apps selected for uninstall");
                 Globals.ShowNotification("Uninstall", "No apps selected", NotificationType.Information, TimeSpan.FromSeconds(2));
                 return;
             }

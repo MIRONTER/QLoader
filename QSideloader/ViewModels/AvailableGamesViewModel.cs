@@ -116,7 +116,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             var selectedGames = _availableGamesSourceCache.Items.Where(game => game.IsSelected).ToList();
             if (selectedGames.Count == 0)
             {
-                Log.Warning("No games selected for download and install");
+                Log.Information("No games selected for download and install");
                 Globals.ShowNotification("Download & Install", "No games selected", NotificationType.Information,
                     TimeSpan.FromSeconds(2));
                 return;
@@ -138,7 +138,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             var selectedGames = _availableGamesSourceCache.Items.Where(game => game.IsSelected).ToList();
             if (selectedGames.Count == 0)
             {
-                Log.Warning("No games selected for download");
+                Log.Information("No games selected for download");
                 Globals.ShowNotification("Download", "No games selected", NotificationType.Information,
                     TimeSpan.FromSeconds(2));
                 return;

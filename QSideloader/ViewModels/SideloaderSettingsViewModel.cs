@@ -47,6 +47,11 @@ public class SideloaderSettingsViewModel : ViewModelBase
             ReactiveCommand.CreateFromObservable(SetDownloaderBandwidthLimitImpl, this.IsValid());
         RestoreDefaults = ReactiveCommand.CreateFromObservable(RestoreDefaultsImpl);
         CheckUpdates = ReactiveCommand.CreateFromObservable(CheckUpdatesImpl);
+        CheckUpdates.ThrownExceptions.Subscribe(ex =>
+        {
+            Log.Error(ex, "Error checking for updates");
+            Globals.ShowErrorNotification(ex, "Error checking for updates");
+        });
         SwitchMirror = ReactiveCommand.CreateFromObservable(SwitchMirrorImpl);
         SwitchMirror.IsExecuting.ToProperty(this, x => x.IsSwitchingMirror, out _isSwitchingMirror, false,
             RxApp.MainThreadScheduler);
