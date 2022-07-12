@@ -297,7 +297,9 @@ public class DownloaderService
                 case CommandExecutionException when e.Message.Contains("downloadQuotaExceeded"):
                     throw new DownloadQuotaExceededException(MirrorName, source, e);
                 case CommandExecutionException {ExitCode: 1 or 3 or 4 or 7}:
-                    throw new RcloneTransferException($"Rclone {operation} error on mirror {MirrorName}", e);
+                    if (!e.Message.Contains("no such host"))
+                        throw new RcloneTransferException($"Rclone {operation} error on mirror {MirrorName}", e);
+                    break;
             }
 
             throw new DownloaderServiceException($"Error executing rclone {operation}", e);
@@ -424,7 +426,8 @@ public class DownloaderService
             foreach (var gameListName in gameListNames)
                 try
                 {
-                    await RcloneTransferAsync($"Quest Games/{gameListName}", "./metadata/FFA.txt", "copyto");
+                    await RcloneTransferAsync($"Quest Games/{gameListName}", "./metadata/FFA_new.txt", "copyto");
+                    File.Move("./metadata/FFA_new.txt", "./metadata/FFA.txt", true);
                     return true;
                 }
                 catch (Exception e)
@@ -675,6 +678,26 @@ public class DownloaderService
         {
             TrailersAddonSemaphoreSlim.Release();
         }
+    }
+    
+    public async Task<OculusGame?> GetGameStoreInfo(string? packageName)
+    {
+        if (packageName is null)
+            return null;
+        using var op = Operation.Begin("Getting game store info for {PackageName}", packageName);
+        var uri = $"oculusgames/{packageName}";
+        var response = await ApiHttpClient.GetAsync(uri);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        // If response is empty dictionary, the api didn't find the game
+        if (responseContent == "{}")
+        {
+            Log.Information("Game store info not found for {PackageName}", packageName);
+            op.Complete();
+            return null;
+        }
+        var game = JsonConvert.DeserializeObject<OculusGame>(responseContent);
+        op.Complete();
+        return game;
     }
 }
 

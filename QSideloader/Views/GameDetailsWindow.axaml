@@ -42,7 +42,7 @@
                            Margin="0,0,0,0"
                            FontWeight="Bold"
                            FontSize="20"
-                           Text="{Binding Game.GameName}" />
+                           Text="{Binding DisplayName}" />
                 <TextBlock Grid.Column="0" Grid.Row="1"
                            Margin="0,0,0,12"
                            FontWeight="Light"
@@ -62,7 +62,7 @@
                        HorizontalAlignment="Center"
                        IsVisible="{Binding !ShowTrailerPlayer}" />
                 <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="Auto,Auto,*"
-                      RowDefinitions="Auto,Auto,Auto,*"
+                      RowDefinitions="Auto,Auto,Auto,Auto,Auto,*"
                       Margin="24,0,0,0">
                     <Button Grid.Row="0" Grid.Column="0" Command="{Binding DownloadAndInstall}"
                             IsEnabled="{Binding IsDeviceConnected}">
@@ -71,21 +71,30 @@
                     <Button Grid.Row="0" Grid.Column="1" Margin="12,0,0,0" Command="{Binding DownloadOnly}">Download</Button>
                     <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" Margin="1,4,0,0" FontWeight="Light"
                                Text="{Binding Game.GameSize, StringFormat={}Download size: {0} MB}" />
-                    <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2"
-                               Margin="0,12,0,0"
-                               HorizontalAlignment="Left"
-                               Width="400"
-                               TextWrapping="Wrap"
-                               IsVisible="False">
-                        Description: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent sed ligula eget eros interdum porta eget quis magna. Ut in lacus urna. Mauris ac commodo metus. Vivamus ac eros vitae purus dictum venenatis quis quis nulla. Phasellus fermentum est tellus, id faucibus lorem finibus eget. Integer sit amet congue augue. Morbi sed nibh sem. Donec egestas urna ante, vel pellentesque lorem efficitur et.
-                    </TextBlock>
+                    <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Margin="1,6,0,0"
+                               IsVisible="{Binding StoreRating, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                               Text="{Binding StoreRating, StringFormat={}Store rating: {0} }" />
                     <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="3"
-                               Margin="0,12,0,0"
+                               Margin="0,6,0,0"
                                HorizontalAlignment="Left"
                                Width="400"
                                TextWrapping="Wrap"
-                               IsVisible="{Binding Game.Note, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                               IsVisible="False"
                                Text="{Binding Game.Note, StringFormat={}Note: {0}}" />
+                    <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="4"
+                               Margin="0,6,0,0"
+                               IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                               >Description:</TextBlock>
+                    <ScrollViewer Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="5"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Top"
+                                  Width="400"
+                                  MaxHeight="370">
+                        <TextBlock 
+                            TextWrapping="Wrap"
+                            IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                            Text="{Binding Description}" />
+                    </ScrollViewer>
                 </Grid>
             </Grid>
         </Panel>

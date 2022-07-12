@@ -3,10 +3,9 @@ using System.IO;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using AdvancedSharpAdbClient;
-using Avalonia;
 using Avalonia.Controls.Notifications;
-using Avalonia.Platform;
 using LibVLCSharp.Shared;
 using QSideloader.Helpers;
 using QSideloader.Models;
@@ -21,13 +20,18 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
 {
     private static LibVLC? _libVlc;
     private readonly AdbService _adbService;
+    private readonly DownloaderService _downloaderService;
 
     // Dummy constructor for XAML, do not use
     public GameDetailsViewModel()
     {
         Activator = new ViewModelActivator();
         _adbService = AdbService.Instance;
+        _downloaderService = DownloaderService.Instance;
         Game = new Game("GameName", "ReleaseName", 1337, "NoteText");
+        DisplayName = "GameName";
+        Description = "DescriptionText";
+        StoreRating = "8.5 (120)";
         try
         {
             _libVlc ??= new LibVLC();
@@ -46,7 +50,9 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
     {
         Activator = new ViewModelActivator();
         _adbService = AdbService.Instance;
+        _downloaderService = DownloaderService.Instance;
         Game = game;
+        DisplayName = game.GameName ?? "GameName";
         DownloadAndInstall = ReactiveCommand.CreateFromObservable(DownloadAndInstallImpl);
         DownloadOnly = ReactiveCommand.CreateFromObservable(DownloadOnlyImpl);
         
@@ -88,6 +94,7 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
                     // ignored
                 }
             }
+        Task.Run(TryLoadStoreInfo);
 
         this.WhenActivated(disposables =>
         {
@@ -105,6 +112,9 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
     [Reactive] public MediaPlayer? MediaPlayer { get; set; }
     [Reactive] public bool ShowTrailerPlayer { get; set; }
     [Reactive] public bool IsDeviceConnected { get; set; }
+    [Reactive] public string DisplayName { get; set; }
+    [Reactive] public string Description { get; set; } = "";
+    [Reactive] public string StoreRating { get; set; } = "";
     public ViewModelActivator Activator { get; }
 
     public void Dispose()
@@ -175,5 +185,23 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
         mediaPlayer.Hwnd = IntPtr.Zero;
         mediaPlayer.XWindow = 0U;
         mediaPlayer.Dispose();
+    }
+
+    private async void TryLoadStoreInfo()
+    {
+        try
+        {
+            var game = await _downloaderService.GetGameStoreInfo(Game.PackageName);
+            if (game is null) return;
+            if (!string.IsNullOrEmpty(game.DisplayName))
+                DisplayName = game.DisplayName;
+            Description = game.Description ?? "";
+            var ratingAggregate = Math.Round(game.QualityRatingAggregate, 1);
+            StoreRating = $"{ratingAggregate} ({game.RatingCount})";
+        }
+        catch (Exception e)
+        {
+            Log.Warning(e, "Failed to load store info");
+        }
     }
 }

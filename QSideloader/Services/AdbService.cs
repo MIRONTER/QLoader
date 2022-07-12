@@ -1083,7 +1083,8 @@ public class AdbService
         {
             return Observable.Create<string>(observer =>
             {
-                using var op = Operation.Begin("Sideloading game {GameName}", game.GameName ?? "Unknown");
+                using var op = Operation.At(LogEventLevel.Information, LogEventLevel.Error)
+                    .Begin("Sideloading game {GameName}", game.GameName ?? "Unknown");
                 var reinstall = false;
                 try
                 {
