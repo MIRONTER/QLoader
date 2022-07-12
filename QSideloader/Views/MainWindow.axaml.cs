@@ -59,7 +59,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         if (e.IsSettingsSelected)
         {
-            const string pageName = "QSideloader.Views.SettingsView";
+            const string pageName = "QSideloader.Views.Pages.SettingsView";
             var pageType = Type.GetType(pageName);
             if (pageType is null) return;
             var contentFrame = this.Get<Frame>("ContentFrame");
@@ -71,7 +71,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
         {
             var selectedItem = (NavigationViewItem) e.SelectedItem;
             var selectedItemTag = (string) selectedItem.Tag!;
-            var pageName = "QSideloader.Views." + selectedItemTag;
+            var pageName = "QSideloader.Views.Pages." + selectedItemTag;
             var pageType = Type.GetType(pageName);
             if (pageType is null) return;
             var contentFrame = this.Get<Frame>("ContentFrame");

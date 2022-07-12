@@ -959,11 +959,17 @@ public class AdbService
                 let isBlacklisted = _downloaderService.DonationBlacklistedPackages.Contains(packageName)
                 let isNew = _downloaderService.AvailableGames!.All(g => g.PackageName != packageName)
                 let isIgnored = _sideloaderSettings.IgnoredDonationPackages.Any(i => i == packageName)
-                let isDonated = _sideloaderSettings.DonatedPackages.Any(i => i.packageName == packageName && i.versionCode >= versionCode)
-                let isNewVersion =  _downloaderService.AvailableGames!.Where(g => g.PackageName == packageName).Any(g => versionCode > g.VersionCode)
+                let isDonated = _sideloaderSettings.DonatedPackages.Any(i =>
+                    i.packageName == packageName && i.versionCode >= versionCode)
+                let isNewVersion = _downloaderService.AvailableGames!.Where(g => g.PackageName == packageName)
+                    .Any(g => versionCode > g.VersionCode)
                 let isHiddenFromDonation = isBlacklisted || isIgnored || isDonated || !(isNew || isNewVersion)
-                let donationStatus = !isHiddenFromDonation ? isNewVersion ? "New version" : "New App" : isDonated ? "Donated" : isIgnored ? "Ignored" : ""
-                select new InstalledApp(name, packageName, versionName, versionCode, isHiddenFromDonation, donationStatus);
+                let donationStatus = !isHiddenFromDonation ? isNewVersion ? "New version" : "New App" :
+                    isDonated ? "Donated" :
+                    isIgnored ? "Ignored" :
+                    isBlacklisted ? "Blacklisted" : "Up To Date"
+                select new InstalledApp(name, packageName, versionName, versionCode, !isNew, isHiddenFromDonation,
+                    donationStatus);
             InstalledApps = query.ToList();
             Log.Debug("Found {Count} installed apps: {InstalledApps}", InstalledApps.Count,
                 InstalledApps.Select(x => x.Name));
@@ -1156,7 +1162,7 @@ public class AdbService
                     if (!reinstall)
                     {
                         Log.Information("Cleaning up failed install");
-                        CleanupRemnants(game);
+                        CleanupRemnants(game.PackageName);
                     }
                     observer.OnError(new AdbServiceException("Error installing game", e));
                 }
@@ -1178,7 +1184,7 @@ public class AdbService
                         observer.OnNext("Incompatible update, reinstalling");
                         Log.Information("Incompatible update, reinstalling. Reason: {Message}", e.Message);
                         var backupPath = CreateBackup(game.PackageName!, "reinstall");
-                        UninstallPackage(game.PackageName!);
+                        UninstallPackageInternal(game.PackageName!);
                         InstallPackage(apkPath, false, true);
                         if (!string.IsNullOrEmpty(backupPath))
                             RestoreBackup(backupPath);
@@ -1238,7 +1244,7 @@ public class AdbService
                                 CreateBackup(packageName);
                                 try
                                 {
-                                    UninstallPackage(packageName);
+                                    UninstallPackageInternal(packageName);
                                 }
                                 catch (PackageNotFoundException)
                                 {
@@ -1265,7 +1271,7 @@ public class AdbService
                                     CreateBackup(packageName);
                                     try
                                     {
-                                        UninstallPackage(packageName);
+                                        UninstallPackageInternal(packageName);
                                     }
                                     catch (PackageNotFoundException)
                                     {
@@ -1295,53 +1301,20 @@ public class AdbService
         }
 
         /// <summary>
-        ///     Uninstalls the specified game.
-        /// </summary>
-        /// <param name="game"><see cref="Game" /> to uninstall.</param>
-        /// <exception cref="ArgumentException">Thrown if <see cref="Game.PackageName" /> is null.</exception>
-        public void UninstallGame(Game game)
-        {
-            _ = game.PackageName ?? throw new ArgumentException("game.PackageName must not be null", nameof(game));
-            try
-            {
-                Log.Information("Uninstalling game {GameName}", game.GameName);
-                UninstallPackage(game.PackageName);
-            }
-            finally
-            {
-                CleanupRemnants(game);
-                OnPackageListChanged();
-            }
-        }
-
-        /// <summary>
-        ///     Cleans up game remnants from Android/data and Android/obb directories.
-        /// </summary>
-        /// <param name="game"><see cref="Game" /> to get package name from.</param>
-        /// <exception cref="ArgumentException">Thrown if <see cref="Game.PackageName" /> is null.</exception>
-        /// <seealso cref="CleanupRemnants(string)" />
-        private void CleanupRemnants(Game game)
-        {
-            CleanupRemnants(game.PackageName
-                            ?? throw new ArgumentException("game.PackageName must not be null", nameof(game)));
-        }
-
-        /// <summary>
-        ///     Cleans up game remnants from Android/data and Android/obb directories.
+        ///     Cleans up app remnants from Android/data and Android/obb directories.
         /// </summary>
         /// <param name="packageName">Package name to clean.</param>
         /// <exception cref="ArgumentException">Thrown if <paramref name="packageName" /> is invalid.</exception>
-        /// <seealso cref="CleanupRemnants(QSideloader.Models.Game)" />
-        private void CleanupRemnants(string packageName)
+        private void CleanupRemnants(string? packageName)
         {
             EnsureValidPackageName(packageName);
             try
             {
                 try
                 {
-                    UninstallPackage(packageName, true);
+                    UninstallPackageInternal(packageName, true);
                 }
-                catch (PackageNotFoundException)
+                catch
                 {
                     // ignored
                 }
@@ -1378,6 +1351,25 @@ public class AdbService
             PackageManager.InstallPackage(apkPath, reinstall, grantRuntimePermissions);
             Log.Information("Package installed");
         }
+        
+        /// <summary>
+        ///     Uninstalls the package with the given package name and cleans up remnants.
+        /// </summary>
+        /// <param name="packageName">Package name to uninstall.</param>
+        /// <exception cref="ArgumentException">Thrown if <c>packageName</c> is null.</exception>
+        public void UninstallPackage(string? packageName)
+        {
+            EnsureValidPackageName(packageName);
+            try
+            {
+                UninstallPackageInternal(packageName);
+            }
+            finally
+            {
+                CleanupRemnants(packageName);
+                OnPackageListChanged();
+            }
+        }
 
         /// <summary>
         ///     Uninstalls the package with the given package name.
@@ -1385,7 +1377,7 @@ public class AdbService
         /// <param name="packageName">Package name to uninstall.</param>
         /// <param name="silent">Don't send log messages.</param>
         /// <exception cref="PackageNotFoundException">Thrown if package is not installed.</exception>
-        private void UninstallPackage(string packageName, bool silent = false)
+        private void UninstallPackageInternal(string? packageName, bool silent = false)
         {
             EnsureValidPackageName(packageName);
             try
@@ -1396,12 +1388,20 @@ public class AdbService
             }
             catch (PackageInstallationException e)
             {
-                if (e.Message == "DELETE_FAILED_INTERNAL_ERROR" && string.IsNullOrWhiteSpace(
+                if (e.Message.Contains("DELETE_FAILED_INTERNAL_ERROR") && string.IsNullOrWhiteSpace(
                         RunShellCommand($"pm list packages -3 | grep -w \"package:{packageName}\"")))
                 {
                     if (!silent)
                         Log.Warning("Package {PackageName} is not installed", packageName);
-                    throw new PackageNotFoundException(packageName);
+                    throw new PackageNotFoundException(packageName!);
+                }
+                if (e.Message.Contains("DELETE_FAILED_DEVICE_POLICY_MANAGER"))
+                {
+                    Log.Information("Package {PackageName} is protected by device policy, trying to force uninstall",
+                        packageName);
+                    RunShellCommand("pm disable-user " + packageName, true);
+                    _adb.AdbClient.UninstallPackage(this, packageName);
+                    return;
                 }
 
                 throw;
@@ -1621,11 +1621,11 @@ public class AdbService
         /// </summary>
         /// <param name="packageName">Package name to validate.</param>
         /// <exception cref="ArgumentException">Thrown if provided package name is not valid.</exception>
-        private static void EnsureValidPackageName(string packageName)
+        private static void EnsureValidPackageName(string? packageName)
         {
             const string packageNamePattern = @"^([A-Za-z]{1}[A-Za-z\d_]*\.)+[A-Za-z][A-Za-z\d_]*$";
             if (string.IsNullOrEmpty(packageName))
-                throw new ArgumentException("Package name cannot be empty", nameof(packageName));
+                throw new ArgumentException("Package name cannot be null or empty", nameof(packageName));
             if (!Regex.IsMatch(packageName, packageNamePattern))
                 throw new ArgumentException("Package name is not valid", nameof(packageName));
         }

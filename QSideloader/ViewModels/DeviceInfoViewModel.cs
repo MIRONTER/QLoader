@@ -40,8 +40,11 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
                 .DistinctUntilChanged()
                 .Subscribe(x =>
                 {
+                    IsDeviceSwitchEnabled = false;
                     _adbService.TrySwitchDevice(x!);
                     RefreshDeviceSelection();
+                    Observable.Timer(TimeSpan.FromSeconds(5)).Subscribe(_ => IsDeviceSwitchEnabled = true)
+                        .DisposeWith(disposables);
                 }).DisposeWith(disposables);
         });
     }
@@ -62,6 +65,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] public AdbService.AdbDevice? CurrentDevice { get; set; }
     [Reactive] public string? TrueSerial { get; set; }
     [Reactive] public ObservableCollection<AdbService.AdbDevice> DeviceList { get; set; } = new();
+    [Reactive] public bool IsDeviceSwitchEnabled { get; set; } = true;
     public ViewModelActivator Activator { get; }
 
     private void OnDeviceStateChanged(DeviceState state)

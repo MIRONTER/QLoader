@@ -5,11 +5,15 @@
              xmlns:vm="clr-namespace:QSideloader.ViewModels"
              xmlns:views="clr-namespace:QSideloader.Views"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="QSideloader.Views.GameDonationView">
+             x:Class="QSideloader.Views.Pages.GameDonationView">
     <Design.DataContext>
-        <vm:GameDonationViewModel />
+        <vm:InstalledAppsViewModel />
     </Design.DataContext>
     <Grid RowDefinitions="Auto,*" IsEnabled="{Binding IsDeviceConnected}">
+        <CheckBox Grid.Row="0"
+                  HorizontalAlignment="Left" 
+                  Margin="8,0,0,0"
+                  IsChecked="{Binding IsShowHiddenFromDonation}">Show hidden</CheckBox>
         <StackPanel Grid.Row="0"
                     Orientation="Horizontal"
                     Spacing="12" Margin="8"

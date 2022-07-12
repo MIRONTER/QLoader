@@ -2,13 +2,13 @@
 using Avalonia.ReactiveUI;
 using QSideloader.ViewModels;
 
-namespace QSideloader.Views;
+namespace QSideloader.Views.Pages;
 
-public class GameDonationView : ReactiveUserControl<GameDonationViewModel>
+public class OtherAppsView : ReactiveUserControl<InstalledAppsViewModel>
 {
-    public GameDonationView()
+    public OtherAppsView()
     {
-        ViewModel = new GameDonationViewModel();
+        ViewModel = new InstalledAppsViewModel(false);
         DataContext = ViewModel;
         InitializeComponent();
     }

@@ -105,8 +105,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     public TaskViewModel(InstalledApp app, TaskType taskType)
     {
-        if (taskType is not TaskType.PullAndUpload)
-            throw new InvalidOperationException("This constructor is only for PullAndUpload task");
+        if (taskType is not (TaskType.PullAndUpload or TaskType.Uninstall))
+            throw new InvalidOperationException($"Wrong constructor for {taskType} task");
         _adbService = AdbService.Instance;
         _adbDevice = _adbService.Device!;
         _downloaderService = DownloaderService.Instance;
@@ -290,6 +290,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         try
         {
             await UninstallAsync();
+            OnFinished("Uninstalled");
         }
         catch (Exception e)
         {
@@ -499,7 +500,12 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         {
             EnsureDeviceConnected();
             Status = "Uninstalling";
-            await Task.Run(() => _adbDevice!.UninstallGame(_game!));
+            if (_game is not null)
+                await Task.Run(() => _adbDevice!.UninstallPackage(_game.PackageName));
+            else if (_app is not null)
+                await Task.Run(() => _adbDevice!.UninstallPackage(_app.PackageName));
+            else
+                throw new InvalidOperationException("Both game and app are null");
         }
         finally
         {

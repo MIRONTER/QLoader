@@ -7,7 +7,7 @@ using QSideloader.Helpers;
 using QSideloader.Models;
 using QSideloader.ViewModels;
 
-namespace QSideloader.Views;
+namespace QSideloader.Views.Pages;
 
 public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
 {

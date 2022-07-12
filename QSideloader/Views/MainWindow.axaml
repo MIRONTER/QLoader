@@ -38,6 +38,7 @@
                         <ui:InfoBadge Value="{Binding DonatableAppsCount}" IsVisible="{Binding DonatableAppsCount}"/>
                     </ui:NavigationViewItem.InfoBadge>
                 </ui:NavigationViewItem>
+                <ui:NavigationViewItem Icon="AllApps" Content="Other Apps" Tag="OtherAppsView" />
             </ui:NavigationView.MenuItems>
             <Grid RowDefinitions="*,Auto">
                 <ui:Frame x:Name="ContentFrame" Grid.Row="0" />

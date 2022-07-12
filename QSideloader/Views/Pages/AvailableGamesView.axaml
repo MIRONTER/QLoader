@@ -6,7 +6,7 @@
              xmlns:helpers="clr-namespace:QSideloader.Helpers"
              xmlns:views="clr-namespace:QSideloader.Views"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="450"
-             x:Class="QSideloader.Views.AvailableGamesView">
+             x:Class="QSideloader.Views.Pages.AvailableGamesView">
     <UserControl.Resources>
         <helpers:OnDeviceStatusValueConverter x:Key="OnDeviceStatusFromBool" />
     </UserControl.Resources>

@@ -89,6 +89,7 @@
             <ComboBox Grid.Row="0" Grid.RowSpan="4" Grid.Column="2" Margin="8"
                       MinWidth="170"
                       PlaceholderText="Device list"
+                      IsEnabled="{Binding IsDeviceSwitchEnabled}"
                       Items="{Binding DeviceList}"
                       SelectedItem="{Binding CurrentDevice}"
                       ToolTip.Tip="{Binding TrueSerial, StringFormat={}Device list&#x0a;Current device serial: {0}}">

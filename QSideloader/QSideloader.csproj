@@ -103,4 +103,26 @@
     <ItemGroup>
         <ProjectReference Include="..\AdvancedSharpAdbClient\AdvancedSharpAdbClient.csproj" />
     </ItemGroup>
+    <ItemGroup>
+      <Compile Update="Views\Pages\GameDonationView.axaml.cs">
+        <DependentUpon>GameDonationView.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Views\Pages\SettingsView.axaml.cs">
+        <DependentUpon>SettingsView.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Views\Pages\OtherAppsView.axaml.cs">
+        <DependentUpon>OtherAppsView.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Views\Pages\InstalledGamesView.axaml.cs">
+        <DependentUpon>InstalledGamesView.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Views\Pages\AvailableGamesView.axaml.cs">
+        <DependentUpon>AvailableGamesView.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+    </ItemGroup>
 </Project>

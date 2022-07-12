@@ -196,7 +196,7 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
             if (!string.IsNullOrEmpty(game.DisplayName))
                 DisplayName = game.DisplayName;
             Description = game.Description ?? "";
-            var ratingAggregate = Math.Round(game.QualityRatingAggregate, 1);
+            var ratingAggregate = Math.Round(game.QualityRatingAggregate, 2);
             StoreRating = $"{ratingAggregate} ({game.RatingCount})";
         }
         catch (Exception e)
