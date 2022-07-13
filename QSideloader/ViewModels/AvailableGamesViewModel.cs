@@ -53,18 +53,6 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             .ObserveOn(RxApp.MainThreadScheduler)
             .Bind(out _availableGames)
             .DisposeMany();
-        this.WhenActivated(disposables =>
-        {
-            cacheListBind.Subscribe().DisposeWith(disposables);
-            _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged).DisposeWith(disposables);
-            _adbService.WhenPackageListChanged.Subscribe(_ => RefreshInstalled()).DisposeWith(disposables);
-            IsDeviceConnected = _adbService.CheckDeviceConnectionSimple();
-            ShowPopularity30Days = _sideloaderSettings.PopularityRange == "30 days";
-            ShowPopularity7Days = _sideloaderSettings.PopularityRange == "7 days";
-            ShowPopularity1Day = _sideloaderSettings.PopularityRange == "1 day";
-            PopulateAvailableGames();
-            RefreshInstalled();
-        });
         Refresh = ReactiveCommand.CreateFromObservable(() => RefreshImpl());
         ManualRefresh = ReactiveCommand.CreateFromObservable(() => RefreshImpl(true));
         var isExecutingCombined = Refresh.IsExecuting
@@ -72,7 +60,16 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         isExecutingCombined.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
         Install = ReactiveCommand.CreateFromObservable(InstallImpl);
         Download = ReactiveCommand.CreateFromObservable(DownloadImpl);
-        Refresh.Execute().Subscribe();
+        this.WhenActivated(disposables =>
+        {
+            cacheListBind.Subscribe().DisposeWith(disposables);
+            _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged).DisposeWith(disposables);
+            _adbService.WhenPackageListChanged.Subscribe(_ => RefreshInstalled()).DisposeWith(disposables);
+            ShowPopularity30Days = _sideloaderSettings.PopularityRange == "30 days";
+            ShowPopularity7Days = _sideloaderSettings.PopularityRange == "7 days";
+            ShowPopularity1Day = _sideloaderSettings.PopularityRange == "1 day";
+            Refresh.Execute().Subscribe();
+        });
     }
 
     public ReactiveCommand<Unit, Unit> Refresh { get; }
