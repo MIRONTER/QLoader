@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -14,6 +16,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
+using Avalonia.Layout;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using FluentAvalonia.UI.Controls;
 using QSideloader.Helpers;
@@ -55,6 +59,8 @@ public class MainWindowViewModel : ViewModelBase
                 await dialog.ShowDialog(mainWindow);
             }
         });
+        ShowConnectionHelpDialog = ReactiveCommand.CreateFromObservable(ShowConnectionHelpDialogImpl);
+        ShowAuthHelpDialog = ReactiveCommand.CreateFromObservable(ShowAuthHelpDialogImpl);
         _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged);
         _adbService.WhenPackageListChanged.Subscribe(_ => RefreshGameDonationBadge());
         Task.Run(() => IsDeviceConnected = _adbService.CheckDeviceConnection());
@@ -67,6 +73,8 @@ public class MainWindowViewModel : ViewModelBase
     public IObservable<Unit> WhenGameDonated => _gameDonateSubject.AsObservable();
 
     public ICommand ShowGameDetailsCommand { get; }
+    public ReactiveCommand<Unit, Unit> ShowConnectionHelpDialog { get; }
+    public ReactiveCommand<Unit, Unit> ShowAuthHelpDialog { get; }
 
     public void EnqueueTask(Game game, TaskType taskType)
     {
@@ -284,6 +292,82 @@ public class MainWindowViewModel : ViewModelBase
                     };
                     dialog.ShowAsync();
                 }));
+        });
+    }
+
+    private IObservable<Unit> ShowAuthHelpDialogImpl()
+    {
+        return Observable.Start(() =>
+        {
+            var bitmap = BitmapAssetValueConverter.Instance.Convert("/Assets/adbauth.jpg", typeof(Bitmap), null,
+                CultureInfo.CurrentCulture) as Bitmap;
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var image = new Image
+                {
+                    Source = bitmap,
+                    MaxWidth = 500
+                };
+                var textBox = new Label
+                {
+                    Content = "ADB authorization is required to connect to the device. " +
+                           "Please allow USB debugging in your headset.",
+                };
+                var stackPanel = new StackPanel
+                {
+                    Orientation = Orientation.Vertical,
+                    Spacing = 12
+                };
+                stackPanel.Children.Add(textBox);
+                stackPanel.Children.Add(image);
+                var dialog = new ContentDialog
+                {
+                    Title = "ADB authorization",
+                    Content = new ScrollViewer
+                    {
+                        Content = stackPanel
+                    },
+                    CloseButtonText = "Close"
+                };
+                dialog.ShowAsync();
+            });
+        });
+    }
+    
+    private IObservable<Unit> ShowConnectionHelpDialogImpl()
+    {
+        return Observable.Start(() =>
+        {
+            var appName = Assembly.GetExecutingAssembly().GetName().Name;
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var dialog = new ContentDialog
+                {
+                    Title = "No device connection",
+                    Content = new ScrollViewer
+                    {
+                        Content = new Label
+                        {
+                            Content = "No connected device found. Make sure you have done the following:\n" +
+                                       "1. Enable developer mode\n" +
+                                       "2. Install Oculus ADB driver (Windows only)\n" +
+                                       "3. Connect your headset to your computer using usb data cable\n" +
+                                       "4. Close any possibly conflicting apps (SideQuest or BlueStacks for example)\n\n" +
+                                       $"You may use {appName} for downloads without connecting to a device.\n"
+                        }
+                    },
+                    CloseButtonText = "Close",
+                    PrimaryButtonText = "Force rescan",
+                    PrimaryButtonCommand = ReactiveCommand.Create(() =>
+                    {
+                        Log.Information("Force connection check requested");
+                        ShowNotification("ADB connection check", "Checking for connected device...",
+                            NotificationType.Information, TimeSpan.FromSeconds(2));
+                        Task.Run(() => _adbService.CheckDeviceConnection());
+                    })
+                };
+                dialog.ShowAsync();
+            });
         });
     }
 }

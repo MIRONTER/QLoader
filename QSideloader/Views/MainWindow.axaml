@@ -58,9 +58,12 @@
                             <Binding Path="!IsDeviceUnauthorized" />
                         </MultiBinding>
                     </ui:InfoBar.IsOpen>
+                    <ui:InfoBar.ActionButton>
+                        <Button Content="More info" Command="{Binding ShowConnectionHelpDialog}" />
+                    </ui:InfoBar.ActionButton>
                 </ui:InfoBar>
                 <ui:InfoBar Grid.Row="0" x:Name="DeviceUnauthorizedInfoBar"
-                            Severity="Error"
+                            Severity="Warning"
                             Margin="12"
                             VerticalAlignment="Bottom"
                             HorizontalAlignment="Center"
@@ -74,6 +77,9 @@
                             <Binding Path="IsDeviceUnauthorized" />
                         </MultiBinding>
                     </ui:InfoBar.IsOpen>
+                    <ui:InfoBar.ActionButton>
+                        <Button Content="More info" Command="{Binding ShowAuthHelpDialog}" />
+                    </ui:InfoBar.ActionButton>
                 </ui:InfoBar>
                 <Border Grid.Row="0" Grid.RowSpan="2"
                         MaxHeight="203"
