@@ -62,10 +62,10 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
             const string pageName = "QSideloader.Views.Pages.SettingsView";
             var pageType = Type.GetType(pageName);
             if (pageType is null) return;
+            Log.Debug("Navigating to {View}", "SettingsView");
             var contentFrame = this.Get<Frame>("ContentFrame");
             contentFrame.BackStack.Clear();
             contentFrame.Navigate(pageType);
-            Log.Debug("Navigated to {View}", "SettingsView");
         }
         else
         {
@@ -74,10 +74,10 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
             var pageName = "QSideloader.Views.Pages." + selectedItemTag;
             var pageType = Type.GetType(pageName);
             if (pageType is null) return;
+            Log.Debug("Navigating to {View}", selectedItemTag);
             var contentFrame = this.Get<Frame>("ContentFrame");
             contentFrame.BackStack.Clear();
             contentFrame.Navigate(pageType);
-            Log.Debug("Navigated to {View}", selectedItemTag);
         }
     }
 
@@ -113,15 +113,25 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     private void InitializeUpdater()
     {
+        // TODO: add windows support
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            Log.Warning("Running on Windows, skipping updater initialization");
+            Log.Warning("Updater: running on Windows, skipping initialization");
+            return;
+        }
+        var appcastUrl = RuntimeInformation.ProcessArchitecture switch
+        {
+            Architecture.X64 or Architecture.X86 => "https://raw.githubusercontent.com/skrimix/QLoaderFiles/master/appcast.xml",
+            Architecture.Arm64 => "https://raw.githubusercontent.com/skrimix/QLoaderFiles/master/appcast_arm64.xml",
+            _ => ""
+        };
+        if (string.IsNullOrEmpty(appcastUrl))
+        {
+            Log.Error("Updater: Unsupported architecture {Architecture}", RuntimeInformation.ProcessArchitecture);
             return;
         }
         Log.Information("Initializing updater");
-        Globals.Updater = new SparkleUpdater(
-            "https://raw.githubusercontent.com/skrimix/QLoaderFiles/master/appcast.xml",
-            new Ed25519Checker(SecurityMode.Unsafe)
+        Globals.Updater = new SparkleUpdater(appcastUrl, new Ed25519Checker(SecurityMode.Unsafe)
         )
         {
             UIFactory = new UIFactory(Icon),

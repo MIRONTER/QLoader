@@ -569,6 +569,12 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         Log.Information("Requested cancellation of task {TaskType} {TaskName}", _taskType, TaskName);
     }
 
+    /// <summary>
+    /// Ensure that the device is connected and it's the correct device.
+    /// </summary>
+    /// <param name="simpleCheck">Use simple connection check.</param>
+    /// <exception cref="InvalidOperationException">Thrown if device is not connected.</exception>
+    /// <remarks>First call with <c>simpleCheck=true</c> ties the task to current device.</remarks>
     private void EnsureDeviceConnected(bool simpleCheck = false)
     {
         if (!_ensuredDeviceConnected)
