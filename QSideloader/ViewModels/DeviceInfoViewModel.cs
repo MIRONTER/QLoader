@@ -85,7 +85,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     {
         IsDeviceConnected = true;
         Refresh.Execute().Subscribe();
-        SetRefreshTimer(true);
+        SetRefreshTimerState(true);
     }
 
     private void OnDeviceOffline()
@@ -93,7 +93,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         IsDeviceConnected = false;
         CurrentDevice = null;
         TrueSerial = null;
-        SetRefreshTimer(false);
+        SetRefreshTimerState(false);
     }
 
     private void OnPackageListChanged()
@@ -142,7 +142,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         }
 
         IsDeviceConnected = true;
-        SetRefreshTimer(true);
+        SetRefreshTimerState(true);
         IsDeviceWireless = _adbService.Device!.IsWireless;
         _adbService.Device.RefreshInfo();
     }
@@ -177,9 +177,9 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         TrueSerial = CurrentDevice?.TrueSerial;
     }
 
-    private void SetRefreshTimer(bool start)
+    private void SetRefreshTimerState(bool enabled)
     {
-        if (start)
+        if (enabled)
         {
             if (_refreshTimer is null)
             {
