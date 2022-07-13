@@ -82,14 +82,14 @@ public class App : Application
             File.Delete("debug_log.json");
 
         var humanReadableLogger = new LoggerConfiguration().MinimumLevel.Verbose()
-            .WriteTo.File(humanReadableLogPath, fileSizeLimitBytes: 3000000)
+            .WriteTo.File(humanReadableLogPath)
             .CreateLogger();
 
         Log.Logger = new LoggerConfiguration().MinimumLevel.Verbose()
             .Enrich.WithThreadId().Enrich.WithThreadName()
             .Enrich.WithExceptionDetails()
             .WriteTo.Logger(humanReadableLogger)
-            .WriteTo.File(new CompactJsonFormatter(), clefLogPath, fileSizeLimitBytes: 3000000)
+            .WriteTo.File(new CompactJsonFormatter(), clefLogPath)
             .CreateLogger();
 
         LogStartMessage(Log.Logger);
@@ -133,7 +133,7 @@ public class App : Application
             .Enrich.WithThreadId().Enrich.WithThreadName()
             .Enrich.WithExceptionDetails()
             .WriteTo.Logger(humanReadableLogger)
-            .WriteTo.File(new CompactJsonFormatter(), clefLogPath, fileSizeLimitBytes: 3000000)
+            .WriteTo.File(new CompactJsonFormatter(), clefLogPath)
             .WriteTo.Logger(consoleLogger)
             .CreateLogger();
 
