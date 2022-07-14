@@ -484,15 +484,15 @@ public class DownloaderService
                     return;
                 }
 
-                Log.Warning("Failed to load popularity data");
+                Log.Error("Failed to load popularity data");
                 Globals.ShowNotification("Error", "Failed to load popularity data", NotificationType.Warning,
-                    TimeSpan.FromSeconds(3));
+                    TimeSpan.FromSeconds(5));
             }
             catch (Exception e)
             {
-                Log.Warning(e, "Failed to load popularity data");
+                Log.Error(e, "Failed to load popularity data");
                 Globals.ShowErrorNotification(e, "Failed to load popularity data", NotificationType.Warning,
-                    TimeSpan.FromSeconds(3));
+                    TimeSpan.FromSeconds(5));
             }
         }
         
