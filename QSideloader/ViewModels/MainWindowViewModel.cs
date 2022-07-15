@@ -8,6 +8,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -339,6 +340,21 @@ public class MainWindowViewModel : ViewModelBase
         return Observable.Start(() =>
         {
             var appName = Assembly.GetExecutingAssembly().GetName().Name;
+            string message;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                message = "No connected device found. Make sure you have done the following:\n" +
+                          "1. Enable developer mode\n" +
+                          "2. Install Oculus ADB driver\n" +
+                          "3. Connect your headset to your computer using usb data cable\n" +
+                          "4. Close any possibly conflicting apps (SideQuest or BlueStacks for example)\n\n" +
+                          $"You may use {appName} for downloads without connecting to a device.\n";
+            else 
+                message = "No connected device found. Make sure you have done the following:\n" +
+                          "1. Enable developer mode\n" +
+                          "2. Connect your headset to your computer using usb data cable\n" +
+                          "3. Close any possibly conflicting apps (SideQuest for example)\n\n" +
+                          $"You may use {appName} for downloads without connecting to a device.\n";
+                              
             Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var dialog = new ContentDialog
@@ -348,12 +364,7 @@ public class MainWindowViewModel : ViewModelBase
                     {
                         Content = new Label
                         {
-                            Content = "No connected device found. Make sure you have done the following:\n" +
-                                       "1. Enable developer mode\n" +
-                                       "2. Install Oculus ADB driver (Windows only)\n" +
-                                       "3. Connect your headset to your computer using usb data cable\n" +
-                                       "4. Close any possibly conflicting apps (SideQuest or BlueStacks for example)\n\n" +
-                                       $"You may use {appName} for downloads without connecting to a device.\n"
+                            Content = message
                         }
                     },
                     CloseButtonText = "Close",
@@ -364,10 +375,45 @@ public class MainWindowViewModel : ViewModelBase
                         ShowNotification("ADB connection check", "Checking for connected device...",
                             NotificationType.Information, TimeSpan.FromSeconds(2));
                         Task.Run(() => _adbService.CheckDeviceConnection());
+                    }),
+                    SecondaryButtonText = "adb devices",
+                    SecondaryButtonCommand = ReactiveCommand.Create(async () =>
+                    {
+                        await ShowAdbDevicesDialogAsync();
                     })
                 };
                 dialog.ShowAsync();
             });
+        });
+    }
+    
+    private async Task ShowAdbDevicesDialogAsync()
+    {
+        var text = await _adbService.GetDevicesStringAsync();
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            var dialog = new ContentDialog
+            {
+                Title = "ADB devices",
+                Content = new ScrollViewer
+                {
+                    Content = new TextBox
+                    {
+                        Text = text,
+                        IsReadOnly = true,
+                        AcceptsReturn = true
+                    }
+                },
+                CloseButtonText = "Close",
+                PrimaryButtonText = "Copy to clipboard",
+                PrimaryButtonCommand = ReactiveCommand.Create(async () =>
+                {
+                    await Application.Current!.Clipboard!.SetTextAsync(text);
+                    ShowNotification("Copied to clipboard", "The devices list has been copied to clipboard",
+                        NotificationType.Success);
+                })
+            };
+            dialog.ShowAsync();
         });
     }
 }

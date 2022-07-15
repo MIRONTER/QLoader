@@ -460,8 +460,6 @@ public class AdbService
     {
         if (device is not null)
             Log.Information("Device {Device} disconnected", device);
-        else
-            Log.Information("Device disconnected");
         Device = null;
         _deviceStateChangeSubject.OnNext(DeviceState.Offline);
     }
@@ -682,6 +680,27 @@ public class AdbService
     public static void ReleasePackageOperationLock()
     {
         PackageOperationSemaphoreSlim.Release();
+    }
+    
+    /// <summary>
+    /// Gets output of <c>adb devices</c> command.
+    /// </summary>
+    /// <returns>Output of the command or error message.</returns>
+    public async Task<string> GetDevicesStringAsync()
+    {
+        var adbPath = PathHelper.AdbPath;
+        try
+        {
+            var commandResult = await Cli.Wrap(adbPath)
+                .WithArguments("devices")
+                .ExecuteBufferedAsync();
+            return commandResult.StandardOutput + commandResult.StandardError;
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Failed to get adb devices output");
+            return "Failed to get adb devices output";
+        }
     }
 
     /// <summary>
