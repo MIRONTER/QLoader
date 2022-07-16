@@ -937,7 +937,7 @@ public class AdbService
                 Log.Information("Refreshing list of installed games on {Device}", this);
                 _downloaderService.EnsureMetadataAvailableAsync().GetAwaiter().GetResult();
                 if (InstalledPackages.Count == 0) RefreshInstalledPackages();
-                var query = from package in InstalledPackages
+                var query = from package in InstalledPackages.ToList()
                     where package.versionInfo is not null
                     // We can't determine which particular release is installed, so we list all releases with appropriate package name
                     let games = _downloaderService.AvailableGames!.Where(g => g.PackageName == package.packageName)
@@ -970,11 +970,12 @@ public class AdbService
             using var op = Operation.At(LogEventLevel.Debug).Begin("Refreshing installed apps on {Device}", this);
             _downloaderService.EnsureMetadataAvailableAsync().GetAwaiter().GetResult();
             Log.Debug("Refreshing list of installed apps on {Device}", this);
-            var query = from package in InstalledPackages
+            var installedGames = InstalledGames.ToList();
+            var query = from package in InstalledPackages.ToList()
                 let packageName = package.packageName
                 let versionName = package.versionInfo?.VersionName ?? "N/A"
                 let versionCode = package.versionInfo?.VersionCode ?? -1
-                let name = InstalledGames.FirstOrDefault(g => g.PackageName == packageName)?.GameName ?? packageName
+                let name = installedGames.FirstOrDefault(g => g.PackageName == packageName)?.GameName ?? packageName
                 let isBlacklisted = _downloaderService.DonationBlacklistedPackages.Contains(packageName)
                 let isNew = _downloaderService.AvailableGames!.All(g => g.PackageName != packageName)
                 let isIgnored = _sideloaderSettings.IgnoredDonationPackages.Any(i => i == packageName)
@@ -1183,7 +1184,7 @@ public class AdbService
                         Log.Information("Cleaning up failed install");
                         CleanupRemnants(game.PackageName);
                     }
-                    observer.OnError(new AdbServiceException("Error installing game", e));
+                    observer.OnError(new AdbServiceException("Failed to sideload game", e));
                 }
 
                 return Disposable.Empty;

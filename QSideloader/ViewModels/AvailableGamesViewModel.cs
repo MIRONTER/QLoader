@@ -4,6 +4,8 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using AdvancedSharpAdbClient;
 using Avalonia.Controls.Notifications;
 using DynamicData;
@@ -154,11 +156,11 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         {
             case DeviceState.Online:
                 IsDeviceConnected = true;
-                RefreshInstalled();
+                Task.Run(RefreshInstalled);
                 break;
             case DeviceState.Offline:
                 IsDeviceConnected = false;
-                RefreshInstalled();
+                Task.Run(RefreshInstalled);
                 break;
         }
     }
@@ -187,7 +189,12 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             foreach (var game in games)
                 game.IsInstalled = false;
         else
+        {
+            while (_adbService.Device.IsRefreshingInstalledGames)
+                Thread.Sleep(100);
+            var installedPackages = _adbService.Device.InstalledPackages.ToList();
             foreach (var game in games.Where(game => game.PackageName is not null))
-                game.IsInstalled = _adbService.Device.InstalledPackages.Any(p => p.packageName == game.PackageName!);
+                game.IsInstalled = installedPackages.Any(p => p.packageName == game.PackageName!);
+        }
     }
 }
