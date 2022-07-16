@@ -7,20 +7,16 @@
         <entry key="NetSparkle.UI.Avalonia/UpdateAvailableWindow.xaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/App.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Controls/LoadingProgressRing.axaml" value="QSideloader/QSideloader.csproj" />
-        <entry key="QSideloader/Views/AvailableGamesView.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/DeviceInfoView.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/DeviceSettingsView.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/GameDetailsWindow.axaml" value="QSideloader/QSideloader.csproj" />
-        <entry key="QSideloader/Views/GameDonationView.axaml" value="QSideloader/QSideloader.csproj" />
-        <entry key="QSideloader/Views/InstalledGamesView.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/LoadingProgressRingView.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/MainWindow.axaml" value="QSideloader/QSideloader.csproj" />
-        <entry key="QSideloader/Views/OtherAppsView.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/Pages/AvailableGamesView.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/Pages/GameDonationView.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/Pages/InstalledGamesView.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/Pages/OtherAppsView.axaml" value="QSideloader/QSideloader.csproj" />
-        <entry key="QSideloader/Views/SettingsView.axaml" value="QSideloader/QSideloader.csproj" />
+        <entry key="QSideloader/Views/Pages/SettingsView.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/SideloaderSettingsView.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/TaskView.axaml" value="QSideloader/QSideloader.csproj" />
       </map>

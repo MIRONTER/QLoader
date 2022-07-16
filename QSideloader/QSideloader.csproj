@@ -1,15 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <IncludePackageReferencesDuringMarkupCompilation>true</IncludePackageReferencesDuringMarkupCompilation>
-        <OutputType Condition="'$(Configuration)' == 'Debug'">Exe</OutputType>
-        <OutputType Condition="'$(Configuration)' != 'Debug'">WinExe</OutputType>
+        <OutputType>Exe</OutputType>
         <TargetFramework>net6.0</TargetFramework>
         <Nullable>enable</Nullable>
-        <!--Avalonia doesen't support TrimMode=link currently,but we are working on that https://github.com/AvaloniaUI/Avalonia/issues/6892 -->
+        <!--Avalonia doesn't support TrimMode=link currently,but we are working on that https://github.com/AvaloniaUI/Avalonia/issues/6892 -->
         <TrimMode>copyused</TrimMode>
         <PublicSign>false</PublicSign>
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+        <!--Workaround for macOS buils failing to load libAvaloniaNative.dylib after self update until system is rebooted-->
+        <IncludeAllContentForSelfExtract Condition="$(RuntimeIdentifier.Contains('osx'))">true</IncludeAllContentForSelfExtract>
         <NeutralLanguage>en</NeutralLanguage>
         <AssemblyName>Loader</AssemblyName>
         <AssemblyVersion>0.2.2.0</AssemblyVersion>
@@ -62,6 +63,7 @@
         <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="0.10.16" />
         <PackageReference Include="Avalonia.HtmlRenderer" Version="0.10.0" />
         <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.16" />
+        <PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.16" />
         <PackageReference Include="CliWrap" Version="3.4.4" />
         <PackageReference Include="DynamicData" Version="7.9.5" />
         <PackageReference Include="FileHelpers" Version="3.5.1" />
