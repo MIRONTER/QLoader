@@ -42,9 +42,10 @@ public class AdbService
     private readonly Subject<List<AdbDevice>> _deviceListChangeSubject = new();
     private readonly Subject<Unit> _packageListChangeSubject = new();
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
-    private List<AdbDevice> _deviceList = new();
+    private readonly List<AdbDevice> _deviceList = new();
     private List<DeviceData> _unauthorizedDeviceList = new();
     private DeviceMonitor? _deviceMonitor;
+    private bool _forcePreferWireless;
 
     static AdbService()
     {
@@ -58,6 +59,7 @@ public class AdbService
         _sideloaderSettings = Globals.SideloaderSettings;
         _adb = new AdbServerClient();
         if (Design.IsDesignMode) return;
+        WhenDeviceListChanged.Subscribe(_ => CheckConnectionPreference());
         Task.Run(async () =>
         {
             CheckDeviceConnection();
@@ -240,7 +242,7 @@ public class AdbService
         var preferredConnectionType = _sideloaderSettings.PreferredConnectionType;
         switch (Device.IsWireless)
         {
-            case true when preferredConnectionType == "USB":
+            case true when !_forcePreferWireless && preferredConnectionType == "USB":
             {
                 if (DeviceList.FirstOrDefault(x => x.TrueSerial == Device.TrueSerial && !x.IsWireless) is
                     { } preferredDevice)
@@ -252,7 +254,7 @@ public class AdbService
 
                 break;
             }
-            case false when preferredConnectionType == "Wireless":
+            case false when _forcePreferWireless || preferredConnectionType == "Wireless":
             {
                 if (DeviceList.FirstOrDefault(x => x.TrueSerial == Device.TrueSerial && x.IsWireless) is
                     { } preferredDevice)
@@ -419,7 +421,6 @@ public class AdbService
                 if (DeviceList.All(x => x.Serial != e.Device.Serial))
                 {
                     RefreshDeviceList();
-                    CheckConnectionPreference();
                 }
 
                 CheckDeviceConnection();
@@ -432,7 +433,6 @@ public class AdbService
                 else
                 {
                     RefreshDeviceList();
-                    CheckConnectionPreference();
                     CheckDeviceConnection();
                 }
 
@@ -584,8 +584,16 @@ public class AdbService
             return;
         }
 
-        Log.Information("Switching to device {Device}", device);
-        OnDeviceOnline(device);
+        DeviceSemaphoreSlim.Wait();
+        try
+        {
+            Log.Information("Switching to device {Device}", device);
+            OnDeviceOnline(device);
+        }
+        finally
+        {
+            DeviceSemaphoreSlim.Release();
+        }
     }
 
     /// <summary>
@@ -603,6 +611,8 @@ public class AdbService
 
         try
         {
+            _forcePreferWireless = true;
+            Observable.Timer(TimeSpan.FromSeconds(10)).Subscribe(_ => _forcePreferWireless = false);
             var host = device.EnableWirelessAdb();
             await TryConnectWirelessAdbAsync(host, true);
             _sideloaderSettings.LastWirelessAdbHost = host;
