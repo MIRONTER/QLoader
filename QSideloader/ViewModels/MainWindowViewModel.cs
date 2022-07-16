@@ -309,9 +309,9 @@ public class MainWindowViewModel : ViewModelBase
                     Source = bitmap,
                     MaxWidth = 500
                 };
-                var textBox = new Label
+                var textBox = new TextBlock
                 {
-                    Content = "ADB authorization is required to connect to the device. " +
+                    Text = "ADB authorization is required to connect to the device. " +
                            "Please allow USB debugging in your headset.",
                 };
                 var stackPanel = new StackPanel
@@ -362,9 +362,9 @@ public class MainWindowViewModel : ViewModelBase
                     Title = "No device connection",
                     Content = new ScrollViewer
                     {
-                        Content = new Label
+                        Content = new TextBlock
                         {
-                            Content = message
+                            Text = message
                         }
                     },
                     CloseButtonText = "Close",
