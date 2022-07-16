@@ -18,6 +18,7 @@ namespace QSideloader.ViewModels;
 
 public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
 {
+    private static readonly SemaphoreSlim DeviceListSemaphoreSlim = new(1,1);
     private static readonly SemaphoreSlim RefreshSemaphoreSlim = new(1, 1);
     private readonly AdbService _adbService;
     private readonly ObservableAsPropertyHelper<bool> _isBusy;
@@ -40,11 +41,8 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
                 .DistinctUntilChanged()
                 .Subscribe(x =>
                 {
-                    IsDeviceSwitchEnabled = false;
                     _adbService.TrySwitchDevice(x!);
                     RefreshDeviceSelection();
-                    Observable.Timer(TimeSpan.FromSeconds(5)).Subscribe(_ => IsDeviceSwitchEnabled = true)
-                        .DisposeWith(disposables);
                 }).DisposeWith(disposables);
         });
     }
@@ -129,7 +127,9 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
             return;
         }
 
+        IsDeviceSwitchEnabled = false;
         await _adbService.EnableWirelessAdbAsync(_adbService.Device!);
+        Observable.Timer(TimeSpan.FromSeconds(5)).Subscribe(_ => IsDeviceSwitchEnabled = true);
     }
 
     private void RefreshDeviceInfo()
@@ -150,7 +150,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     private void RefreshProps()
     {
         var device = _adbService.Device;
-        DeviceList = new ObservableCollection<AdbService.AdbDevice>(_adbService.DeviceList.ToList());
+        OnDeviceListChanged(_adbService.DeviceList);
         RefreshDeviceSelection();
         if (device is null) return;
         SpaceUsed = device.SpaceUsed;
@@ -163,17 +163,30 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
 
     private void OnDeviceListChanged(IReadOnlyList<AdbService.AdbDevice> deviceList)
     {
-        var toAdd = deviceList.Where(device => DeviceList.All(x => x.Serial != device.Serial)).ToList();
-        var toRemove = DeviceList.Where(device => deviceList.All(x => x.Serial != device.Serial)).ToList();
-        foreach (var device in toAdd)
-            DeviceList.Add(device);
-        foreach (var device in toRemove)
-            DeviceList.Remove(device);
+        if (DeviceListSemaphoreSlim.CurrentCount == 0) return;
+        DeviceListSemaphoreSlim.Wait();
+        try
+        {
+            var toAdd = deviceList.Where(device => DeviceList.All(x => x.Serial != device.Serial)).ToList();
+            var toRemove = DeviceList.Where(device => deviceList.All(x => x.Serial != device.Serial)).ToList();
+            foreach (var device in toAdd)
+                DeviceList.Add(device);
+            // Workaround to avoid crash with ArgumentOutOfRangeException
+            if (DeviceList.Count == toRemove.Count)
+                DeviceList = new ObservableCollection<AdbService.AdbDevice>();
+            else
+                foreach (var device in toRemove)
+                    DeviceList.Remove(device);
+        }
+        finally
+        {
+            DeviceListSemaphoreSlim.Release();
+        }
     }
 
     private void RefreshDeviceSelection()
     {
-        CurrentDevice = DeviceList.FirstOrDefault(x => _adbService.Device?.Serial == x.Serial);
+        CurrentDevice = DeviceList.FirstOrDefault(x => _adbService.Device == x);
         TrueSerial = CurrentDevice?.TrueSerial;
     }
 
