@@ -40,7 +40,7 @@
         <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
         <DataGrid Grid.Row="1" x:Name="AvailableGamesDataGrid"
                   Items="{Binding AvailableGames}"
-                  AutoGenerateColumns="False"
+                  AutoGenerateColumns="False" CanUserResizeColumns="True"
                   DoubleTapped="AvailableGamesDataGrid_OnDoubleTapped">
             <DataGrid.Columns>
                 <DataGridTemplateColumn Width="52"

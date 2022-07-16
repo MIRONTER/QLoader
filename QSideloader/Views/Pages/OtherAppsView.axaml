@@ -22,7 +22,7 @@
         <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
         <DataGrid Grid.Row="1" x:Name="InstalledGamesDataGrid"
                   Items="{Binding InstalledApps}"
-                  AutoGenerateColumns="False">
+                  AutoGenerateColumns="False" CanUserResizeColumns="True">
             <DataGrid.Columns>
                 <DataGridTemplateColumn Width="52"
                                         IsReadOnly="False"
