@@ -68,9 +68,14 @@
             
             <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding DeleteAfterInstall}">Delete games from downloads after install</ToggleSwitch>
             
+            <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
+                <ToggleSwitch IsChecked="{Binding EnableRemoteLogging}">Enable remote logging</ToggleSwitch>
+                <Button Margin="4,20,0,0" Command="{Binding CopyInstallationId}">Copy installation ID</Button>
+            </StackPanel>
+            
             <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding EnableDebugConsole}"
                           IsVisible="{Binding IsConsoleToggleable}">
-                Show debug console (relaunch to apply)
+                Show debug console
             </ToggleSwitch>
             
             <Grid Margin="0,8,0,0" ColumnDefinitions="Auto,Auto,*,Auto">

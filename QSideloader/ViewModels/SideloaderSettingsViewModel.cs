@@ -13,6 +13,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
@@ -57,6 +58,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             RxApp.MainThreadScheduler);
         IsTrailersAddonInstalled = Directory.Exists(PathHelper.TrailersPath);
         InstallTrailersAddon = ReactiveCommand.CreateFromObservable(InstallTrailersAddonImpl);
+        CopyInstallationId = ReactiveCommand.CreateFromTask(CopyInstallationIdImpl);
         InitDefaults();
         LoadSettings();
         ValidateSettings();
@@ -116,6 +118,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [JsonProperty] public ObservableCollection<(string packageName, int versionCode)> DonatedPackages { get; private set; } = new();
     [JsonProperty] public ObservableCollection<string> IgnoredDonationPackages { get; private set; } = new();
     [Reactive] public bool IsTrailersAddonInstalled { get; set; }
+    [Reactive] [JsonProperty] public bool EnableRemoteLogging { get; private set; }
     private ReactiveCommand<bool, Unit> SaveSettings { get; }
     private ReactiveCommand<Unit, Unit> RestoreDefaults { get; }
     public ReactiveCommand<Unit, Unit> BrowseDownloadsDirectory { get; }
@@ -126,6 +129,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> CheckUpdates { get; }
     public ReactiveCommand<Unit, Unit> SwitchMirror { get; }
     public ReactiveCommand<Unit, Unit> InstallTrailersAddon { get; }
+    public ReactiveCommand<Unit, Unit> CopyInstallationId { get; }
 
     private Timer AutoSaveDelayTimer { get; } = new() {AutoReset = false, Interval = 500};
     
@@ -144,6 +148,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
         EnableDebugConsole = !IsConsoleToggleable;
         PopularityRange = PopularityRanges[0];
         IgnoredDonationPackages = new ObservableCollection<string>();
+        EnableRemoteLogging = false;
     }
 
     private void ValidateSettings(bool save = true)
@@ -419,6 +424,20 @@ public class SideloaderSettingsViewModel : ViewModelBase
             }
         }
     }
+    
+    private async Task CopyInstallationIdImpl(){
+        await Application.Current!.Clipboard!.SetTextAsync(InstallationId.ToString());
+        Globals.ShowNotification("Info", "Installation ID copied to clipboard", NotificationType.Success, 
+            TimeSpan.FromSeconds(2));
+    }
+
+    private static void ShowRelaunchNotification(string propertyName)
+    {
+        if (propertyName != "EnableDebugConsole" && propertyName != "EnableRemoteLogging"
+            && propertyName != "CheckUpdatesAutomatically") return;
+        Globals.ShowNotification("Settings", "Application restart is needed to apply this change",
+            NotificationType.Information, TimeSpan.FromSeconds(2));
+    }
 
     private void AutoSave(object? sender, PropertyChangedEventArgs e)
     {
@@ -426,6 +445,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             (typeof(SideloaderSettingsViewModel).GetProperty(e.PropertyName) is { } property && !Attribute.IsDefined(
                 property,
                 typeof(JsonPropertyAttribute)))) return;
+        ShowRelaunchNotification(e.PropertyName);
         AutoSaveDelayTimer.Stop();
         AutoSaveDelayTimer.Start();
     }
