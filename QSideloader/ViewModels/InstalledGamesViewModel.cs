@@ -140,6 +140,12 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
                 .Where(game => game.AvailableVersionCode > game.InstalledVersionCode).ToList();
             var skippedCount = selectedGames.Count;
             selectedGames.RemoveAll(x => ambiguousReleases.Contains(x));
+            var alreadyUpdating = selectedGames.Where(x => runningInstalls.Any(y => y.PackageName == x.PackageName)).ToList();
+            if (alreadyUpdating.Count > 0)
+            {
+                selectedGames.RemoveAll(x => alreadyUpdating.Contains(x));
+                Log.Information("Skipped {SkippedCount} games that are already being updated", alreadyUpdating.Count);
+            }
             skippedCount -= selectedGames.Count;
             
             if (selectedGames.Count == 0)
@@ -161,12 +167,6 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
             foreach (var game in selectedGames)
             {
-                if (runningInstalls.Any(x => x.PackageName == game.PackageName))
-                {
-                    Log.Debug("Skipping {GameName} because it is already being installed", game.GameName);
-                    continue;
-                }
-
                 game.IsSelected = false;
                 Globals.MainWindowViewModel!.EnqueueTask(game, TaskType.DownloadAndInstall);
                 Log.Information("Queued for update: {ReleaseName}", game.ReleaseName);

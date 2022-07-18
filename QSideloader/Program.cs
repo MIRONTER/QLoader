@@ -30,7 +30,7 @@ internal class Program
             .UseSkia();
 
         // Animations lag fix for Windows. Source: https://github.com/AvaloniaUI/Avalonia/issues/2945#issuecomment-534892298
-        if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+        if (Environment.OSVersion.Platform == PlatformID.Win32NT && false)
             if (DwmIsCompositionEnabled(out var dwmEnabled) == 0 && dwmEnabled)
             {
                 var wp = builder.WindowingSubsystemInitializer;
