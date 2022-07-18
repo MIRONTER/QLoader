@@ -123,7 +123,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
                 return;
             }
 
-            var selectedApps = _installedAppsSourceCache.Items.Where(app => app.IsSelected).ToList();
+            var selectedApps = _installedAppsSourceCache.Items.Where(app => app.IsSelectedDonation).ToList();
             if (selectedApps.Count == 0)
             {
                 Log.Information("No apps selected for donation");
@@ -133,7 +133,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
             }
             foreach (var app in selectedApps)
             {
-                app.IsSelected = false;
+                app.IsSelectedDonation = false;
                 Globals.MainWindowViewModel!.EnqueueTask(app, TaskType.PullAndUpload);
                 Log.Information("Queued for donation: {ReleaseName}", app.Name);
             }
@@ -175,7 +175,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
                     continue;
                 }
                 
-                app.IsSelected = false;
+                app.IsSelectedDonation = false;
                 Globals.MainWindowViewModel!.EnqueueTask(app, TaskType.PullAndUpload);
                 Log.Information("Queued for donation: {Name}", app.Name);
             }
@@ -186,7 +186,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            var selectedApps = _installedAppsSourceCache.Items.Where(app => app.IsSelected).ToList();
+            var selectedApps = _installedAppsSourceCache.Items.Where(app => app.IsSelectedDonation).ToList();
             if (selectedApps.Count == 0)
             {
                 Log.Information("No apps selected to add to ignore list");
@@ -200,7 +200,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
             var count = 0;
             foreach (var app in selectedApps)
             {
-                app.IsSelected = false;
+                app.IsSelectedDonation = false;
                 switch (inverse)
                 {
                     case false when !_sideloaderSettings.IgnoredDonationPackages.Contains(app.PackageName) && !app.IsHiddenFromDonation:

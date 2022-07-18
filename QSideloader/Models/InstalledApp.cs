@@ -6,6 +6,7 @@ namespace QSideloader.Models;
 public class InstalledApp : INotifyPropertyChanged
 {
     private bool _isSelected;
+    private bool _isSelectedDonation;
 
     public InstalledApp(string name, string packageName, string versionName, int versionCode,bool isKnown, bool isHiddenFromDonation, string donationStatus)
     {
@@ -28,6 +29,15 @@ public class InstalledApp : INotifyPropertyChanged
         set
         {
             _isSelected = value;
+            OnPropertyChanged();
+        }
+    }
+    public bool IsSelectedDonation
+    {
+        get => _isSelectedDonation;
+        set
+        {
+            _isSelectedDonation = value;
             OnPropertyChanged();
         }
     }
