@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -41,6 +42,12 @@ public class DownloaderService
     {
         _sideloaderSettings = Globals.SideloaderSettings;
         if (Design.IsDesignMode) return;
+        var appVersion = Assembly.GetExecutingAssembly().GetName().Version;
+        var appVersionString = appVersion is not null
+            ? $"{appVersion.Major}.{appVersion.Minor}.{appVersion.Build}"
+            : "Unknown";
+        ApiHttpClient.DefaultRequestHeaders.UserAgent.Add(
+            new System.Net.Http.Headers.ProductInfoHeaderValue("QLoader", appVersionString));
         Task.Run(async () =>
         {
             await UpdateRcloneConfigAsync();
