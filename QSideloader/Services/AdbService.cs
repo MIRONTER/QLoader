@@ -179,7 +179,7 @@ public class AdbService
     }
 
     /// <summary>
-    ///     Simple check of current connection status (no ping and no device list scanning).
+    ///     Simple check of current connection status (only background ping and background device list scanning when needed).
     ///     For full check use <see cref="CheckDeviceConnection" />.
     /// </summary>
     /// <returns>
@@ -189,7 +189,12 @@ public class AdbService
     {
         if (FirstDeviceSearch)
             return CheckDeviceConnection();
-        if (Device is null || Device.State != DeviceState.Online) return false;
+        if (Device is null) return false;
+        if (Device.State != DeviceState.Online)
+        {
+            Task.Run(() => CheckDeviceConnection());
+            return false;
+        }
         Task.Run(() => WakeDevice(Device));
         return true;
     }
@@ -616,6 +621,7 @@ public class AdbService
             _forcePreferWireless = true;
             Observable.Timer(TimeSpan.FromSeconds(10)).Subscribe(_ => _forcePreferWireless = false);
             var host = device.EnableWirelessAdb();
+            await Task.Delay(1000);
             await TryConnectWirelessAdbAsync(host, true);
             _sideloaderSettings.LastWirelessAdbHost = host;
         }
@@ -645,26 +651,27 @@ public class AdbService
 
         try
         {
-            await Task.Delay(1000);
-            for (var i = 0; i < 10; i++)
+            for (var i = 0; i < 5; i++)
             {
                 _adb.AdbClient.Connect(host);
                 if (_adb.AdbClient.GetDevices().Any(x => x.Serial.Contains(host)))
                 {
                     RefreshDeviceList();
                     _sideloaderSettings.LastWirelessAdbHost = host;
-                    break;
+                    return;
                 }
 
-                await Task.Delay(300);
+                Log.Debug("Wireless device on {Host} not connected, trying again", host);
+                await Task.Delay(500);
             }
         }
         catch
         {
-            if (!silent)
-                Log.Warning("Couldn't connect to wireless device");
+            
             _sideloaderSettings.LastWirelessAdbHost = "";
         }
+        if (!silent)
+            Log.Warning("Couldn't connect to wireless device");
     }
 
     /// <summary>
