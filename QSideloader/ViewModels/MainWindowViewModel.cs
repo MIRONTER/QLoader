@@ -268,7 +268,7 @@ public class MainWindowViewModel : ViewModelBase
         Dispatcher.UIThread.InvokeAsync(() =>
         {
             _notificationManager.Show(new Avalonia.Controls.Notifications.Notification("Error", message,
-                NotificationType.Error, expiration, onClick: () =>
+                type, expiration, onClick: () =>
                 {
                     var dialog = new ContentDialog
                     {
