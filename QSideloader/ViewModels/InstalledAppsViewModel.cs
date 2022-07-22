@@ -134,7 +134,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
             foreach (var app in selectedApps)
             {
                 app.IsSelectedDonation = false;
-                Globals.MainWindowViewModel!.EnqueueTask(app, TaskType.PullAndUpload);
+                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.PullAndUpload, App = app});
                 Log.Information("Queued for donation: {ReleaseName}", app.Name);
             }
         });
@@ -176,7 +176,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
                 }
                 
                 app.IsSelectedDonation = false;
-                Globals.MainWindowViewModel!.EnqueueTask(app, TaskType.PullAndUpload);
+                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.PullAndUpload, App = app});
                 Log.Information("Queued for donation: {Name}", app.Name);
             }
         });
@@ -243,17 +243,17 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
                 return;
             }
 
-            var selectedGames = _installedAppsSourceCache.Items.Where(game => game.IsSelected).ToList();
-            if (selectedGames.Count == 0)
+            var selectedApps = _installedAppsSourceCache.Items.Where(game => game.IsSelected).ToList();
+            if (selectedApps.Count == 0)
             {
                 Log.Information("No apps selected for uninstall");
                 Globals.ShowNotification("Uninstall", "No apps selected", NotificationType.Information, TimeSpan.FromSeconds(2));
                 return;
             }
-            foreach (var game in selectedGames)
+            foreach (var app in selectedApps)
             {
-                game.IsSelected = false;
-                Globals.MainWindowViewModel!.EnqueueTask(game, TaskType.Uninstall);
+                app.IsSelected = false;
+                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.Uninstall, App = app});
             }
         });
     }

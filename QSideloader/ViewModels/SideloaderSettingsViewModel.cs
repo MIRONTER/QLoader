@@ -20,6 +20,7 @@ using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
 using Newtonsoft.Json;
 using QSideloader.Helpers;
+using QSideloader.Models;
 using QSideloader.Services;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -115,7 +116,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     public string[] PopularityRanges { get; } = {"30 days", "7 days", "1 day", "None"};
     [Reactive] [JsonProperty] public string? PopularityRange { get; private set; }
     [JsonProperty] public Guid InstallationId { get; private set; } = Guid.NewGuid();
-    [JsonProperty] public ObservableCollection<(string packageName, int versionCode)> DonatedPackages { get; private set; } = new();
+    [JsonProperty] public ObservableCollection<(string packageName, int versionCode)> DonatedPackages { get; } = new();
     [JsonProperty] public ObservableCollection<string> IgnoredDonationPackages { get; private set; } = new();
     [Reactive] public bool IsTrailersAddonInstalled { get; set; }
     [Reactive] [JsonProperty] public bool EnableRemoteLogging { get; private set; }
@@ -385,13 +386,13 @@ public class SideloaderSettingsViewModel : ViewModelBase
                 IsTrailersAddonInstalled = true;
                 return;
             }
-            Globals.MainWindowViewModel!.EnqueueTask(TaskType.DownloadAndInstallTrailersAddon);
+            Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadAndInstallTrailersAddon});
         });
     }
     
     private async Task BrowseDownloadsDirectoryImpl()
     {
-        if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var mainWindow = desktop.MainWindow;
             var result = await new OpenFolderDialog
@@ -409,7 +410,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     
     private async Task BrowseBackupsDirectoryImpl()
     {
-        if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var mainWindow = desktop.MainWindow;
             var result = await new OpenFolderDialog

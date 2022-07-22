@@ -106,7 +106,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
-                Globals.MainWindowViewModel!.EnqueueTask(game, TaskType.DownloadAndInstall);
+                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadAndInstall, Game = game});
                 Log.Information("Queued for update: {ReleaseName}", game.ReleaseName);
             }
         });
@@ -168,7 +168,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
-                Globals.MainWindowViewModel!.EnqueueTask(game, TaskType.DownloadAndInstall);
+                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadAndInstall, Game = game});
                 Log.Information("Queued for update: {ReleaseName}", game.ReleaseName);
             }
         });
@@ -195,7 +195,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
-                Globals.MainWindowViewModel!.EnqueueTask(game, TaskType.BackupAndUninstall);
+                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.BackupAndUninstall, Game = game});
             }
         });
     }

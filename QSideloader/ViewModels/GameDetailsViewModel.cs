@@ -133,13 +133,13 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
                 return;
             }
 
-            Globals.MainWindowViewModel!.EnqueueTask(Game, TaskType.DownloadAndInstall);
+            Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadAndInstall, Game = Game});
         });
     }
 
     private IObservable<Unit> DownloadOnlyImpl()
     {
-        return Observable.Start(() => { Globals.MainWindowViewModel!.EnqueueTask(Game, TaskType.DownloadOnly); });
+        return Observable.Start(() => { Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadOnly, Game = Game}); });
     }
 
     private void OnDeviceStateChanged(DeviceState state)

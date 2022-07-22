@@ -77,68 +77,14 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> ShowConnectionHelpDialog { get; }
     public ReactiveCommand<Unit, Unit> ShowAuthHelpDialog { get; }
 
-    public void EnqueueTask(Game game, TaskType taskType)
+    public void AddTask(TaskOptions taskOptions)
     {
         Dispatcher.UIThread.InvokeAsync(() =>
         {
-            var taskView = new TaskView(game, taskType);
+            var taskView = new TaskView(taskOptions);
             TaskList.Add(taskView);
             taskView.Run();
-            Log.Information("Enqueued task {TaskType} {TaskName}", taskType, taskView.TaskName);
-        }).ContinueWith(t =>
-        {
-            if (t.IsFaulted)
-            {
-                Log.Error(t.Exception!, "Error while enqueuing task");
-                Globals.ShowErrorNotification(t.Exception!, "Error while enqueuing task");
-            }
-        }, TaskContinuationOptions.OnlyOnFaulted);
-    }
-    
-    public void EnqueueTask(InstalledApp app, TaskType taskType)
-    {
-        Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            var taskView = new TaskView(app, taskType);
-            TaskList.Add(taskView);
-            taskView.Run();
-            Log.Information("Enqueued task {TaskType} {TaskName}", taskType, taskView.TaskName);
-        }).ContinueWith(t =>
-        {
-            if (t.IsFaulted)
-            {
-                Log.Error(t.Exception!, "Error while enqueuing task");
-                Globals.ShowErrorNotification(t.Exception!, "Error while enqueuing task");
-            }
-        }, TaskContinuationOptions.OnlyOnFaulted);
-    }
-    
-    public void EnqueueTask(Game game, TaskType taskType, string gamePath)
-    {
-        Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            var taskView = new TaskView(game, taskType, gamePath);
-            TaskList.Add(taskView);
-            taskView.Run();
-            Log.Information("Enqueued task {TaskType} {TaskName}", taskType, taskView.TaskName);
-        }).ContinueWith(t =>
-        {
-            if (t.IsFaulted)
-            {
-                Log.Error(t.Exception!, "Error while enqueuing task");
-                Globals.ShowErrorNotification(t.Exception!, "Error while enqueuing task");
-            }
-        }, TaskContinuationOptions.OnlyOnFaulted);
-    }
-    
-    public void EnqueueTask(TaskType taskType)
-    {
-        Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            var taskView = new TaskView(taskType);
-            TaskList.Add(taskView);
-            taskView.Run();
-            Log.Information("Enqueued task {TaskType} {TaskName}", taskType, taskView.TaskName);
+            Log.Information("Enqueued task {TaskType} {TaskName}", taskOptions.Type, taskView.TaskName);
         }).ContinueWith(t =>
         {
             if (t.IsFaulted)
@@ -185,7 +131,7 @@ public class MainWindowViewModel : ViewModelBase
                     Log.Debug("Dropped folder {FileName} contains backup", fileName);
                     var dirName = Path.GetFileName(fileName);
                     var game = new Game(dirName, dirName);
-                    EnqueueTask(game, TaskType.Restore, fileName);
+                    AddTask(new TaskOptions { Type = TaskType.Restore, Game = game, Path = fileName});
                 }
                 if (Directory.EnumerateFiles(fileName, "*.apk", SearchOption.TopDirectoryOnly).Any())
                 {
@@ -204,7 +150,7 @@ public class MainWindowViewModel : ViewModelBase
                     {
                         game = new Game(dirName, dirName);
                     }
-                    EnqueueTask(game, TaskType.InstallOnly, fileName);
+                    AddTask(new TaskOptions {Game = game, Type = TaskType.InstallOnly, Path = fileName});
                 }
                 else
                 {
@@ -217,7 +163,7 @@ public class MainWindowViewModel : ViewModelBase
                 Log.Debug("Dropped file {FileName} is an APK", fileName);
                 var name = Path.GetFileName(fileName);
                 var game = new Game(name, name);
-                EnqueueTask(game, TaskType.InstallOnly, fileName);
+                AddTask(new TaskOptions {Game = game, Type = TaskType.InstallOnly, Path = fileName});
             }
             else
             {

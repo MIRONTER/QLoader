@@ -18,6 +18,7 @@ using Serilog;
 namespace QSideloader.ViewModels;
 
 // TODO: This whole class is a mess, need to refactor it.
+// Upd: Maybe a bit better now?
 
 public class TaskViewModel : ViewModelBase, IActivatableViewModel
 {
@@ -30,7 +31,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private readonly InstalledApp? _app;
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
     private readonly TaskType _taskType;
-    private string? _gamePath;
+    private string? _path;
 
     // Dummy constructor for XAML, do not use
     public TaskViewModel()
@@ -43,99 +44,86 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         TaskName = "TaskName";
         GameName = "GameName";
         DownloadStats = "DownloadStats";
-        RunTask = ReactiveCommand.CreateFromTask(RunTaskImpl);
+        RunTask = ReactiveCommand.Create(() => { Hint = "Click to cancel"; });
         Activator = new ViewModelActivator();
     }
 
-    public TaskViewModel(Game game, TaskType taskType)
+    public TaskViewModel(TaskOptions taskOptions)
     {
-        switch (taskType)
+        _adbService = AdbService.Instance;
+        _adbDevice = _adbService.Device!;
+        _downloaderService = DownloaderService.Instance;
+        _sideloaderSettings = Globals.SideloaderSettings;
+        _taskType = taskOptions.Type;
+        Func<Task> action;
+        Activator = new ViewModelActivator();
+        switch (taskOptions.Type)
         {
-            case TaskType.InstallOnly or TaskType.Restore:
-                // We need a game path to run installation/restore a backup
-                Log.Error("Game path not specified for {TaskType} task", taskType);
-                throw new ArgumentException($"Game path not specified for {taskType} task");
-            case TaskType.PullAndUpload or TaskType.DownloadAndInstallTrailersAddon:
-                throw new InvalidOperationException($"Wrong constructor for {taskType} task");
+            case TaskType.DownloadAndInstall:
+                _game = taskOptions.Game ?? throw new ArgumentException("Game not specified for DownloadAndInstall task");
+                TaskName = _game.GameName ?? "N/A";
+                action = RunDownloadAndInstallAsync;
+                break;
+            case TaskType.DownloadOnly:
+                _game = taskOptions.Game ?? throw new ArgumentException("Game not specified for DownloadOnly task");
+                TaskName = _game.GameName ?? "N/A";
+                action = RunDownloadOnlyAsync;
+                break;
+            case TaskType.InstallOnly:
+                _game = taskOptions.Game ?? throw new ArgumentException("Game not specified for InstallOnly task");
+                _path = taskOptions.Path ?? throw new ArgumentException("Game path not specified for InstallOnly task");
+                TaskName = _game.GameName ?? "N/A";
+                action = RunInstallOnlyAsync;
+                break;
+            case TaskType.Uninstall:
+                if (taskOptions.Game is null && taskOptions.App is null)
+                    throw new ArgumentException("Game or App not specified for Uninstall task");
+                if (taskOptions.Game is not null && taskOptions.App is not null)
+                    throw new ArgumentException("Game and App both specified for Uninstall task");
+                _game = taskOptions.Game;
+                _app = taskOptions.App;
+                TaskName = _game?.GameName ?? _app?.Name ?? "N/A";
+                action = RunUninstallAsync;
+                break;
+            case TaskType.BackupAndUninstall:
+                _game = taskOptions.Game ?? throw new ArgumentException("Game not specified for BackupAndUninstall task");
+                TaskName = _game.GameName ?? "N/A";
+                action = RunBackupAndUninstallAsync;
+                break;
+            case TaskType.Backup:
+                _game = taskOptions.Game ?? throw new ArgumentException("Game not specified for Backup task");
+                TaskName = _game.GameName ?? "N/A";
+                action = RunBackupAsync;
+                break;
+            case TaskType.Restore:
+                _game = taskOptions.Game ?? throw new ArgumentException("Game not specified for Restore task");
+                _path = taskOptions.Path ?? throw new ArgumentException("Backup path not specified for Restore task");
+                TaskName = _game.GameName ?? "N/A";
+                action = RunRestoreAsync;
+                break;
+            case TaskType.PullAndUpload:
+                _app = taskOptions.App ?? throw new ArgumentException("App not specified for PullAndUpload task");
+                TaskName = _app.Name;
+                action = RunPullAndUploadAsync;
+                break;
+            case TaskType.DownloadAndInstallTrailersAddon:
+                action = RunDownloadAndInstallTrailersAddonAsync;
+                TaskName = "Trailers addon";
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(taskOptions), "Unknown task type");
         }
-
-        _adbService = AdbService.Instance;
-        _adbDevice = _adbService.Device;
-        _downloaderService = DownloaderService.Instance;
-        _sideloaderSettings = Globals.SideloaderSettings;
-        _game = game;
-        TaskName = _game?.GameName ?? "N/A";
-        GameName = game.GameName;
-        _taskType = taskType;
-        RunTask = ReactiveCommand.CreateFromTask(RunTaskImpl);
+        RunTask = ReactiveCommand.CreateFromTask(async () =>
+        {
+            Hint = "Click to cancel";
+            await action();
+        });
         RunTask.ThrownExceptions.Subscribe(ex =>
         {
             Log.Error(ex, "Task {TaskType} {TaskName} failed", _taskType, TaskName);
             if (!IsFinished)
                 OnFinished($"Task failed: {ex.Message}", false, ex);
         });
-        Activator = new ViewModelActivator();
-    }
-
-    public TaskViewModel(Game game, TaskType taskType, string gamePath)
-    {
-        if (taskType is not (TaskType.InstallOnly or TaskType.Restore))
-            Log.Warning("Unneeded game path specified for {TaskType} task", taskType);
-        else
-            _gamePath = gamePath;
-        if (taskType is TaskType.PullAndUpload or TaskType.DownloadAndInstallTrailersAddon)
-            throw new InvalidOperationException($"Wrong constructor for {taskType} task");
-        _adbService = AdbService.Instance;
-        _adbDevice = _adbService.Device;
-        _downloaderService = DownloaderService.Instance;
-        _sideloaderSettings = Globals.SideloaderSettings;
-        _game = game;
-        TaskName = _game?.GameName ?? "N/A";
-        GameName = game.GameName;
-        _taskType = taskType;
-        RunTask = ReactiveCommand.CreateFromTask(RunTaskImpl);
-        RunTask.ThrownExceptions.Subscribe(ex =>
-        {
-            Log.Error(ex, "Task {TaskType} {TaskName} failed", _taskType, TaskName);
-            if (!IsFinished)
-                OnFinished($"Task failed: {ex.Message}", false, ex);
-        });
-        Activator = new ViewModelActivator();
-    }
-
-    public TaskViewModel(InstalledApp app, TaskType taskType)
-    {
-        if (taskType is not (TaskType.PullAndUpload or TaskType.Uninstall))
-            throw new InvalidOperationException($"Wrong constructor for {taskType} task");
-        _adbService = AdbService.Instance;
-        _adbDevice = _adbService.Device!;
-        _downloaderService = DownloaderService.Instance;
-        _sideloaderSettings = Globals.SideloaderSettings;
-        _app = app;
-        TaskName = _app?.Name ?? "N/A";
-        _taskType = taskType;
-        RunTask = ReactiveCommand.CreateFromTask(RunTaskImpl);
-        RunTask.ThrownExceptions.Subscribe(ex =>
-        {
-            Log.Error(ex, "Task {TaskType} {TaskName} failed", _taskType, TaskName);
-            if (!IsFinished)
-                OnFinished($"Task failed: {ex.Message}", false, ex);
-        });
-        Activator = new ViewModelActivator();
-    }
-
-    public TaskViewModel(TaskType taskType)
-    {
-        if (taskType is not TaskType.DownloadAndInstallTrailersAddon)
-            throw new InvalidOperationException("This constructor is only for DownloadAndInstallTrailersAddon task");
-        _adbService = AdbService.Instance;
-        _adbDevice = _adbService.Device!;
-        _downloaderService = DownloaderService.Instance;
-        _sideloaderSettings = Globals.SideloaderSettings;
-        TaskName = "Trailers addon";
-        _taskType = taskType;
-        RunTask = ReactiveCommand.CreateFromTask(RunTaskImpl);
-        Activator = new ViewModelActivator();
     }
 
     public ReactiveCommand<Unit, Unit> RunTask { get; }
@@ -164,49 +152,12 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         DownloadStats = $"{progressPercent}%, {speedMBytes}MB/s";
     }
 
-    private async Task RunTaskImpl()
-    {
-        Hint = "Click to cancel";
-        switch (_taskType)
-        {
-            case TaskType.DownloadAndInstall:
-                await RunDownloadAndInstallAsync();
-                break;
-            case TaskType.DownloadOnly:
-                await RunDownloadOnlyAsync();
-                break;
-            case TaskType.InstallOnly:
-                await RunInstallOnlyAsync();
-                break;
-            case TaskType.Uninstall:
-                await RunUninstallAsync();
-                break;
-            case TaskType.BackupAndUninstall:
-                await RunBackupAndUninstallAsync();
-                break;
-            case TaskType.Backup:
-                await RunBackupAsync();
-                break;
-            case TaskType.Restore:
-                await RunRestoreAsync();
-                break;
-            case TaskType.PullAndUpload:
-                await RunPullAndUploadAsync();
-                break;
-            case TaskType.DownloadAndInstallTrailersAddon:
-                await RunDownloadAndInstallTrailersAddonAsync();
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(_taskType));
-        }
-    }
-
     private async Task RunDownloadAndInstallAsync()
     {
         EnsureDeviceConnected(true);
         try
         {
-            _gamePath = await DownloadAsync();
+            _path = await DownloadAsync();
         }
         catch (Exception e)
         {
@@ -225,7 +176,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
         try
         {
-            await InstallAsync(_gamePath ?? throw new InvalidOperationException("gamePath is null"),
+            await InstallAsync(_path ?? throw new InvalidOperationException("path is null"),
                 _sideloaderSettings.DeleteAfterInstall);
         }
         catch (Exception e)
@@ -246,7 +197,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     {
         try
         {
-            _gamePath = await DownloadAsync();
+            _path = await DownloadAsync();
             OnFinished("Downloaded");
         }
         catch (Exception e)
@@ -268,7 +219,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         EnsureDeviceConnected(true);
         try
         {
-            await InstallAsync(_gamePath ?? throw new InvalidOperationException("gamePath is null"));
+            await InstallAsync(_path ?? throw new InvalidOperationException("path is null"));
         }
         catch (Exception e)
         {
@@ -356,7 +307,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         EnsureDeviceConnected(true);
         try
         {
-            await RestoreAsync(_gamePath!);
+            await RestoreAsync(_path!);
             OnFinished("Backup restored");
         }
         catch (Exception e)
@@ -517,7 +468,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     {
         EnsureDeviceConnected();
         Status = "Creating backup";
-        await Task.Run(() => _adbDevice!.CreateBackup(_game!));
+        await Task.Run(() => _adbDevice!.CreateBackup(_game!, new BackupOptions()));
     }
     
     private async Task RestoreAsync(string backupPath)
@@ -601,17 +552,4 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         OnFinished("Failed: no device connection", false);
         throw new InvalidOperationException("No device connection");
     }
-}
-
-public enum TaskType
-{
-    DownloadAndInstall,
-    DownloadOnly,
-    InstallOnly,
-    Uninstall,
-    BackupAndUninstall,
-    Backup,
-    Restore,
-    PullAndUpload,
-    DownloadAndInstallTrailersAddon
 }

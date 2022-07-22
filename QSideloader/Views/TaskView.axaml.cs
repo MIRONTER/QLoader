@@ -18,37 +18,11 @@ public class TaskView : ReactiveUserControl<TaskViewModel>
         InitializeComponent();
     }
 
-    public TaskView(Game game, TaskType taskType)
+    public TaskView(TaskOptions taskOptions)
     {
-        TaskType = taskType;
-        PackageName = game.PackageName;
-        ViewModel = new TaskViewModel(game, taskType);
-        DataContext = ViewModel;
-        InitializeComponent();
-    }
-    
-    public TaskView(Game game, TaskType taskType, string gamePath)
-    {
-        TaskType = taskType;
-        PackageName = game.PackageName;
-        ViewModel = new TaskViewModel(game, taskType, gamePath);
-        DataContext = ViewModel;
-        InitializeComponent();
-    }
-    
-    public TaskView(InstalledApp app, TaskType taskType)
-    {
-        TaskType = taskType;
-        PackageName = app.PackageName;
-        ViewModel = new TaskViewModel(app, taskType);
-        DataContext = ViewModel;
-        InitializeComponent();
-    }
-    
-    public TaskView(TaskType taskType)
-    {
-        TaskType = taskType;
-        ViewModel = new TaskViewModel(taskType);
+        TaskType = taskOptions.Type;
+        PackageName = taskOptions.Game?.PackageName ?? taskOptions.App?.PackageName;
+        ViewModel = new TaskViewModel(taskOptions);
         DataContext = ViewModel;
         InitializeComponent();
     }

@@ -123,7 +123,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
-                Globals.MainWindowViewModel!.EnqueueTask(game, TaskType.DownloadAndInstall);
+                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadAndInstall, Game = game});
             }
         });
     }
@@ -145,7 +145,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
-                Globals.MainWindowViewModel!.EnqueueTask(game, TaskType.DownloadOnly);
+                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadOnly, Game = game});
             }
         });
     }
