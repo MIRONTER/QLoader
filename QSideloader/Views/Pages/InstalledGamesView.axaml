@@ -18,6 +18,25 @@
                     HorizontalAlignment="Right">
             <Button Command="{Binding UpdateAll}" ToolTip.Tip="Update all games (excluding ambiguous installs)">Update All</Button>
             <Button Command="{Binding Update}" ToolTip.Tip="Update selected games">Update Selected</Button>
+            <Button ToolTip.Tip="Backup selected games" Content="Backup Selected">
+                <Button.Flyout>
+                    <Flyout Placement="Bottom">
+                        <StackPanel>
+                            <TextBlock>Select parts you want to backup:</TextBlock>
+                            <CheckBox IsChecked="{Binding ManualBackupAppFiles}">Application files (APK + OBB)</CheckBox>
+                            <CheckBox IsChecked="{Binding ManualBackupData}">Application data (saves and settings)</CheckBox>
+                            <Button Margin="0,6,0,0" Content="Run backup">
+                                <i:Interaction.Behaviors>
+                                    <ia:EventTriggerBehavior EventName="Click">
+                                        <ia:InvokeCommandAction Command="{Binding Backup}" />
+                                        <ia:CallMethodAction TargetObject="{Binding $parent[Button].Flyout}" MethodName="Hide" />
+                                    </ia:EventTriggerBehavior>
+                                </i:Interaction.Behaviors>
+                            </Button>
+                        </StackPanel>
+                    </Flyout>
+                </Button.Flyout>
+            </Button>
             <Button ToolTip.Tip="Backup and uninstall selected games" Content="Uninstall Selected">
                 <Button.Flyout>
                     <Flyout Placement="Bottom">

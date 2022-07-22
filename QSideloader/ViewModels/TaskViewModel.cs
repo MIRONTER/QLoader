@@ -32,6 +32,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
     private readonly TaskType _taskType;
     private string? _path;
+    private readonly BackupOptions? _backupOptions;
 
     // Dummy constructor for XAML, do not use
     public TaskViewModel()
@@ -87,11 +88,13 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 break;
             case TaskType.BackupAndUninstall:
                 _game = taskOptions.Game ?? throw new ArgumentException("Game not specified for BackupAndUninstall task");
+                _backupOptions = taskOptions.BackupOptions ?? throw new ArgumentException("Backup options not specified for BackupAndUninstall task");
                 TaskName = _game.GameName ?? "N/A";
                 action = RunBackupAndUninstallAsync;
                 break;
             case TaskType.Backup:
                 _game = taskOptions.Game ?? throw new ArgumentException("Game not specified for Backup task");
+                _backupOptions = taskOptions.BackupOptions ?? throw new ArgumentException("Backup options not specified for Backup task");
                 TaskName = _game.GameName ?? "N/A";
                 action = RunBackupAsync;
                 break;
@@ -468,7 +471,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     {
         EnsureDeviceConnected();
         Status = "Creating backup";
-        await Task.Run(() => _adbDevice!.CreateBackup(_game!, new BackupOptions()));
+        await Task.Run(() => _adbDevice!.CreateBackup(_game!, _backupOptions!));
     }
     
     private async Task RestoreAsync(string backupPath)

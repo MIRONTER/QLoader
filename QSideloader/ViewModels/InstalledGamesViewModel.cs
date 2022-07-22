@@ -40,6 +40,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         Update = ReactiveCommand.CreateFromObservable(UpdateImpl);
         UpdateAll = ReactiveCommand.CreateFromObservable(UpdateAllImpl);
         Uninstall = ReactiveCommand.CreateFromObservable(UninstallImpl);
+        Backup = ReactiveCommand.CreateFromObservable(BackupImpl);
         var cacheListBind = _installedGamesSourceCache.Connect()
             .RefCount()
             .SortBy(x => x.ReleaseName!)
@@ -61,10 +62,13 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
     public ReactiveCommand<Unit, Unit> Update { get; }
     public ReactiveCommand<Unit, Unit> UpdateAll { get; }
     public ReactiveCommand<Unit, Unit> Uninstall { get; }
+    public ReactiveCommand<Unit, Unit> Backup { get; }
     public ReadOnlyObservableCollection<InstalledGame> InstalledGames => _installedGames;
     public bool IsBusy => _isBusy.Value;
     [Reactive] public bool IsDeviceConnected { get; private set; }
     [Reactive] public bool MultiSelectEnabled { get; set; } = true;
+    [Reactive] public bool ManualBackupAppFiles { get; set; } = true;
+    [Reactive] public bool ManualBackupData { get; set; } = true;
     public ViewModelActivator Activator { get; }
 
     private IObservable<Unit> RefreshImpl(bool rescanGames = false)
@@ -195,7 +199,39 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
-                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.BackupAndUninstall, Game = game});
+                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.BackupAndUninstall, Game = game, BackupOptions = new BackupOptions()});
+            }
+        });
+    }
+    
+    private IObservable<Unit> BackupImpl()
+    {
+        return Observable.Start(() =>
+        {
+            if (!_adbService.CheckDeviceConnectionSimple())
+            {
+                Log.Warning("InstalledGamesViewModel.BackupImpl: no device connection!");
+                OnDeviceOffline();
+                return;
+            }
+
+            var selectedGames = _installedGamesSourceCache.Items.Where(game => game.IsSelected).ToList();
+            if (selectedGames.Count == 0)
+            {
+                Log.Information("No games selected for backup");
+                Globals.ShowNotification("Backup", "No games selected", NotificationType.Information, TimeSpan.FromSeconds(2));
+                return;
+            }
+            foreach (var game in selectedGames)
+            {
+                game.IsSelected = false;
+                var backupOptions = new BackupOptions
+                {
+                    BackupApk = ManualBackupAppFiles,
+                    BackupObb = ManualBackupAppFiles,
+                    BackupData = ManualBackupData
+                };
+                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.Backup, Game = game, BackupOptions = backupOptions});
             }
         });
     }
