@@ -66,7 +66,7 @@
                 <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding SetDownloaderBandwidthLimit}">Set</Button>
             </StackPanel>
             
-            <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding DeleteAfterInstall}">Delete games from downloads after install</ToggleSwitch>
+            <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding DeleteAfterInstall}">Delete downloaded game files after install</ToggleSwitch>
             
             <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
                 <ToggleSwitch IsChecked="{Binding EnableRemoteLogging}">Enable remote logging</ToggleSwitch>

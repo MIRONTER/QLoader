@@ -5,6 +5,8 @@
              xmlns:vm="clr-namespace:QSideloader.ViewModels"
              xmlns:views="clr-namespace:QSideloader.Views"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
              x:Class="QSideloader.Views.Pages.OtherAppsView">
     <Design.DataContext>
         <vm:InstalledAppsViewModel />
@@ -14,8 +16,23 @@
                     Orientation="Horizontal"
                     Spacing="12" Margin="8"
                     HorizontalAlignment="Right">
-            <Button Command="{Binding Uninstall}" ToolTip.Tip="Uninstall selected apps"
-                    >Uninstall Selected</Button>
+            <Button ToolTip.Tip="Uninstall selected apps" Content="Uninstall Selected">
+                <Button.Flyout>
+                    <Flyout Placement="Bottom">
+                        <StackPanel>
+                            <TextBlock>This action will uninstall selected apps.&#x0a;Are you sure you want to continue?</TextBlock>
+                            <Button Margin="0,6,0,0" Content="Yes, uninstall">
+                                <i:Interaction.Behaviors>
+                                    <ia:EventTriggerBehavior EventName="Click">
+                                        <ia:InvokeCommandAction Command="{Binding Uninstall}" />
+                                        <ia:CallMethodAction TargetObject="{Binding $parent[Button].Flyout}" MethodName="Hide" />
+                                    </ia:EventTriggerBehavior>
+                                </i:Interaction.Behaviors>
+                            </Button>
+                        </StackPanel>
+                    </Flyout>
+                </Button.Flyout>
+            </Button>
             <Button Command="{Binding ManualRefresh}" ToolTip.Tip="Rescan list of installed apps"
                     >Refresh</Button>
         </StackPanel>

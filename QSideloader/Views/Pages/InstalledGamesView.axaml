@@ -4,6 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:QSideloader.ViewModels"
              xmlns:views="clr-namespace:QSideloader.Views"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
              mc:Ignorable="d" d:DesignWidth="1130" d:DesignHeight="450"
              x:Class="QSideloader.Views.Pages.InstalledGamesView">
     <Design.DataContext>
@@ -16,7 +18,23 @@
                     HorizontalAlignment="Right">
             <Button Command="{Binding UpdateAll}" ToolTip.Tip="Update all games (excluding ambiguous installs)">Update All</Button>
             <Button Command="{Binding Update}" ToolTip.Tip="Update selected games">Update Selected</Button>
-            <Button Command="{Binding Uninstall}" ToolTip.Tip="Backup and uninstall selected games">Uninstall Selected</Button>
+            <Button ToolTip.Tip="Backup and uninstall selected games" Content="Uninstall Selected">
+                <Button.Flyout>
+                    <Flyout Placement="Bottom">
+                        <StackPanel>
+                            <TextBlock>This action will attempt to backup data&#x0a;and uninstall selected games.&#x0a;Are you sure you want to continue?</TextBlock>
+                            <Button Margin="0,6,0,0" Content="Yes, uninstall">
+                                <i:Interaction.Behaviors>
+                                    <ia:EventTriggerBehavior EventName="Click">
+                                        <ia:InvokeCommandAction Command="{Binding Uninstall}" />
+                                        <ia:CallMethodAction TargetObject="{Binding $parent[Button].Flyout}" MethodName="Hide" />
+                                    </ia:EventTriggerBehavior>
+                                </i:Interaction.Behaviors>
+                            </Button>
+                        </StackPanel>
+                    </Flyout>
+                </Button.Flyout>
+            </Button>
             <Button Command="{Binding ManualRefresh}" IsEnabled="{Binding !IsBusy}" ToolTip.Tip="Rescan installed games">Refresh</Button>
         </StackPanel>
         <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
