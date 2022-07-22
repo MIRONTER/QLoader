@@ -13,6 +13,8 @@ using Avalonia.ReactiveUI;
 using FluentAvalonia.Styling;
 using FluentAvalonia.UI.Controls;
 using NetSparkleUpdater;
+using NetSparkleUpdater.AssemblyAccessors;
+using NetSparkleUpdater.Configurations;
 using NetSparkleUpdater.Enums;
 using NetSparkleUpdater.SignatureVerifiers;
 using NetSparkleUpdater.UI.Avalonia;
@@ -116,7 +118,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
         // TODO: add windows support
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            Log.Warning("Updater: running on Windows, skipping initialization");
+            Log.Warning("Running on Windows, skipping updater initialization");
             return;
         }
         var appcastUrl = RuntimeInformation.ProcessArchitecture switch
@@ -127,21 +129,30 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
         };
         if (string.IsNullOrEmpty(appcastUrl))
         {
-            Log.Error("Updater: Unsupported architecture {Architecture}", RuntimeInformation.ProcessArchitecture);
+            Log.Warning("Architecture {Architecture} is not supported by updater", RuntimeInformation.ProcessArchitecture);
             return;
         }
         Log.Information("Initializing updater");
-        Globals.Updater = new SparkleUpdater(appcastUrl, new Ed25519Checker(SecurityMode.Unsafe)
-        )
+        try
         {
-            UIFactory = new UIFactory(Icon),
-            RelaunchAfterUpdate = true,
-            CustomInstallerArguments = "",
-            //LogWriter = new LogWriter(true), // uncomment to enable logging to console
-            ShowsUIOnMainThread = true
-        };
-        if (_sideloaderSettings.CheckUpdatesAutomatically)
-            Globals.Updater.StartLoop(true);
+            Globals.Updater = new SparkleUpdater(appcastUrl, new Ed25519Checker(SecurityMode.Unsafe)
+            )
+            {
+                Configuration = new JSONConfiguration(new AssemblyReflectionAccessor(null), "updater_config.json"),
+                UIFactory = new UIFactory(Icon),
+                RelaunchAfterUpdate = true,
+                CustomInstallerArguments = "",
+                //LogWriter = new LogWriter(true), // uncomment to enable logging to console
+                ShowsUIOnMainThread = true,
+                
+            };
+            if (_sideloaderSettings.CheckUpdatesAutomatically)
+                Globals.Updater.StartLoop(true);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to initialize updater");
+        }
     }
 
     // When new task is added, scroll to last task in the list
