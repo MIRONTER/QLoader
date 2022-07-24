@@ -1525,7 +1525,7 @@ public class AdbService
                 if (RemoteDirectoryExists(publicDataPath))
                 {
                     empty = false;
-                    Log.Debug("Backing up public data");
+                    Log.Debug("Backing up shared data");
                     Directory.CreateDirectory(publicDataBackupPath);
                     PullDirectory(publicDataPath, publicDataBackupPath, new List<string> {"cache"});
                 }
