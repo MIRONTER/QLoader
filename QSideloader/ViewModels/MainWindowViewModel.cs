@@ -357,6 +357,11 @@ public class MainWindowViewModel : ViewModelBase
                     await Application.Current!.Clipboard!.SetTextAsync(text);
                     ShowNotification("Copied to clipboard", "The devices list has been copied to clipboard",
                         NotificationType.Success);
+                }),
+                SecondaryButtonText = "Reload",
+                SecondaryButtonCommand = ReactiveCommand.Create(async () =>
+                {
+                    await ShowAdbDevicesDialogAsync();
                 })
             };
             dialog.ShowAsync();
