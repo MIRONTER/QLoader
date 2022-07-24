@@ -203,8 +203,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
             }
 
             // Check if any option is selected and it differs from current setting
-            if (SelectedRefreshRate is not null &&
-                (CurrentRefreshRate is null || SelectedRefreshRate != CurrentRefreshRate))
+            if (SelectedRefreshRate is not null && SelectedRefreshRate != CurrentRefreshRate)
             {
                 if (SelectedRefreshRate.Contains("Auto") && CurrentRefreshRate is not null)
                 {
@@ -222,7 +221,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 }
             }
 
-            if (SelectedGpuLevel is not null && (CurrentGpuLevel is null || SelectedGpuLevel != CurrentGpuLevel))
+            if (SelectedGpuLevel is not null && SelectedGpuLevel != CurrentGpuLevel)
             {
                 if (SelectedGpuLevel.Contains("Auto") && CurrentGpuLevel is not null)
                 {
@@ -240,7 +239,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 }
             }
 
-            if (SelectedCpuLevel is not null && (CurrentCpuLevel is null || SelectedCpuLevel != CurrentCpuLevel))
+            if (SelectedCpuLevel is not null && SelectedCpuLevel != CurrentCpuLevel)
             {
                 if (SelectedCpuLevel.Contains("Auto") && CurrentCpuLevel is not null)
                 {
@@ -258,8 +257,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 }
             }
 
-            if (SelectedTextureSize is not null &&
-                (CurrentTextureSize is null || SelectedTextureSize != CurrentTextureSize))
+            if (SelectedTextureSize is not null && SelectedTextureSize != CurrentTextureSize)
             {
                 if (SelectedTextureSize.Contains("Auto") && CurrentTextureSize is not null)
                 {
@@ -270,7 +268,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                     CurrentTextureSize = null;
                     Log.Information("Reset texture resolution to Auto");
                 }
-                else if (SelectedTextureSize != null)
+                else if (!SelectedTextureSize.Contains("Auto"))
                 {
                     ResolutionValueToDimensions(SelectedTextureSize, out var width, out var height);
                     _adbService.Device!.RunShellCommand($"setprop debug.oculus.textureWidth {width}", true);
@@ -279,16 +277,15 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                     Log.Information("Set texture resolution Width:{Width} Height:{Height}", width, height);
                 }
             }
-
-            // ReSharper disable once InvertIf
-            if (UsernameTextBoxText is not null && (CurrentUsername is null || UsernameTextBoxText != CurrentUsername))
+            
+            if (UsernameTextBoxText is not null && UsernameTextBoxText != CurrentUsername)
             {
                 if (string.IsNullOrEmpty(UsernameTextBoxText) && CurrentUsername is not null)
                 {
                     _adbService.Device!.RunShellCommand("settings put global username null");
                     Log.Information("Reset username");
                 }
-                else if (UsernameTextBoxText is not null && IsValidUsername(UsernameTextBoxText))
+                else if (IsValidUsername(UsernameTextBoxText))
                 {
                     _adbService.Device!.RunShellCommand($"settings put global username {UsernameTextBoxText}");
                     Log.Information("Set username: {Username}", UsernameTextBoxText);
