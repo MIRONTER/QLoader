@@ -571,6 +571,9 @@ public class DownloaderService
                         3, ct: ct);
                     var json = JsonConvert.SerializeObject(game, Formatting.Indented);
                     await File.WriteAllTextAsync(Path.Combine(dstPath, "release.json"), json, ct);
+#pragma warning disable CS4014
+                    Task.Run(async () => await ReportGameDownload(game.PackageName!), CancellationToken.None);
+#pragma warning restore CS4014
                     break;
                 }
                 catch (Exception e)
@@ -600,6 +603,25 @@ public class DownloaderService
                 throw;
             Log.Error(e, "Error downloading release");
             throw new DownloaderServiceException("Error downloading release", e);
+        }
+    }
+    
+    private async Task ReportGameDownload(string packageName)
+    {
+        using var op = Operation.Begin("Reporting game {PackageName} download to API", packageName);
+        try
+        {
+            var dict = new Dictionary<string, string> {{"hwid", GeneralUtils.GetHwid()}, {"package_name", packageName}};
+            var json = JsonConvert.SerializeObject(dict, Formatting.None);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await ApiHttpClient.PostAsync("download", content);
+            response.EnsureSuccessStatusCode();
+            op.Complete();
+        }
+        catch (Exception e)
+        {
+            op.SetException(e);
+            op.Abandon();
         }
     }
 
