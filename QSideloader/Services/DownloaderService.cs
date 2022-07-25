@@ -7,6 +7,7 @@ using System.Net.Http.Json;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -37,17 +38,17 @@ public class DownloaderService
 
     static DownloaderService()
     {
-    }
-    private DownloaderService()
-    {
-        _sideloaderSettings = Globals.SideloaderSettings;
-        if (Design.IsDesignMode) return;
         var appVersion = Assembly.GetExecutingAssembly().GetName().Version;
         var appVersionString = appVersion is not null
             ? $"{appVersion.Major}.{appVersion.Minor}.{appVersion.Build}"
             : "Unknown";
         ApiHttpClient.DefaultRequestHeaders.UserAgent.Add(
             new System.Net.Http.Headers.ProductInfoHeaderValue("QLoader", appVersionString));
+    }
+    private DownloaderService()
+    {
+        _sideloaderSettings = Globals.SideloaderSettings;
+        if (Design.IsDesignMode) return;
         Task.Run(async () =>
         {
             await UpdateRcloneConfigAsync();
@@ -61,7 +62,7 @@ public class DownloaderService
     public List<string> DonationBlacklistedPackages { get; private set; } = new();
     public string MirrorName { get; private set; } = "";
     private List<string> MirrorList { get; set; } = new();
-    private List<string> ExcludedMirrorList { get; } = new();
+    private List<string> ExcludedMirrorList { get; set; } = new();
     public IEnumerable<string> MirrorListReadOnly => MirrorList.AsReadOnly();
     public static int RcloneStatsPort => 48040;
 
@@ -70,7 +71,7 @@ public class DownloaderService
 
     private bool IsMirrorListInitialized { get; set; }
     private HttpClient HttpClient { get; } = new();
-    private HttpClient ApiHttpClient { get; } = new() {BaseAddress = new Uri("https://qloader.5698452.xyz/api/v1/")};
+    private static HttpClient ApiHttpClient { get; } = new() {BaseAddress = new Uri("https://qloader.5698452.xyz/api/v1/")};
 
     private async Task UpdateRcloneConfigAsync()
     {
@@ -83,15 +84,8 @@ public class DownloaderService
             {
                 if (await TryDownloadConfigAsync())
                 {
-                    Log.Information("Rclone config updated from {MirrorName}. Reloading mirror list", MirrorName);
-                    // Reinitialize the mirror list with the new config and reselect mirror, if needed
-                    IsMirrorListInitialized = false;
-                    MirrorList = new List<string>();
-                    EnsureMirrorListInitialized();
-                    if (MirrorList.Contains(MirrorName)) return;
-                    Log.Information("Mirror {MirrorName} not found in new mirror list", MirrorName);
-                    MirrorName = "";
-                    EnsureMirrorSelected();
+                    Log.Information("Rclone config updated from {MirrorName}", MirrorName);
+                    ReloadMirrorList();
                     return;
                 }
 
@@ -178,8 +172,38 @@ public class DownloaderService
             .GetAwaiter().GetResult();
         var matches = Regex.Matches(result.StandardOutput, mirrorPattern);
         foreach (Match match in matches) mirrorList.Add(match.Groups[1].ToString());
-
         return mirrorList;
+    }
+
+    private void ExcludeDeadMirrors()
+    {
+        var list = ApiHttpClient.GetFromJsonAsync<List<Dictionary<string, JsonElement>>>("mirrors?status=DOWN")
+            .GetAwaiter().GetResult();
+        if (list is null) return;
+        var count = 0;
+        foreach (var mirrorName in list.Select(mirror => mirror["mirror_name"].GetString())
+                     .Where(mirrorName => mirrorName is not null && !ExcludedMirrorList.Contains(mirrorName)))
+        {
+            ExcludedMirrorList.Add(mirrorName!);
+            count++;
+        }
+
+        if (count > 0)
+            Log.Information("Excluded {Count} dead mirrors for this session", count);
+    }
+
+    public void ReloadMirrorList()
+    {
+        // Reinitialize the mirror list with the new config and reselect mirror, if needed
+        using var op = Operation.Time("Reloading mirror list");
+        IsMirrorListInitialized = false;
+        MirrorList = new List<string>();
+        ExcludedMirrorList = new List<string>();
+        EnsureMirrorListInitialized();
+        if (MirrorList.Contains(MirrorName)) return;
+        Log.Information("Mirror {MirrorName} not found in new mirror list", MirrorName);
+        MirrorName = "";
+        EnsureMirrorSelected();
     }
 
     private void SwitchMirror()
@@ -262,6 +286,7 @@ public class DownloaderService
     private void EnsureMirrorListInitialized()
     {
         if (IsMirrorListInitialized) return;
+        ExcludeDeadMirrors();
         MirrorList = GetMirrorList().Where(x => !ExcludedMirrorList.Contains(x)).ToList();
         Log.Debug("Loaded mirrors: {MirrorList}", MirrorList);
         if (MirrorList.Count == 0)
@@ -585,10 +610,7 @@ public class DownloaderService
 
     public static void ReleaseDownloadLock()
     {
-        if (DownloadSemaphoreSlim.CurrentCount < 1)
-            DownloadSemaphoreSlim.Release();
-        else
-            Log.Warning("Attempted double release of download lock");
+        DownloadSemaphoreSlim.Release();
     }
 
     public IObservable<(float downloadSpeedBytes, double downloadedBytes)?> PollStats(TimeSpan interval, IScheduler scheduler)
