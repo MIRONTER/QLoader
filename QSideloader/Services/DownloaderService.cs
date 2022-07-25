@@ -7,7 +7,6 @@ using System.Net.Http.Json;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -38,17 +37,17 @@ public class DownloaderService
 
     static DownloaderService()
     {
+    }
+    private DownloaderService()
+    {
+        _sideloaderSettings = Globals.SideloaderSettings;
+        if (Design.IsDesignMode) return;
         var appVersion = Assembly.GetExecutingAssembly().GetName().Version;
         var appVersionString = appVersion is not null
             ? $"{appVersion.Major}.{appVersion.Minor}.{appVersion.Build}"
             : "Unknown";
         ApiHttpClient.DefaultRequestHeaders.UserAgent.Add(
             new System.Net.Http.Headers.ProductInfoHeaderValue("QLoader", appVersionString));
-    }
-    private DownloaderService()
-    {
-        _sideloaderSettings = Globals.SideloaderSettings;
-        if (Design.IsDesignMode) return;
         Task.Run(async () =>
         {
             await UpdateRcloneConfigAsync();
@@ -62,7 +61,7 @@ public class DownloaderService
     public List<string> DonationBlacklistedPackages { get; private set; } = new();
     public string MirrorName { get; private set; } = "";
     private List<string> MirrorList { get; set; } = new();
-    private List<string> ExcludedMirrorList { get; set; } = new();
+    private List<string> ExcludedMirrorList { get; } = new();
     public IEnumerable<string> MirrorListReadOnly => MirrorList.AsReadOnly();
     public static int RcloneStatsPort => 48040;
 
@@ -71,7 +70,7 @@ public class DownloaderService
 
     private bool IsMirrorListInitialized { get; set; }
     private HttpClient HttpClient { get; } = new();
-    private static HttpClient ApiHttpClient { get; } = new() {BaseAddress = new Uri("https://qloader.5698452.xyz/api/v1/")};
+    private HttpClient ApiHttpClient { get; } = new() {BaseAddress = new Uri("https://qloader.5698452.xyz/api/v1/")};
 
     private async Task UpdateRcloneConfigAsync()
     {
@@ -84,8 +83,15 @@ public class DownloaderService
             {
                 if (await TryDownloadConfigAsync())
                 {
-                    Log.Information("Rclone config updated from {MirrorName}", MirrorName);
-                    ReloadMirrorList();
+                    Log.Information("Rclone config updated from {MirrorName}. Reloading mirror list", MirrorName);
+                    // Reinitialize the mirror list with the new config and reselect mirror, if needed
+                    IsMirrorListInitialized = false;
+                    MirrorList = new List<string>();
+                    EnsureMirrorListInitialized();
+                    if (MirrorList.Contains(MirrorName)) return;
+                    Log.Information("Mirror {MirrorName} not found in new mirror list", MirrorName);
+                    MirrorName = "";
+                    EnsureMirrorSelected();
                     return;
                 }
 
@@ -172,38 +178,8 @@ public class DownloaderService
             .GetAwaiter().GetResult();
         var matches = Regex.Matches(result.StandardOutput, mirrorPattern);
         foreach (Match match in matches) mirrorList.Add(match.Groups[1].ToString());
+
         return mirrorList;
-    }
-
-    private void ExcludeDeadMirrors()
-    {
-        var list = ApiHttpClient.GetFromJsonAsync<List<Dictionary<string, JsonElement>>>("mirrors?status=DOWN")
-            .GetAwaiter().GetResult();
-        if (list is null) return;
-        var count = 0;
-        foreach (var mirrorName in list.Select(mirror => mirror["mirror_name"].GetString())
-                     .Where(mirrorName => mirrorName is not null && !ExcludedMirrorList.Contains(mirrorName)))
-        {
-            ExcludedMirrorList.Add(mirrorName!);
-            count++;
-        }
-
-        if (count > 0)
-            Log.Information("Excluded {Count} dead mirrors for this session", count);
-    }
-
-    public void ReloadMirrorList()
-    {
-        // Reinitialize the mirror list with the new config and reselect mirror, if needed
-        using var op = Operation.Time("Reloading mirror list");
-        IsMirrorListInitialized = false;
-        MirrorList = new List<string>();
-        ExcludedMirrorList = new List<string>();
-        EnsureMirrorListInitialized();
-        if (MirrorList.Contains(MirrorName)) return;
-        Log.Information("Mirror {MirrorName} not found in new mirror list", MirrorName);
-        MirrorName = "";
-        EnsureMirrorSelected();
     }
 
     private void SwitchMirror()
@@ -286,7 +262,6 @@ public class DownloaderService
     private void EnsureMirrorListInitialized()
     {
         if (IsMirrorListInitialized) return;
-        ExcludeDeadMirrors();
         MirrorList = GetMirrorList().Where(x => !ExcludedMirrorList.Contains(x)).ToList();
         Log.Debug("Loaded mirrors: {MirrorList}", MirrorList);
         if (MirrorList.Count == 0)
@@ -571,9 +546,6 @@ public class DownloaderService
                         3, ct: ct);
                     var json = JsonConvert.SerializeObject(game, Formatting.Indented);
                     await File.WriteAllTextAsync(Path.Combine(dstPath, "release.json"), json, ct);
-#pragma warning disable CS4014
-                    Task.Run(async () => await ReportGameDownload(game.PackageName!), CancellationToken.None);
-#pragma warning restore CS4014
                     break;
                 }
                 catch (Exception e)
@@ -605,25 +577,6 @@ public class DownloaderService
             throw new DownloaderServiceException("Error downloading release", e);
         }
     }
-    
-    private async Task ReportGameDownload(string packageName)
-    {
-        using var op = Operation.Begin("Reporting game {PackageName} download to API", packageName);
-        try
-        {
-            var dict = new Dictionary<string, string> {{"hwid", GeneralUtils.GetHwid()}, {"package_name", packageName}};
-            var json = JsonConvert.SerializeObject(dict, Formatting.None);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await ApiHttpClient.PostAsync("download", content);
-            response.EnsureSuccessStatusCode();
-            op.Complete();
-        }
-        catch (Exception e)
-        {
-            op.SetException(e);
-            op.Abandon();
-        }
-    }
 
     public static async Task TakeDownloadLockAsync(CancellationToken ct = default)
     {
@@ -632,7 +585,10 @@ public class DownloaderService
 
     public static void ReleaseDownloadLock()
     {
-        DownloadSemaphoreSlim.Release();
+        if (DownloadSemaphoreSlim.CurrentCount < 1)
+            DownloadSemaphoreSlim.Release();
+        else
+            Log.Warning("Attempted double release of download lock");
     }
 
     public IObservable<(float downloadSpeedBytes, double downloadedBytes)?> PollStats(TimeSpan interval, IScheduler scheduler)
