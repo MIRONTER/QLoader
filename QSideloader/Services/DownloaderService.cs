@@ -324,7 +324,7 @@ public class DownloaderService
         {
             switch (e)
             {
-                case OperationCanceledException or TaskCanceledException:
+                case OperationCanceledException:
                     throw;
                 case CommandExecutionException when e.Message.Contains("downloadQuotaExceeded"):
                     throw new DownloadQuotaExceededException(MirrorName, source, e);
@@ -599,7 +599,7 @@ public class DownloaderService
         }
         catch (Exception e)
         {
-            if (e is OperationCanceledException or TaskCanceledException)
+            if (e is OperationCanceledException)
                 throw;
             Log.Error(e, "Error downloading release");
             throw new DownloaderServiceException("Error downloading release", e);
@@ -714,7 +714,7 @@ public class DownloaderService
         }
         catch (Exception e)
         {
-            if (e is OperationCanceledException or TaskCanceledException)
+            if (e is OperationCanceledException)
             {
                 if (File.Exists(trailersAddonPath))
                     File.Delete(trailersAddonPath);

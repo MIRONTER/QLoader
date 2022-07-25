@@ -164,7 +164,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         }
         catch (Exception e)
         {
-            if (e is OperationCanceledException or TaskCanceledException)
+            if (e is OperationCanceledException)
             {
                 OnFinished("Cancelled");
             }
@@ -184,7 +184,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         }
         catch (Exception e)
         {
-            if (e is OperationCanceledException or TaskCanceledException)
+            if (e is OperationCanceledException)
             {
                 OnFinished("Cancelled");
             }
@@ -205,7 +205,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         }
         catch (Exception e)
         {
-            if (e is OperationCanceledException or TaskCanceledException)
+            if (e is OperationCanceledException)
             {
                 OnFinished("Cancelled");
             }
@@ -226,7 +226,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         }
         catch (Exception e)
         {
-            if (e is OperationCanceledException or TaskCanceledException)
+            if (e is OperationCanceledException)
             {
                 OnFinished("Cancelled");
             }
@@ -248,7 +248,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         }
         catch (Exception e)
         {
-            if (e is OperationCanceledException or TaskCanceledException)
+            if (e is OperationCanceledException)
             {
                 OnFinished("Cancelled");
             }
@@ -271,7 +271,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         }
         catch (Exception e)
         {
-            if (e is OperationCanceledException or TaskCanceledException)
+            if (e is OperationCanceledException)
             {
                 OnFinished("Cancelled");
             }
@@ -293,7 +293,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         }
         catch (Exception e)
         {
-            if (e is OperationCanceledException or TaskCanceledException)
+            if (e is OperationCanceledException)
             {
                 OnFinished("Cancelled");
             }
@@ -315,7 +315,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         }
         catch (Exception e)
         {
-            if (e is OperationCanceledException or TaskCanceledException)
+            if (e is OperationCanceledException)
             {
                 OnFinished("Cancelled");
             }
@@ -371,7 +371,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         }
         catch (Exception e)
         {
-            if (e is OperationCanceledException or TaskCanceledException)
+            if (e is OperationCanceledException)
             {
                 OnFinished("Cancelled");
             }
