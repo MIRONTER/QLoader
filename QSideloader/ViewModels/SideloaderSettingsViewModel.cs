@@ -55,7 +55,10 @@ public class SideloaderSettingsViewModel : ViewModelBase
             Globals.ShowErrorNotification(ex, "Error checking for updates");
         });
         SwitchMirror = ReactiveCommand.CreateFromObservable(SwitchMirrorImpl);
-        SwitchMirror.IsExecuting.ToProperty(this, x => x.IsSwitchingMirror, out _isSwitchingMirror, false,
+        ReloadMirrorList = ReactiveCommand.CreateFromObservable(ReloadMirrorListImpl);
+        var isSwitchingMirrorCombined =
+            SwitchMirror.IsExecuting.CombineLatest(ReloadMirrorList.IsExecuting, (a, b) => a || b);
+        isSwitchingMirrorCombined.ToProperty(this, x => x.IsSwitchingMirror, out _isSwitchingMirror, false,
             RxApp.MainThreadScheduler);
         IsTrailersAddonInstalled = Directory.Exists(PathHelper.TrailersPath);
         InstallTrailersAddon = ReactiveCommand.CreateFromObservable(InstallTrailersAddonImpl);
@@ -129,6 +132,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> SetDownloaderBandwidthLimit { get; }
     public ReactiveCommand<Unit, Unit> CheckUpdates { get; }
     public ReactiveCommand<Unit, Unit> SwitchMirror { get; }
+    public ReactiveCommand<Unit, Unit> ReloadMirrorList { get; }
     public ReactiveCommand<Unit, Unit> InstallTrailersAddon { get; }
     public ReactiveCommand<Unit, Unit> CopyInstallationId { get; }
 
@@ -373,6 +377,16 @@ public class SideloaderSettingsViewModel : ViewModelBase
             var downloaderService = DownloaderService.Instance;
             if (SelectedMirror == downloaderService.MirrorName || SelectedMirror is null) return;
             downloaderService.TryManualSwitchMirror(SelectedMirror);
+            RefreshMirrorSelection();
+        });
+    }
+    
+    private IObservable<Unit> ReloadMirrorListImpl()
+    {
+        return Observable.Start(() =>
+        {
+            if (MirrorSelectionRefreshSemaphoreSlim.CurrentCount == 0) return;
+            DownloaderService.Instance.ReloadMirrorList();
             RefreshMirrorSelection();
         });
     }

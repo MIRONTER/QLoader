@@ -34,6 +34,8 @@
                           SelectedItem="{Binding SelectedMirror}" />
                 <ProgressRing Margin="10,0,0,0" IsEnabled="{Binding IsSwitchingMirror}"
                               IsVisible="{Binding IsSwitchingMirror}" IsIndeterminate="True" Width="30" Height="30" />
+                <Button Margin="10,0,0,0" IsEnabled="{Binding !IsSwitchingMirror}" 
+                        Command="{Binding ReloadMirrorList}">Reload list</Button>
             </StackPanel>
             
             <TextBlock Margin="0,8,0,0" VerticalAlignment="Center">Popularity time range</TextBlock>
