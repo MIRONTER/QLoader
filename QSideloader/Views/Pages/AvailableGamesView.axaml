@@ -77,6 +77,6 @@
             </DataGrid.Resources>
         </DataGrid>
         <views:LoadingProgressRingView Grid.Row="0" Grid.RowSpan="2" 
-                                       IsVisible="{Binding IsBusy}"/>
+                                       IsVisible="{Binding IsBusy}" />
     </Grid>
 </UserControl>
