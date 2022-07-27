@@ -21,88 +21,18 @@ internal class Program
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.
-    public static AppBuilder BuildAvaloniaApp()
+    private static AppBuilder BuildAvaloniaApp()
     {
         var builder = AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .LogToTrace()
             .UseReactiveUI()
-            .UseSkia();
-
-        // Animations lag fix for Windows. Source: https://github.com/AvaloniaUI/Avalonia/issues/2945#issuecomment-534892298
-        if (Environment.OSVersion.Platform == PlatformID.Win32NT && false)
-            if (DwmIsCompositionEnabled(out var dwmEnabled) == 0 && dwmEnabled)
-            {
-                var wp = builder.WindowingSubsystemInitializer;
-                return builder.UseWindowingSubsystem(() =>
-                {
-                    wp();
-                    AvaloniaLocator.CurrentMutable.Bind<IRenderTimer>().ToConstant(new WindowsDWMRenderTimer());
-                });
-            }
-        // Possible fix for Linux too. Source: https://github.com/AvaloniaUI/Avalonia/issues/2945#issuecomment-543800104
-        // Do not use. Breaks rendering
-        /*else
-        {
-            var wp = builder.WindowingSubsystemInitializer;
-            return builder.UseWindowingSubsystem(() =>
-            {
-                wp();
-                AvaloniaLocator.CurrentMutable.Bind<IRenderTimer>().ToConstant(new CustomRenderTimer());
-            });
-        }*/
+            //.UseSkia()
+            .With(new Win32PlatformOptions {UseWindowsUIComposition = true});
 
         return builder;
     }
 
     [DllImport("Dwmapi.dll")]
     private static extern int DwmIsCompositionEnabled(out bool enabled);
-}
-
-// ReSharper disable once InconsistentNaming
-internal class WindowsDWMRenderTimer : IRenderTimer
-{
-    public WindowsDWMRenderTimer()
-    {
-        var renderTick = new Thread(() =>
-        {
-            var sw = new Stopwatch();
-            sw.Start();
-            while (true)
-            {
-                DwmFlush();
-                Tick?.Invoke(sw.Elapsed);
-            }
-            // ReSharper disable once FunctionNeverReturns
-        })
-        {
-            IsBackground = true
-        };
-        renderTick.Start();
-    }
-
-    public event Action<TimeSpan>? Tick;
-
-    [DllImport("Dwmapi.dll")]
-    private static extern int DwmFlush();
-}
-
-internal class CustomRenderTimer : IRenderTimer
-{
-    public CustomRenderTimer()
-    {
-        var renderTick = new Thread(() =>
-        {
-            var sw = new Stopwatch();
-            sw.Start();
-            while (true) Tick?.Invoke(sw.Elapsed);
-            // ReSharper disable once FunctionNeverReturns
-        })
-        {
-            IsBackground = true
-        };
-        renderTick.Start();
-    }
-
-    public event Action<TimeSpan>? Tick;
 }
