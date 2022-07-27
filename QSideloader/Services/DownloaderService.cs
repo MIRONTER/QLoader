@@ -85,7 +85,7 @@ public class DownloaderService
                 if (await TryDownloadConfigAsync())
                 {
                     Log.Information("Rclone config updated from {MirrorName}", MirrorName);
-                    ReloadMirrorList();
+                    ReloadMirrorList(true);
                     return;
                 }
 
@@ -192,13 +192,14 @@ public class DownloaderService
             Log.Information("Excluded {Count} dead mirrors for this session", count);
     }
 
-    public void ReloadMirrorList()
+    public void ReloadMirrorList(bool keepExcluded = false)
     {
         // Reinitialize the mirror list with the new config and reselect mirror, if needed
         using var op = Operation.Time("Reloading mirror list");
         IsMirrorListInitialized = false;
         MirrorList = new List<string>();
-        ExcludedMirrorList = new List<string>();
+        if (!keepExcluded)
+            ExcludedMirrorList = new List<string>();
         EnsureMirrorListInitialized();
         if (MirrorList.Contains(MirrorName)) return;
         Log.Information("Mirror {MirrorName} not found in new mirror list", MirrorName);
