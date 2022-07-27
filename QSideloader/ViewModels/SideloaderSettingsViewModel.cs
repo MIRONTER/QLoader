@@ -286,8 +286,19 @@ public class SideloaderSettingsViewModel : ViewModelBase
     {
         return Observable.Start(() =>
         {
+            if (DownloadsLocationTextBoxText.EndsWith(Path.DirectorySeparatorChar))
+                DownloadsLocationTextBoxText = DownloadsLocationTextBoxText[..^1];
             if (!Directory.Exists(DownloadsLocationTextBoxText) ||
                 DownloadsLocationTextBoxText == DownloadsLocation) return;
+            if (!GeneralUtils.IsDirectoryWritable(DownloadsLocationTextBoxText))
+            {
+                var location = DownloadsLocationTextBoxText;
+                DownloadsLocationTextBoxText = DownloadsLocation;
+                Globals.ShowNotification("Error", "Selected downloads location is not writable",
+                    NotificationType.Error, TimeSpan.FromSeconds(5));
+                Log.Warning("New downloads location {Location} is not writable, not changing", location);
+                return;
+            }
             DownloadsLocation = DownloadsLocationTextBoxText;
             SaveSettings.Execute().Subscribe();
             Log.Debug("Set new downloads location: {Location}",
@@ -301,8 +312,19 @@ public class SideloaderSettingsViewModel : ViewModelBase
     {
         return Observable.Start(() =>
         {
+            if (BackupsLocationTextBoxText.EndsWith(Path.DirectorySeparatorChar))
+                BackupsLocationTextBoxText = BackupsLocationTextBoxText[..^1];
             if (!Directory.Exists(BackupsLocationTextBoxText) ||
                 BackupsLocationTextBoxText == BackupsLocation) return;
+            if (!GeneralUtils.IsDirectoryWritable(BackupsLocationTextBoxText))
+            {
+                var location = BackupsLocationTextBoxText;
+                BackupsLocationTextBoxText = BackupsLocation;
+                Globals.ShowNotification("Error", "Selected backups location is not writable",
+                    NotificationType.Error, TimeSpan.FromSeconds(5));
+                Log.Warning("New backups location {Location} is not writable, not changing", location);
+                return;
+            }
             BackupsLocation = BackupsLocationTextBoxText;
             SaveSettings.Execute().Subscribe();
             Log.Debug("Set new backups location: {Location}",

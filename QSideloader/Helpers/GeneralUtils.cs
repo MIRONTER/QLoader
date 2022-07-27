@@ -126,6 +126,19 @@ public static class GeneralUtils
             File.Delete(path);
         op.Complete();
     }
+    
+    public static bool IsDirectoryWritable(string dirPath)
+    {
+        try
+        {
+            using var fs = File.Create(Path.Combine(dirPath, Path.GetRandomFileName()), 1, FileOptions.DeleteOnClose);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }
 
 [SuppressMessage("ReSharper", "InconsistentNaming")]
