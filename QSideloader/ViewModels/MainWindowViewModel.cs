@@ -28,6 +28,7 @@ using QSideloader.Views;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Serilog;
+using Serilog.Context;
 
 namespace QSideloader.ViewModels;
 
@@ -81,10 +82,14 @@ public class MainWindowViewModel : ViewModelBase
     {
         Dispatcher.UIThread.InvokeAsync(() =>
         {
-            var taskView = new TaskView(taskOptions);
-            TaskList.Add(taskView);
-            taskView.Run();
-            Log.Information("Enqueued task {TaskType} {TaskName}", taskOptions.Type, taskView.TaskName);
+            var taskId = new TaskId();
+            using (LogContext.PushProperty("TaskId", taskId))
+            {
+                var taskView = new TaskView(taskOptions);
+                Log.Information("Adding task {TaskId} {TaskType} {TaskName}", taskId, taskOptions.Type, taskView.TaskName);
+                TaskList.Add(taskView);
+                taskView.Run();
+            }
         }).ContinueWith(t =>
         {
             if (t.IsFaulted)

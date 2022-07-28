@@ -105,6 +105,7 @@ public class App : Application
             .Enrich.WithThreadId().Enrich.WithThreadName()
             .Enrich.WithExceptionDetails()
             .Enrich.FromGlobalLogContext()
+            .Enrich.FromLogContext()
             .WriteTo.Logger(humanReadableLogger)
             .WriteTo.File(new CompactJsonFormatter(), clefLogPath)
             .CreateLogger();
@@ -142,6 +143,7 @@ public class App : Application
             .Enrich.WithThreadId().Enrich.WithThreadName()
             .Enrich.WithExceptionDetails()
             .Enrich.FromGlobalLogContext()
+            .Enrich.FromLogContext()
             .WriteTo.Logger(humanReadableLogger)
             .WriteTo.Logger(seqLogger ?? Logger.None)
             .WriteTo.File(new CompactJsonFormatter(), clefLogPath)
