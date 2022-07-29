@@ -1198,7 +1198,7 @@ public class AdbService
                 {
                     op.SetException(e);
                     op.Abandon();
-                    if (!reinstall)
+                    if (!reinstall && game.PackageName is not null)
                     {
                         Log.Information("Cleaning up failed install");
                         CleanupRemnants(game.PackageName);
@@ -1222,8 +1222,9 @@ public class AdbService
                     {
                         observer.OnNext("Incompatible update, reinstalling");
                         Log.Information("Incompatible update, reinstalling. Reason: {Message}", e.Message);
-                        var backupPath = CreateBackup(game.PackageName!, new BackupOptions {NameAppend = "reinstall"});
-                        UninstallPackageInternal(game.PackageName!);
+                        var apkInfo = GeneralUtils.GetApkInfo(apkPath);
+                        var backupPath = CreateBackup(apkInfo.PackageName, new BackupOptions {NameAppend = "reinstall"});
+                        UninstallPackageInternal(apkInfo.PackageName);
                         InstallPackage(apkPath, false, true);
                         if (!string.IsNullOrEmpty(backupPath))
                             RestoreBackup(backupPath);
