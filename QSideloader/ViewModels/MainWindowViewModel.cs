@@ -125,7 +125,7 @@ public class MainWindowViewModel : ViewModelBase
         Task.Run(RefreshGameDonationBadge);
     }
 
-    public void HandleDroppedFiles(IEnumerable<string> fileNames)
+    public async Task HandleDroppedFilesAsync(IEnumerable<string> fileNames)
     {
         foreach (var fileName in fileNames)
         {
@@ -167,7 +167,7 @@ public class MainWindowViewModel : ViewModelBase
             {
                 Log.Debug("Dropped file {FileName} is an APK", fileName);
                 var name = Path.GetFileName(fileName);
-                var apkInfo = GeneralUtils.GetApkInfo(fileName);
+                var apkInfo =  await GeneralUtils.GetApkInfoAsync(fileName);
                 var game = new Game(apkInfo.ApplicationLabel, name, apkInfo.PackageName);
                 AddTask(new TaskOptions {Game = game, Type = TaskType.InstallOnly, Path = fileName});
             }

@@ -335,7 +335,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             Status = "Pulling from device";
             var path = _adbDevice!.PullApp(_app!.PackageName, "donations");
             Status = "Preparing to upload";
-            var apkInfo = GeneralUtils.GetApkInfo(Path.Combine(path, _app.PackageName + ".apk"));
+            var apkInfo = await GeneralUtils.GetApkInfoAsync(Path.Combine(path, _app.PackageName + ".apk"));
             var archiveName = $"{apkInfo.ApplicationLabel} v{apkInfo.VersionCode} {apkInfo.PackageName}.zip";
             await File.WriteAllTextAsync(Path.Combine(path, "HWID.txt"),
                 GeneralUtils.GetHwid());

@@ -1,18 +1,20 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using ApkNet.ApkReader;
 using CliWrap;
 using CliWrap.Buffered;
 using Microsoft.Win32;
-using QSideloader.Models;
 using QSideloader.ViewModels;
 using Serilog;
 using SerilogTimings;
+using ApkInfo = QSideloader.Models.ApkInfo;
 
 namespace QSideloader.Helpers;
 
@@ -27,9 +29,9 @@ public static class GeneralUtils
         return BitConverter.ToString(hash).Replace("-", "");
     }
 
-    public static ApkInfo GetApkInfo(string apkPath)
+    public static async Task<ApkInfo> GetApkInfoAsync(string apkPath)
     {
-        if (!File.Exists(apkPath))
+        /*if (!File.Exists(apkPath))
             throw new FileNotFoundException("Apk file not found", apkPath);
 
         var aaptOutput = Cli.Wrap(PathHelper.AaptPath)
@@ -43,7 +45,49 @@ public static class GeneralUtils
             VersionCode = int.Parse(Regex.Match(aaptOutput.StandardOutput, "versionCode='(.*?)'").Groups[1].Value),
             VersionName = Regex.Match(aaptOutput.StandardOutput, "versionName='(.*?)'").Groups[1].Value
         };
-        return apkInfo;
+        return apkInfo;*/
+
+        using var apkArchive = ZipFile.OpenRead(apkPath);
+        byte[]? manifestData = null;
+        byte[]? resourcesData = null;
+        foreach (var entry in apkArchive.Entries)
+        {
+            switch (entry.Name)
+            {
+                case "AndroidManifest.xml":
+                {
+                    manifestData = new byte[entry.Length];
+                    await using var stream = entry.Open();
+                    var length = await stream.ReadAsync(manifestData.AsMemory(0, (int) entry.Length));
+                    if (length != entry.Length)
+                        throw new Exception("Failed to read AndroidManifest.xml");
+                    break;
+                }
+                case "resources.arsc":
+                {
+                    resourcesData = new byte[entry.Length];
+                    await using var stream = entry.Open();
+                    var length = await stream.ReadAsync(resourcesData.AsMemory(0, (int) entry.Length));
+                    if (length != entry.Length)
+                        throw new Exception("Failed to read resources.arsc");
+                    break;
+                }
+            }
+        }
+        if (manifestData is null)
+            throw new Exception("AndroidManifest.xml not found in APK");
+        if (resourcesData is null)
+            throw new Exception("resources.arsc not found in APK");
+
+        var apkReader = new ApkReader();
+        var info = apkReader.extractInfo(manifestData, resourcesData);
+        return new ApkInfo
+        {
+            ApplicationLabel = info.label,
+            PackageName = info.packageName,
+            VersionCode = int.Parse(info.versionCode),
+            VersionName = info.versionName
+        };
     }
 
     /// <summary>

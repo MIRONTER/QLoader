@@ -209,7 +209,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
         e.Handled = true;
     }
 
-    private async void Drop(object? sender, DragEventArgs e)
+    private void Drop(object? sender, DragEventArgs e)
     {
         Log.Debug("DragDrop.Drop event");
         var dragDropPanel = this.Get<Border>("DragDropPanel");
@@ -223,7 +223,9 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
             }
             Log.Debug("Dropped folders/files: {Files}", fileNames);
             var viewModel = ViewModel!;
-            await Task.Run(() => viewModel.HandleDroppedFiles(fileNames));
+#pragma warning disable CS4014
+            Task.Run(async () => await viewModel.HandleDroppedFilesAsync(fileNames));
+#pragma warning restore CS4014
         }
         else
         {

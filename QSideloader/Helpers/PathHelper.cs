@@ -14,7 +14,6 @@ public static class PathHelper
             AdbPath = @".\tools\windows\platform-tools\adb.exe";
             RclonePath = @".\tools\windows\rclone\FFA.exe";
             SevenZipPath = Path.Combine(@".\tools\windows", Environment.Is64BitProcess ? "x64" : "x86", "7za.exe");
-            AaptPath = @".\tools\windows\platform-tools\aapt2.exe";
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
@@ -27,7 +26,6 @@ public static class PathHelper
             AdbPath = Path.Combine("./tools/linux/", architectureString, "platform-tools/adb");
             RclonePath = Path.Combine("./tools/linux/", architectureString, "rclone/FFA");
             SevenZipPath = Path.Combine("./tools/linux/", architectureString, "7zz");
-            AaptPath = Path.Combine("./tools/linux/", architectureString, "platform-tools/aapt2");
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
@@ -41,14 +39,12 @@ public static class PathHelper
             RclonePath = @"./tools/darwin/rclone/FFA";
             RclonePath = Path.Combine("./tools/darwin/", architectureString, "rclone/FFA");
             SevenZipPath = @"./tools/darwin/7zz";
-            AaptPath = @"./tools/darwin/platform-tools/aapt2";
         }
     }
 
     public static string AdbPath { get; } = "";
     public static string RclonePath { get; } = "";
     public static string SevenZipPath { get; } = "";
-    public static string AaptPath { get; } = "";
     public static string SettingsPath => "settings.json";
     public static string ThumbnailsPath => Path.Combine("Resources", "thumbnails");
     public static string TrailersPath => Path.Combine("Resources", "videos");

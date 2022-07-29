@@ -58,6 +58,7 @@
         <TrimmableAssembly Include="Avalonia.Themes.Default" />
     </ItemGroup>
     <ItemGroup>
+        <PackageReference Include="ApkNet" Version="1.0.0" />
         <PackageReference Include="Aura.UI" Version="0.1.4.2" />
         <PackageReference Include="Aura.UI.FluentTheme" Version="0.1.4.2" />
         <PackageReference Include="Avalonia" Version="0.10.17" />

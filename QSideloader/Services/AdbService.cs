@@ -1222,7 +1222,7 @@ public class AdbService
                     {
                         observer.OnNext("Incompatible update, reinstalling");
                         Log.Information("Incompatible update, reinstalling. Reason: {Message}", e.Message);
-                        var apkInfo = GeneralUtils.GetApkInfo(apkPath);
+                        var apkInfo = GeneralUtils.GetApkInfoAsync(apkPath).GetAwaiter().GetResult();
                         var backupPath = CreateBackup(apkInfo.PackageName, new BackupOptions {NameAppend = "reinstall"});
                         UninstallPackageInternal(apkInfo.PackageName);
                         InstallPackage(apkPath, false, true);
