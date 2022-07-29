@@ -33,7 +33,7 @@ public static class GeneralUtils
             throw new FileNotFoundException("Apk file not found", apkPath);
 
         var aaptOutput = Cli.Wrap(PathHelper.AaptPath)
-            .WithArguments($"dump badging {apkPath}")
+            .WithArguments($"dump badging \"{apkPath}\"")
             .ExecuteBufferedAsync().GetAwaiter().GetResult();
 
         var apkInfo = new ApkInfo
