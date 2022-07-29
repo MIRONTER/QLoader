@@ -23,6 +23,7 @@ using QSideloader.Helpers;
 using QSideloader.Models;
 using QSideloader.ViewModels;
 using Serilog;
+using Serilog.Events;
 using SerilogTimings;
 
 namespace QSideloader.Services;
@@ -308,8 +309,8 @@ public class DownloaderService
     private async Task RcloneTransferInternalAsync(string source, string destination, string operation,
         string additionalArgs = "", int retries = 1, CancellationToken ct = default)
     {
-        using var op = Operation.Begin("Rclone {Operation} \"{Source}\" -> \"{Destination}\"", operation, source,
-            destination);
+        using var op = Operation.At(LogEventLevel.Information, LogEventLevel.Error).Begin(
+            "Rclone {Operation} \"{Source}\" -> \"{Destination}\"", operation, source, destination);
         try
         {
             var bwLimit = !string.IsNullOrEmpty(_sideloaderSettings.DownloaderBandwidthLimit)
@@ -674,7 +675,7 @@ public class DownloaderService
     {
         if (!File.Exists(path))
             throw new FileNotFoundException("Archive not found", path);
-        using var op = Operation.Begin("Uploading donation");
+        using var op = Operation.At(LogEventLevel.Information, LogEventLevel.Error).Begin("Uploading donation");
         var archiveName = Path.GetFileName(path);
         if (!Regex.IsMatch(archiveName, @"^.+ v\d+ .+\.zip$"))
             throw new ArgumentException("Invalid archive name", nameof(path));
@@ -694,7 +695,7 @@ public class DownloaderService
         if (TrailersAddonSemaphoreSlim.CurrentCount == 0)
             throw new DownloaderServiceException("Trailers addon is already downloading");
         await TrailersAddonSemaphoreSlim.WaitAsync(ct);
-        using var op = Operation.Begin("Downloading trailers addon");
+        using var op = Operation.At(LogEventLevel.Information, LogEventLevel.Error).Begin("Downloading trailers addon");
         var trailersAddonPath = Path.Combine(_sideloaderSettings.DownloadsLocation, "TrailersAddon.zip");
         try
         {
