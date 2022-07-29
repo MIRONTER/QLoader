@@ -167,7 +167,8 @@ public class MainWindowViewModel : ViewModelBase
             {
                 Log.Debug("Dropped file {FileName} is an APK", fileName);
                 var name = Path.GetFileName(fileName);
-                var game = new Game(name, name);
+                var apkInfo = GeneralUtils.GetApkInfo(fileName);
+                var game = new Game(apkInfo.ApplicationLabel, name, apkInfo.PackageName);
                 AddTask(new TaskOptions {Game = game, Type = TaskType.InstallOnly, Path = fileName});
             }
             else
