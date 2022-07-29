@@ -72,9 +72,9 @@ public class App : Application
         const string humanReadableLogPath = "debug_log.txt";
         const string clefLogPath = "debug_log.clef";
         const string exceptionsLogPath = "debug_exceptions.txt";
-        if (File.Exists(humanReadableLogPath) && new FileInfo(humanReadableLogPath).Length > 3000000)
+        if (File.Exists(humanReadableLogPath) && new FileInfo(humanReadableLogPath).Length > 5000000)
             File.Delete(humanReadableLogPath);
-        if (File.Exists(clefLogPath) && new FileInfo(clefLogPath).Length > 5000000)
+        if (File.Exists(clefLogPath) && new FileInfo(clefLogPath).Length > 10000000)
             File.Delete(clefLogPath);
         if (File.Exists(exceptionsLogPath))// && new FileInfo(exceptionsLogPath).Length > 10000000)
             File.Delete(exceptionsLogPath);
