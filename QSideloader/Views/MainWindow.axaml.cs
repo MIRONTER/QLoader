@@ -197,14 +197,14 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void DragEnter(object? sender, DragEventArgs e)
     {
         e.DragEffects = e.Data.Contains(DataFormats.FileNames) ? DragDropEffects.Copy : DragDropEffects.None;
-        var dragDropPanel = this.Get<Border>("DragDropPanel");
+        var dragDropPanel = this.Get<Grid>("DragDropPanel");
         dragDropPanel.IsVisible = true;
         e.Handled = true;
     }
 
     private void DragLeave(object? sender, RoutedEventArgs e)
     {
-        var dragDropPanel = this.Get<Border>("DragDropPanel");
+        var dragDropPanel = this.Get<Grid>("DragDropPanel");
         dragDropPanel.IsVisible = false;
         e.Handled = true;
     }
@@ -212,7 +212,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void Drop(object? sender, DragEventArgs e)
     {
         Log.Debug("DragDrop.Drop event");
-        var dragDropPanel = this.Get<Border>("DragDropPanel");
+        var dragDropPanel = this.Get<Grid>("DragDropPanel");
         if (e.Data.Contains(DataFormats.FileNames))
         {
             var fileNames = e.Data.GetFileNames()?.ToList();
