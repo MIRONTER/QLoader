@@ -382,7 +382,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
         MirrorSelectionRefreshSemaphoreSlim.Wait();
         try
         {
-            MirrorList = downloaderService.MirrorListReadOnly.ToList();
+            MirrorList = downloaderService.MirrorList.ToList();
             SelectedMirror = downloaderService.MirrorName != "" ? downloaderService.MirrorName : null;
         }
         finally

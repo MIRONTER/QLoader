@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
@@ -28,14 +30,19 @@ using SerilogTimings;
 
 namespace QSideloader.Services;
 
+/// <summary>
+///     Service for all download/upload operations and API calls.
+/// </summary>
 public class DownloaderService
 {
+    private const string ApiUrl = "https://qloader.5698452.xyz/api/v1/";
     private static readonly SemaphoreSlim MirrorListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim GameListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim DownloadSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim RcloneConfigSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim TrailersAddonSemaphoreSlim = new(1, 1);
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
+    private List<string> _mirrorList = new();
 
     static DownloaderService()
     {
@@ -44,8 +51,9 @@ public class DownloaderService
             ? $"{appVersion.Major}.{appVersion.Minor}.{appVersion.Build}"
             : "Unknown";
         ApiHttpClient.DefaultRequestHeaders.UserAgent.Add(
-            new System.Net.Http.Headers.ProductInfoHeaderValue("QLoader", appVersionString));
+            new ProductInfoHeaderValue("QLoader", appVersionString));
     }
+
     private DownloaderService()
     {
         _sideloaderSettings = Globals.SideloaderSettings;
@@ -57,14 +65,14 @@ public class DownloaderService
             await UpdateResourcesAsync();
         });
     }
-    
+
     public static DownloaderService Instance { get; } = new();
     public List<Game>? AvailableGames { get; private set; }
     public List<string> DonationBlacklistedPackages { get; private set; } = new();
     public string MirrorName { get; private set; } = "";
-    private List<string> MirrorList { get; set; } = new();
+
     private List<string> ExcludedMirrorList { get; set; } = new();
-    public IEnumerable<string> MirrorListReadOnly => MirrorList.AsReadOnly();
+    public IReadOnlyList<string> MirrorList => _mirrorList.AsReadOnly();
     public static int RcloneStatsPort => 48040;
 
     private bool CanSwitchMirror => RcloneConfigSemaphoreSlim.CurrentCount > 0 &&
@@ -72,8 +80,11 @@ public class DownloaderService
 
     private bool IsMirrorListInitialized { get; set; }
     private HttpClient HttpClient { get; } = new();
-    private static HttpClient ApiHttpClient { get; } = new() {BaseAddress = new Uri("https://qloader.5698452.xyz/api/v1/")};
+    private static HttpClient ApiHttpClient { get; } = new() {BaseAddress = new Uri(ApiUrl)};
 
+    /// <summary>
+    ///     Downloads a new config file for rclone from a mirror.
+    /// </summary>
     private async Task UpdateRcloneConfigAsync()
     {
         await RcloneConfigSemaphoreSlim.WaitAsync();
@@ -108,7 +119,8 @@ public class DownloaderService
             {
                 var oldConfigPath = Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, "FFA_config");
                 var newConfigPath = Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, "FFA_config_new");
-                await RcloneTransferInternalAsync($"{MirrorName}:Quest Games/.meta/FFA", newConfigPath, operation: "copyto");
+                await RcloneTransferInternalAsync($"{MirrorName}:Quest Games/.meta/FFA", newConfigPath,
+                    "copyto");
                 File.Move(newConfigPath, oldConfigPath, true);
                 return true;
             }
@@ -133,6 +145,9 @@ public class DownloaderService
         }
     }
 
+    /// <summary>
+    ///     Updates resources (thumbnails, videos).
+    /// </summary>
     private async Task UpdateResourcesAsync()
     {
         EnsureMirrorSelected();
@@ -153,7 +168,7 @@ public class DownloaderService
                     retries: 3));
             }
 
-            await Task.WhenAll(tasks.ToList());
+            await Task.WhenAll(tasks);
             Log.Information("Finished resource update");
         }
         catch (Exception e)
@@ -162,6 +177,10 @@ public class DownloaderService
         }
     }
 
+    /// <summary>
+    ///     Gets the list of rclone mirrors.
+    /// </summary>
+    /// <returns><see cref="List{T}" /> of mirrors.</returns>
     private static List<string> GetMirrorList()
     {
         // regex pattern to parse mirror names from rclone output
@@ -176,6 +195,9 @@ public class DownloaderService
         return mirrorList;
     }
 
+    /// <summary>
+    ///     Requests the lists of dead mirrors from API and excludes them.
+    /// </summary>
     private void ExcludeDeadMirrors()
     {
         var list = ApiHttpClient.GetFromJsonAsync<List<Dictionary<string, JsonElement>>>("mirrors?status=DOWN")
@@ -193,21 +215,29 @@ public class DownloaderService
             Log.Information("Excluded {Count} dead mirrors for this session", count);
     }
 
+    /// <summary>
+    ///     Resets and reloads the mirror list.
+    /// </summary>
+    /// <param name="keepExcluded">Should not reset excluded mirrors list</param>
     public void ReloadMirrorList(bool keepExcluded = false)
     {
         // Reinitialize the mirror list with the new config and reselect mirror, if needed
         using var op = Operation.Time("Reloading mirror list");
         IsMirrorListInitialized = false;
-        MirrorList = new List<string>();
+        _mirrorList = new List<string>();
         if (!keepExcluded)
             ExcludedMirrorList = new List<string>();
         EnsureMirrorListInitialized();
-        if (MirrorList.Contains(MirrorName)) return;
+        if (_mirrorList.Contains(MirrorName)) return;
         Log.Information("Mirror {MirrorName} not found in new mirror list", MirrorName);
         MirrorName = "";
         EnsureMirrorSelected();
     }
 
+    /// <summary>
+    ///     Excludes current mirror (if set) and switches to random mirror.
+    /// </summary>
+    /// <exception cref="DownloaderServiceException">Thrown if mirror list is exhausted.</exception>
     private void SwitchMirror()
     {
         if (!string.IsNullOrEmpty(MirrorName))
@@ -217,7 +247,7 @@ public class DownloaderService
             {
                 Log.Information("Excluding mirror {MirrorName} for this session", MirrorName);
                 ExcludedMirrorList.Add(MirrorName);
-                MirrorList.Remove(MirrorName);
+                _mirrorList.Remove(MirrorName);
                 MirrorName = "";
             }
             finally
@@ -226,16 +256,23 @@ public class DownloaderService
             }
         }
 
-        if (MirrorList.Count == 0)
+        if (_mirrorList.Count == 0)
             throw new DownloaderServiceException("Global mirror list exhausted");
         var random = new Random();
-        MirrorName = MirrorList[random.Next(MirrorList.Count)];
+        MirrorName = _mirrorList[random.Next(_mirrorList.Count)];
         Log.Information("Selected mirror: {MirrorName}", MirrorName);
     }
 
+    /// <summary>
+    ///     Tries to switch to a specific mirror by user request.
+    /// </summary>
+    /// <param name="mirrorName">Name of mirror to switch to.</param>
+    /// <returns>
+    ///     <c>true</c> if switched successfully, <c>false</c> otherwise.
+    /// </returns>
     public bool TryManualSwitchMirror(string mirrorName)
     {
-        if (!MirrorList.Contains(mirrorName))
+        if (!_mirrorList.Contains(mirrorName))
         {
             Log.Warning("Attempted to switch to unknown mirror {MirrorName}", mirrorName);
             return false;
@@ -253,9 +290,14 @@ public class DownloaderService
         return true;
     }
 
+    /// <summary>
+    ///     Excludes current mirror (if set) from the given mirror list and switches to random mirror from the list.
+    /// </summary>
+    /// <param name="mirrorList">List of mirrors to use.</param>
+    /// <exception cref="DownloaderServiceException">Thrown if given mirror list is exhausted.</exception>
     private void SwitchMirror(IList<string> mirrorList)
     {
-        if (!string.IsNullOrEmpty(MirrorName))
+        if (!string.IsNullOrEmpty(MirrorName) && mirrorList.Contains(MirrorName))
         {
             Log.Information("Excluding mirror {MirrorName} for this download", MirrorName);
             mirrorList.Remove(MirrorName);
@@ -269,6 +311,9 @@ public class DownloaderService
         Log.Information("Selected mirror: {MirrorName}", MirrorName);
     }
 
+    /// <summary>
+    ///     Ensures that a mirror is selected.
+    /// </summary>
     private void EnsureMirrorSelected()
     {
         MirrorListSemaphoreSlim.Wait();
@@ -285,17 +330,31 @@ public class DownloaderService
         }
     }
 
+    /// <summary>
+    ///     Ensures that the mirror list is initialized.
+    /// </summary>
+    /// <exception cref="DownloaderServiceException">Thrown if failed to load mirror list.</exception>
     private void EnsureMirrorListInitialized()
     {
         if (IsMirrorListInitialized) return;
         ExcludeDeadMirrors();
-        MirrorList = GetMirrorList().Where(x => !ExcludedMirrorList.Contains(x)).ToList();
-        Log.Debug("Loaded mirrors: {MirrorList}", MirrorList);
-        if (MirrorList.Count == 0)
+        _mirrorList = GetMirrorList().Where(x => !ExcludedMirrorList.Contains(x)).ToList();
+        Log.Debug("Loaded mirrors: {MirrorList}", _mirrorList);
+        if (_mirrorList.Count == 0)
             throw new DownloaderServiceException("Failed to load mirror list");
         IsMirrorListInitialized = true;
     }
 
+    /// <summary>
+    ///     Runs rclone operation (waits for rclone config lock, appends current mirror name to source path).
+    /// </summary>
+    /// <param name="source">Source path.</param>
+    /// <param name="destination">Destination path.</param>
+    /// <param name="operation">Rclone operation type.</param>
+    /// <param name="additionalArgs">Additional rclone arguments.</param>
+    /// <param name="retries">Number of retries for errors.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <seealso cref="RcloneTransferInternalAsync" />
     private async Task RcloneTransferAsync(string source, string destination, string operation,
         string additionalArgs = "", int retries = 1, CancellationToken ct = default)
     {
@@ -306,6 +365,18 @@ public class DownloaderService
         await RcloneTransferInternalAsync(source, destination, operation, additionalArgs, retries, ct);
     }
 
+    /// <summary>
+    ///     Runs rclone operation (internal, just runs the command).
+    /// </summary>
+    /// <param name="source">Source path.</param>
+    /// <param name="destination">Destination path.</param>
+    /// <param name="operation">Rclone operation type.</param>
+    /// <param name="additionalArgs">Additional rclone arguments.</param>
+    /// <param name="retries">Number of retries for errors.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <exception cref="DownloadQuotaExceededException">Thrown if download quota is exceeded on mirror.</exception>
+    /// <exception cref="RcloneTransferException">Thrown if a transfer error occured.</exception>
+    /// <exception cref="DownloaderServiceException">Thrown if an unknown rclone error occured.</exception>
     private async Task RcloneTransferInternalAsync(string source, string destination, string operation,
         string additionalArgs = "", int retries = 1, CancellationToken ct = default)
     {
@@ -340,10 +411,13 @@ public class DownloaderService
         }
     }
 
-    // TODO: offline mode
+    /// <summary>
+    ///     Ensures that the metadata is available.
+    /// </summary>
+    /// <param name="refresh">Should force a refresh even if data is already loaded.</param>
     public async Task EnsureMetadataAvailableAsync(bool refresh = false)
     {
-        var skip = AvailableGames is not null && !refresh || Design.IsDesignMode;
+        var skip = (AvailableGames is not null && !refresh) || Design.IsDesignMode;
 
         await GameListSemaphoreSlim.WaitAsync();
         if (skip)
@@ -385,62 +459,10 @@ public class DownloaderService
 
                 SwitchMirror();
             }
-            
+
             await TryLoadPopularityAsync();
 
             await TryLoadDonationBlacklistAsync();
-            
-
-            /*if (!Directory.Exists("metadata"))
-                Directory.CreateDirectory("metadata");
-
-            if (File.Exists(gameListPath))
-            {
-                var lastUpdate = File.GetLastWriteTimeUtc(gameListPath);
-                gameListRequestMessage.Headers.IfModifiedSince = lastUpdate;
-            }
-
-            if (File.Exists(notesPath))
-            {
-                var lastUpdate = File.GetLastWriteTimeUtc(notesPath);
-                notesRequestMessage.Headers.IfModifiedSince = lastUpdate;
-            }
-
-            var gameListTask = HttpClient.SendAsync(gameListRequestMessage);
-            var notesTask = HttpClient.SendAsync(notesRequestMessage);
-            await Task.WhenAll(gameListTask, notesTask);
-            var gameListResponse = await gameListTask;
-            var notesResponse = await notesTask;
-
-            if (gameListResponse.StatusCode == HttpStatusCode.OK)
-            {
-                Log.Information("Game list changed on server, updating");
-                await using var stream = await gameListResponse.Content.ReadAsStreamAsync();
-                await using FileStream outputStream = new(gameListPath, FileMode.Create);
-                await stream.CopyToAsync(outputStream);
-            }
-            else if (gameListResponse.StatusCode != HttpStatusCode.NotModified)
-                Log.Error($"Unexpected http response: {gameListResponse.ReasonPhrase}");
-
-            if (notesResponse.StatusCode == HttpStatusCode.OK)
-            {
-                Log.Information("Notes changed on server, updating");
-                await using var stream = await notesResponse.Content.ReadAsStreamAsync();
-                await using FileStream outputStream = new(notesPath, FileMode.Create);
-                await stream.CopyToAsync(outputStream);
-            }
-            else if (notesResponse.StatusCode != HttpStatusCode.NotModified)
-                Log.Error($"Unexpected http response: {notesResponse.ReasonPhrase}");
-
-            if (!File.Exists(notesPath)) return;
-            var notesJson = await File.ReadAllTextAsync(notesPath);
-            var notesJsonDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(notesJson);
-            if (notesJsonDictionary is null) return;
-            foreach (var game in AvailableGames)
-            {
-                if (!notesJsonDictionary.TryGetValue(game.ReleaseName!, out var note)) continue;
-                game.Note = note;
-            }*/
         }
         catch (Exception e)
         {
@@ -456,7 +478,7 @@ public class DownloaderService
         {
             // Trying different list files seems useless, just wasting time
             //List<string> gameListNames = new(){"FFA.txt", "FFA2.txt", "FFA3.txt", "FFA4.txt"};
-            List<string> gameListNames = new(){"FFA.txt"};
+            List<string> gameListNames = new() {"FFA.txt"};
             foreach (var gameListName in gameListNames)
                 try
                 {
@@ -497,6 +519,7 @@ public class DownloaderService
                     popularity =
                         await ApiHttpClient.GetFromJsonAsync<List<Dictionary<string, JsonElement>>>("popularity");
                 }
+
                 if (popularity is not null)
                 {
                     var popularityMax1D = popularity.Max(x => x["1D"].GetInt32());
@@ -514,6 +537,7 @@ public class DownloaderService
                         game.Popularity["30D"] =
                             (int) Math.Round(popularityEntry["30D"].GetInt32() / (double) popularityMax30D * 100);
                     }
+
                     Log.Information("Loaded popularity data");
                     return;
                 }
@@ -529,19 +553,22 @@ public class DownloaderService
                     TimeSpan.FromSeconds(5));
             }
         }
-        
+
         async Task TryLoadDonationBlacklistAsync()
         {
             try
             {
-                await RcloneTransferAsync("Quest Games/.meta/nouns/blacklist.txt", "./metadata/blacklist_new.txt", "copyto");
-                File.Move(Path.Combine("metadata", "blacklist_new.txt"), Path.Combine("metadata", "blacklist.txt"), true);
+                await RcloneTransferAsync("Quest Games/.meta/nouns/blacklist.txt", "./metadata/blacklist_new.txt",
+                    "copyto");
+                File.Move(Path.Combine("metadata", "blacklist_new.txt"), Path.Combine("metadata", "blacklist.txt"),
+                    true);
                 Log.Debug("Downloaded donation blacklist");
             }
             catch (Exception e)
             {
                 Log.Warning(e, "Failed to download donation blacklist");
             }
+
             try
             {
                 if (File.Exists(Path.Combine("metadata", "blacklist.txt")))
@@ -556,6 +583,13 @@ public class DownloaderService
         }
     }
 
+    /// <summary>
+    ///     Downloads the provided game.
+    /// </summary>
+    /// <param name="game"><see cref="Game" /> to download.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Path to downloaded game.</returns>
+    /// <exception cref="DownloaderServiceException">Thrown if an unrecoverable download error occured.</exception>
     public async Task<string> DownloadGameAsync(Game game, CancellationToken ct = default)
     {
         var srcPath = $"Quest Games/{game.ReleaseName}";
@@ -563,19 +597,17 @@ public class DownloaderService
         try
         {
             Log.Information("Downloading release {ReleaseName}", game.ReleaseName);
-            var localMirrorList = MirrorList.ToList();
+            var localMirrorList = _mirrorList.ToList();
             while (true)
                 try
                 {
                     await RcloneTransferAsync(srcPath, dstPath,
                         "copy",
                         $"--progress --drive-acknowledge-abuse --rc --rc-addr :{RcloneStatsPort} --drive-stop-on-download-limit",
-                        3, ct: ct);
+                        3, ct);
                     var json = JsonConvert.SerializeObject(game, Formatting.Indented);
                     await File.WriteAllTextAsync(Path.Combine(dstPath, "release.json"), json, ct);
-#pragma warning disable CS4014
-                    Task.Run(async () => await ReportGameDownload(game.PackageName!), CancellationToken.None);
-#pragma warning restore CS4014
+                    await ReportGameDownload(game.PackageName!);
                     break;
                 }
                 catch (Exception e)
@@ -607,7 +639,11 @@ public class DownloaderService
             throw new DownloaderServiceException("Error downloading release", e);
         }
     }
-    
+
+    /// <summary>
+    ///     Reports the download of the provided package name to the API.
+    /// </summary>
+    /// <param name="packageName">Package name of the downloaded game.</param>
     private async Task ReportGameDownload(string packageName)
     {
         using var op = Operation.Begin("Reporting game {PackageName} download to API", packageName);
@@ -637,7 +673,14 @@ public class DownloaderService
         DownloadSemaphoreSlim.Release();
     }
 
-    public IObservable<(float downloadSpeedBytes, double downloadedBytes)?> PollStats(TimeSpan interval, IScheduler scheduler)
+    /// <summary>
+    ///     Starts polling download stats from rclone.
+    /// </summary>
+    /// <param name="interval">Interval between polls.</param>
+    /// <param name="scheduler">Scheduler to run polling on.</param>
+    /// <returns>IObservable that provides the stats.</returns>
+    public IObservable<(float downloadSpeedBytes, double downloadedBytes)?> PollStats(TimeSpan interval,
+        IScheduler scheduler)
     {
         return Observable.Create<(float downloadSpeedBytes, double downloadedBytes)?>(observer =>
         {
@@ -653,6 +696,10 @@ public class DownloaderService
         });
     }
 
+    /// <summary>
+    ///     Gets the download stats from rclone.
+    /// </summary>
+    /// <returns></returns>
     private async Task<(float downloadSpeedBytes, double downloadedBytes)?> GetRcloneDownloadStats()
     {
         try
@@ -671,6 +718,13 @@ public class DownloaderService
         }
     }
 
+    /// <summary>
+    ///     Uploads game prepared for donation.
+    /// </summary>
+    /// <param name="path">Path to packed game.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <exception cref="FileNotFoundException">Thrown if archive is not found on provided path.</exception>
+    /// <exception cref="ArgumentException">Thrown if provided archive has invalid name.</exception>
     public async Task UploadDonationAsync(string path, CancellationToken ct = default)
     {
         if (!File.Exists(path))
@@ -690,6 +744,12 @@ public class DownloaderService
         op.Complete();
     }
 
+    /// <summary>
+    ///     Downloads trailers addon archive from latest release.
+    /// </summary>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Path to downloaded archive.</returns>
+    /// <exception cref="DownloaderServiceException">Thrown if trailers addon is already being downloaded.</exception>
     public async Task<string> DownloadTrailersAddon(CancellationToken ct = default)
     {
         if (TrailersAddonSemaphoreSlim.CurrentCount == 0)
@@ -723,6 +783,7 @@ public class DownloaderService
                 op.Cancel();
                 throw;
             }
+
             op.SetException(e);
             op.Abandon();
             throw;
@@ -732,7 +793,13 @@ public class DownloaderService
             TrailersAddonSemaphoreSlim.Release();
         }
     }
-    
+
+    /// <summary>
+    ///     Gets the store info about the game.
+    /// </summary>
+    /// <param name="packageName">Package name to search info for.</param>
+    /// <returns><see cref="OculusGame" /> containing the info, or <c>null</c> if no info was found.</returns>
+    /// <exception cref="HttpRequestException">Thrown if API request was unsuccessful.</exception>
     public async Task<OculusGame?> GetGameStoreInfo(string? packageName)
     {
         if (packageName is null)
@@ -740,6 +807,12 @@ public class DownloaderService
         using var op = Operation.Begin("Getting game store info for {PackageName}", packageName);
         var uri = $"oculusgames/{packageName}";
         var response = await ApiHttpClient.GetAsync(uri);
+        if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.NotFound)
+        {
+            op.Abandon();
+            throw new HttpRequestException($"Failed to get game store info for {packageName}");
+        }
+
         var responseContent = await response.Content.ReadAsStringAsync();
         // If response is empty dictionary, the api didn't find the game
         if (responseContent == "{}")
@@ -748,6 +821,7 @@ public class DownloaderService
             op.Complete();
             return null;
         }
+
         var game = JsonConvert.DeserializeObject<OculusGame>(responseContent);
         op.Complete();
         return game;
@@ -769,8 +843,6 @@ public class DownloaderServiceException : Exception
 
 public class DownloadQuotaExceededException : DownloaderServiceException
 {
-    public string MirrorName { get; }
-    public string RemotePath { get; }
     public DownloadQuotaExceededException(string mirrorName, string remotePath)
         : base($"Quota exceeded on mirror {mirrorName} for path {remotePath}")
     {
@@ -784,6 +856,9 @@ public class DownloadQuotaExceededException : DownloaderServiceException
         MirrorName = mirrorName;
         RemotePath = remotePath;
     }
+
+    public string MirrorName { get; }
+    public string RemotePath { get; }
 }
 
 public class RcloneTransferException : DownloaderServiceException
