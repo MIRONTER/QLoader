@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 
-namespace QSideloader.Helpers;
+namespace QSideloader.Utilities;
 
 public static class PathHelper
 {

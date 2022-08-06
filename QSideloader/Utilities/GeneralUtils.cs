@@ -16,7 +16,7 @@ using Serilog;
 using SerilogTimings;
 using ApkInfo = QSideloader.Models.ApkInfo;
 
-namespace QSideloader.Helpers;
+namespace QSideloader.Utilities;
 
 public static class GeneralUtils
 {

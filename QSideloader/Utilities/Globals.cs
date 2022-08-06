@@ -3,7 +3,7 @@ using Avalonia.Controls.Notifications;
 using NetSparkleUpdater;
 using QSideloader.ViewModels;
 
-namespace QSideloader.Helpers;
+namespace QSideloader.Utilities;
 
 public static class Globals
 {

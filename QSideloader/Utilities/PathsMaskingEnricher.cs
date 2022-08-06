@@ -4,7 +4,7 @@ using QSideloader.ViewModels;
 using Serilog.Core;
 using Serilog.Events;
 
-namespace QSideloader.Helpers;
+namespace QSideloader.Utilities;
 
 public class PathsMaskingEnricher : ILogEventEnricher
 {

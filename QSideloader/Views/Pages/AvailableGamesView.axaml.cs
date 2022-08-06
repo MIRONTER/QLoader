@@ -3,8 +3,8 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
 using FluentAvalonia.UI.Controls;
-using QSideloader.Helpers;
 using QSideloader.Models;
+using QSideloader.Utilities;
 using QSideloader.ViewModels;
 
 namespace QSideloader.Views.Pages;

@@ -3,8 +3,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModels="clr-namespace:QSideloader.ViewModels"
-        xmlns:helpers="clr-namespace:QSideloader.Helpers"
         xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
+        xmlns:utilities="clr-namespace:QSideloader.Utilities"
         mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="400"
         x:Class="QSideloader.Views.GameDetailsWindow"
         Title="GameDetailsWindow"
@@ -22,7 +22,7 @@
     </Design.DataContext>
 
     <Window.Resources>
-        <helpers:BitmapImageFileValueConverter x:Key="VariableImageFromFiles" />
+        <utilities:BitmapImageFileValueConverter x:Key="VariableImageFromFiles" />
     </Window.Resources>
 
     <Panel>

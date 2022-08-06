@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace QSideloader.Helpers;
+namespace QSideloader.Utilities;
 
 public class AtomicFileStream : FileStream
 {

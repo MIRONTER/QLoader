@@ -18,7 +18,7 @@ using NetSparkleUpdater.Configurations;
 using NetSparkleUpdater.Enums;
 using NetSparkleUpdater.SignatureVerifiers;
 using NetSparkleUpdater.UI.Avalonia;
-using QSideloader.Helpers;
+using QSideloader.Utilities;
 using QSideloader.ViewModels;
 using Serilog;
 

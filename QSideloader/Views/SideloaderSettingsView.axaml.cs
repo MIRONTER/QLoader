@@ -2,7 +2,7 @@
 using Avalonia;
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
-using QSideloader.Helpers;
+using QSideloader.Utilities;
 using QSideloader.ViewModels;
 
 namespace QSideloader.Views;

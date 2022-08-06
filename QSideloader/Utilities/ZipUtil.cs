@@ -5,7 +5,7 @@ using CliWrap;
 using CliWrap.Buffered;
 using Serilog;
 
-namespace QSideloader.Helpers;
+namespace QSideloader.Utilities;
 
 public static class ZipUtil
 {
