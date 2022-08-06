@@ -17,7 +17,9 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
+using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using FluentAvalonia.UI.Controls;
@@ -232,7 +234,8 @@ public class MainWindowViewModel : ViewModelBase
                                 Text = text,
                                 IsReadOnly = true,
                                 AcceptsReturn = true
-                            }
+                            },
+                            HorizontalScrollBarVisibility = ScrollBarVisibility.Visible
                         },
                         CloseButtonText = "Close",
                         PrimaryButtonText = "Copy to clipboard",
@@ -353,8 +356,10 @@ public class MainWindowViewModel : ViewModelBase
                     {
                         Text = text,
                         IsReadOnly = true,
-                        AcceptsReturn = true
-                    }
+                        AcceptsReturn = true,
+                        TextWrapping = TextWrapping.Wrap
+                    },
+                    HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
                 },
                 CloseButtonText = "Close",
                 PrimaryButtonText = "Copy to clipboard",

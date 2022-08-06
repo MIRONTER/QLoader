@@ -58,7 +58,7 @@
                 <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding SetBackupsLocation}">Set</Button>
             </StackPanel>
             
-            <TextBlock Margin="0,8,0,0">Downloader bandwidth limit</TextBlock>
+            <TextBlock Margin="0,8,0,0">Download/upload bandwidth limit</TextBlock>
             <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
                 <TextBox MinWidth="100" Watermark="Limit"
                          Text="{Binding DownloaderBandwidthLimitTextBoxText}">
@@ -70,8 +70,9 @@
             <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding DeleteAfterInstall}">Delete downloaded game files after install</ToggleSwitch>
             
             <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
-                <ToggleSwitch IsChecked="{Binding EnableRemoteLogging}">Enable remote logging</ToggleSwitch>
-                <Button Margin="4,20,0,0" Command="{Binding CopyInstallationId}">Copy installation ID</Button>
+                <ToggleSwitch IsChecked="{Binding EnableRemoteLogging}"
+                              ToolTip.Tip="Allow automatic sending of logs">Enable remote logging</ToggleSwitch>
+                <Button Margin="4,20,0,0" Command="{Binding CopyInstallationId}" >Copy installation ID</Button>
             </StackPanel>
             
             <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding EnableDebugConsole}"
