@@ -1,14 +1,12 @@
-﻿using System;
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Styling;
 
 namespace QSideloader.Controls;
 
-public class CustomBorder : Border, IStyleable
+public class CustomBorder : Border
 {
     public static readonly StyledProperty<bool> IsOpenProperty =
-        AvaloniaProperty.Register<Border, bool>(nameof(IsOpen));
+        AvaloniaProperty.Register<CustomBorder, bool>(nameof(IsOpen));
 
     public bool IsOpen
     {
@@ -16,5 +14,8 @@ public class CustomBorder : Border, IStyleable
         set => SetValue(IsOpenProperty, value);
     }
 
-    Type IStyleable.StyleKey => typeof(Border);
+    static CustomBorder()
+    {
+        AffectsRender<CustomBorder>(IsOpenProperty);
+    }
 }
