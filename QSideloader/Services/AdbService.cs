@@ -114,7 +114,7 @@ public class AdbService
     /// </summary>
     /// <param name="assumeOffline">Assume that current device is offline and run full search</param>
     /// <returns>
-    ///     <see langword="true" /> if device is connected, <see langword="false" /> if no device was found.
+    ///     <c>true</c> if device is connected, <c>false</c> if no device was found.
     /// </returns>
     public bool CheckDeviceConnection(bool assumeOffline = false)
     {
@@ -183,7 +183,7 @@ public class AdbService
     ///     For full check use <see cref="CheckDeviceConnection" />.
     /// </summary>
     /// <returns>
-    ///     <see langword="true" /> if device is connected, <see langword="false" /> otherwise.
+    ///     <c>true</c> if device is connected, <c>false</c> otherwise.
     /// </returns>
     public bool CheckDeviceConnectionSimple()
     {
@@ -378,7 +378,7 @@ public class AdbService
     /// </summary>
     /// <param name="device">Device to ping.</param>
     /// <returns>
-    ///     <see langword="true" /> if device responded, <see langword="false" /> otherwise.
+    ///     <c>true</c> if device responded, <c>false</c> otherwise.
     /// </returns>
     public bool PingDevice(DeviceData device)
     {
@@ -1113,7 +1113,7 @@ public class AdbService
             }
             catch (Exception e)
             {
-                Log.Warning(e, "Failed to stat the provided path");
+                Log.Error(e, "Failed to stat the provided path");
                 return false;
             }
         }
@@ -1496,7 +1496,7 @@ public class AdbService
                 $"{DateTime.Now:yyyyMMddTHHmmss}_{packageName}");
             if (!string.IsNullOrEmpty(options.NameAppend))
                 backupPath += $"_{options.NameAppend}";
-            var publicDataPath = $"/sdcard/Android/data/{packageName}/";
+            var sharedDataPath = $"/sdcard/Android/data/{packageName}/";
             var privateDataPath = $"/data/data/{packageName}/";
             var obbPath = $"/sdcard/Android/obb/{packageName}/";
             //var backupMetadataPath = Path.Combine(backupPath, "backup.json");
@@ -1508,7 +1508,7 @@ public class AdbService
                 .ToString();
             Directory.CreateDirectory(backupPath);
             File.Create(Path.Combine(backupPath, ".backup")).Dispose();
-            var empty = true;
+            var backupEmpty = true;
             if (options.BackupData)
             {
                 Log.Debug("Backing up private data");
@@ -1522,10 +1522,10 @@ public class AdbService
                 var privateDataHasFiles = Directory.EnumerateFiles(privateDataBackupPath).Any();
                 if (!privateDataHasFiles)
                     Directory.Delete(privateDataBackupPath, true);
-                empty = empty && !privateDataHasFiles;
-                if (RemoteDirectoryExists(publicDataPath))
+                backupEmpty = backupEmpty && !privateDataHasFiles;
+                if (RemoteDirectoryExists(sharedDataPath))
                 {
-                    empty = false;
+                    backupEmpty = false;
                     Log.Debug("Backing up shared data");
                     Directory.CreateDirectory(publicDataBackupPath);
                     PullDirectory(publicDataPath, publicDataBackupPath, new List<string> {"cache"});
@@ -1534,20 +1534,20 @@ public class AdbService
 
             if (options.BackupApk)
             {
-                empty = false;
+                backupEmpty = false;
                 Log.Debug("Backing up APK");
                 PullFile(apkPath, backupPath);
             }
 
             if (options.BackupObb && RemoteDirectoryExists(obbPath))
             {
-                empty = false;
+                backupEmpty = false;
                 Log.Debug("Backing up OBB");
                 Directory.CreateDirectory(obbBackupPath);
                 PullDirectory(obbPath, obbBackupPath);
             }
 
-            if (!empty)
+            if (!backupEmpty)
             {
                 //var json = JsonConvert.SerializeObject(game);
                 //File.WriteAllText("game.json", json);
@@ -1579,16 +1579,16 @@ public class AdbService
             }
 
             Log.Information("Restoring backup from {BackupPath}", backupPath);
-            var publicDataBackupPath = Path.Combine(backupPath, "data");
+            var sharedDataBackupPath = Path.Combine(backupPath, "data");
             var privateDataBackupPath = Path.Combine(backupPath, "data_private");
             var obbBackupPath = Path.Combine(backupPath, "obb");
             var apkPath = Directory.EnumerateFiles(backupPath, "*.apk", SearchOption.TopDirectoryOnly).FirstOrDefault();
-            var packageListChanged = false;
+            var restoredApk = false;
             if (apkPath is not null)
             {
                 Log.Debug("Restoring APK {ApkName}", Path.GetFileName(apkPath));
                 InstallPackage(apkPath, true, true);
-                packageListChanged = true;
+                restoredApk = true;
             }
 
             if (Directory.Exists(obbBackupPath))
@@ -1597,10 +1597,10 @@ public class AdbService
                 PushDirectory(Directory.EnumerateDirectories(obbBackupPath).First(), "/sdcard/Android/obb/");
             }
 
-            if (Directory.Exists(publicDataBackupPath))
+            if (Directory.Exists(sharedDataBackupPath))
             {
-                Log.Debug("Restoring public data");
-                PushDirectory(Directory.EnumerateDirectories(publicDataBackupPath).First(), "/sdcard/Android/data/");
+                Log.Debug("Restoring shared data");
+                PushDirectory(Directory.EnumerateDirectories(sharedDataBackupPath).First(), "/sdcard/Android/data/");
             }
 
             if (Directory.Exists(privateDataBackupPath))
@@ -1619,7 +1619,7 @@ public class AdbService
             }
 
             Log.Information("Backup restored");
-            if (!packageListChanged) return;
+            if (!restoredApk) return;
             OnPackageListChanged();
         }
         
