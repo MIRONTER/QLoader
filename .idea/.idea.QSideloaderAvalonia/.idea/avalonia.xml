@@ -13,6 +13,7 @@
         <entry key="QSideloader/Views/LoadingProgressRingView.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/MainWindow.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/Pages/AvailableGamesView.axaml" value="QSideloader/QSideloader.csproj" />
+        <entry key="QSideloader/Views/Pages/BackupView.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/Pages/GameDonationView.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/Pages/InstalledGamesView.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/Pages/OtherAppsView.axaml" value="QSideloader/QSideloader.csproj" />

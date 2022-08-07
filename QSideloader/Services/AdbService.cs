@@ -35,14 +35,17 @@ public class AdbService
 {
     private static readonly SemaphoreSlim DeviceSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim DeviceListSemaphoreSlim = new(1, 1);
+    private static readonly SemaphoreSlim BackupListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim AdbServerSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim PackageOperationSemaphoreSlim = new(1, 1);
     private readonly AdbServerClient _adb;
+    private readonly Subject<Unit> _backupListChangeSubject = new();
     private readonly Subject<DeviceState> _deviceStateChangeSubject = new();
     private readonly Subject<List<AdbDevice>> _deviceListChangeSubject = new();
     private readonly Subject<Unit> _packageListChangeSubject = new();
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
     private readonly List<AdbDevice> _deviceList = new();
+    private readonly List<Backup> _backupList = new();
     private List<DeviceData> _unauthorizedDeviceList = new();
     private DeviceMonitor? _deviceMonitor;
     private bool _forcePreferWireless;
@@ -62,6 +65,7 @@ public class AdbService
         WhenDeviceListChanged.Subscribe(_ => CheckConnectionPreference());
         Task.Run(async () =>
         {
+            RefreshBackupList();
             CheckDeviceConnection();
             var lastWirelessAdbHost = _sideloaderSettings.LastWirelessAdbHost;
             if (!string.IsNullOrEmpty(lastWirelessAdbHost))
@@ -75,7 +79,9 @@ public class AdbService
     public AdbDevice? Device { get; private set; }
 
     public IReadOnlyList<AdbDevice> DeviceList => _deviceList.AsReadOnly();
+    public IReadOnlyList<Backup> BackupList => _backupList.AsReadOnly();
 
+    public IObservable<Unit> WhenBackupListChanged => _backupListChangeSubject.AsObservable();
     public IObservable<DeviceState> WhenDeviceStateChanged => _deviceStateChangeSubject.AsObservable();
     public IObservable<Unit> WhenPackageListChanged => _packageListChangeSubject.AsObservable();
     public IObservable<List<AdbDevice>> WhenDeviceListChanged => _deviceListChangeSubject.AsObservable();
@@ -722,6 +728,31 @@ public class AdbService
         }
     }
 
+
+    public void RefreshBackupList()
+    {
+        BackupListSemaphoreSlim.Wait();
+        try
+        {
+            Log.Debug("Refreshing backup list");
+            var backupDirs = Directory.GetDirectories(_sideloaderSettings.BackupsLocation);
+            // tuple of (backup name, backup path)
+            var backups = backupDirs.Select(x => (name: Path.GetFileName(x), path: x)).ToList();
+            var toRemove = _backupList.Where(b => backups.Select(x => x.name).Contains(b.Name) == false).ToList();
+            var toAdd = backups.Where(b => _backupList.Select(x => x.Name).Contains(b.name) == false).ToList();
+            foreach (var backup in toRemove)
+                _backupList.Remove(backup);
+            foreach (var backup in toAdd)
+                _backupList.Add(new Backup(backup.path));
+            if (toRemove.Count > 0 || toAdd.Count > 0)
+                _backupListChangeSubject.OnNext(Unit.Default);
+        }
+        finally
+        {
+            BackupListSemaphoreSlim.Release();
+        }
+    }
+
     /// <summary>
     ///     Helper class to store <see cref="AdvancedAdbClient" />-<see cref="AdbServer" /> pair.
     /// </summary>
@@ -1054,26 +1085,30 @@ public class AdbService
         /// </summary>
         /// <param name="localPath">Path to a local directory.</param>
         /// <param name="remotePath">Remote path to push the file to.</param>
-        private void PushDirectory(string localPath, string remotePath)
+        /// <param name="overwrite">Pushed directory should fully overwrite existing one (if exists).</param>
+        private void PushDirectory(string localPath, string remotePath, bool overwrite = false)
         {
             if (!remotePath.EndsWith("/"))
                 remotePath += "/";
             var localDir = new DirectoryInfo(localPath).Name;
-            Log.Debug("Pushing directory: \"{LocalPath}\" -> \"{RemotePath}\"",
-                localPath, remotePath + localPath.Replace("\\", "/"));
+            Log.Debug("Pushing directory: \"{LocalPath}\" -> \"{RemotePath}\", overwrite: {Overwrite}", 
+                localPath, remotePath + localPath.Replace("\\", "/"), overwrite);
             var dirList = Directory.GetDirectories(localPath, "*", SearchOption.AllDirectories).ToList();
             var relativeDirList = dirList.Select(dirPath => Path.GetRelativePath(localPath, dirPath));
 
-            RunShellCommand($"mkdir -p \"{remotePath + localDir}/\"".Replace(@"\", "/"), true);
+            var fullPath = (remotePath + localDir).Replace(@"\", "/");
+            if (overwrite && RemoteDirectoryExists(fullPath))
+                RunShellCommand($"rm -rf {fullPath}", true);
+            RunShellCommand($"mkdir -p \"{fullPath}/\"", true);
             foreach (var dirPath in relativeDirList)
                 RunShellCommand(
-                    $"mkdir -p \"{remotePath + localDir + "/" + dirPath.Replace("./", "")}\"".Replace(@"\", "/"), true);
+                    $"mkdir -p \"{fullPath + "/" + dirPath.Replace("./", "")}\"".Replace(@"\", "/"), true);
 
             var fileList = Directory.EnumerateFiles(localPath, "*.*", SearchOption.AllDirectories);
             var relativeFileList = fileList.Select(filePath => Path.GetRelativePath(localPath, filePath));
             foreach (var file in relativeFileList)
                 PushFile(localPath + Path.DirectorySeparatorChar + file,
-                    remotePath + localDir + "/" + file.Replace(@"\", "/"));
+                    fullPath + "/" + file.Replace(@"\", "/"));
         }
 
         /// <summary>
@@ -1206,7 +1241,7 @@ public class AdbService
                                 Log.Information("Found OBB directory for {PackageName}, pushing to device",
                                     game.PackageName);
                                 observer.OnNext("Pushing OBB files");
-                                PushDirectory(Path.Combine(gamePath, game.PackageName), "/sdcard/Android/obb/");
+                                PushDirectory(Path.Combine(gamePath, game.PackageName), "/sdcard/Android/obb/", true);
                             }
                         }
                     }
@@ -1244,11 +1279,11 @@ public class AdbService
                         observer.OnNext("Incompatible update, reinstalling");
                         Log.Information("Incompatible update, reinstalling. Reason: {Message}", e.Message);
                         var apkInfo = GeneralUtils.GetApkInfoAsync(apkPath).GetAwaiter().GetResult();
-                        var backupPath = CreateBackup(apkInfo.PackageName, new BackupOptions {NameAppend = "reinstall"});
+                        var backup = CreateBackup(apkInfo.PackageName, new BackupOptions {NameAppend = "reinstall"});
                         UninstallPackageInternal(apkInfo.PackageName);
                         InstallPackage(apkPath, false, true);
-                        if (!string.IsNullOrEmpty(backupPath))
-                            RestoreBackup(backupPath);
+                        if (backup is not null)
+                            RestoreBackup(backup);
                     }
                     else
                     {
@@ -1497,7 +1532,7 @@ public class AdbService
         /// <param name="options"><see cref="BackupOptions"/> to configure backup.</param>
         /// <returns>Path to backup, or empty string if nothing was backed up.</returns>
         /// <seealso cref="CreateBackup(string,BackupOptions)" />
-        public string? CreateBackup(Game game, BackupOptions options)
+        public Backup? CreateBackup(Game game, BackupOptions options)
         {
             return CreateBackup(game.PackageName!, options);
         }
@@ -1509,7 +1544,7 @@ public class AdbService
         /// <param name="options"><see cref="BackupOptions"/> to configure backup.</param>
         /// <returns>Path to backup, or <c>null</c> if nothing was backed up.</returns>
         /// <seealso cref="CreateBackup(QSideloader.Models.Game,BackupOptions)" />
-        public string? CreateBackup(string packageName, BackupOptions options)
+        public Backup? CreateBackup(string packageName, BackupOptions options)
         {
             EnsureValidPackageName(packageName);
             Log.Information("Backing up {PackageName}", packageName);
@@ -1581,50 +1616,47 @@ public class AdbService
                 return null;
             }
 
-            return backupPath;
+            var backup = new Backup(backupPath);
+            _adbService._backupList.Add(backup);
+            _adbService._backupListChangeSubject.OnNext(Unit.Default);
+            return backup;
         }
-
+        
         /// <summary>
-        ///     Restores backup from given path.
+        ///     Restores given backup.
         /// </summary>
-        /// <param name="backupPath">Path to backup.</param>
-        /// <exception cref="DirectoryNotFoundException">Thrown if directory doesn't exist at given path.</exception>
+        /// <param name="backup">Backup to restore.</param>
+        /// <exception cref="DirectoryNotFoundException">Thrown if backup directory doesn't exist.</exception>
         /// <exception cref="ArgumentException">Thrown if backup is invalid.</exception>
-        public void RestoreBackup(string backupPath)
+        public void RestoreBackup(Backup backup)
         {
-            if (!Directory.Exists(backupPath)) throw new DirectoryNotFoundException(backupPath);
-            if (!File.Exists(Path.Combine(backupPath, ".backup")))
-            {
-                Log.Error("{BackupPath} is not a valid backup", backupPath);
-                throw new ArgumentException("Backup is not valid", backupPath);
-            }
-
-            Log.Information("Restoring backup from {BackupPath}", backupPath);
-            var sharedDataBackupPath = Path.Combine(backupPath, "data");
-            var privateDataBackupPath = Path.Combine(backupPath, "data_private");
-            var obbBackupPath = Path.Combine(backupPath, "obb");
-            var apkPath = Directory.EnumerateFiles(backupPath, "*.apk", SearchOption.TopDirectoryOnly).FirstOrDefault();
+            Log.Information("Restoring backup from {BackupPath}", backup.Path);
+            var sharedDataBackupPath = Path.Combine(backup.Path, "data");
+            var privateDataBackupPath = Path.Combine(backup.Path, "data_private");
+            var obbBackupPath = Path.Combine(backup.Path, "obb");
+            
             var restoredApk = false;
-            if (apkPath is not null)
+            if (backup.ContainsApk)
             {
+                var apkPath = Directory.EnumerateFiles(backup.Path, "*.apk", SearchOption.TopDirectoryOnly).FirstOrDefault();
                 Log.Debug("Restoring APK {ApkName}", Path.GetFileName(apkPath));
-                InstallPackage(apkPath, true, true);
+                InstallPackage(apkPath!, true, true);
                 restoredApk = true;
             }
 
-            if (Directory.Exists(obbBackupPath))
+            if (backup.ContainsObb)
             {
                 Log.Debug("Restoring OBB");
-                PushDirectory(Directory.EnumerateDirectories(obbBackupPath).First(), "/sdcard/Android/obb/");
+                PushDirectory(Directory.EnumerateDirectories(obbBackupPath).First(), "/sdcard/Android/obb/", true);
             }
 
-            if (Directory.Exists(sharedDataBackupPath))
+            if (backup.ContainsSharedData)
             {
                 Log.Debug("Restoring shared data");
-                PushDirectory(Directory.EnumerateDirectories(sharedDataBackupPath).First(), "/sdcard/Android/data/");
+                PushDirectory(Directory.EnumerateDirectories(sharedDataBackupPath).First(), "/sdcard/Android/data/", true);
             }
 
-            if (Directory.Exists(privateDataBackupPath))
+            if (backup.ContainsPrivateData)
             {
                 var packageName =
                     Path.GetFileName(Directory.EnumerateDirectories(privateDataBackupPath).FirstOrDefault());
@@ -1643,7 +1675,7 @@ public class AdbService
             if (!restoredApk) return;
             OnPackageListChanged();
         }
-        
+
         /// <summary>
         /// Pulls app with the given package name from the device to the given path.
         /// </summary>

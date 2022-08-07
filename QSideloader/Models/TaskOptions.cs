@@ -7,4 +7,5 @@ public class TaskOptions
     public string? Path { get; set; }
     public InstalledApp? App { get; set; }
     public BackupOptions? BackupOptions { get; set; }
+    public Backup? Backup { get; set; }
 }

@@ -1,0 +1,56 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:QSideloader.ViewModels"
+             xmlns:utilities="clr-namespace:QSideloader.Utilities"
+             xmlns:views="clr-namespace:QSideloader.Views"
+             xmlns:system="clr-namespace:System;assembly=System.Runtime"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="QSideloader.Views.Pages.BackupView">
+    <UserControl.Resources>
+        <utilities:BackupContentsStringValueConverter x:Key="BackupContentsStringFromBackup" />
+    </UserControl.Resources>
+    <UserControl.DataContext>
+        <vm:BackupViewModel />
+    </UserControl.DataContext>
+    <Grid RowDefinitions="Auto,*">
+        <StackPanel Grid.Row="0"
+                    Orientation="Horizontal"
+                    Spacing="12" Margin="8"
+                    HorizontalAlignment="Right">
+            <Button Command="{Binding Restore}">Restore Selected</Button>
+            <Button Command="{Binding Refresh}" Content="Refresh">
+                <Button.CommandParameter>
+                    <system:Boolean>True</system:Boolean>
+                </Button.CommandParameter>
+            </Button>
+        </StackPanel>
+        <DataGrid Grid.Row="1" Items="{Binding Backups}">
+            <DataGrid.Columns>
+                <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
+                <DataGridTemplateColumn Width="52"
+                                        IsReadOnly="False"
+                                        CanUserResize="False">
+                <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="x:Boolean">
+                            <CheckBox IsChecked="{Binding IsSelected}" Margin="16,0,0,0" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Date" Binding="{Binding Date}" />
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
+                <DataGridTextColumn Header="Contents" Binding="{Binding ., Converter={StaticResource BackupContentsStringFromBackup}}" />
+                <!-- ReSharper restore Xaml.BindingWithContextNotResolved -->
+            </DataGrid.Columns>
+            <DataGrid.Resources>
+                <!-- ReSharper disable Xaml.RedundantResource -->
+                <SolidColorBrush x:Key="DataGridCellFocusVisualPrimaryBrush">Transparent</SolidColorBrush>
+                <SolidColorBrush x:Key="DataGridCellFocusVisualSecondaryBrush">Transparent</SolidColorBrush>
+                <!-- ReSharper restore Xaml.RedundantResource -->
+            </DataGrid.Resources>
+        </DataGrid>
+        <views:LoadingProgressRingView Grid.Row="0" Grid.RowSpan="2" 
+                                       IsVisible="{Binding IsBusy}"/>
+    </Grid>
+</UserControl>

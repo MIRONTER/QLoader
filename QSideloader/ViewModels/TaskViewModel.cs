@@ -29,6 +29,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private readonly DownloaderService _downloaderService;
     private readonly Game? _game;
     private readonly InstalledApp? _app;
+    private readonly Backup? _backup;
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
     private readonly TaskType _taskType;
     private string? _path;
@@ -99,9 +100,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 action = RunBackupAsync;
                 break;
             case TaskType.Restore:
-                _game = taskOptions.Game ?? throw new ArgumentException("Game not specified for Restore task");
-                _path = taskOptions.Path ?? throw new ArgumentException("Backup path not specified for Restore task");
-                TaskName = _game.GameName ?? "N/A";
+                _backup = taskOptions.Backup ?? throw new ArgumentException("Backup not specified for Restore task");
+                TaskName = _backup.Name;
                 action = RunRestoreAsync;
                 break;
             case TaskType.PullAndUpload:
@@ -310,7 +310,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         EnsureDeviceConnected(true);
         try
         {
-            await RestoreAsync(_path!);
+            await RestoreAsync(_backup!);
             OnFinished("Backup restored");
         }
         catch (Exception e)
@@ -473,7 +473,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         await Task.Run(() => _adbDevice!.CreateBackup(_game!, _backupOptions!));
     }
     
-    private async Task RestoreAsync(string backupPath)
+    private async Task RestoreAsync(Backup backup)
     {
         Status = "Restore queued";
         await AdbService.TakePackageOperationLockAsync(_cancellationTokenSource.Token);
@@ -481,7 +481,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         {
             EnsureDeviceConnected();
             Status = "Restoring backup";
-            await Task.Run(() => _adbDevice!.RestoreBackup(backupPath));
+            await Task.Run(() => _adbDevice!.RestoreBackup(backup));
         }
         finally
         {
