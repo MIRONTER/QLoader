@@ -39,11 +39,8 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
         Activator = new ViewModelActivator();
         _adbService = AdbService.Instance;
         _sideloaderSettings = Globals.SideloaderSettings;
-        Refresh = ReactiveCommand.CreateFromObservable(() => RefreshImpl());
-        ManualRefresh = ReactiveCommand.CreateFromObservable(() => RefreshImpl(true));
-        var isExecutingCombined = Refresh.IsExecuting
-            .CombineLatest(ManualRefresh.IsExecuting, (x, y) => x || y);
-        isExecutingCombined.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
+        Refresh = ReactiveCommand.CreateFromObservable<bool,Unit>(RefreshImpl);
+        Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
         Donate = ReactiveCommand.CreateFromObservable(DonateImpl);
         DonateAll = ReactiveCommand.CreateFromObservable(DonateAllImpl);
         Ignore = ReactiveCommand.CreateFromObservable(IgnoreImpl);
@@ -80,8 +77,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
         });
     }
     
-    private ReactiveCommand<Unit, Unit> Refresh { get; }
-    public ReactiveCommand<Unit, Unit> ManualRefresh { get; }
+    private ReactiveCommand<bool, Unit> Refresh { get; }
     public ReactiveCommand<Unit, Unit> Donate { get; }
     public ReactiveCommand<Unit, Unit> DonateAll { get; }
     public ReactiveCommand<Unit, Unit> Ignore { get; }

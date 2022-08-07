@@ -55,21 +55,13 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             .ObserveOn(RxApp.MainThreadScheduler)
             .Bind(out _availableGames)
             .DisposeMany();
-        Refresh = ReactiveCommand.CreateFromObservable(() => RefreshImpl());
+        Refresh = ReactiveCommand.CreateFromObservable<bool,Unit>(RefreshImpl);
         Refresh.ThrownExceptions.Subscribe(ex =>
         {
             Log.Error(ex, "Error refreshing available games");
             Globals.ShowNotification("Error", "Error refreshing available games", NotificationType.Error);
         });
-        ManualRefresh = ReactiveCommand.CreateFromObservable(() => RefreshImpl(true));
-        ManualRefresh.ThrownExceptions.Subscribe(ex =>
-        {
-            Log.Error(ex, "Error refreshing available games");
-            Globals.ShowNotification("Error", "Error refreshing available games", NotificationType.Error);
-        });
-        var isExecutingCombined = Refresh.IsExecuting
-            .CombineLatest(ManualRefresh.IsExecuting, (x, y) => x || y);
-        isExecutingCombined.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
+        Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
         Install = ReactiveCommand.CreateFromObservable(InstallImpl);
         Download = ReactiveCommand.CreateFromObservable(DownloadImpl);
         this.WhenActivated(disposables =>
@@ -91,8 +83,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         });
     }
 
-    public ReactiveCommand<Unit, Unit> Refresh { get; }
-    public ReactiveCommand<Unit, Unit> ManualRefresh { get; }
+    public ReactiveCommand<bool, Unit> Refresh { get; }
     public ReactiveCommand<Unit, Unit> Install { get; }
     public ReactiveCommand<Unit, Unit> Download { get; }
     public ReadOnlyObservableCollection<Game> AvailableGames => _availableGames;

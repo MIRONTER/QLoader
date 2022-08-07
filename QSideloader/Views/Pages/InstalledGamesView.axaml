@@ -6,6 +6,7 @@
              xmlns:views="clr-namespace:QSideloader.Views"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+             xmlns:system="clr-namespace:System;assembly=System.Runtime"
              mc:Ignorable="d" d:DesignWidth="1130" d:DesignHeight="450"
              x:Class="QSideloader.Views.Pages.InstalledGamesView">
     <Design.DataContext>
@@ -54,7 +55,13 @@
                     </Flyout>
                 </Button.Flyout>
             </Button>
-            <Button Command="{Binding ManualRefresh}" IsEnabled="{Binding !IsBusy}" ToolTip.Tip="Rescan installed games">Refresh</Button>
+            <Button Command="{Binding Refresh}" IsEnabled="{Binding !IsBusy}" 
+                    ToolTip.Tip="Rescan installed games" 
+                    Content="Refresh">
+                <Button.CommandParameter>
+                    <system:Boolean>True</system:Boolean>
+                </Button.CommandParameter>
+            </Button>
         </StackPanel>
         <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
         <DataGrid Grid.Row="1" x:Name="InstalledGamesDataGrid"

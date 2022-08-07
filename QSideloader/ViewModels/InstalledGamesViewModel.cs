@@ -32,11 +32,8 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         _adbService = AdbService.Instance;
         Activator = new ViewModelActivator();
-        Refresh = ReactiveCommand.CreateFromObservable(() => RefreshImpl());
-        ManualRefresh = ReactiveCommand.CreateFromObservable(() => RefreshImpl(true));
-        var isExecutingCombined = Refresh.IsExecuting
-            .CombineLatest(ManualRefresh.IsExecuting, (x, y) => x || y);
-        isExecutingCombined.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
+        Refresh = ReactiveCommand.CreateFromObservable<bool, Unit>(RefreshImpl);
+        Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
         Update = ReactiveCommand.CreateFromObservable(UpdateImpl);
         UpdateAll = ReactiveCommand.CreateFromObservable(UpdateAllImpl);
         Uninstall = ReactiveCommand.CreateFromObservable(UninstallImpl);
@@ -57,8 +54,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         });
     }
 
-    public ReactiveCommand<Unit, Unit> Refresh { get; }
-    public ReactiveCommand<Unit, Unit> ManualRefresh { get; }
+    public ReactiveCommand<bool, Unit> Refresh { get; }
     public ReactiveCommand<Unit, Unit> Update { get; }
     public ReactiveCommand<Unit, Unit> UpdateAll { get; }
     public ReactiveCommand<Unit, Unit> Uninstall { get; }

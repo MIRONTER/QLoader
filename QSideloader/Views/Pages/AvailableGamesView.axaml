@@ -5,6 +5,7 @@
              xmlns:vm="using:QSideloader.ViewModels"
              xmlns:views="clr-namespace:QSideloader.Views"
              xmlns:utilities="clr-namespace:QSideloader.Utilities"
+             xmlns:system="clr-namespace:System;assembly=System.Runtime"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="450"
              x:Class="QSideloader.Views.Pages.AvailableGamesView">
     <UserControl.Resources>
@@ -34,8 +35,12 @@
                     ToolTip.Tip="Download and install selected games">Download &amp; Install Selected</Button>
             <Button Command="{Binding Download}"
                     ToolTip.Tip="Download selected games">Download Selected</Button>
-            <Button Command="{Binding ManualRefresh}"
-                    ToolTip.Tip="Redownload games list">Refresh</Button>
+            <Button Command="{Binding Refresh}"
+                    ToolTip.Tip="Redownload games list" Content="Refresh">
+                <Button.CommandParameter>
+                    <system:Boolean>True</system:Boolean>
+                </Button.CommandParameter>
+            </Button>
         </StackPanel>
         <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
         <DataGrid Grid.Row="1" x:Name="AvailableGamesDataGrid"
