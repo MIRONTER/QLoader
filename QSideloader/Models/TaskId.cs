@@ -18,11 +18,7 @@ public class TaskId
 
     public override bool Equals(object? obj)
     {
-        if (obj is TaskId id)
-        {
-            return value == id.value;
-        }
-        return false;
+        return obj is TaskId id && value == id.value;
     }
 
     public override int GetHashCode()

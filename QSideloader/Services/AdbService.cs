@@ -1522,7 +1522,7 @@ public class AdbService
             var obbPath = $"/sdcard/Android/obb/{packageName}/";
             //var backupMetadataPath = Path.Combine(backupPath, "backup.json");
             var publicDataBackupPath = Path.Combine(backupPath, "data");
-            var privateDataBackupPath = Path.Combine(backupPath, "data_private");
+            var sharedDataBackupPath = Path.Combine(backupPath, "data_private");
             var obbBackupPath = Path.Combine(backupPath, "obb");
             const string apkPathPattern = @"package:(\S+)";
             var apkPath = Regex.Match(RunShellCommand($"pm path {packageName}"), apkPathPattern).Groups[1]
@@ -1533,23 +1533,23 @@ public class AdbService
             if (options.BackupData)
             {
                 Log.Debug("Backing up private data");
-                Directory.CreateDirectory(privateDataBackupPath);
+                Directory.CreateDirectory(sharedDataBackupPath);
                 RunShellCommand(
                     $"mkdir /sdcard/backup_tmp/; run-as {packageName} cp -av {privateDataPath} /sdcard/backup_tmp/{packageName}/",
                     true);
-                PullDirectory($"/sdcard/backup_tmp/{packageName}/", privateDataBackupPath,
+                PullDirectory($"/sdcard/backup_tmp/{packageName}/", sharedDataBackupPath,
                     new List<string> {"cache", "code_cache"});
                 RunShellCommand("rm -rf /sdcard/backup_tmp/", true);
-                var privateDataHasFiles = Directory.EnumerateFiles(privateDataBackupPath).Any();
+                var privateDataHasFiles = Directory.EnumerateFiles(sharedDataBackupPath).Any();
                 if (!privateDataHasFiles)
-                    Directory.Delete(privateDataBackupPath, true);
+                    Directory.Delete(sharedDataBackupPath, true);
                 backupEmpty = backupEmpty && !privateDataHasFiles;
                 if (RemoteDirectoryExists(sharedDataPath))
                 {
                     backupEmpty = false;
                     Log.Debug("Backing up shared data");
                     Directory.CreateDirectory(publicDataBackupPath);
-                    PullDirectory(publicDataPath, publicDataBackupPath, new List<string> {"cache"});
+                    PullDirectory(sharedDataPath, publicDataBackupPath, new List<string> {"cache"});
                 }
             }
 

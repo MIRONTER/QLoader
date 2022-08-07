@@ -190,12 +190,10 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             return;
         }
 
-        var toRemove = _availableGamesSourceCache.Items
-            .Where(game => _downloaderService.AvailableGames.All(game2 => game.ReleaseName != game2.ReleaseName)).ToList();
         _availableGamesSourceCache.Edit(innerCache =>
         {
             innerCache.AddOrUpdate(_downloaderService.AvailableGames);
-            innerCache.Remove(toRemove);
+            innerCache.Remove(_availableGames.Except(_downloaderService.AvailableGames));
         });
     }
 
