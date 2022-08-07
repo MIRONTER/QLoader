@@ -26,19 +26,4 @@ public class InstalledGame : Game
     [JsonIgnore] public int AvailableVersionCode { get; set; }
     [JsonIgnore] public bool IsUpdateAvailable { get; set; }
     [JsonIgnore] public string UpdateStatus { get; set; }
-    
-    public override bool Equals(object? obj)
-    {
-        return obj is InstalledGame game &&
-               ReleaseName == game.ReleaseName &&
-               InstalledVersionCode == game.InstalledVersionCode &&
-               AvailableVersionCode == game.AvailableVersionCode;
-    }
-
-    public override int GetHashCode()
-    {
-        // ReSharper disable NonReadonlyMemberInGetHashCode
-        return ReleaseName?.GetHashCode() ?? 0 + InstalledVersionCode.GetHashCode() + AvailableVersionCode.GetHashCode();
-        // ReSharper restore NonReadonlyMemberInGetHashCode
-    }
 }

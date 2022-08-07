@@ -90,18 +90,6 @@ public class Game : INotifyPropertyChanged
         return ReleaseName ?? "";
     }
 
-    public override bool Equals(object? obj)
-    {
-        return obj is Game game &&
-               ReleaseName == game.ReleaseName;
-    }
-
-    public override int GetHashCode()
-    {
-        // ReSharper disable once NonReadonlyMemberInGetHashCode
-        return ReleaseName?.GetHashCode() ?? 0;
-    }
-
     private void OnPropertyChanged([CallerMemberName] string? name = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
