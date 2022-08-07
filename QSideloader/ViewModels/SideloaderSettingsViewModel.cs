@@ -55,6 +55,11 @@ public class SideloaderSettingsViewModel : ViewModelBase
             Globals.ShowErrorNotification(ex, "Error checking for updates");
         });
         SwitchMirror = ReactiveCommand.CreateFromObservable(SwitchMirrorImpl);
+        SwitchMirror.ThrownExceptions.Subscribe(ex =>
+        {
+            Log.Error(ex, "Error switching mirror");
+            Globals.ShowErrorNotification(ex, "Error switching mirror");
+        });
         ReloadMirrorList = ReactiveCommand.CreateFromObservable(ReloadMirrorListImpl);
         var isSwitchingMirrorCombined =
             SwitchMirror.IsExecuting.CombineLatest(ReloadMirrorList.IsExecuting, (a, b) => a || b);

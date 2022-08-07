@@ -56,7 +56,17 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             .Bind(out _availableGames)
             .DisposeMany();
         Refresh = ReactiveCommand.CreateFromObservable(() => RefreshImpl());
+        Refresh.ThrownExceptions.Subscribe(ex =>
+        {
+            Log.Error(ex, "Error refreshing available games");
+            Globals.ShowNotification("Error", "Error refreshing available games", NotificationType.Error);
+        });
         ManualRefresh = ReactiveCommand.CreateFromObservable(() => RefreshImpl(true));
+        ManualRefresh.ThrownExceptions.Subscribe(ex =>
+        {
+            Log.Error(ex, "Error refreshing available games");
+            Globals.ShowNotification("Error", "Error refreshing available games", NotificationType.Error);
+        });
         var isExecutingCombined = Refresh.IsExecuting
             .CombineLatest(ManualRefresh.IsExecuting, (x, y) => x || y);
         isExecutingCombined.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
@@ -70,7 +80,14 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             ShowPopularity30Days = _sideloaderSettings.PopularityRange == "30 days";
             ShowPopularity7Days = _sideloaderSettings.PopularityRange == "7 days";
             ShowPopularity1Day = _sideloaderSettings.PopularityRange == "1 day";
-            Refresh.Execute().Subscribe();
+            try
+            {
+                Refresh.Execute().Subscribe();
+            }
+            catch
+            {
+                // ignored
+            }
         });
     }
 
@@ -90,9 +107,9 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> RefreshImpl(bool force = false)
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
-            _downloaderService.EnsureMetadataAvailableAsync(force).GetAwaiter().GetResult();
+            await _downloaderService.EnsureMetadataAvailableAsync(force);
             IsDeviceConnected = _adbService.CheckDeviceConnectionSimple();
             PopulateAvailableGames();
             RefreshInstalled();

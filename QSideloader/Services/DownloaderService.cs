@@ -417,7 +417,7 @@ public class DownloaderService
     /// <param name="refresh">Should force a refresh even if data is already loaded.</param>
     public async Task EnsureMetadataAvailableAsync(bool refresh = false)
     {
-        var skip = (AvailableGames is not null && !refresh) || Design.IsDesignMode;
+        var skip = (AvailableGames is not null && AvailableGames.Count > 0 && !refresh) || Design.IsDesignMode;
 
         await GameListSemaphoreSlim.WaitAsync();
         if (skip)
@@ -468,6 +468,7 @@ public class DownloaderService
         {
             Log.Error(e, "Error downloading game list");
             Globals.ShowErrorNotification(e, "Error downloading game list");
+            throw new DownloaderServiceException("Error downloading game list", e);
         }
         finally
         {
