@@ -61,10 +61,12 @@ public class BackupViewModel: ViewModelBase, IActivatableViewModel
         {
             if (rescan)
                 _adbService.RefreshBackupList();
+            var toRemove = _backupsSourceCache.Items
+                .Where(x => !_adbService.BackupList.Any(b => b.Date == x.Date && b.Name == x.Name)).ToList();
             _backupsSourceCache.Edit(innerCache =>
             {
                 innerCache.AddOrUpdate(_adbService.BackupList);
-                innerCache.Remove(_backups.Except(_adbService.BackupList).ToList());
+                innerCache.Remove(toRemove);
             });
         });
     }

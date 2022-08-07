@@ -60,16 +60,4 @@ public class Backup : INotifyPropertyChanged
     {
         return Date.ToString("yyyyMMddTHHmmss") + "_" + Name;
     }
-
-    public override bool Equals(object? obj)
-    {
-        return obj is Backup backup &&
-               Name == backup.Name &&
-               Date == backup.Date;
-    }
-
-    public override int GetHashCode()
-    {
-        return Date.GetHashCode();
-    }
 }
