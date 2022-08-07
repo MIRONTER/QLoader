@@ -1584,7 +1584,7 @@ public class AdbService
                     backupEmpty = false;
                     Log.Debug("Backing up shared data");
                     Directory.CreateDirectory(publicDataBackupPath);
-                    PullDirectory(publicDataPath, publicDataBackupPath, new List<string> {"cache"});
+                    PullDirectory(sharedDataPath, publicDataBackupPath, new List<string> {"cache"});
                 }
             }
 
