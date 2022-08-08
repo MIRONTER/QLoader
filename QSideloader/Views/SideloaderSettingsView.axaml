@@ -29,11 +29,11 @@
             </StackPanel>
             
             <TextBlock VerticalAlignment="Center">Preferred connection type</TextBlock>
-            <ComboBox Margin="0,4,0,8" Items="{Binding ConnectionTypes}"
+            <ComboBox Margin="0,4,0,0" Items="{Binding ConnectionTypes}"
                       SelectedItem="{Binding PreferredConnectionType}" />
             
-            <TextBlock VerticalAlignment="Center">Selected mirror</TextBlock>
-            <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
+            <TextBlock Margin="0,8,0,4" VerticalAlignment="Center">Selected mirror</TextBlock>
+            <StackPanel  Orientation="Horizontal">
                 <ComboBox IsEnabled="{Binding !IsSwitchingMirror}" Items="{Binding MirrorList}"
                           SelectedItem="{Binding SelectedMirror}" />
                 <ProgressRing Margin="10,0,0,0" IsEnabled="{Binding IsSwitchingMirror}"
@@ -42,28 +42,28 @@
                         Command="{Binding ReloadMirrorList}">Reload list</Button>
             </StackPanel>
             
-            <TextBlock Margin="0,8,0,0" VerticalAlignment="Center">Popularity time range</TextBlock>
-            <ComboBox Margin="0,4,0,0" Items="{Binding PopularityRanges}"
+            <TextBlock Margin="0,8,0,4" VerticalAlignment="Center">Popularity time range</TextBlock>
+            <ComboBox Items="{Binding PopularityRanges}"
                       SelectedItem="{Binding PopularityRange}" />
             
-            <TextBlock Margin="0,8,0,0">Downloads location</TextBlock>
-            <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
+            <TextBlock Margin="0,8,0,4">Downloads location</TextBlock>
+            <StackPanel Orientation="Horizontal">
                 <TextBox MinWidth="250" Padding="10,5,10,6"
                          Text="{Binding DownloadsLocationTextBoxText, Mode=TwoWay}" />
                 <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding BrowseDownloadsDirectory}">Browse</Button>
                 <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding SetDownloadLocation}">Set</Button>
             </StackPanel>
             
-            <TextBlock Margin="0,8,0,0">Backups location</TextBlock>
-            <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
+            <TextBlock Margin="0,8,0,4">Backups location</TextBlock>
+            <StackPanel Orientation="Horizontal">
                 <TextBox MinWidth="250" Padding="10,5,10,6"
                          Text="{Binding BackupsLocationTextBoxText, Mode=TwoWay}" />
                 <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding BrowseBackupsDirectory}">Browse</Button>
                 <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding SetBackupsLocation}">Set</Button>
             </StackPanel>
             
-            <TextBlock Margin="0,8,0,0">Download/upload bandwidth limit</TextBlock>
-            <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
+            <TextBlock Margin="0,8,0,4">Download/upload bandwidth limit</TextBlock>
+            <StackPanel Orientation="Horizontal">
                 <TextBox MinWidth="100" Watermark="Limit"
                          Text="{Binding DownloaderBandwidthLimitTextBoxText}">
                     <ToolTip.Tip>Limit in KiB/s, or use suffix B|K|M|G|T|P (leave empty for unlimited)</ToolTip.Tip>

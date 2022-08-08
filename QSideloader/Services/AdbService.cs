@@ -423,7 +423,7 @@ public class AdbService
     }
 
     /// <summary>
-    ///     Method that is called by <see cref="DeviceMonitor" /> when status of any device changes.
+    ///     Method for handling <see cref="DeviceMonitor.DeviceChanged" /> event.
     /// </summary>
     private void OnDeviceChanged(object? sender, DeviceDataEventArgs e)
     {
