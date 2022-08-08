@@ -179,8 +179,10 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
         try
         {
+            var deleteAfterInstall =
+                _sideloaderSettings.DownloadsPruningPolicy == DownloadsPruningPolicy.DeleteAfterInstall;
             await InstallAsync(_path ?? throw new InvalidOperationException("path is null"),
-                _sideloaderSettings.DeleteAfterInstall);
+                deleteAfterInstall);
         }
         catch (Exception e)
         {
@@ -222,7 +224,10 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         EnsureDeviceConnected(true);
         try
         {
-            await InstallAsync(_path ?? throw new InvalidOperationException("path is null"));
+            _ = _path ?? throw new InvalidOperationException("path is null");
+            var deleteAfterInstall = _path.StartsWith(_sideloaderSettings.DownloadsLocation) &&
+                _sideloaderSettings.DownloadsPruningPolicy == DownloadsPruningPolicy.DeleteAfterInstall;
+            await InstallAsync(_path, deleteAfterInstall);
         }
         catch (Exception e)
         {
@@ -397,6 +402,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 .Subscribe(RefreshDownloadStats);
             var gamePath = await _downloaderService.DownloadGameAsync(_game!, _cancellationTokenSource.Token);
             downloadStatsSubscription.Dispose();
+            if (_game?.ReleaseName is not null)
+                _downloaderService.PruneDownloadedVersions(_game.ReleaseName);
             return gamePath;
         }
         finally

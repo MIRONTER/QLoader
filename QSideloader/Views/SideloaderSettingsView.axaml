@@ -3,9 +3,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:QSideloader.ViewModels"
+             xmlns:utilities="clr-namespace:QSideloader.Utilities"
              mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="669"
              x:Class="QSideloader.Views.SideloaderSettingsView"
              AttachedToVisualTree="Visual_OnAttachedToVisualTree">
+    <UserControl.Resources>
+        <utilities:DownloadPruningPolicyValueConverter x:Key="DownloadPruningPolicyStringFromEnum" />
+    </UserControl.Resources>
     <Design.DataContext>
         <viewModels:SideloaderSettingsViewModel />
     </Design.DataContext>
@@ -67,7 +71,14 @@
                 <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding SetDownloaderBandwidthLimit}">Set</Button>
             </StackPanel>
             
-            <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding DeleteAfterInstall}">Delete downloaded game files after install</ToggleSwitch>
+            <TextBlock Margin="0,8,0,4" VerticalAlignment="Center">Downloads pruning policy</TextBlock>
+            <ComboBox Items="{Binding AllDownloadsPruningPolicies}" SelectedItem="{Binding DownloadsPruningPolicy}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Converter={StaticResource DownloadPruningPolicyStringFromEnum}}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
             
             <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
                 <ToggleSwitch IsChecked="{Binding EnableRemoteLogging}"

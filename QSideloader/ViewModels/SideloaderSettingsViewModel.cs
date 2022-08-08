@@ -108,7 +108,9 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [JsonProperty] public string BackupsLocation { get; private set; } = "";
     [Reactive] public string DownloaderBandwidthLimitTextBoxText { get; private set; } = "";
     [JsonProperty] public string DownloaderBandwidthLimit { get; private set; } = "";
-    [Reactive] [JsonProperty] public bool DeleteAfterInstall { get; private set; }
+    [Reactive] [JsonProperty] public DownloadsPruningPolicy DownloadsPruningPolicy { get; set; }
+    public List<DownloadsPruningPolicy> AllDownloadsPruningPolicies { get; } =
+        Enum.GetValues(typeof(DownloadsPruningPolicy)).Cast<DownloadsPruningPolicy>().ToList();
     [Reactive] [JsonProperty] public bool EnableDebugConsole { get; private set; }
     [Reactive] [JsonProperty] public string LastWirelessAdbHost { get; set; } = "";
     public string VersionString { get; } = Assembly.GetExecutingAssembly()
@@ -153,7 +155,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
         BackupsLocationTextBoxText = BackupsLocation;
         DownloaderBandwidthLimit = "";
         DownloaderBandwidthLimitTextBoxText = "";
-        DeleteAfterInstall = false;
+        DownloadsPruningPolicy = DownloadsPruningPolicy.DeleteAfterInstall;
         LastWirelessAdbHost = "";
         EnableDebugConsole = !IsConsoleToggleable;
         PopularityRange = PopularityRanges[0];
@@ -497,4 +499,12 @@ public class SideloaderSettingsViewModel : ViewModelBase
         AutoSaveDelayTimer.Stop();
         AutoSaveDelayTimer.Start();
     }
+}
+
+public enum DownloadsPruningPolicy
+{
+    DeleteAfterInstall,
+    Keep1Version,
+    Keep2Versions,
+    KeepAll
 }

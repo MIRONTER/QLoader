@@ -827,6 +827,41 @@ public class DownloaderService
         op.Complete();
         return game;
     }
+
+    public void PruneDownloadedVersions(string releaseName)
+    {
+        var regex = new Regex(@"(.+) v\d+\+.+");
+        var pruningPolicy = _sideloaderSettings.DownloadsPruningPolicy;
+        if (pruningPolicy is DownloadsPruningPolicy.KeepAll or DownloadsPruningPolicy.DeleteAfterInstall)
+            return;
+        var match = regex.Match(releaseName);
+        if (!match.Success)
+        {
+            Log.Debug("Release name {ReleaseName} is non-standard, skipping pruning", releaseName);
+            return;
+        }
+        var gameName = match.Groups[1].Value;
+        Log.Debug("Pruning downloaded versions for {GameName}, policy {PruningPolicy}", gameName,
+            pruningPolicy);
+        var count = 1;
+        var keepCount = _sideloaderSettings.DownloadsPruningPolicy switch
+        {
+            DownloadsPruningPolicy.Keep1Version => 1,
+            DownloadsPruningPolicy.Keep2Versions => 2,
+            _ => int.MaxValue
+        };
+        foreach (var directory in Directory.EnumerateDirectories(_sideloaderSettings.DownloadsLocation).OrderByDescending(Path.GetFileName))
+        {
+            var directoryName = Path.GetFileName(directory);
+            match = regex.Match(directoryName);
+            if (!match.Success || match.Groups[1].Value != gameName || directoryName == releaseName)
+                continue;
+            count++;
+            if (count <= keepCount) continue;
+            Log.Debug("Pruning old version {DirectoryName}", directoryName);
+            Directory.Delete(directory, true);
+        }
+    }
 }
 
 public class DownloaderServiceException : Exception
