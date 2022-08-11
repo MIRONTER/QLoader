@@ -1,0 +1,31 @@
+name: .NET
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: [self-hosted, linux]
+
+    container: mcr.microsoft.com/dotnet/sdk:6.0
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Publish for windows-x64
+      run: |
+        cd QSideloader
+        dotnet build -c Debug --no-restore
+        dotnet publish -c Debug --no-restore --self-contained true --runtime win-x64 -p:PublishReadyToRun=true -p:PublishSingleFile=true -o ./win-x64
+    - uses: actions/upload-artifact@v3
+      name: Upload artifact
+      with:
+        name: win-x64_Debug
+        path: win-x64/
