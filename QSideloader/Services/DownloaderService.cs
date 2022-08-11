@@ -155,12 +155,13 @@ public class DownloaderService
 
         try
         {
-            Log.Debug("Updating thumbnails (async)");
-            var tasks = new List<Task>
+            var tasks = new List<Task>();
+            if (Directory.Exists(PathHelper.ThumbnailsPath))
             {
-                RcloneTransferAsync("Quest Games/.meta/thumbnails/", PathHelper.ThumbnailsPath, "sync",
-                    retries: 3)
-            };
+                Log.Debug("Updating thumbnails (async)");
+                tasks.Add(RcloneTransferAsync("Quest Games/.meta/thumbnails/", PathHelper.ThumbnailsPath, "sync",
+                    retries: 3));
+            }
             if (Directory.Exists(PathHelper.TrailersPath))
             {
                 Log.Debug("Updating trailers (async)");
