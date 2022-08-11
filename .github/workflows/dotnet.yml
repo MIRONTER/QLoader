@@ -6,29 +6,120 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-win-x64:
 
     runs-on: [self-hosted, linux]
 
     container: mcr.microsoft.com/dotnet/sdk:6.0
 
     steps:
-    - uses: jstone28/runner-workspace-cleaner@v1.0.0
+    - name: Clean workspace
+      uses: jstone28/runner-workspace-cleaner@v1.0.0
+
     - uses: actions/checkout@v3
       with:
         submodules: 'true'
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: 6.0.x
-    - name: Restore dependencies for windows-x64
+
+    - name: Restore dependencies
       run: dotnet restore -r win-x64
-    - name: Publish for windows-x64
+
+    - name: Publish Debug
       run: |
         cd QSideloader
-        dotnet publish -c Debug --no-restore --self-contained true --runtime win-x64 -p:PublishSingleFile=true -o ../win-x64
+        dotnet publish --no-restore -c Debug --self-contained true --runtime win-x64 -p:PublishSingleFile=true -o ../win-x64
+
     - uses: actions/upload-artifact@v3
       name: Upload artifact
       with:
         name: win-x64_Debug
         path: win-x64/
+
+  build-linux-x64:
+
+    runs-on: [self-hosted, linux]
+
+    container: mcr.microsoft.com/dotnet/sdk:6.0
+
+    steps:
+    - name: Clean workspace
+      uses: jstone28/runner-workspace-cleaner@v1.0.0
+
+    - uses: actions/checkout@v3
+      with:
+        submodules: 'true'
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore -r linux-x64
+
+    - name: Publish Debug
+      run: |
+        cd QSideloader
+        dotnet publish --no-restore -c Debug --self-contained true --runtime linux-x64 -p:PublishSingleFile=true -o ../linux-x64
+
+    - name: Prepare for upload
+      run: |
+        echo Packing linux-x64
+        chmod +x linux-x64/Loader
+        chmod -R +x linux-x64/tools/
+        tar cvf linux-x64.tar linux-x64/*
+
+    - uses: actions/upload-artifact@v3
+      name: Upload artifact
+      with:
+        name: linux-x64_Debug
+        path: linux-x64.tar
+
+  build-osx-x64:
+
+    runs-on: [self-hosted, linux]
+
+    container: mcr.microsoft.com/dotnet/sdk:6.0
+
+    steps:
+    - name: Clean workspace
+      uses: jstone28/runner-workspace-cleaner@v1.0.0
+    
+    - name: Install dependencies
+      run: |
+        apt-get update
+        apt-get install zip -y
+
+    - uses: actions/checkout@v3
+      with:
+        submodules: 'true'
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore -r osx-x64
+
+    - name: Publish Debug
+      run: |
+        cd QSideloader
+        dotnet publish --no-restore -c Debug --self-contained true --runtime osx-x64 -p:PublishSingleFile=true -o ../osx-x64
+
+    - name: Prepare for upload
+      run: |
+        echo Packing osx-x64
+        chmod +x osx-x64/Loader
+        chmod -R +x osx-x64/tools/
+        zip -r osx-x64.zip osx-x64
+
+    - uses: actions/upload-artifact@v3
+      name: Upload artifact
+      with:
+        name: osx-x64_Debug
+        path: osx-x64.zip
