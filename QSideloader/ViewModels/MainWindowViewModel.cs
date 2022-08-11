@@ -63,6 +63,11 @@ public class MainWindowViewModel : ViewModelBase
                 await dialog.ShowDialog(mainWindow);
             }
         });
+        ShowGameDetailsCommand.ThrownExceptions.Subscribe(ex =>
+        {
+            Log.Error(ex, "Error while opening game details dialog");
+            ShowErrorNotification(ex, "Error while opening game details dialog");
+        });
         ShowConnectionHelpDialog = ReactiveCommand.CreateFromObservable(ShowConnectionHelpDialogImpl);
         ShowAuthHelpDialog = ReactiveCommand.CreateFromObservable(ShowAuthHelpDialogImpl);
         _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged);
@@ -76,7 +81,7 @@ public class MainWindowViewModel : ViewModelBase
     [Reactive] public int DonatableAppsCount { get; private set; }
     public IObservable<Unit> WhenGameDonated => _gameDonateSubject.AsObservable();
 
-    public ICommand ShowGameDetailsCommand { get; }
+    public ReactiveCommand<Game, Unit> ShowGameDetailsCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowConnectionHelpDialog { get; }
     public ReactiveCommand<Unit, Unit> ShowAuthHelpDialog { get; }
 

@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using System;
+using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
@@ -31,7 +32,7 @@ public class InstalledGamesView : ReactiveUserControl<InstalledGamesViewModel>
         if (selectedGame is null) return;
         // TODO: let user set action in settings?
         //Globals.MainWindowViewModel!.QueueForInstall(selectedGame);
-        Globals.MainWindowViewModel!.ShowGameDetailsCommand.Execute(selectedGame);
+        Globals.MainWindowViewModel!.ShowGameDetailsCommand.Execute(selectedGame).Subscribe(_ => { }, _ => { });
         e.Handled = true;
     }
 
