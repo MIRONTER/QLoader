@@ -109,7 +109,7 @@
         <VlcWindowsX86IncludeFiles Include="@(VlcWindowsX64IncludeFiles)" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AdvancedSharpAdbClient\AdvancedSharpAdbClient.csproj" />
+        <ProjectReference Include="..\AdvancedSharpAdbClient\AdvancedSharpAdbClient\AdvancedSharpAdbClient.csproj" />
     </ItemGroup>
     <ItemGroup>
       <Compile Update="Views\Pages\GameDonationView.axaml.cs">

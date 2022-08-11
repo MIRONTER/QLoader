@@ -1480,7 +1480,7 @@ public class AdbService
             {
                 if (!silent)
                     Log.Information("Uninstalling package {PackageName}", packageName);
-                _adb.AdbClient.UninstallPackage(this, packageName);
+                _adb.AdbClient.UninstallPackage(this, packageName!);
             }
             catch (PackageInstallationException e)
             {
@@ -1496,7 +1496,7 @@ public class AdbService
                     Log.Information("Package {PackageName} is protected by device policy, trying to force uninstall",
                         packageName);
                     RunShellCommand("pm disable-user " + packageName, true);
-                    _adb.AdbClient.UninstallPackage(this, packageName);
+                    _adb.AdbClient.UninstallPackage(this, packageName!);
                     return;
                 }
 
@@ -1556,7 +1556,7 @@ public class AdbService
             var privateDataPath = $"/data/data/{packageName}/";
             var obbPath = $"/sdcard/Android/obb/{packageName}/";
             //var backupMetadataPath = Path.Combine(backupPath, "backup.json");
-            var publicDataBackupPath = Path.Combine(backupPath, "data");
+            var sharedDataBackupPath = Path.Combine(backupPath, "data");
             var privateDataBackupPath = Path.Combine(backupPath, "data_private");
             var obbBackupPath = Path.Combine(backupPath, "obb");
             const string apkPathPattern = @"package:(\S+)";
@@ -1583,8 +1583,8 @@ public class AdbService
                 {
                     backupEmpty = false;
                     Log.Debug("Backing up shared data");
-                    Directory.CreateDirectory(publicDataBackupPath);
-                    PullDirectory(sharedDataPath, publicDataBackupPath, new List<string> {"cache"});
+                    Directory.CreateDirectory(sharedDataBackupPath);
+                    PullDirectory(sharedDataPath, sharedDataBackupPath, new List<string> {"cache"});
                 }
             }
 
