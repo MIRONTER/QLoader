@@ -18,6 +18,7 @@
         <IsPackable>false</IsPackable>
         <Company>FFA</Company>
         <ApplicationManifest>app.manifest</ApplicationManifest>
+        <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
     </PropertyGroup>
     <ItemGroup>
         <IncludeTools Condition="$(RuntimeIdentifier.Contains('win')) Or '$(RuntimeIdentifier)'==''" Include="tools\windows\**\*" />
