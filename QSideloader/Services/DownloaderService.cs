@@ -338,7 +338,14 @@ public class DownloaderService
     private void EnsureMirrorListInitialized()
     {
         if (IsMirrorListInitialized) return;
-        ExcludeDeadMirrors();
+        try
+        {
+            ExcludeDeadMirrors();
+        }
+        catch (Exception e)
+        {
+            Log.Warning("Failed to exclude dead mirrors: {Message}", e.Message);
+        }
         _mirrorList = GetMirrorList().Where(x => !ExcludedMirrorList.Contains(x)).ToList();
         Log.Debug("Loaded mirrors: {MirrorList}", _mirrorList);
         if (_mirrorList.Count == 0)
