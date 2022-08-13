@@ -429,7 +429,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
                 IsTrailersAddonInstalled = true;
                 return;
             }
-            Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadAndInstallTrailersAddon});
+            Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.InstallTrailersAddon});
         });
     }
     

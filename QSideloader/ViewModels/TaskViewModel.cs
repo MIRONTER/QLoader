@@ -109,8 +109,9 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 TaskName = _app.Name;
                 action = RunPullAndUploadAsync;
                 break;
-            case TaskType.DownloadAndInstallTrailersAddon:
-                action = RunDownloadAndInstallTrailersAddonAsync;
+            case TaskType.InstallTrailersAddon:
+                _path = taskOptions.Path;
+                action = RunInstallTrailersAddonAsync;
                 TaskName = "Trailers addon";
                 break;
             default:
@@ -365,13 +366,15 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         });
     }
 
-    private async Task RunDownloadAndInstallTrailersAddonAsync()
+    private async Task RunInstallTrailersAddonAsync()
     {
         try
         {
-            if (Directory.Exists(PathHelper.TrailersPath))
-                OnFinished("Already downloaded");
-            await DownloadAndInstallTrailersAddonAsync();
+            if (Directory.Exists(PathHelper.TrailersPath) && !File.Exists(_path))
+            {
+                OnFinished("Already installed");
+            }
+            await InstallTrailersAddonAsync();
             OnFinished("Installed");
         }
         catch (Exception e)
@@ -497,12 +500,13 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         }
     }
 
-    private async Task DownloadAndInstallTrailersAddonAsync()
+    private async Task InstallTrailersAddonAsync()
     {
         Status = "Downloading";
-        var path = await _downloaderService.DownloadTrailersAddon(_cancellationTokenSource.Token);
+        if (!File.Exists(_path))
+            _path = await _downloaderService.DownloadTrailersAddon(_cancellationTokenSource.Token);
         Status = "Installing";
-        await GeneralUtils.InstallTrailersAddonAsync(path, true);
+        await GeneralUtils.InstallTrailersAddonAsync(_path, true);
         OnFinished("Installed");
     }
 

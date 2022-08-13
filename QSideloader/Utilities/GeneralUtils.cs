@@ -165,6 +165,8 @@ public static class GeneralUtils
     public static async Task InstallTrailersAddonAsync(string path, bool delete)
     {
         using var op = Operation.Begin("Installing trailers addon");
+        if (!File.Exists(path))
+            throw new FileNotFoundException("Trailers addon archive not found", path);
         await ZipUtil.ExtractArchiveAsync(path, Directory.GetCurrentDirectory());
         if (delete)
             File.Delete(path);

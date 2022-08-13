@@ -32,18 +32,6 @@ public class App : Application
         if (!Design.IsDesignMode)
         {
             InitializeLogging();
-
-            var trailersAddonPath = "";
-            if (File.Exists("TrailersAddon.zip"))
-                trailersAddonPath = "TrailersAddon.zip";
-            if (File.Exists(Path.Combine("..", "TrailersAddon.zip")))
-                trailersAddonPath = Path.Combine("..", "TrailersAddon.zip");
-
-            if (!string.IsNullOrEmpty(trailersAddonPath))
-            {
-                Log.Information("Found trailers addon zip. Starting background install");
-                Task.Run(async () => { await GeneralUtils.InstallTrailersAddonAsync(trailersAddonPath, true); });
-            }
         }
 
         AvaloniaXamlLoader.Load(this);
