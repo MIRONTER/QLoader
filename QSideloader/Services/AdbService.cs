@@ -474,7 +474,7 @@ public class AdbService
         if (device is not null)
             Log.Information("Device {Device} disconnected", device);
         Device = null;
-        _deviceStateChangeSubject.OnNext(DeviceState.Offline);
+        NotifyDeviceStateChange(DeviceState.Offline);
     }
 
     /// <summary>
@@ -487,7 +487,7 @@ public class AdbService
         device.State = DeviceState.Online;
         Device = device;
         if (!FirstDeviceSearch)
-            _deviceStateChangeSubject.OnNext(DeviceState.Online);
+            NotifyDeviceStateChange(DeviceState.Online);
     }
     
     /// <summary>
@@ -499,7 +499,24 @@ public class AdbService
     {
         Log.Warning("Not authorized for debugging of device {Device}", GetHashedId(device.Serial));
         device.State = DeviceState.Unauthorized;
-        _deviceStateChangeSubject.OnNext(DeviceState.Unauthorized);
+        NotifyDeviceStateChange(DeviceState.Unauthorized);
+    }
+    
+    /// <summary>
+    ///     Sends new device state to <see cref="WhenDeviceStateChanged"/> subscribers.
+    /// </summary>
+    /// <param name="state">Device state to send.</param>
+    private void NotifyDeviceStateChange(DeviceState state)
+    {
+        try
+        {
+            _deviceStateChangeSubject.OnNext(state);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Error while notifying device state change");
+            Globals.ShowErrorNotification(e, "Error while notifying device state change");
+        }
     }
 
     /// <summary>
