@@ -95,7 +95,7 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
                 {
                     if (ex is not (FileNotFoundException or DirectoryNotFoundException))
                         throw;
-                    // ignored
+                    Log.Warning("No thumbnail found for {PackageName}", Game.PackageName);
                 }
             }
         Task.Run(TryLoadStoreInfo);
