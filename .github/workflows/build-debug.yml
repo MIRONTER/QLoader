@@ -43,7 +43,7 @@ jobs:
       env:
         RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
       with:
-        args: copy --progress builds_ci/ drive:qloader_files/builds_ci/
+        args: copy -v builds_ci/ drive:qloader_files/builds_ci/
 
   build-linux-x64:
 
@@ -79,7 +79,7 @@ jobs:
       env:
         RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
       with:
-        args: copy --progress builds_ci/ drive:qloader_files/builds_ci/
+        args: copy -v builds_ci/ drive:qloader_files/builds_ci/
 
   build-osx-x64:
 
@@ -120,4 +120,4 @@ jobs:
       env:
         RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
       with:
-        args: copy --progress builds_ci/ drive:qloader_files/builds_ci/
+        args: copy -v builds_ci/ drive:qloader_files/builds_ci/
