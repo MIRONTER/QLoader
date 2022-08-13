@@ -1,0 +1,115 @@
+name: Build tag
+
+on:
+  push:
+    tags:
+    - '*'
+
+jobs:
+  build-win-x64:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+
+    - name: Install tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install zip -y
+    - uses: actions/checkout@v3
+      with:
+        submodules: 'true'
+
+    - name: Publish Debug
+      run: |
+        cd QSideloader
+        dotnet publish -c Debug --self-contained true --runtime win-x64 -p:PublishSingleFile=true -o ../win-x64
+    - name: Prepare for upload
+      env:
+        TAG_NAME: ${{ github.ref_name }}
+      run: |
+        echo Packing win-x64
+        mkdir -p builds_tag/$TAG_NAME/
+        zip -r builds_tag/$TAG_NAME/win-x64.zip win-x64/*
+    - name: Upload artifact
+      uses: wei/rclone@v1.1.1
+      env:
+        RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
+      with:
+        args: copy --progress builds_tag/ drive:qloader_files/builds_tag/
+
+  build-linux-x64:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+
+    - uses: actions/checkout@v3
+      with:
+        submodules: 'true'
+
+    - name: Publish Debug
+      run: |
+        cd QSideloader
+        dotnet publish -c Debug --self-contained true --runtime linux-x64 -p:PublishSingleFile=true -o ../linux-x64
+    - name: Prepare for upload
+      env:
+        TAG_NAME: ${{ github.ref_name }}
+      run: |
+        echo Packing linux-x64
+        mkdir -p builds_tag/$TAG_NAME/
+        chmod +x linux-x64/Loader
+        chmod -R +x linux-x64/tools/
+        tar cvzf builds_tag/$TAG_NAME/linux-x64.tar.gz linux-x64/*
+    - name: Upload artifact
+      uses: wei/rclone@v1.1.1
+      env:
+        RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
+      with:
+        args: copy --progress builds_tag/ drive:qloader_files/builds_tag/
+
+  build-osx-x64:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+
+    - name: Install tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install zip -y
+    - uses: actions/checkout@v3
+      with:
+        submodules: 'true'
+
+    - name: Publish Debug
+      run: |
+        cd QSideloader
+        dotnet publish -c Debug --self-contained true --runtime osx-x64 -p:PublishSingleFile=true -o ../osx-x64
+    - name: Prepare for upload
+      env:
+        TAG_NAME: ${{ github.ref_name }}
+      run: |
+        echo Packing osx-x64
+        mkdir -p builds_tag/$TAG_NAME/
+        chmod +x osx-x64/Loader
+        chmod -R +x osx-x64/tools/
+        zip -r builds_tag/$TAG_NAME/osx-x64.zip osx-x64/*
+    - name: Upload artifact
+      uses: wei/rclone@v1.1.1
+      env:
+        RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
+      with:
+        args: copy --progress builds_tag/ drive:qloader_files/builds_tag/
