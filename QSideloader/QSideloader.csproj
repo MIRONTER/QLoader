@@ -9,8 +9,6 @@
         <PublicSign>false</PublicSign>
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
-        <!--Workaround for macOS buils failing to load libAvaloniaNative.dylib after self update until system is rebooted-->
-        <IncludeAllContentForSelfExtract Condition="$(RuntimeIdentifier.Contains('osx'))">true</IncludeAllContentForSelfExtract>
         <NeutralLanguage>en</NeutralLanguage>
         <AssemblyName>Loader</AssemblyName>
         <AssemblyVersion>0.2.2.0</AssemblyVersion>
