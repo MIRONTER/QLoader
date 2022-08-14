@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -135,8 +136,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
         Log.Information("Initializing updater");
         try
         {
-            Globals.Updater = new SparkleUpdater(appcastUrl, new Ed25519Checker(SecurityMode.Unsafe)
-            )
+            Globals.Updater = new SparkleUpdater(appcastUrl, new Ed25519Checker(SecurityMode.Unsafe))
             {
                 Configuration = new JSONConfiguration(new AssemblyReflectionAccessor(null), "updater_config.json"),
                 UIFactory = new UIFactory(Icon),
@@ -144,7 +144,8 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
                 CustomInstallerArguments = "",
                 //LogWriter = new LogWriter(true), // uncomment to enable logging to console
                 ShowsUIOnMainThread = true,
-                
+                RestartExecutablePath = Directory.GetCurrentDirectory(),
+                RelaunchAfterUpdateCommandPrefix = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "./"
             };
             if (_sideloaderSettings.CheckUpdatesAutomatically)
                 Globals.Updater.StartLoop(true);
