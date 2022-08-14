@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Threading;
 using Avalonia;
 using Avalonia.ReactiveUI;
-using Avalonia.Rendering;
 
 namespace QSideloader;
 
-internal class Program
+internal static class Program
 {
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
@@ -32,7 +28,4 @@ internal class Program
 
         return builder;
     }
-
-    [DllImport("Dwmapi.dll")]
-    private static extern int DwmIsCompositionEnabled(out bool enabled);
 }
