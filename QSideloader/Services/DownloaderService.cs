@@ -661,7 +661,7 @@ public class DownloaderService
             var dict = new Dictionary<string, string> {{"hwid", GeneralUtils.GetHwid()}, {"package_name", packageName}};
             var json = JsonConvert.SerializeObject(dict, Formatting.None);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await ApiHttpClient.PostAsync("download", content);
+            var response = await ApiHttpClient.PostAsync("reportdownload", content);
             response.EnsureSuccessStatusCode();
             op.Complete();
         }
