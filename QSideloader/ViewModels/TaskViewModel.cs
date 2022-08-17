@@ -447,11 +447,20 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 () =>
                 {
                     AdbService.ReleasePackageOperationLock();
-                    if (deleteAfterInstall)
+                    if (deleteAfterInstall && Directory.Exists(gamePath))
                     {
                         Log.Information("Deleting downloaded files from {Path}", gamePath);
                         Status = "Deleting downloaded files";
-                        Directory.Delete(gamePath, true);
+                        try
+                        {
+                            Directory.Delete(gamePath, true);
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Error(e, "Failed to delete downloaded files");
+                            // Treat as success because the installation is still successful
+                            OnFinished("Failed to delete downloaded files");
+                        }
                     }
 
                     OnFinished("Installed");
