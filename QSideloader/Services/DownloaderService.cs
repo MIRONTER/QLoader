@@ -408,13 +408,18 @@ public class DownloaderService
                 case OperationCanceledException:
                     throw;
                 case CommandExecutionException when e.Message.Contains("downloadQuotaExceeded"):
+                    op.SetException(e);
                     throw new DownloadQuotaExceededException(MirrorName, source, e);
                 case CommandExecutionException {ExitCode: 1 or 3 or 4 or 7}:
                     if (!e.Message.Contains("no such host"))
+                    {
+                        op.SetException(e);
                         throw new RcloneTransferException($"Rclone {operation} error on mirror {MirrorName}", e);
+                    }
                     break;
             }
 
+            op.SetException(e);
             throw new DownloaderServiceException($"Error executing rclone {operation}", e);
         }
     }
