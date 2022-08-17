@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -355,8 +356,9 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         {
             if (t.IsFaulted)
             {
-                Log.Error(t.Exception!, "Failed to pull and upload");
-                OnFinished("Donation failed", false, t.Exception);
+                var exception = t.Exception!.InnerExceptions.FirstOrDefault() ?? t.Exception;
+                Log.Error(exception, "Failed to pull and upload");
+                OnFinished("Donation failed", false, exception);
                 throw t.Exception!;
             }
             if (t.IsCanceled)
