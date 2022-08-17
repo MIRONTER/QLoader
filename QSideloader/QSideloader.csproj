@@ -58,7 +58,6 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="AdvancedSharpAdbClient" Version="9.9.9" />
-        <PackageReference Include="ApkNet" Version="1.0.0" />
         <PackageReference Include="Aura.UI" Version="0.1.4.2" />
         <PackageReference Include="Aura.UI.FluentTheme" Version="0.1.4.2" />
         <PackageReference Include="Avalonia" Version="0.10.17" />
