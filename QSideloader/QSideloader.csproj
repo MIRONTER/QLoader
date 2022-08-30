@@ -11,12 +11,11 @@
         <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
         <NeutralLanguage>en</NeutralLanguage>
         <AssemblyName>Loader</AssemblyName>
-        <AssemblyVersion>0.2.3.1</AssemblyVersion>
-        <InformationalVersion>v0.2.3-beta</InformationalVersion>
+        <AssemblyVersion>0.2.4.0</AssemblyVersion>
+        <InformationalVersion>v0.2.4-dev</InformationalVersion>
         <IsPackable>false</IsPackable>
         <Company>FFA</Company>
         <ApplicationManifest>app.manifest</ApplicationManifest>
-        <RuntimeIdentifiers>win-x64;win-x86;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
     </PropertyGroup>
     <ItemGroup>
         <IncludeTools Condition="$(RuntimeIdentifier.Contains('win')) Or '$(RuntimeIdentifier)'==''" Include="tools\windows\**\*" />
