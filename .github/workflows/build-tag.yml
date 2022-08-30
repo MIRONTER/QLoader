@@ -75,6 +75,40 @@ jobs:
         RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
       with:
         args: copy -v builds_tag/ drive:qloader_files/builds_tag/
+  
+  build-linux-arm64:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 6.0.x
+
+      - uses: actions/checkout@v3
+        with:
+          submodules: 'true'
+
+      - name: Publish Debug
+        run: |
+          cd QSideloader
+          dotnet publish -c Debug --self-contained true --runtime linux-arm64 -p:PublishSingleFile=true -o ../linux-arm64
+      - name: Prepare for upload
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          echo Packing linux-arm64
+          mkdir -p builds_tag/$TAG_NAME/
+          chmod +x linux-arm64/Loader
+          chmod -R +x linux-arm64/tools/
+          tar cvzf builds_tag/$TAG_NAME/linux-arm64.tar.gz linux-arm64/*
+      - name: Upload artifact
+        uses: wei/rclone@v1.1.1
+        env:
+          RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
+        with:
+          args: copy -v builds_tag/ drive:qloader_files/builds_tag/
 
   build-osx-x64:
 
