@@ -388,8 +388,8 @@ public class DownloaderService
     private async Task RcloneTransferInternalAsync(string source, string destination, string operation,
         string additionalArgs = "", int retries = 1, CancellationToken ct = default)
     {
-        using var op = Operation.At(LogEventLevel.Information, LogEventLevel.Error).Begin(
-            "Rclone {Operation} \"{Source}\" -> \"{Destination}\"", operation, source, destination);
+        using var op = Operation.Begin("Rclone {Operation} \"{Source}\" -> \"{Destination}\"", 
+            operation, source, destination);
         try
         {
             var bwLimit = !string.IsNullOrEmpty(_sideloaderSettings.DownloaderBandwidthLimit)
