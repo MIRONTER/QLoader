@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AdvancedSharpAdbClient;
 using AdvancedSharpAdbClient.DeviceCommands;
+using AsyncAwaitBestPractices;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using CliWrap;
@@ -70,7 +71,7 @@ public class AdbService
             var lastWirelessAdbHost = _sideloaderSettings.LastWirelessAdbHost;
             if (!string.IsNullOrEmpty(lastWirelessAdbHost))
                 await TryConnectWirelessAdbAsync(lastWirelessAdbHost);
-        });
+        }).SafeFireAndForget();
     }
 
     public static AdbService Instance { get; } = new();

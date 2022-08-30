@@ -14,6 +14,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using AsyncAwaitBestPractices;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using CliWrap;
@@ -63,7 +64,7 @@ public class DownloaderService
             await UpdateRcloneConfigAsync();
             await EnsureMetadataAvailableAsync();
             await UpdateResourcesAsync();
-        });
+        }).SafeFireAndForget();
     }
 
     public static DownloaderService Instance { get; } = new();
@@ -621,7 +622,7 @@ public class DownloaderService
                         3, ct);
                     var json = JsonConvert.SerializeObject(game, Formatting.Indented);
                     await File.WriteAllTextAsync(Path.Combine(dstPath, "release.json"), json, ct);
-                    await ReportGameDownload(game.PackageName!);
+                    Task.Run(() => ReportGameDownload(game.PackageName!), ct).SafeFireAndForget();
                     break;
                 }
                 catch (Exception e)

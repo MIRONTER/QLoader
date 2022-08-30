@@ -13,6 +13,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using AdvancedSharpAdbClient;
+using AsyncAwaitBestPractices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -133,7 +134,7 @@ public class MainWindowViewModel : ViewModelBase
                 IsDeviceUnauthorized = true;
                 break;
         }
-        Task.Run(RefreshGameDonationBadge);
+        Task.Run(RefreshGameDonationBadge).SafeFireAndForget();
     }
 
     public void HandleDroppedFiles(IEnumerable<string> fileNames)
