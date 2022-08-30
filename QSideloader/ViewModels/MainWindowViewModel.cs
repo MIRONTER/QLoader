@@ -73,11 +73,8 @@ public class MainWindowViewModel : ViewModelBase
         ShowAuthHelpDialog = ReactiveCommand.CreateFromObservable(ShowAuthHelpDialogImpl);
         _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged);
         _adbService.WhenPackageListChanged.Subscribe(_ => RefreshGameDonationBadge());
-        Task.Run(() =>
-        {
-            TryInstallTrailersAddon();
-            IsDeviceConnected = _adbService.CheckDeviceConnection();
-        });
+        TryInstallTrailersAddon();
+        IsDeviceConnected = _adbService.CheckDeviceConnection();
     }
 
     [Reactive] public bool IsDeviceConnected { get; private set; }
@@ -397,14 +394,10 @@ public class MainWindowViewModel : ViewModelBase
         if (File.Exists(Path.Combine("..", "TrailersAddon.zip")))
             trailersAddonPath = Path.Combine("..", "TrailersAddon.zip");
 
-        if (!string.IsNullOrEmpty(trailersAddonPath))
-        {
-            Log.Information("Found trailers addon zip. Starting background install");
-            Task.Run(() =>
-            {
-                var taskOptions = new TaskOptions {Type = TaskType.InstallTrailersAddon, Path = trailersAddonPath};
-                AddTask(taskOptions);
-            });
-        }
+        if (string.IsNullOrEmpty(trailersAddonPath)) return;
+        
+        Log.Information("Found trailers addon zip. Starting background install");
+        var taskOptions = new TaskOptions {Type = TaskType.InstallTrailersAddon, Path = trailersAddonPath};
+        AddTask(taskOptions);
     }
 }
