@@ -1503,7 +1503,7 @@ public class AdbService
             catch (PackageInstallationException e)
             {
                 if (e.Message.Contains("DELETE_FAILED_INTERNAL_ERROR") && string.IsNullOrWhiteSpace(
-                        RunShellCommand($"pm list packages -3 | grep -w \"package:{packageName}\"")))
+                        RunShellCommand($"pm list packages -3 | grep -w ^package:{Regex.Escape(packageName!)}$")))
                 {
                     if (!silent)
                         Log.Warning("Package {PackageName} is not installed", packageName);
