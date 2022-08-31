@@ -1463,7 +1463,7 @@ public class AdbService
             
             // Using legacy PackageManager.InstallPackage method as AdbClient.Install hangs occasionally
             PackageManager.InstallPackage(apkPath, reinstall, grantRuntimePermissions);
-            Log.Information("Package installed");
+            Log.Information("Package {ApkFileName} installed", Path.GetFileName(apkPath));
         }
         
         /// <summary>
@@ -1630,7 +1630,7 @@ public class AdbService
             {
                 //var json = JsonConvert.SerializeObject(game);
                 //File.WriteAllText("game.json", json);
-                Log.Information("Backup created");
+                Log.Information("Backup of {PackageName} created", packageName);
             }
             else
             {
