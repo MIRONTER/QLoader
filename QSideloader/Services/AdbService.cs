@@ -1586,6 +1586,11 @@ public class AdbService
             if (options.BackupData)
             {
                 Log.Debug("Backing up private data");
+                if (RemoteDirectoryExists("/sdcard/backup_tmp/"))
+                {
+                    Log.Information("Found old backup_tmp directory on device, deleting");
+                    RunShellCommand("rm -r /sdcard/backup_tmp/", true);
+                }
                 Directory.CreateDirectory(privateDataBackupPath);
                 RunShellCommand(
                     $"mkdir /sdcard/backup_tmp/; run-as {packageName} cp -av {privateDataPath} /sdcard/backup_tmp/{packageName}/",
