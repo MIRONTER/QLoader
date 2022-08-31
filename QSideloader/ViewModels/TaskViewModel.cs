@@ -492,7 +492,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     {
         EnsureDeviceConnected();
         Status = "Creating backup";
-        await Task.Run(() => _adbDevice!.CreateBackup(_game!, _backupOptions!));
+        await Task.Run(() => _adbDevice!.CreateBackup(_game!.PackageName!, _backupOptions!));
     }
     
     private async Task RestoreAsync(Backup backup)

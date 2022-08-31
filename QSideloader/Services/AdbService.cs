@@ -1544,24 +1544,11 @@ public class AdbService
         }
 
         /// <summary>
-        ///     Backs up given game.
-        /// </summary>
-        /// <param name="game"><see cref="Game" /> to backup.</param>
-        /// <param name="options"><see cref="BackupOptions"/> to configure backup.</param>
-        /// <returns>Path to backup, or empty string if nothing was backed up.</returns>
-        /// <seealso cref="CreateBackup(string,BackupOptions)" />
-        public Backup? CreateBackup(Game game, BackupOptions options)
-        {
-            return CreateBackup(game.PackageName!, options);
-        }
-
-        /// <summary>
         ///     Backs up app with given package name.
         /// </summary>
         /// <param name="packageName">Package name to backup.</param>
         /// <param name="options"><see cref="BackupOptions"/> to configure backup.</param>
         /// <returns>Path to backup, or <c>null</c> if nothing was backed up.</returns>
-        /// <seealso cref="CreateBackup(QSideloader.Models.Game,BackupOptions)" />
         public Backup? CreateBackup(string packageName, BackupOptions options)
         {
             EnsureValidPackageName(packageName);
