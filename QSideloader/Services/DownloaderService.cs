@@ -355,7 +355,6 @@ public class DownloaderService
             throw new DownloaderServiceException("Failed to load mirror list");
         if (_mirrorList.Count == 0)
         {
-            Log.Error("No mirrors available");
             Globals.ShowNotification("Error", "No mirrors available", NotificationType.Error, TimeSpan.FromSeconds(10));
             throw new DownloaderServiceException("No mirrors available");
         }
