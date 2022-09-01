@@ -347,10 +347,18 @@ public class DownloaderService
         {
             Log.Warning("Failed to exclude dead mirrors: {Message}", e.Message);
         }
-        _mirrorList = GetMirrorList().Where(x => !ExcludedMirrorList.Contains(x)).ToList();
+
+        var mirrorList = GetMirrorList();
+        _mirrorList = mirrorList.Where(x => !ExcludedMirrorList.Contains(x)).ToList();
         Log.Debug("Loaded mirrors: {MirrorList}", _mirrorList);
-        if (_mirrorList.Count == 0)
+        if (mirrorList.Count == 0)
             throw new DownloaderServiceException("Failed to load mirror list");
+        if (_mirrorList.Count == 0)
+        {
+            Log.Error("No mirrors available");
+            Globals.ShowNotification("Error", "No mirrors available", NotificationType.Error, TimeSpan.FromSeconds(10));
+            throw new DownloaderServiceException("No mirrors available");
+        }
         IsMirrorListInitialized = true;
     }
 
