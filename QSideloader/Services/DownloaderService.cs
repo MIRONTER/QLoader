@@ -64,7 +64,7 @@ public class DownloaderService
             await UpdateRcloneConfigAsync();
             await EnsureMetadataAvailableAsync();
             await UpdateResourcesAsync();
-        }).SafeFireAndForget();
+        });
     }
 
     public static DownloaderService Instance { get; } = new();
