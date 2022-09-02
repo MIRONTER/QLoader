@@ -65,7 +65,7 @@ public class DownloaderService
             await UpdateRcloneConfigAsync();
             await EnsureMetadataAvailableAsync();
             await UpdateResourcesAsync();
-        }).SafeFireAndForget();
+        });
     }
 
     public static DownloaderService Instance { get; } = new();
@@ -348,10 +348,17 @@ public class DownloaderService
         {
             Log.Warning("Failed to exclude dead mirrors: {Message}", e.Message);
         }
-        _mirrorList = GetMirrorList().Where(x => !ExcludedMirrorList.Contains(x)).ToList();
+
+        var mirrorList = GetMirrorList();
+        _mirrorList = mirrorList.Where(x => !ExcludedMirrorList.Contains(x)).ToList();
         Log.Debug("Loaded mirrors: {MirrorList}", _mirrorList);
-        if (_mirrorList.Count == 0)
+        if (mirrorList.Count == 0)
             throw new DownloaderServiceException("Failed to load mirror list");
+        if (_mirrorList.Count == 0)
+        {
+            Globals.ShowNotification("Error", "No mirrors available", NotificationType.Error, TimeSpan.FromSeconds(10));
+            throw new DownloaderServiceException("No mirrors available");
+        }
         IsMirrorListInitialized = true;
     }
 

@@ -288,7 +288,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 else if (IsValidUsername(UsernameTextBoxText))
                 {
                     _adbService.Device!.RunShellCommand($"settings put global username {UsernameTextBoxText}");
-                    Log.Information("Set username: {Username}", UsernameTextBoxText);
+                    Log.Information("Set username");
                 }
             }
             Log.Information("Applied device settings");
