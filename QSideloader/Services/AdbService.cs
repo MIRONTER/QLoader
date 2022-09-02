@@ -1369,7 +1369,7 @@ public class AdbService
                             case "uninstall":
                             {
                                 var packageName = args.First();
-                                CreateBackup(packageName, new BackupOptions());
+                                CreateBackup(packageName, new BackupOptions(), ct);
                                 try
                                 {
                                     UninstallPackageInternal(packageName);
@@ -1396,7 +1396,7 @@ public class AdbService
                                 if (args.Count > 2 && args[0] == "pm" && args[1] == "uninstall")
                                 {
                                     var packageName = args[2];
-                                    CreateBackup(packageName, new BackupOptions());
+                                    CreateBackup(packageName, new BackupOptions(), ct);
                                     try
                                     {
                                         UninstallPackageInternal(packageName);
