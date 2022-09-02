@@ -11,7 +11,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Windows.Input;
 using AdvancedSharpAdbClient;
 using AsyncAwaitBestPractices;
 using Avalonia;

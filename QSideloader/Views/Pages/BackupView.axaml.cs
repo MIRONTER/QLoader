@@ -1,12 +1,10 @@
-﻿using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
+﻿using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
 using QSideloader.ViewModels;
 
 namespace QSideloader.Views.Pages;
 
-public partial class BackupView : ReactiveUserControl<BackupViewModel>
+public class BackupView : ReactiveUserControl<BackupViewModel>
 {
     public BackupView()
     {

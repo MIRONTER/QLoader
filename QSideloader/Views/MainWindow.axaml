@@ -20,6 +20,7 @@
         TransparencyBackgroundFallback="Black"-->
 
     <Design.DataContext>
+        <!-- ReSharper disable once Xaml.ConstructorWarning -->
         <vm:MainWindowViewModel />
     </Design.DataContext>
 

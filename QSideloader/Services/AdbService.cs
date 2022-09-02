@@ -847,11 +847,10 @@ public class AdbService
         private PackageManager PackageManager { get; }
         public float SpaceUsed { get; private set; }
         public float SpaceFree { get; private set; }
-        public float SpaceTotal { get; private set; }
         public float BatteryLevel { get; private set; }
         public List<(string packageName, VersionInfo? versionInfo)> InstalledPackages { get; } = new();
-        public List<InstalledGame> InstalledGames { get; set; } = new();
-        public List<InstalledApp> InstalledApps { get; set; } = new();
+        public List<InstalledGame> InstalledGames { get; private set; } = new();
+        public List<InstalledApp> InstalledApps { get; private set; } = new();
         public bool IsRefreshingInstalledGames => _packagesSemaphoreSlim.CurrentCount == 0;
         public string FriendlyName { get; }
         
@@ -956,7 +955,6 @@ public class AdbService
                 var dfOutput = RunShellCommand("df /storage/emulated");
                 var dfOutputSplit = dfOutput.Split(new[] {"\r\n", "\r", "\n"}, StringSplitOptions.None);
                 var line = Regex.Split(dfOutputSplit[1], @"\s{1,}");
-                SpaceTotal = (float) Math.Round(float.Parse(line[1]) / 1000000, 2);
                 SpaceUsed = (float) Math.Round(float.Parse(line[2]) / 1000000, 2);
                 SpaceFree = (float) Math.Round(float.Parse(line[3]) / 1000000, 2);
 
@@ -966,7 +964,6 @@ public class AdbService
             }
             catch (Exception e)
             {
-                SpaceTotal = 0;
                 SpaceUsed = 0;
                 SpaceFree = 0;
                 BatteryLevel = 0;
