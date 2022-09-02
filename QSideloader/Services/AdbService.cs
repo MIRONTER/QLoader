@@ -1090,12 +1090,13 @@ public class AdbService
         /// </summary>
         /// <param name="localPath">Path to a local file.</param>
         /// <param name="remotePath">Remote path to push the file to.</param>
-        private void PushFile(string localPath, string remotePath)
+        /// <param name="ct">Cancellation token.</param>
+        private void PushFile(string localPath, string remotePath, CancellationToken ct = default)
         {
             Log.Debug("Pushing file: \"{LocalPath}\" -> \"{RemotePath}\"", localPath, remotePath);
             using var syncService = new SyncService(_adb.AdbClient, this);
             using var file = File.OpenRead(localPath);
-            syncService.Push(file, remotePath, 771, DateTime.Now, null, CancellationToken.None);
+            syncService.Push(file, remotePath, 771, DateTime.Now, null, ct);
         }
 
         /// <summary>
@@ -1104,7 +1105,7 @@ public class AdbService
         /// <param name="localPath">Path to a local directory.</param>
         /// <param name="remotePath">Remote path to push the file to.</param>
         /// <param name="overwrite">Pushed directory should fully overwrite existing one (if exists).</param>
-        private void PushDirectory(string localPath, string remotePath, bool overwrite = false)
+        private void PushDirectory(string localPath, string remotePath, bool overwrite = false, CancellationToken ct = default)
         {
             if (!remotePath.EndsWith("/"))
                 remotePath += "/";
@@ -1126,7 +1127,7 @@ public class AdbService
             var relativeFileList = fileList.Select(filePath => Path.GetRelativePath(localPath, filePath));
             foreach (var file in relativeFileList)
                 PushFile(localPath + Path.DirectorySeparatorChar + file,
-                    fullPath + "/" + file.Replace(@"\", "/"));
+                    fullPath + "/" + file.Replace(@"\", "/"), ct);
         }
 
         /// <summary>
@@ -1197,8 +1198,9 @@ public class AdbService
         /// </summary>
         /// <param name="game"><see cref="Game" /> to sideload.</param>
         /// <param name="gamePath">Path to game files.</param>
+        /// <param name="ct">Cancellation token.</param>
         /// <returns><see cref="IObservable{T}" /> that reports current status.</returns>
-        public IObservable<string> SideloadGame(Game game, string gamePath)
+        public IObservable<string> SideloadGame(Game game, string gamePath, CancellationToken ct = default)
         {
             return Observable.Create<string>(observer =>
             {
@@ -1242,7 +1244,7 @@ public class AdbService
                             observer.OnNext("Performing custom install");
                             var installScriptName = Path.GetFileName(installScriptPath);
                             Log.Information("Running commands from {InstallScriptName}", installScriptName);
-                            RunInstallScript(installScriptPath);
+                            RunInstallScript(installScriptPath, ct);
                         }
                         else
                             // install APKs, copy OBB dir
@@ -1259,7 +1261,7 @@ public class AdbService
                                 Log.Information("Found OBB directory for {PackageName}, pushing to device",
                                     game.PackageName);
                                 observer.OnNext("Pushing OBB files");
-                                PushDirectory(Path.Combine(gamePath, game.PackageName), "/sdcard/Android/obb/", true);
+                                PushDirectory(Path.Combine(gamePath, game.PackageName), "/sdcard/Android/obb/", true, ct);
                             }
                         }
                     }
@@ -1270,13 +1272,23 @@ public class AdbService
                 }
                 catch (Exception e)
                 {
-                    op.SetException(e);
-                    op.Abandon();
+                    
                     if (!reinstall && game.PackageName is not null)
                     {
-                        Log.Information("Cleaning up failed install");
+                        // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
+                        Log.Information(e is OperationCanceledException
+                            ? "Cleaning up cancelled install"
+                            : "Cleaning up failed install");
                         CleanupRemnants(game.PackageName);
                     }
+                    if (e is OperationCanceledException)
+                    {
+                        observer.OnError(e);
+                        op.Cancel();
+                        return Disposable.Empty;
+                    }
+                    op.SetException(e);
+                    op.Abandon();
                     observer.OnError(new AdbServiceException("Failed to sideload game", e));
                 }
 
@@ -1287,7 +1299,7 @@ public class AdbService
             {
                 try
                 {
-                    InstallPackage(apkPath, false, true);
+                    InstallPackage(apkPath, false, true, ct);
                 }
                 catch (PackageInstallationException e)
                 {
@@ -1299,7 +1311,7 @@ public class AdbService
                         var apkInfo = GeneralUtils.GetApkInfo(apkPath);
                         var backup = CreateBackup(apkInfo.PackageName, new BackupOptions {NameAppend = "reinstall"});
                         UninstallPackageInternal(apkInfo.PackageName);
-                        InstallPackage(apkPath, false, true);
+                        InstallPackage(apkPath, false, true, ct);
                         if (backup is not null)
                             RestoreBackup(backup);
                     }
@@ -1315,9 +1327,10 @@ public class AdbService
         ///     Runs custom install script.
         /// </summary>
         /// <param name="scriptPath">Path to install script.</param>
+        /// <param name="ct">Cancellation token.</param>
         /// <exception cref="FileNotFoundException">Thrown if install script not found.</exception>
         /// <exception cref="AdbServiceException">Thrown if an error occured when running the script.</exception>
-        private void RunInstallScript(string scriptPath)
+        private void RunInstallScript(string scriptPath, CancellationToken ct = default)
         {
             try
             {
@@ -1329,9 +1342,10 @@ public class AdbService
                 var gamePath = Path.GetDirectoryName(scriptPath)!;
                 var scriptCommands = File.ReadAllLines(scriptPath);
                 foreach (var archivePath in Directory.GetFiles(gamePath, "*.7z", SearchOption.TopDirectoryOnly))
-                    ZipUtil.ExtractArchive(archivePath, gamePath);
+                    ZipUtil.ExtractArchive(archivePath, gamePath, ct);
                 foreach (var rawCommand in scriptCommands)
                 {
+                    ct.ThrowIfCancellationRequested();
                     if (string.IsNullOrWhiteSpace(rawCommand) || rawCommand.StartsWith("#")) continue;
                     var command = rawCommand.Replace(" > NUL 2>&1", "");
                     Log.Information("{ScriptName}: Running command: \"{Command}\"", scriptName, command);
@@ -1349,7 +1363,7 @@ public class AdbService
                                 var reinstall = args.Contains("-r");
                                 var grantRuntimePermissions = args.Contains("-g");
                                 var apkPath = Path.Combine(gamePath, args.First(x => x.EndsWith(".apk")));
-                                InstallPackage(apkPath, reinstall, grantRuntimePermissions);
+                                InstallPackage(apkPath, reinstall, grantRuntimePermissions, ct);
                                 break;
                             }
                             case "uninstall":
@@ -1371,9 +1385,9 @@ public class AdbService
                                 var source = Path.Combine(gamePath, args[0]);
                                 var destination = Path.Combine(gamePath, args[1]);
                                 if (Directory.Exists(source))
-                                    PushDirectory(source, destination);
+                                    PushDirectory(source, destination, ct: ct);
                                 else
-                                    PushFile(source, destination);
+                                    PushFile(source, destination, ct);
                                 break;
                             }
                             case "shell":
@@ -1410,6 +1424,8 @@ public class AdbService
             }
             catch (Exception e)
             {
+                if (e is OperationCanceledException)
+                    throw;
                 throw new AdbServiceException("Error running install script", e);
             }
         }
@@ -1438,7 +1454,7 @@ public class AdbService
             }
             catch (Exception e)
             {
-                Log.Warning(e, "Failed to clean up remnants of package {PackageName}", packageName);
+                Log.Error(e, "Failed to clean up remnants of package {PackageName}", packageName);
             }
         }
 
@@ -1449,7 +1465,7 @@ public class AdbService
         /// <param name="reinstall">Set reinstall flag for pm.</param>
         /// <param name="grantRuntimePermissions">Grant all runtime permissions.</param>
         /// <remarks>Legacy install method is used to avoid rare hang issues.</remarks>
-        private void InstallPackage(string apkPath, bool reinstall, bool grantRuntimePermissions)
+        private void InstallPackage(string apkPath, bool reinstall, bool grantRuntimePermissions, CancellationToken ct = default)
         {
             Log.Information("Installing APK: {ApkFileName}", Path.GetFileName(apkPath));
             
@@ -1462,7 +1478,7 @@ public class AdbService
             // Adb.AdbClient.Install(this, stream, args.ToArray());
             
             // Using legacy PackageManager.InstallPackage method as AdbClient.Install hangs occasionally
-            PackageManager.InstallPackage(apkPath, reinstall, grantRuntimePermissions);
+            PackageManager.InstallPackage(apkPath, reinstall, grantRuntimePermissions, ct);
             Log.Information("Package {ApkFileName} installed", Path.GetFileName(apkPath));
         }
         

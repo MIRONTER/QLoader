@@ -443,14 +443,17 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         Status = "Installing";
 
         // Here I assume that Install is the last step in the process, this might change in the future
-        _adbDevice!.SideloadGame(_game!, gamePath)
+        _adbDevice!.SideloadGame(_game!, gamePath, _cancellationTokenSource.Token)
             .SubscribeOn(RxApp.TaskpoolScheduler)
             .Subscribe(
                 x => Status = x,
                 e =>
                 {
                     AdbService.ReleasePackageOperationLock();
-                    OnFinished("Install failed", false, e);
+                    if (e is OperationCanceledException)
+                        OnFinished("Cancelled");
+                    else
+                        OnFinished("Install failed", false, e);
                 },
                 () =>
                 {
