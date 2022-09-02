@@ -95,7 +95,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
         switch (selectedTask.IsFinished)
         {
             case true when viewModel.TaskList.Contains(selectedTask):
-                Log.Debug("Dismissed finished task {GameName}",
+                Log.Debug("Dismissed finished task {TaskType} {TaskName}", selectedTask.TaskType,
                     selectedTask.TaskName);
                 viewModel.TaskList.Remove(selectedTask);
                 break;
