@@ -1279,6 +1279,7 @@ public class AdbService
                         Log.Information(e is OperationCanceledException
                             ? "Cleaning up cancelled install"
                             : "Cleaning up failed install");
+                        observer.OnNext("Cleaning up");
                         CleanupRemnants(game.PackageName);
                     }
                     if (e is OperationCanceledException)
