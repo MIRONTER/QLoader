@@ -1115,7 +1115,7 @@ public class AdbService
 
             var fullPath = (remotePath + localDir).Replace(@"\", "/");
             if (overwrite && RemoteDirectoryExists(fullPath))
-                RunShellCommand($"rm -rf {fullPath}", true);
+                RunShellCommand($"rm -rf \"{fullPath}\"", true);
             RunShellCommand($"mkdir -p \"{fullPath}/\"", true);
             foreach (var dirPath in relativeDirList)
                 RunShellCommand(
