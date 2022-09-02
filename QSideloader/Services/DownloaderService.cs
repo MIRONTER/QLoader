@@ -20,6 +20,7 @@ using Avalonia.Controls.Notifications;
 using CliWrap;
 using CliWrap.Buffered;
 using CliWrap.Exceptions;
+using Downloader;
 using FileHelpers;
 using Newtonsoft.Json;
 using QSideloader.Models;
@@ -762,10 +763,12 @@ public class DownloaderService
     /// <summary>
     ///     Downloads trailers addon archive from latest release.
     /// </summary>
+    /// <param name="progress"><see cref="IProgress{T}"/> that reports download progress.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>Path to downloaded archive.</returns>
     /// <exception cref="DownloaderServiceException">Thrown if trailers addon is already being downloaded.</exception>
-    public async Task<string> DownloadTrailersAddon(CancellationToken ct = default)
+    public async Task<string> DownloadTrailersAddon(
+        IProgress<(double bytesPerSecond, long downloadedBytes, long totalBytes)>? progress = default, CancellationToken ct = default)
     {
         if (TrailersAddonSemaphoreSlim.CurrentCount == 0)
             throw new DownloaderServiceException("Trailers addon is already downloading");
@@ -779,12 +782,34 @@ public class DownloaderService
             Log.Information("Downloading trailers addon from {TrailersAddonUrl}", trailersAddonUrl);
             if (File.Exists(trailersAddonPath))
                 File.Delete(trailersAddonPath);
-            await using var stream = await HttpClient.GetStreamAsync(trailersAddonUrl, ct);
-            await using (var fileStream = new FileStream(trailersAddonPath, FileMode.CreateNew))
+            var downloadOpt = new DownloadConfiguration
             {
-                await stream.CopyToAsync(fileStream, ct);
-                await fileStream.FlushAsync(ct);
-            }
+                OnTheFlyDownload = false,
+                ChunkCount = 6,
+                ParallelDownload = true,
+                BufferBlockSize = 8000,
+                MaxTryAgainOnFailover = 2,
+                RequestConfiguration =
+                {
+                    UserAgent = ApiHttpClient.DefaultRequestHeaders.UserAgent.ToString()
+                }
+            };
+            var downloader = new DownloadService(downloadOpt);
+            downloader.DownloadProgressChanged += (_, _) =>
+            {
+                if (ct.IsCancellationRequested)
+                {
+                    downloader.CancelAsync();
+                    downloader.Package.Clear();
+                }
+            };
+            downloader.DownloadProgressChanged +=
+                GeneralUtils.CreateThrottledEventHandler<Downloader.DownloadProgressChangedEventArgs>((_, args) =>
+                {
+                    progress?.Report((args.BytesPerSecondSpeed, args.ReceivedBytesSize, args.TotalBytesToReceive));
+                }, TimeSpan.FromMilliseconds(100));
+            await downloader.DownloadFileTaskAsync(trailersAddonUrl, trailersAddonPath);
+            ct.ThrowIfCancellationRequested();
 
             op.Complete();
             return trailersAddonPath;

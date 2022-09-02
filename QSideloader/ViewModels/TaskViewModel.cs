@@ -156,6 +156,14 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
         DownloadStats = $"{progressPercent}%, {speedMBytes}MB/s";
     }
+    
+    private void RefreshDownloadStats((double bytesPerSecond, long downloadedBytes, long totalBytes) stats)
+    {
+        var speedMBytes = Math.Round(stats.bytesPerSecond / 1000000, 2);
+        var progressPercent = Math.Floor((double)stats.downloadedBytes / stats.totalBytes * 100);
+
+        DownloadStats = $"{progressPercent}%, {speedMBytes}MB/s";
+    }
 
     private async Task RunDownloadAndInstallAsync()
     {
@@ -515,8 +523,12 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     {
         Status = "Downloading";
         if (!File.Exists(_path))
-            _path = await _downloaderService.DownloadTrailersAddon(_cancellationTokenSource.Token);
+        {
+            var progress = new DelegateProgress<(double bytesPerSecond, long downloadedBytes, long totalBytes)>(RefreshDownloadStats);
+            _path = await _downloaderService.DownloadTrailersAddon(progress, _cancellationTokenSource.Token);
+        }
         Status = "Installing";
+        DownloadStats = "";
         await GeneralUtils.InstallTrailersAddonAsync(_path, true);
         OnFinished("Installed");
     }
@@ -528,6 +540,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         Hint = "Click to dismiss";
         IsFinished = true;
         Status = status;
+        DownloadStats = "";
         Log.Information("Task {TaskType} {TaskName} finished. Result: {Status}",
             _taskType, TaskName, status);
         if (isSuccess) return;

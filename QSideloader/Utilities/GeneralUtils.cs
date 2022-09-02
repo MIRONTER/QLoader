@@ -141,6 +141,20 @@ public static class GeneralUtils
             return false;
         }
     }
+    
+    public static EventHandler<T> CreateThrottledEventHandler<T>(
+        EventHandler<T> handler, 
+        TimeSpan throttle)
+    {   
+        var throttling = false;
+        return (s,e) =>
+        {
+            if(throttling) return;              
+            handler(s,e);
+            throttling = true;
+            Task.Delay(throttle).ContinueWith(_ => throttling = false);
+        };
+    }
 }
 
 [SuppressMessage("ReSharper", "InconsistentNaming")]
