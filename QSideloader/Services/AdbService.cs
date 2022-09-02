@@ -1105,6 +1105,7 @@ public class AdbService
         /// <param name="localPath">Path to a local directory.</param>
         /// <param name="remotePath">Remote path to push the file to.</param>
         /// <param name="overwrite">Pushed directory should fully overwrite existing one (if exists).</param>
+        /// <param name="ct">Cancellation token.</param>
         private void PushDirectory(string localPath, string remotePath, bool overwrite = false, CancellationToken ct = default)
         {
             if (!remotePath.EndsWith("/"))
@@ -1135,14 +1136,15 @@ public class AdbService
         /// </summary>
         /// <param name="remotePath">Path to a file on the device.</param>
         /// <param name="localPath">Local path to pull to.</param>
-        private void PullFile(string remotePath, string localPath)
+        /// <param name="ct">Cancellation token.</param>
+        private void PullFile(string remotePath, string localPath, CancellationToken ct = default)
         {
             var remoteFileName = remotePath.Split('/').Last(x => !string.IsNullOrEmpty(x));
             var localFilePath = localPath + Path.DirectorySeparatorChar + remoteFileName;
             Log.Debug("Pulling file: \"{RemotePath}\" -> \"{LocalPath}\"", remotePath, localFilePath);
             using var syncService = new SyncService(_adb.AdbClient, this);
             using var file = File.OpenWrite(localFilePath);
-            syncService.Pull(remotePath, file, null, CancellationToken.None);
+            syncService.Pull(remotePath, file, null, ct);
         }
 
         /// <summary>
@@ -1151,7 +1153,8 @@ public class AdbService
         /// <param name="remotePath">Path to a directory on the device.</param>
         /// <param name="localPath">Local path to pull to.</param>
         /// <param name="excludeDirs">Names of directories to exclude from pulling.</param>
-        private void PullDirectory(string remotePath, string localPath, IEnumerable<string>? excludeDirs = default)
+        /// <param name="ct">Cancellation token.</param>
+        private void PullDirectory(string remotePath, string localPath, IEnumerable<string>? excludeDirs = default, CancellationToken ct = default)
         {
             if (!remotePath.EndsWith("/"))
                 remotePath += "/";
@@ -1167,9 +1170,9 @@ public class AdbService
                 !excludeDirsList.Contains(x.Path.Split('/').Last(s => !string.IsNullOrEmpty(s)))).ToList();
             foreach (var remoteFile in remoteDirectoryListing.Where(x => x.Path != "." && x.Path != ".."))
                 if (remoteFile.FileMode.HasFlag(UnixFileMode.Directory))
-                    PullDirectory(remotePath + remoteFile.Path, localDir, excludeDirsList);
+                    PullDirectory(remotePath + remoteFile.Path, localDir, excludeDirsList, ct);
                 else if (remoteFile.FileMode.HasFlag(UnixFileMode.Regular))
-                    PullFile(remotePath + remoteFile.Path, localDir);
+                    PullFile(remotePath + remoteFile.Path, localDir, ct);
         }
 
         /// <summary>
@@ -1309,7 +1312,7 @@ public class AdbService
                         observer.OnNext("Incompatible update, reinstalling");
                         Log.Information("Incompatible update, reinstalling. Reason: {Message}", e.Message);
                         var apkInfo = GeneralUtils.GetApkInfo(apkPath);
-                        var backup = CreateBackup(apkInfo.PackageName, new BackupOptions {NameAppend = "reinstall"});
+                        var backup = CreateBackup(apkInfo.PackageName, new BackupOptions {NameAppend = "reinstall"}, ct);
                         UninstallPackageInternal(apkInfo.PackageName);
                         InstallPackage(apkPath, false, true, ct);
                         if (backup is not null)
@@ -1464,6 +1467,7 @@ public class AdbService
         /// <param name="apkPath">Path to APK file.</param>
         /// <param name="reinstall">Set reinstall flag for pm.</param>
         /// <param name="grantRuntimePermissions">Grant all runtime permissions.</param>
+        /// <param name="ct">Cancellation token.</param>
         /// <remarks>Legacy install method is used to avoid rare hang issues.</remarks>
         private void InstallPackage(string apkPath, bool reinstall, bool grantRuntimePermissions, CancellationToken ct = default)
         {
@@ -1564,8 +1568,9 @@ public class AdbService
         /// </summary>
         /// <param name="packageName">Package name to backup.</param>
         /// <param name="options"><see cref="BackupOptions"/> to configure backup.</param>
+        /// <param name="ct">Cancellation token.</param>
         /// <returns>Path to backup, or <c>null</c> if nothing was backed up.</returns>
-        public Backup? CreateBackup(string packageName, BackupOptions options)
+        public Backup? CreateBackup(string packageName, BackupOptions options, CancellationToken ct = default)
         {
             EnsureValidPackageName(packageName);
             Log.Information("Backing up {PackageName}", packageName);
@@ -1586,66 +1591,79 @@ public class AdbService
             Directory.CreateDirectory(backupPath);
             File.Create(Path.Combine(backupPath, ".backup")).Dispose();
             var backupEmpty = true;
-            if (options.BackupData)
+            try
             {
-                Log.Debug("Backing up private data");
-                if (RemoteDirectoryExists("/sdcard/backup_tmp/"))
+                if (options.BackupData)
                 {
-                    Log.Information("Found old backup_tmp directory on device, deleting");
-                    RunShellCommand("rm -r /sdcard/backup_tmp/", true);
+                    Log.Debug("Backing up private data");
+                    if (RemoteDirectoryExists("/sdcard/backup_tmp/"))
+                    {
+                        Log.Information("Found old backup_tmp directory on device, deleting");
+                        RunShellCommand("rm -r /sdcard/backup_tmp/", true);
+                    }
+
+                    Directory.CreateDirectory(privateDataBackupPath);
+                    RunShellCommand(
+                        $"mkdir /sdcard/backup_tmp/; run-as {packageName} cp -av {privateDataPath} /sdcard/backup_tmp/{packageName}/",
+                        true);
+                    PullDirectory($"/sdcard/backup_tmp/{packageName}/", privateDataBackupPath,
+                        new List<string> {"cache", "code_cache"}, ct);
+                    RunShellCommand("rm -rf /sdcard/backup_tmp/", true);
+                    var privateDataHasFiles = Directory.EnumerateFiles(privateDataBackupPath).Any();
+                    if (!privateDataHasFiles)
+                        Directory.Delete(privateDataBackupPath, true);
+                    backupEmpty = backupEmpty && !privateDataHasFiles;
+                    if (RemoteDirectoryExists(sharedDataPath))
+                    {
+                        backupEmpty = false;
+                        Log.Debug("Backing up shared data");
+                        Directory.CreateDirectory(sharedDataBackupPath);
+                        PullDirectory(sharedDataPath, sharedDataBackupPath, new List<string> {"cache"}, ct);
+                    }
                 }
-                Directory.CreateDirectory(privateDataBackupPath);
-                RunShellCommand(
-                    $"mkdir /sdcard/backup_tmp/; run-as {packageName} cp -av {privateDataPath} /sdcard/backup_tmp/{packageName}/",
-                    true);
-                PullDirectory($"/sdcard/backup_tmp/{packageName}/", privateDataBackupPath,
-                    new List<string> {"cache", "code_cache"});
-                RunShellCommand("rm -rf /sdcard/backup_tmp/", true);
-                var privateDataHasFiles = Directory.EnumerateFiles(privateDataBackupPath).Any();
-                if (!privateDataHasFiles)
-                    Directory.Delete(privateDataBackupPath, true);
-                backupEmpty = backupEmpty && !privateDataHasFiles;
-                if (RemoteDirectoryExists(sharedDataPath))
+
+                if (options.BackupApk)
                 {
                     backupEmpty = false;
-                    Log.Debug("Backing up shared data");
-                    Directory.CreateDirectory(sharedDataBackupPath);
-                    PullDirectory(sharedDataPath, sharedDataBackupPath, new List<string> {"cache"});
+                    Log.Debug("Backing up APK");
+                    PullFile(apkPath, backupPath, ct);
                 }
-            }
 
-            if (options.BackupApk)
-            {
-                backupEmpty = false;
-                Log.Debug("Backing up APK");
-                PullFile(apkPath, backupPath);
-            }
+                if (options.BackupObb && RemoteDirectoryExists(obbPath))
+                {
+                    backupEmpty = false;
+                    Log.Debug("Backing up OBB");
+                    Directory.CreateDirectory(obbBackupPath);
+                    PullDirectory(obbPath, obbBackupPath, ct: ct);
+                }
 
-            if (options.BackupObb && RemoteDirectoryExists(obbPath))
-            {
-                backupEmpty = false;
-                Log.Debug("Backing up OBB");
-                Directory.CreateDirectory(obbBackupPath);
-                PullDirectory(obbPath, obbBackupPath);
-            }
+                if (!backupEmpty)
+                {
+                    //var json = JsonConvert.SerializeObject(game);
+                    //File.WriteAllText("game.json", json);
+                    Log.Information("Backup of {PackageName} created", packageName);
+                }
+                else
+                {
+                    Log.Information("Nothing was backed up");
+                    Directory.Delete(backupPath, true);
+                    return null;
+                }
 
-            if (!backupEmpty)
-            {
-                //var json = JsonConvert.SerializeObject(game);
-                //File.WriteAllText("game.json", json);
-                Log.Information("Backup of {PackageName} created", packageName);
+                var backup = new Backup(backupPath);
+                _adbService._backupList.Add(backup);
+                _adbService._backupListChangeSubject.OnNext(Unit.Default);
+                return backup;
             }
-            else
+            catch (OperationCanceledException)
             {
-                Log.Information("Nothing was backed up");
-                Directory.Delete(backupPath, true);
-                return null;
+                Log.Information("Cleaning up cancelled backup");
+                if (options.BackupData)
+                    RunShellCommand("rm -r /sdcard/backup_tmp/", true);
+                if (Directory.Exists(backupPath))
+                    Directory.Delete(backupPath, true);
+                throw;
             }
-
-            var backup = new Backup(backupPath);
-            _adbService._backupList.Add(backup);
-            _adbService._backupListChangeSubject.OnNext(Unit.Default);
-            return backup;
         }
         
         /// <summary>
