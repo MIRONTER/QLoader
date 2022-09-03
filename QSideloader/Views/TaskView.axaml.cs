@@ -27,10 +27,11 @@ public class TaskView : ReactiveUserControl<TaskViewModel>
         InitializeComponent();
     }
 
-    public string TaskName => ViewModel?.TaskName ?? "N/A";
+    public TaskId TaskId => ViewModel!.TaskId;
+    public string TaskName => ViewModel!.TaskName;
     public string? PackageName { get; }
     public TaskType TaskType { get; }
-    public bool IsFinished => ViewModel?.IsFinished ?? false;
+    public bool IsFinished => ViewModel!.IsFinished;
 
     public Action Cancel
     {

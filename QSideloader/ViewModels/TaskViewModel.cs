@@ -44,6 +44,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         _downloaderService = DownloaderService.Instance;
         _sideloaderSettings = Globals.SideloaderSettings;
         _game = new Game("GameName", "ReleaseName", 1337, "NoteText");
+        TaskId = new TaskId();
         TaskName = "TaskName";
         GameName = "GameName";
         DownloadStats = "DownloadStats";
@@ -57,6 +58,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         _adbDevice = _adbService.Device!;
         _downloaderService = DownloaderService.Instance;
         _sideloaderSettings = Globals.SideloaderSettings;
+        TaskId = new TaskId();
         _taskType = taskOptions.Type;
         Func<Task> action;
         Activator = new ViewModelActivator();
@@ -125,7 +127,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         });
         RunTask.ThrownExceptions.Subscribe(ex =>
         {
-            Log.Error(ex, "Task {TaskType} {TaskName} failed", _taskType, TaskName);
+            Log.Error(ex, "Task {TaskId} {TaskType} {TaskName} failed", TaskId, _taskType, TaskName);
             if (!IsFinished)
                 OnFinished($"Task failed: {ex.Message}", false, ex);
         });
@@ -133,6 +135,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     public ReactiveCommand<Unit, Unit> RunTask { get; }
 
+    public TaskId TaskId { get; }
     public string TaskName { get; }
     public bool IsFinished { get; private set; }
     public string? GameName { get; }
@@ -544,8 +547,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         IsFinished = true;
         Status = status;
         DownloadStats = "";
-        Log.Information("Task {TaskType} {TaskName} finished. Result: {Status}",
-            _taskType, TaskName, status);
+        Log.Information("Task {TaskId} {TaskType} {TaskName} finished. Result: {Status}",
+            TaskId, _taskType, TaskName, status);
         if (isSuccess) return;
         if (e is not null)
             Globals.ShowErrorNotification(e, $"Task \"{TaskName}\" failed");

@@ -90,11 +90,10 @@ public class MainWindowViewModel : ViewModelBase
     {
         Dispatcher.UIThread.InvokeAsync(() =>
         {
-            var taskId = new TaskId();
-            using (LogContext.PushProperty("TaskId", taskId))
+            var taskView = new TaskView(taskOptions);
+            using (LogContext.PushProperty("TaskId", taskView.TaskId))
             {
-                var taskView = new TaskView(taskOptions);
-                Log.Information("Adding task {TaskId} {TaskType} {TaskName}", taskId, taskOptions.Type, taskView.TaskName);
+                Log.Information("Adding task {TaskId} {TaskType} {TaskName}", taskView.TaskId, taskOptions.Type, taskView.TaskName);
                 TaskList.Add(taskView);
                 taskView.Run();
             }
