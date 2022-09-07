@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using Avalonia;
 using Avalonia.ReactiveUI;
 
@@ -13,12 +12,6 @@ internal static class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        using var mutex = new Mutex(true, "QLoaderMutex", out var createdNew);
-        if (!createdNew)
-        {
-            Console.Out.Write("Loader is already running, exiting...");
-            Environment.Exit(1);
-        }
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
     }
