@@ -83,18 +83,14 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
             {
                 ThumbnailPath = PathHelper.GetActualCaseForFileName(jpgPath);
             }
-            catch (Exception e)
+            catch (Exception e) when (e is FileNotFoundException or DirectoryNotFoundException)
             {
-                if (e is not (FileNotFoundException or DirectoryNotFoundException))
-                    throw;
                 try
                 {
                     ThumbnailPath = PathHelper.GetActualCaseForFileName(pngPath);
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
                 {
-                    if (ex is not (FileNotFoundException or DirectoryNotFoundException))
-                        throw;
                     Log.Warning("No thumbnail found for {PackageName}", Game.PackageName);
                 }
             }

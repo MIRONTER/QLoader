@@ -20,6 +20,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using CliWrap;
 using CliWrap.Buffered;
+using CliWrap.Exceptions;
 using QSideloader.Models;
 using QSideloader.Utilities;
 using QSideloader.ViewModels;
@@ -327,7 +328,7 @@ public class AdbService
                             .ExecuteBufferedAsync()
                             .GetAwaiter().GetResult();
                     }
-                    catch
+                    catch (CommandExecutionException)
                     {
                         Array.ForEach(Process.GetProcessesByName("adb"), p => p.Kill());
                     }
@@ -691,7 +692,6 @@ public class AdbService
         }
         catch
         {
-            
             _sideloaderSettings.LastWirelessAdbHost = "";
         }
         if (!silent)
@@ -1272,7 +1272,6 @@ public class AdbService
                 }
                 catch (Exception e)
                 {
-                    
                     if (!reinstall && game.PackageName is not null)
                     {
                         // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
@@ -1423,10 +1422,8 @@ public class AdbService
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception e) when (e is not OperationCanceledException)
             {
-                if (e is OperationCanceledException)
-                    throw;
                 throw new AdbServiceException("Error running install script", e);
             }
         }

@@ -126,21 +126,15 @@ public class DownloaderService
                 File.Move(newConfigPath, oldConfigPath, true);
                 return true;
             }
-            catch (Exception e)
+            catch (DownloadQuotaExceededException)
             {
-                switch (e)
-                {
-                    case DownloadQuotaExceededException:
-                        Log.Debug("Quota exceeded on rclone config on mirror {MirrorName}",
-                            MirrorName);
-                        break;
-                    case RcloneTransferException:
-                        Log.Warning(e, "Error downloading rclone config from mirror {MirrorName} (is mirror down?)",
-                            MirrorName);
-                        return false;
-                    default:
-                        throw;
-                }
+                Log.Debug("Quota exceeded on rclone config on mirror {MirrorName}",
+                    MirrorName);
+            }
+            catch (RcloneTransferException e)
+            {
+                Log.Warning(e, "Error downloading rclone config from mirror {MirrorName} (is mirror down?)",
+                    MirrorName);
             }
 
             return false;
@@ -509,26 +503,20 @@ public class DownloaderService
                     File.Move("./metadata/FFA_new.txt", "./metadata/FFA.txt", true);
                     return true;
                 }
-                catch (Exception e)
+                catch (DownloadQuotaExceededException)
                 {
-                    switch (e)
-                    {
-                        case DownloadQuotaExceededException:
-                            Log.Debug("Quota exceeded on list {GameList} on mirror {MirrorName}",
-                                gameListName, MirrorName);
-                            break;
-                        case RcloneTransferException:
-                            Log.Warning(e,
-                                "Error downloading list {GameList} from mirror {MirrorName} (is mirror down?)",
-                                gameListName, MirrorName);
-                            return false;
-                        default:
-                            throw;
-                    }
+                    Log.Debug("Quota exceeded on game list {GameList} on mirror {MirrorName}",
+                        gameListName, MirrorName);
+                }
+                catch (RcloneTransferException e)
+                {
+                    Log.Warning(e,
+                        "Error downloading list {GameList} from mirror {MirrorName} (is mirror down?)",
+                        gameListName, MirrorName);
+                    return false;
                 }
 
             //Log.Warning("Quota exceeded on all game lists on mirror {MirrorName}", MirrorName);
-            Log.Warning("Quota exceeded on game list on mirror {MirrorName}", MirrorName);
             return false;
         }
 
@@ -622,6 +610,7 @@ public class DownloaderService
             Log.Information("Downloading release {ReleaseName}", game.ReleaseName);
             var localMirrorList = _mirrorList.ToList();
             while (true)
+            {
                 try
                 {
                     await RcloneTransferAsync(srcPath, dstPath,
@@ -633,31 +622,25 @@ public class DownloaderService
                     Task.Run(() => ReportGameDownload(game.PackageName!), ct).SafeFireAndForget();
                     break;
                 }
-                catch (Exception e)
+                catch (DownloadQuotaExceededException)
                 {
-                    switch (e)
-                    {
-                        case DownloadQuotaExceededException:
-                            Log.Warning("Quota exceeded on mirror {MirrorName}", MirrorName);
-                            break;
-                        case RcloneTransferException:
-                            Log.Warning(e, "Download error on mirror {MirrorName}", MirrorName);
-                            break;
-                        default:
-                            throw;
-                    }
-
-                    SwitchMirror(localMirrorList);
-                    Log.Information("Retrying download");
+                    Log.Warning("Quota exceeded on mirror {MirrorName}", MirrorName);
                 }
+                catch (RcloneTransferException e)
+                {
+                    Log.Warning(e, "Download error on mirror {MirrorName}", MirrorName);
+                }
+
+                SwitchMirror(localMirrorList);
+                Log.Information("Retrying download");
+            }
+                
 
             Log.Information("Release {ReleaseName} downloaded", game.ReleaseName);
             return dstPath;
         }
-        catch (Exception e)
+        catch (Exception e) when (e is not OperationCanceledException)
         {
-            if (e is OperationCanceledException)
-                throw;
             Log.Error(e, "Error downloading release");
             throw new DownloaderServiceException("Error downloading release", e);
         }
