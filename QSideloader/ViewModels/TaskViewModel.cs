@@ -18,9 +18,6 @@ using Serilog;
 
 namespace QSideloader.ViewModels;
 
-// TODO: This whole class is a mess, need to refactor it.
-// Upd: Maybe a bit better now?
-
 public class TaskViewModel : ViewModelBase, IActivatableViewModel
 {
     private readonly AdbService _adbService;
@@ -171,178 +168,78 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private async Task RunDownloadAndInstallAsync()
     {
         EnsureDeviceConnected(true);
-        try
+        await DoCancellableAsync(async () =>
         {
             _path = await DownloadAsync();
-        }
-        catch (Exception e)
-        {
-            if (e is OperationCanceledException)
-            {
-                OnFinished("Cancelled");
-            }
-            else
-            {
-                OnFinished("Download failed", false, e);
-                throw;
-            }
+        }, "Download failed");
 
-            return;
-        }
-
-        try
+        // successStatus is not set deliberately
+        await DoCancellableAsync(async () =>
         {
             var deleteAfterInstall =
                 _sideloaderSettings.DownloadsPruningPolicy == DownloadsPruningPolicy.DeleteAfterInstall;
             await InstallAsync(_path ?? throw new InvalidOperationException("path is null"),
                 deleteAfterInstall);
-        }
-        catch (Exception e)
-        {
-            if (e is OperationCanceledException)
-            {
-                OnFinished("Cancelled");
-            }
-            else
-            {
-                OnFinished("Install failed", false, e);
-                throw;
-            }
-        }
+        }, "Install failed");
     }
 
     private async Task RunDownloadOnlyAsync()
     {
-        try
+        await DoCancellableAsync(async () =>
         {
             _path = await DownloadAsync();
-            OnFinished("Downloaded");
-        }
-        catch (Exception e)
-        {
-            if (e is OperationCanceledException)
-            {
-                OnFinished("Cancelled");
-            }
-            else
-            {
-                OnFinished("Download failed", false, e);
-                throw;
-            }
-        }
+        }, "Download failed", "Downloaded");
     }
 
     private async Task RunInstallOnlyAsync()
     {
         EnsureDeviceConnected(true);
-        try
+        // successStatus is not set deliberately
+        await DoCancellableAsync(async () =>
         {
             _ = _path ?? throw new InvalidOperationException("path is null");
             var deleteAfterInstall = _path.StartsWith(_sideloaderSettings.DownloadsLocation) &&
-                _sideloaderSettings.DownloadsPruningPolicy == DownloadsPruningPolicy.DeleteAfterInstall;
+                                     _sideloaderSettings.DownloadsPruningPolicy ==
+                                     DownloadsPruningPolicy.DeleteAfterInstall;
             await InstallAsync(_path, deleteAfterInstall);
-        }
-        catch (Exception e)
-        {
-            if (e is OperationCanceledException)
-            {
-                OnFinished("Cancelled");
-            }
-            else
-            {
-                OnFinished("Install failed", false, e);
-                throw;
-            }
-        }
+        }, "Install failed");
     }
 
     private async Task RunUninstallAsync()
     {
         EnsureDeviceConnected(true);
-        try
+        await DoCancellableAsync(async () =>
         {
             await UninstallAsync();
-            OnFinished("Uninstalled");
-        }
-        catch (Exception e)
-        {
-            if (e is OperationCanceledException)
-            {
-                OnFinished("Cancelled");
-            }
-            else
-            {
-                OnFinished("Uninstall failed", false, e);
-                throw;
-            }
-        }
+        }, "Uninstall failed", "Uninstalled");
     }
 
     private async Task RunBackupAndUninstallAsync()
     {
         EnsureDeviceConnected(true);
-        try
+        await DoCancellableAsync(async () =>
         {
             await BackupAsync();
             await UninstallAsync();
-            OnFinished("Uninstalled");
-        }
-        catch (Exception e)
-        {
-            if (e is OperationCanceledException)
-            {
-                OnFinished("Cancelled");
-            }
-            else
-            {
-                OnFinished("Uninstall failed", false, e);
-                throw;
-            }
-        }
+        }, "Uninstall failed", "Uninstalled");
     }
 
     private async Task RunBackupAsync()
     {
         EnsureDeviceConnected(true);
-        try
+        await DoCancellableAsync(async () =>
         {
             await BackupAsync();
-            OnFinished("Backup created");
-        }
-        catch (Exception e)
-        {
-            if (e is OperationCanceledException)
-            {
-                OnFinished("Cancelled");
-            }
-            else
-            {
-                OnFinished("Backup failed", false, e);
-                throw;
-            }
-        }
+        }, "Backup failed", "Backup created");
     }
 
     private async Task RunRestoreAsync()
     {
         EnsureDeviceConnected(true);
-        try
+        await DoCancellableAsync(async () =>
         {
             await RestoreAsync(_backup!);
-            OnFinished("Backup restored");
-        }
-        catch (Exception e)
-        {
-            if (e is OperationCanceledException)
-            {
-                OnFinished("Cancelled");
-            }
-            else
-            {
-                OnFinished("Restore failed", false, e);
-                throw;
-            }
-        }
+        }, "Restore failed", "Backup restored");
     }
 
     private async Task RunPullAndUploadAsync()
@@ -381,26 +278,33 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task RunInstallTrailersAddonAsync()
     {
-        try
+        await DoCancellableAsync(async () =>
         {
             if (Directory.Exists(PathHelper.TrailersPath) && !File.Exists(_path))
             {
                 OnFinished("Already installed");
+                return;
             }
+
             await InstallTrailersAddonAsync();
-            OnFinished("Installed");
+        }, "Install failed", "Installed");
+    }
+    
+    private async Task DoCancellableAsync(Func<Task> func, string failureStatus, string? successStatus = null)
+    {
+        try
+        {
+            await func();
+            if (!string.IsNullOrEmpty(successStatus))
+                OnFinished(successStatus);
+        }
+        catch (OperationCanceledException)
+        {
+            OnFinished("Cancelled");
         }
         catch (Exception e)
         {
-            if (e is OperationCanceledException)
-            {
-                OnFinished("Cancelled");
-            }
-            else
-            {
-                OnFinished("Install failed", false, e);
-                throw;
-            }
+            OnFinished(failureStatus, false, e);
         }
     }
 
