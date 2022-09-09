@@ -119,6 +119,11 @@ public class MainWindowViewModel : ViewModelBase
             case DeviceState.Online:
                 IsDeviceConnected = true;
                 IsDeviceUnauthorized = false;
+                Task.Run(RunAutoDonation).SafeFireAndForget(ex =>
+                {
+                    Log.Error(ex, "Error running auto donation");
+                    ShowErrorNotification(ex, "Error running auto donation");
+                });
                 break;
             case DeviceState.Offline:
                 IsDeviceConnected = false;
@@ -397,5 +402,17 @@ public class MainWindowViewModel : ViewModelBase
         Log.Information("Found trailers addon zip. Starting background install");
         var taskOptions = new TaskOptions {Type = TaskType.InstallTrailersAddon, Path = trailersAddonPath};
         AddTask(taskOptions);
+    }
+
+    private async Task RunAutoDonation()
+    {
+        if (!_sideloaderSettings.EnableAutoDonation || _adbService.CheckDeviceConnection()) return;
+        await _downloaderService.EnsureMetadataAvailableAsync();
+        Log.Information("Running auto donation");
+        foreach (var app in _adbService.Device!.InstalledApps.Where(x => !x.IsHiddenFromDonation))
+        {
+            var taskOptions = new TaskOptions {Type = TaskType.PullAndUpload, App = app};
+            AddTask(taskOptions);
+        }
     }
 }

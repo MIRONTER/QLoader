@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:QSideloader.ViewModels"
              xmlns:utilities="clr-namespace:QSideloader.Utilities"
-             mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="669"
+             mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="750"
              x:Class="QSideloader.Views.SideloaderSettingsView"
              AttachedToVisualTree="Visual_OnAttachedToVisualTree">
     <UserControl.Resources>
@@ -85,6 +85,10 @@
                               ToolTip.Tip="Allow automatic sending of logs">Enable remote logging</ToggleSwitch>
                 <Button Margin="4,20,0,0" Command="{Binding CopyInstallationId}" >Copy installation ID</Button>
             </StackPanel>
+            
+            <ToggleSwitch IsChecked="{Binding EnableAutoDonation}"
+                          ToolTip.Tip="Automatically donate all eligible games when device is connected"
+                          >Enable auto donation</ToggleSwitch>
             
             <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding EnableDebugConsole}"
                           IsVisible="{Binding IsConsoleToggleable}">
