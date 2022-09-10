@@ -981,7 +981,8 @@ public class AdbService
             RefreshInstalledPackages();
             RefreshInstalledGames();
             RefreshInstalledApps();
-            _adbService._packageListChangeSubject.OnNext(Unit.Default);
+            if (_adbService.Device == this)
+                _adbService._packageListChangeSubject.OnNext(Unit.Default);
         }
 
         /// <summary>
