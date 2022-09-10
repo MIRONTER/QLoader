@@ -173,7 +173,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             _path = await DownloadAsync();
         }, "Download failed");
 
-        // successStatus is not set deliberately
+        // successStatus isn't needed here
         await DoCancellableAsync(async () =>
         {
             var deleteAfterInstall =
@@ -194,7 +194,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private async Task RunInstallOnlyAsync()
     {
         EnsureDeviceConnected(true);
-        // successStatus is not set deliberately
+        // successStatus isn't needed here
         await DoCancellableAsync(async () =>
         {
             _ = _path ?? throw new InvalidOperationException("path is null");
