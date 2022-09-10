@@ -71,7 +71,15 @@ public class MainWindowViewModel : ViewModelBase
         ShowConnectionHelpDialog = ReactiveCommand.CreateFromObservable(ShowConnectionHelpDialogImpl);
         ShowAuthHelpDialog = ReactiveCommand.CreateFromObservable(ShowAuthHelpDialogImpl);
         _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged);
-        _adbService.WhenPackageListChanged.Subscribe(_ => RefreshGameDonationBadge());
+        _adbService.WhenPackageListChanged.Subscribe(_ =>
+        {
+            RefreshGameDonationBadge();
+            Task.Run(RunAutoDonation).SafeFireAndForget(ex =>
+            {
+                Log.Error(ex, "Error running auto donation");
+                ShowErrorNotification(ex, "Error running auto donation");
+            });
+        });
         TryInstallTrailersAddon();
         IsDeviceConnected = _adbService.CheckDeviceConnection();
     }
@@ -119,11 +127,6 @@ public class MainWindowViewModel : ViewModelBase
             case DeviceState.Online:
                 IsDeviceConnected = true;
                 IsDeviceUnauthorized = false;
-                Task.Run(RunAutoDonation).SafeFireAndForget(ex =>
-                {
-                    Log.Error(ex, "Error running auto donation");
-                    ShowErrorNotification(ex, "Error running auto donation");
-                });
                 break;
             case DeviceState.Offline:
                 IsDeviceConnected = false;
@@ -406,13 +409,23 @@ public class MainWindowViewModel : ViewModelBase
 
     private async Task RunAutoDonation()
     {
-        if (!_sideloaderSettings.EnableAutoDonation || _adbService.CheckDeviceConnection()) return;
+        if (!_sideloaderSettings.EnableAutoDonation || !_adbService.CheckDeviceConnection()) return;
         await _downloaderService.EnsureMetadataAvailableAsync();
-        Log.Information("Running auto donation");
-        foreach (var app in _adbService.Device!.InstalledApps.Where(x => !x.IsHiddenFromDonation))
+        Log.Debug("Running auto donation");
+        await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            var taskOptions = new TaskOptions {Type = TaskType.PullAndUpload, App = app};
-            AddTask(taskOptions);
-        }
+            var runningDonations = GetTaskList().Where(x => x.TaskType is TaskType.PullAndUpload && !x.IsFinished)
+                .ToList();
+            var toDonate = _adbService.Device!.InstalledApps
+                .Where(x => !x.IsHiddenFromDonation && 
+                            runningDonations.All(d => d.PackageName != x.PackageName)).ToList();
+            if (!toDonate.Any()) return;
+            
+            Log.Information("Adding donation tasks");
+            foreach (var taskOptions in toDonate.Select(app => new TaskOptions {Type = TaskType.PullAndUpload, App = app}))
+            {
+                AddTask(taskOptions);
+            }
+        });
     }
 }

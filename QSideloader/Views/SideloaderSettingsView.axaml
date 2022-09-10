@@ -87,7 +87,7 @@
             </StackPanel>
             
             <ToggleSwitch IsChecked="{Binding EnableAutoDonation}"
-                          ToolTip.Tip="Automatically donate all eligible games when device is connected"
+                          ToolTip.Tip="Automatically donate all eligible games"
                           >Enable auto donation</ToggleSwitch>
             
             <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding EnableDebugConsole}"
