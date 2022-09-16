@@ -455,10 +455,16 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             TaskId, _taskType, TaskName, status);
         if (isSuccess) return;
         if (e is not null)
+        {
+            Log.Error(e, "Task {TaskName} failed", TaskName);
             Globals.ShowErrorNotification(e, $"Task \"{TaskName}\" failed");
+        }
         else
+        {
+            Log.Error("Task {TaskName} failed", TaskName);
             Globals.ShowNotification("Error", $"Task \"{TaskName}\" failed", NotificationType.Error,
                 TimeSpan.Zero);
+        }
     }
 
     public void Cancel()
