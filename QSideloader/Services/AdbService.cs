@@ -1641,7 +1641,7 @@ public class AdbService
                 }
                 else
                 {
-                    Log.Information("Nothing was backed up");
+                    Log.Information("Nothing was backed up for {PackageName}", packageName);
                     Directory.Delete(backupPath, true);
                     return null;
                 }
