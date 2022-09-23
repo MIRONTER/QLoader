@@ -376,8 +376,7 @@ public class AdbService
         }
         catch (Exception e)
         {
-            Log.Information("Failed to send wake command to device {Device}", device);
-            Log.Verbose(e, "Failed to send wake command to device {Device}", device);
+            Log.Warning(e, "Failed to send wake command to device {Device}", device);
         }
     }
 
@@ -398,8 +397,7 @@ public class AdbService
         }
         catch (Exception e)
         {
-            Log.Information("Failed to ping device {Device}", device);
-            Log.Verbose(e, "Failed to ping device {Device}", device);
+            Log.Warning(e, "Failed to ping device {Device}", device);
         }
 
         return false;
