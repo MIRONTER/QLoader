@@ -49,7 +49,7 @@ public class Game : INotifyPropertyChanged
     public string? PackageName { get; protected set; }
     public int VersionCode { get; protected set; }
 
-    [FieldConverter(ConverterKind.Date, "yyyy-MM-dd HH:mm UTC")]
+    [FieldConverter(ConverterKind.Date, "yyyy-MM-dd HH:mm UTC", "en")]
     public DateTime LastUpdated { get; protected set; }
     public int GameSize { get; protected set; }
 

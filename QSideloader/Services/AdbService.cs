@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -1569,7 +1570,7 @@ public class AdbService
             EnsureValidPackageName(packageName);
             Log.Information("Backing up {PackageName}", packageName);
             var backupPath = Path.Combine(_sideloaderSettings.BackupsLocation,
-                $"{DateTime.Now:yyyyMMddTHHmmss}_{packageName}");
+                $"{DateTime.Now.ToString("yyyyMMddTHHmmss", CultureInfo.InvariantCulture)}_{packageName}");
             if (!string.IsNullOrEmpty(options.NameAppend))
                 backupPath += $"_{options.NameAppend}";
             var sharedDataPath = $"/sdcard/Android/data/{packageName}/";
