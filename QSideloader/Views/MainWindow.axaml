@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ui="using:FluentAvalonia.UI.Controls"
         xmlns:views="clr-namespace:QSideloader.Views"
+        xmlns:p="clr-namespace:QSideloader.Properties"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="QSideloader.Views.MainWindow"
         Icon="/Assets/ffa-logo.ico"
@@ -23,24 +24,28 @@
         <!-- ReSharper disable once Xaml.ConstructorWarning -->
         <vm:MainWindowViewModel />
     </Design.DataContext>
+    
+    <Window.Styles>
+        <Style Selector="NavigationViewItem"></Style>
+    </Window.Styles>
 
     <Grid>
         <ui:NavigationView
             x:Name="NavigationView"
             ExpandedModeThresholdWidth="1252"
-            OpenPaneLength="200"
+            OpenPaneLength="210"
             SelectionChanged="NavigationView_OnSelectionChanged"
             IsSettingsVisible="True">
             <ui:NavigationView.MenuItems>
-                <ui:NavigationViewItem Icon="AllApps" Content="Installed Games" Tag="InstalledGamesView" />
-                <ui:NavigationViewItem Icon="Download" Content="Available Games" Tag="AvailableGamesView" />
-                <ui:NavigationViewItem Icon="Upload" Content="Donate Games" Tag="GameDonationView">
+                <ui:NavigationViewItem Icon="AllApps" Content="{x:Static p:Resources.InstalledGamesHeader}" Tag="InstalledGamesView" />
+                <ui:NavigationViewItem Icon="Download" Content="{x:Static p:Resources.AvailableGamesHeader}" Tag="AvailableGamesView" />
+                <ui:NavigationViewItem Icon="Upload" Content="{x:Static p:Resources.DonateGamesHeader}" Tag="GameDonationView">
                     <ui:NavigationViewItem.InfoBadge>
                         <ui:InfoBadge Value="{Binding DonatableAppsCount}" IsVisible="{Binding DonatableAppsCount}"/>
                     </ui:NavigationViewItem.InfoBadge>
                 </ui:NavigationViewItem>
-                <ui:NavigationViewItem Icon="AllApps" Content="Other Apps" Tag="OtherAppsView" />
-                <ui:NavigationViewItem Icon="AllApps" Content="Restore Backups" Tag="BackupView" />
+                <ui:NavigationViewItem Icon="AllApps" Content="{x:Static p:Resources.OtherAppsHeader}" Tag="OtherAppsView" />
+                <ui:NavigationViewItem Icon="AllApps" Content="{x:Static p:Resources.RestoreBackupsHeader}" Tag="BackupView" />
             </ui:NavigationView.MenuItems>
             <Grid RowDefinitions="*,Auto">
                 <ui:Frame x:Name="ContentFrame" Grid.Row="0" />

@@ -6,6 +6,7 @@
              xmlns:views="clr-namespace:QSideloader.Views"
              xmlns:utilities="clr-namespace:QSideloader.Utilities"
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
+             xmlns:p="clr-namespace:QSideloader.Properties"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="450"
              x:Class="QSideloader.Views.Pages.AvailableGamesView">
     <UserControl.Resources>
@@ -22,21 +23,21 @@
                  AcceptsReturn="False"
                  IsReadOnly="False"
                  HorizontalAlignment="Left" VerticalAlignment="Center"
-                 Watermark="Search"
+                 Watermark="{x:Static p:Resources.Search}"
                  Width="400"
                  Text="{Binding SearchText, Mode=TwoWay}" 
-                 ToolTip.Tip="Search"/>
+                 ToolTip.Tip="{x:Static p:Resources.Search}" />
         <StackPanel Grid.Row="0"
                     Orientation="Horizontal"
                     Spacing="12" Margin="8"
                     HorizontalAlignment="Right">
             <Button Command="{Binding Install}" 
                     IsEnabled="{Binding IsDeviceConnected}"
-                    ToolTip.Tip="Download and install selected games">Download &amp; Install Selected</Button>
+                    ToolTip.Tip="{x:Static p:Resources.DownloadAndInstallSelectedGamesTooltip}" Content="{x:Static p:Resources.DownloadAndInstallSelectedButton}" />
             <Button Command="{Binding Download}"
-                    ToolTip.Tip="Download selected games">Download Selected</Button>
+                    ToolTip.Tip="{x:Static p:Resources.DownloadSelectedGamesTooltip}" Content="{x:Static p:Resources.DownloadSelectedButton}" />
             <Button Command="{Binding Refresh}"
-                    ToolTip.Tip="Redownload games list" Content="Refresh">
+                    ToolTip.Tip="{x:Static p:Resources.RefreshAvailableGamesTooltip}" Content="{x:Static p:Resources.RefreshButton}">
                 <Button.CommandParameter>
                     <system:Boolean>True</system:Boolean>
                 </Button.CommandParameter>
@@ -58,20 +59,20 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Binding="{Binding GameName}" Header="Game Name" Width="auto" IsReadOnly="True"
+                <DataGridTextColumn Binding="{Binding GameName}" Header="{x:Static p:Resources.GameNameHeader}" Width="auto" IsReadOnly="True"
                                     IsVisible="False" />
-                <DataGridTextColumn Binding="{Binding ReleaseName}" Header="Release Name" Width="auto"
+                <DataGridTextColumn Binding="{Binding ReleaseName}" Header="{x:Static p:Resources.ReleaseNameHeader}" Width="auto"
                                     IsReadOnly="True" />
-                <DataGridTextColumn Binding="{Binding LastUpdated}" Header="Last Updated" Width="auto"
+                <DataGridTextColumn Binding="{Binding LastUpdated}" Header="{x:Static p:Resources.LastUpdatedHeader}" Width="auto"
                                     IsReadOnly="True" />
-                <DataGridTextColumn Binding="{Binding GameSize}" Header="Size (MB)" Width="auto" IsReadOnly="True" />
+                <DataGridTextColumn Binding="{Binding GameSize}" Header="{x:Static p:Resources.GameSizeHeader}" Width="auto" IsReadOnly="True" />
                 
-                <DataGridTextColumn Binding="{Binding Popularity[1D]}" Header="Popularity (1 day)" Width="auto" IsReadOnly="True" IsVisible="{Binding ShowPopularity1Day}"/>
-                <DataGridTextColumn Binding="{Binding Popularity[7D]}" Header="Popularity (7 days)" Width="auto" IsReadOnly="True" IsVisible="{Binding ShowPopularity7Days}"/>
-                <DataGridTextColumn Binding="{Binding Popularity[30D]}" Header="Popularity (30 days)" Width="auto" IsReadOnly="True" IsVisible="{Binding ShowPopularity30Days}"/>
+                <DataGridTextColumn Binding="{Binding Popularity[1D]}" Header="{x:Static p:Resources.Popularity1DHeader}" Width="auto" IsReadOnly="True" IsVisible="{Binding ShowPopularity1Day}"/>
+                <DataGridTextColumn Binding="{Binding Popularity[7D]}" Header="{x:Static p:Resources.Popularity7DHeader}" Width="auto" IsReadOnly="True" IsVisible="{Binding ShowPopularity7Days}"/>
+                <DataGridTextColumn Binding="{Binding Popularity[30D]}" Header="{x:Static p:Resources.Popularity30DHeader}" Width="auto" IsReadOnly="True" IsVisible="{Binding ShowPopularity30Days}"/>
                 
                 <DataGridTextColumn Binding="{Binding IsInstalled, Converter={StaticResource OnDeviceStatusFromBool}}"
-                                    Header="On Device" Width="auto" IsReadOnly="True"
+                                    Header="{x:Static p:Resources.OnDeviceHeader}" Width="auto" IsReadOnly="True"
                                     IsVisible="{Binding IsDeviceConnected}" />
             </DataGrid.Columns>
             <DataGrid.Resources>

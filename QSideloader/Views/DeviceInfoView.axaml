@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:QSideloader.ViewModels"
              xmlns:controls="clr-namespace:QSideloader.Controls"
+             xmlns:p="clr-namespace:QSideloader.Properties"
              mc:Ignorable="d" d:DesignWidth="1130" d:DesignHeight="134"
              x:Class="QSideloader.Views.DeviceInfoView">
     <Design.DataContext>
@@ -52,9 +53,7 @@
             IsOpen="{Binding IsDeviceConnected}">
         <Grid ColumnDefinitions="Auto,Auto,Auto,*" RowDefinitions="*,*,*,*">
             <TextBlock Grid.Row="0" Grid.Column="0"
-                       Margin="20,12,0,0">
-                Device Info:
-            </TextBlock>
+                       Margin="20,12,0,0" Text="{x:Static p:Resources.DeviceInfoColon}" />
             <Image Grid.Row="1" Grid.Column="0"
                    Grid.RowSpan="3"
                    Source="/Assets/quest2.png"
@@ -76,21 +75,35 @@
                        Text="{Binding FriendlyName}" />
             <TextBlock Grid.Row="2" Grid.Column="1" VerticalAlignment="Center">
                 <TextBlock.Text>
-                    <MultiBinding StringFormat="{}Used: {0}GB      Free: {1}GB">
+                    <MultiBinding StringFormat="{}{0}: {1}GB      {2}: {3}GB">
+                        <Binding Source="{x:Static p:Resources.Used}" />
                         <Binding Path="SpaceUsed" />
+                        <Binding Source="{x:Static p:Resources.Free}" />
                         <Binding Path="SpaceFree" />
                     </MultiBinding>
                 </TextBlock.Text>
             </TextBlock>
-            <TextBlock Grid.Row="3" Grid.Column="1" VerticalAlignment="Center"
-                       Text="{Binding BatteryLevel, StringFormat={}Battery level: {0}%}" />
+            <TextBlock Grid.Row="3" Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock.Text>
+                    <MultiBinding StringFormat="{}{0}: {1}%">
+                        <Binding Source="{x:Static p:Resources.BatteryLevel}" />
+                        <Binding Path="BatteryLevel" />
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
             <ComboBox Grid.Row="0" Grid.RowSpan="4" Grid.Column="2" Margin="8"
                       MinWidth="170"
-                      PlaceholderText="Device list"
+                      PlaceholderText="{x:Static p:Resources.DeviceList}"
                       IsEnabled="{Binding IsDeviceSwitchEnabled}"
                       Items="{Binding DeviceList}"
-                      SelectedItem="{Binding CurrentDevice}"
-                      ToolTip.Tip="{Binding TrueSerial, StringFormat={}Device list&#x0a;Current device serial: {0}}">
+                      SelectedItem="{Binding CurrentDevice}">
+                <ToolTip.Tip>
+                    <MultiBinding StringFormat="{}{0}&#x0a;{1}: {2}">
+                        <Binding Source="{x:Static p:Resources.DeviceList}" />
+                        <Binding Source="{x:Static p:Resources.CurrentDeviceSerial}" />
+                        <Binding Path="TrueSerial" />
+                    </MultiBinding>
+                </ToolTip.Tip>
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding}" />
@@ -99,9 +112,7 @@
             </ComboBox>
             <Button Grid.Row="0" Grid.RowSpan="4" Grid.Column="2" Margin="8" IsVisible="{Binding !IsDeviceWireless}"
                     IsEnabled="{Binding IsDeviceSwitchEnabled}"
-                    Command="{Binding EnableWirelessAdb}">
-                Enable Wireless ADB
-            </Button>
+                    Command="{Binding EnableWirelessAdb}" Content="{x:Static p:Resources.EnableWirelessAdb}" />
         </Grid>
     </controls:CustomBorder>
 </UserControl>

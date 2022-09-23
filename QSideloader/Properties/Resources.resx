@@ -1,0 +1,337 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+        <xsd:element name="root" msdata:IsDataSet="true">
+            
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>1.3</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="DeleteSelectedButton" xml:space="preserve">
+        <value>Delete Selected</value>
+    </data>
+    <data name="DeleteSelectedBackupsTooltip" xml:space="preserve">
+        <value>Delete selected backups</value>
+    </data>
+    <data name="RestoreSelectedButton" xml:space="preserve">
+        <value>Restore Selected</value>
+    </data>
+    <data name="RestoreSelectedBackupsTooltip" xml:space="preserve">
+        <value>Restore selected backups</value>
+    </data>
+    <data name="DeleteBackupsConfirmation" xml:space="preserve">
+        <value>This action will delete selected backups.
+Are you sure you want to continue?</value>
+    </data>
+    <data name="DeleteBackupsConfirmationButton" xml:space="preserve">
+        <value>Yes, delete</value>
+    </data>
+    <data name="RefreshButton" xml:space="preserve">
+        <value>Refresh</value>
+    </data>
+    <data name="DateHeader" xml:space="preserve">
+        <value>Date</value>
+    </data>
+    <data name="BackupNameHeader" xml:space="preserve">
+        <value>Backup Name</value>
+    </data>
+    <data name="ContentsHeader" xml:space="preserve">
+        <value>Contents</value>
+    </data>
+    <data name="RefreshBackupsTooltip" xml:space="preserve">
+        <value>Reload list of backups</value>
+    </data>
+    <data name="Search" xml:space="preserve">
+        <value>Search</value>
+    </data>
+    <data name="DownloadAndInstallSelectedGamesTooltip" xml:space="preserve">
+        <value>Download and install selected games</value>
+    </data>
+    <data name="DownloadAndInstallSelectedButton" xml:space="preserve">
+        <value>Download &amp; Install Selected</value>
+    </data>
+    <data name="DownloadSelectedButton" xml:space="preserve">
+        <value>Download Selected</value>
+    </data>
+    <data name="DownloadSelectedGamesTooltip" xml:space="preserve">
+        <value>Download selected games</value>
+    </data>
+    <data name="RefreshAvailableGamesTooltip" xml:space="preserve">
+        <value>Redownload games list</value>
+    </data>
+    <data name="GameNameHeader" xml:space="preserve">
+        <value>Game Name</value>
+    </data>
+    <data name="ReleaseNameHeader" xml:space="preserve">
+        <value>Release Name</value>
+    </data>
+    <data name="LastUpdatedHeader" xml:space="preserve">
+        <value>Last Updated</value>
+    </data>
+    <data name="GameSizeHeader" xml:space="preserve">
+        <value>Game Size</value>
+    </data>
+    <data name="Popularity1DHeader" xml:space="preserve">
+        <value>Popularity (1 day)</value>
+    </data>
+    <data name="Popularity7DHeader" xml:space="preserve">
+        <value>Popularity (7 days)</value>
+    </data>
+    <data name="Popularity30DHeader" xml:space="preserve">
+        <value>Popularity (30 days)</value>
+    </data>
+    <data name="OnDeviceHeader" xml:space="preserve">
+        <value>On Device</value>
+    </data>
+    <data name="UninstallAppsTooltip" xml:space="preserve">
+        <value>Uninstall selected apps</value>
+    </data>
+    <data name="UninstallSelectedButton" xml:space="preserve">
+        <value>Uninstall Selected</value>
+    </data>
+    <data name="UninstallAppsConfirmation" xml:space="preserve">
+        <value>This action will uninstall selected apps.
+Are you sure you want to continue?</value>
+    </data>
+    <data name="UninstallAppsConfirmationButton" xml:space="preserve">
+        <value>Yes, uninstall</value>
+    </data>
+    <data name="RefreshInstalledAppsTooltip" xml:space="preserve">
+        <value>Rescan installed apps</value>
+    </data>
+    <data name="AppNameHeader" xml:space="preserve">
+        <value>App Name</value>
+    </data>
+    <data name="VersionNameHeader" xml:space="preserve">
+        <value>Version Name</value>
+    </data>
+    <data name="VersionCodeHeader" xml:space="preserve">
+        <value>Version Code</value>
+    </data>
+    <data name="NoBackupsSelected" xml:space="preserve">
+        <value>No backups selected</value>
+    </data>
+    <data name="Restore" xml:space="preserve">
+        <value>Restore</value>
+    </data>
+    <data name="Delete" xml:space="preserve">
+        <value>Delete</value>
+    </data>
+    <data name="InstalledGamesHeader" xml:space="preserve">
+        <value>Installed Games</value>
+    </data>
+    <data name="AvailableGamesHeader" xml:space="preserve">
+        <value>Available Games</value>
+    </data>
+    <data name="DonateGamesHeader" xml:space="preserve">
+        <value>Donate Games</value>
+    </data>
+    <data name="OtherAppsHeader" xml:space="preserve">
+        <value>Other Apps</value>
+    </data>
+    <data name="RestoreBackupsHeader" xml:space="preserve">
+        <value>Restore Backups</value>
+    </data>
+    <data name="ShowHidden" xml:space="preserve">
+        <value>Show hidden</value>
+    </data>
+    <data name="DonateTooltip" xml:space="preserve">
+        <value>Upload selected games</value>
+    </data>
+    <data name="DonateAllButton" xml:space="preserve">
+        <value>Donate All</value>
+    </data>
+    <data name="DonateSelectedButton" xml:space="preserve">
+        <value>Donate Selected</value>
+    </data>
+    <data name="IgnoreSelectedButton" xml:space="preserve">
+        <value>Ignore Selected</value>
+    </data>
+    <data name="IgnoreSelectedAppsTooltip" xml:space="preserve">
+        <value>Hide selected apps from donation list (select already ignored apps to inverse)</value>
+    </data>
+    <data name="NameHeader" xml:space="preserve">
+        <value>Name</value>
+    </data>
+    <data name="StatusHeader" xml:space="preserve">
+        <value>Status</value>
+    </data>
+    <data name="DonateAllGamesTooltip" xml:space="preserve">
+        <value>Upload all eligible games</value>
+    </data>
+    <data name="UpdateAllGamesTooltip" xml:space="preserve">
+        <value>Update all games (excluding ambiguous installs)</value>
+    </data>
+    <data name="UpdateSelectedGamesTooltip" xml:space="preserve">
+        <value>Update selected games</value>
+    </data>
+    <data name="UpdateAllButton" xml:space="preserve">
+        <value>Update All</value>
+    </data>
+    <data name="BackupSelectedButton" xml:space="preserve">
+        <value>Backup Selected</value>
+    </data>
+    <data name="BackupSelectedGamesTooltip" xml:space="preserve">
+        <value>Backup selected games</value>
+    </data>
+    <data name="BackupPartsSelectionPrompt" xml:space="preserve">
+        <value>Select parts you want to backup:</value>
+    </data>
+    <data name="BackupPartsSelectionApplicationFiles" xml:space="preserve">
+        <value>Application data (saves and settings)</value>
+    </data>
+    <data name="BackupPartsSelectionApplicationData" xml:space="preserve">
+        <value>Application files (APK + OBB)</value>
+    </data>
+    <data name="BackupConfirmationButton" xml:space="preserve">
+        <value>Run backup</value>
+    </data>
+    <data name="UpdateSelectedButton" xml:space="preserve">
+        <value>Update Selected</value>
+    </data>
+    <data name="UninstallSelectedGamesTooltip" xml:space="preserve">
+        <value>Backup and uninstall selected games</value>
+    </data>
+    <data name="UninstallGamesConfirmation" xml:space="preserve">
+        <value>This action will attempt to backup data
+and uninstall selected games.
+Are you sure you want to continue?</value>
+    </data>
+    <data name="UninstallGamesConfirmationButton" xml:space="preserve">
+        <value>Yes, uninstall</value>
+    </data>
+    <data name="RefreshInstalledGamesTooltip" xml:space="preserve">
+        <value>Rescan installed games</value>
+    </data>
+    <data name="InstalledVersionHeader" xml:space="preserve">
+        <value>Installed Version</value>
+    </data>
+    <data name="LatestReleaseNameHeader" xml:space="preserve">
+        <value>Latest Release Name</value>
+    </data>
+    <data name="UpdateStatusHeader" xml:space="preserve">
+        <value>Update Status</value>
+    </data>
+    <data name="LoadingEllipsis" xml:space="preserve">
+        <value>Loading...</value>
+    </data>
+    <data name="DeviceInfoColon" xml:space="preserve">
+        <value>Device Info:</value>
+    </data>
+    <data name="Free" xml:space="preserve">
+        <value>Free</value>
+    </data>
+    <data name="Used" xml:space="preserve">
+        <value>Used</value>
+    </data>
+    <data name="BatteryLevel" xml:space="preserve">
+        <value>Battery level</value>
+    </data>
+    <data name="EnableWirelessAdb" xml:space="preserve">
+        <value>Enable Wireless ADB</value>
+    </data>
+    <data name="DeviceList" xml:space="preserve">
+        <value>Device list</value>
+    </data>
+    <data name="CurrentDeviceSerial" xml:space="preserve">
+        <value>Current device serial</value>
+    </data>
+    <data name="QuestSettingsHeader" xml:space="preserve">
+        <value>Quest Settings</value>
+    </data>
+    <data name="UsernamePlaceholder" xml:space="preserve">
+        <value>Username (leave empty for default)</value>
+    </data>
+    <data name="MountQuestButton" xml:space="preserve">
+        <value>Mount Quest as Drive</value>
+    </data>
+    <data name="ApplySettingsButton" xml:space="preserve">
+        <value>Apply Settings</value>
+    </data>
+    <data name="LoaderSettingsHeader" xml:space="preserve">
+        <value>Loader Settings</value>
+    </data>
+    <data name="RestoreDefaultsButton" xml:space="preserve">
+        <value>Restore Defaults</value>
+    </data>
+    <data name="CheckUpdatesAutomatically" xml:space="preserve">
+        <value>Check for updates automatically</value>
+    </data>
+    <data name="CheckUpdatesNowButton" xml:space="preserve">
+        <value>Check Now</value>
+    </data>
+    <data name="PreferredConnectionType" xml:space="preserve">
+        <value>Preferred connection type</value>
+    </data>
+    <data name="SelectedMirror" xml:space="preserve">
+        <value>Selected mirror</value>
+    </data>
+    <data name="ReloadListButton" xml:space="preserve">
+        <value>Reload list</value>
+    </data>
+    <data name="PopularityTimeRange" xml:space="preserve">
+        <value>Popularity time range</value>
+    </data>
+    <data name="DownloadsLocation" xml:space="preserve">
+        <value>Downloads location</value>
+    </data>
+    <data name="BackupsLocation" xml:space="preserve">
+        <value>Backups location</value>
+    </data>
+    <data name="DownloaderBandwidthLimit" xml:space="preserve">
+        <value>Download/upload bandwidth limit</value>
+    </data>
+    <data name="DownloaderBandwidthLimitTooltip" xml:space="preserve">
+        <value>Limit in KiB/s, or use suffix B|K|M|G|T|P (leave empty for unlimited)</value>
+    </data>
+    <data name="DownloadsPruningPolicy" xml:space="preserve">
+        <value>Downloads pruning policy</value>
+    </data>
+    <data name="EnableRemoteLogging" xml:space="preserve">
+        <value>Enable remote logging</value>
+    </data>
+    <data name="EnableRemoteLoggingTooltip" xml:space="preserve">
+        <value>Allow automatic sending of logs</value>
+    </data>
+    <data name="EnableAutoDonation" xml:space="preserve">
+        <value>Enable auto donation</value>
+    </data>
+    <data name="EnableAutoDonationTooltip" xml:space="preserve">
+        <value>Automatically upload all eligible games</value>
+    </data>
+    <data name="ShowDebugConsole" xml:space="preserve">
+        <value>Show debug console</value>
+    </data>
+    <data name="InstallTrailersAddonButton" xml:space="preserve">
+        <value>Install trailers addon</value>
+    </data>
+    <data name="Version" xml:space="preserve">
+        <value>Version</value>
+    </data>
+    <data name="CopyInstallationIdButton" xml:space="preserve">
+        <value>Copy installation ID</value>
+    </data>
+    <data name="Limit" xml:space="preserve">
+        <value>Limit</value>
+    </data>
+    <data name="BrowseButton" xml:space="preserve">
+        <value>Browse</value>
+    </data>
+    <data name="SetButton" xml:space="preserve">
+        <value>Set</value>
+    </data>
+    <data name="DownloadAndInstallButton" xml:space="preserve">
+        <value>Download &amp; Install</value>
+    </data>
+</root>

@@ -32,6 +32,7 @@
         <IncludeArchitectureSpecific Condition="($(RuntimeIdentifier.Contains('linux')) And $(RuntimeIdentifier.Contains('arm64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\linux\arm64\**\*" />
     </ItemGroup>
     <ItemGroup>
+        <Folder Include="Converters" />
         <Folder Include="Models\" />
         <AvaloniaResource Include="Assets\**" />
         <None Remove=".gitignore" />
@@ -129,5 +130,16 @@
         <DependentUpon>AvailableGamesView.axaml</DependentUpon>
         <SubType>Code</SubType>
       </Compile>
+      <Compile Update="Properties\Resources.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>Resources.resx</DependentUpon>
+      </Compile>
+    </ItemGroup>
+    <ItemGroup>
+      <EmbeddedResource Update="Properties\Resources.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
     </ItemGroup>
 </Project>

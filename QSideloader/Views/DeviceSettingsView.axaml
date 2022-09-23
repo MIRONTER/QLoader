@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:QSideloader.ViewModels"
+             xmlns:p="clr-namespace:QSideloader.Properties"
              mc:Ignorable="d" d:DesignWidth="555" d:DesignHeight="128"
              x:Class="QSideloader.Views.DeviceSettingsView">
     <Design.DataContext>
@@ -15,7 +16,7 @@
             Margin="0">
         <StackPanel Orientation="Vertical" IsEnabled="{Binding IsDeviceConnected}">
             <StackPanel Orientation="Horizontal"  Margin="0,0,0,0">
-                <TextBlock FontSize="16" FontWeight="DemiBold" Margin="0,0,0,10">Quest Settings</TextBlock>
+                <TextBlock FontSize="16" FontWeight="DemiBold" Margin="0,0,0,10" Text="{x:Static p:Resources.QuestSettingsHeader}" />
                 <StackPanel Orientation="Horizontal" Margin="10,0,0,8">
        
                 </StackPanel>
@@ -52,13 +53,13 @@
                                   ToolTip.Tip="Default texture size" />
                     </StackPanel>
                     <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
-                        <TextBox MinWidth="240" Watermark="Username (leave empty for default)"
+                        <TextBox MinWidth="240" Watermark="{x:Static p:Resources.UsernamePlaceholder}"
                                  Text="{Binding UsernameTextBoxText}"
-                                 ToolTip.Tip="Username (leave empty for default)" />
-                        <Button Margin="8,0,0,0" Command="{Binding MountStorage}">Mount Quest as Drive</Button>
+                                 ToolTip.Tip="{x:Static p:Resources.UsernamePlaceholder}" />
+                        <Button Margin="8,0,0,0" Command="{Binding MountStorage}" Content="{x:Static p:Resources.MountQuestButton}"/>
                         <Button 
-                            MinWidth = "118"
-                            Margin="8,0,0,0" Command="{Binding ApplySettings}" VerticalAlignment="Center">Apply Settings</Button>
+                            MinWidth = "118" Margin="8,0,0,0" VerticalAlignment="Center" 
+                            Command="{Binding ApplySettings}" Content="{x:Static p:Resources.ApplySettingsButton}" />
                     </StackPanel>
                 </StackPanel>
             </Border>

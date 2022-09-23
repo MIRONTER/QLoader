@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using Avalonia.Data.Converters;
+using QSideloader.Properties;
 
 namespace QSideloader.Utilities;
 
@@ -14,18 +15,18 @@ public class OnDeviceStatusValueConverter : IValueConverter
             return null;
 
         if (value is not bool status) throw new NotSupportedException();
-        return status ? "On Device" : "";
+        return status ? Resources.OnDeviceHeader : "";
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is string status)
-            return status switch
-            {
-                "On Device" => true,
-                "" => false,
-                _ => throw new NotSupportedException()
-            };
+        {
+            if (status == Resources.OnDeviceHeader)
+                return true;
+            if (status == "")
+                return false;
+        }
         throw new NotSupportedException();
     }
 }

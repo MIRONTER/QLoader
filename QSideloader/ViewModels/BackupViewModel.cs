@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -9,6 +10,7 @@ using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
 using DynamicData;
 using QSideloader.Models;
+using QSideloader.Properties;
 using QSideloader.Services;
 using QSideloader.Utilities;
 using ReactiveUI;
@@ -30,6 +32,7 @@ public class BackupViewModel: ViewModelBase, IActivatableViewModel
         Refresh = ReactiveCommand.CreateFromObservable<bool,Unit>(RefreshImpl);
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
         Restore = ReactiveCommand.CreateFromObservable(RestoreImpl);
+        Delete = ReactiveCommand.CreateFromObservable(DeleteImpl);
         var cacheListBind = _backupsSourceCache.Connect()
             .RefCount()
             .SortBy(x => x.Date)
@@ -49,6 +52,7 @@ public class BackupViewModel: ViewModelBase, IActivatableViewModel
 
     private ReactiveCommand<bool, Unit> Refresh { get; }
     public ReactiveCommand<Unit, Unit> Restore { get; }
+    public ReactiveCommand<Unit, Unit> Delete { get; }
     public ReadOnlyObservableCollection<Backup> Backups => _backups;
     public bool IsBusy => _isBusy.Value;
     [Reactive] public bool IsDeviceConnected { get; private set; }
@@ -86,7 +90,7 @@ public class BackupViewModel: ViewModelBase, IActivatableViewModel
             if (selectedBackups.Count == 0)
             {
                 Log.Information("No backups selected for restore");
-                Globals.ShowNotification("Restore", "No backups selected", NotificationType.Information, TimeSpan.FromSeconds(2));
+                Globals.ShowNotification(Resources.Restore, Resources.NoBackupsSelected, NotificationType.Information, TimeSpan.FromSeconds(2));
                 return;
             }
             foreach (var backup in selectedBackups)
@@ -95,6 +99,35 @@ public class BackupViewModel: ViewModelBase, IActivatableViewModel
                 Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.Restore, Backup = backup});
                 Log.Information("Queued for restore: {BackupName}", backup);
             }
+        });
+    }
+    
+    private IObservable<Unit> DeleteImpl()
+    {
+        return Observable.Start(() =>
+        {
+            var selectedBackups = _backupsSourceCache.Items.Where(backup => backup.IsSelected).ToList();
+            if (selectedBackups.Count == 0)
+            {
+                Log.Information("No backups selected for deletion");
+                Globals.ShowNotification(Resources.Delete, Resources.NoBackupsSelected, NotificationType.Information, TimeSpan.FromSeconds(2));
+                return;
+            }
+            foreach (var backup in selectedBackups)
+            {
+                backup.IsSelected = false;
+                if (Directory.Exists(backup.Path))
+                {
+                    Directory.Delete(backup.Path,true);
+                    Log.Information("Deleted backup: {BackupName}", backup);
+                }
+                else
+                {
+                    Log.Warning("Backup directory not found: {BackupName}", backup.Name);
+                }
+            }
+
+            Refresh.Execute(true).Subscribe();
         });
     }
     
