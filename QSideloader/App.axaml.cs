@@ -24,9 +24,7 @@ public class App : Application
 {
     public override void Initialize()
     {
-        var exePath = Path.GetDirectoryName(AppContext.BaseDirectory);
-        if (exePath is not null)
-            Directory.SetCurrentDirectory(exePath);
+        Directory.SetCurrentDirectory(Path.GetDirectoryName(AppContext.BaseDirectory)!);
 
         if (!Design.IsDesignMode)
         {
