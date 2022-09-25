@@ -1077,8 +1077,9 @@ public class AdbService
                     select new InstalledApp(name, packageName, versionName, versionCode, false, isHiddenFromDonation,
                         donationStatus);
             InstalledApps = query.ToList();
-            Log.Debug("Found {Count} installed apps: {InstalledApps}", InstalledApps.Count,
-                InstalledApps.Select(x => x.Name));
+            var tupleList = InstalledApps.Select(g => (g.Name, g.PackageName)).ToList();
+            Log.Debug("Found {Count} installed apps on {Device}: {InstalledApps}", InstalledApps.Count, 
+                this, tupleList);
             op.Complete();
         }
 
