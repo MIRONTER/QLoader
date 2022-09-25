@@ -15,6 +15,7 @@ using QSideloader.Utilities;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Serilog;
+using Serilog.Context;
 
 namespace QSideloader.ViewModels;
 
@@ -366,6 +367,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             AdbService.ReleasePackageOperationLock();
             throw;
         }
+
+        using var _ = LogContext.PushProperty("Device", _adbDevice!.ToString());
         Status = "Installing";
 
         // Here I assume that Install is the last step in the process, this might change in the future
@@ -411,6 +414,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         try
         {
             EnsureDeviceConnected();
+            using var _ = LogContext.PushProperty("Device", _adbDevice!.ToString());
             Status = "Uninstalling";
             if (_game is not null)
                 await Task.Run(() => _adbDevice!.UninstallPackage(_game.PackageName));
@@ -428,6 +432,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private async Task BackupAsync()
     {
         EnsureDeviceConnected();
+        using var _ = LogContext.PushProperty("Device", _adbDevice!.ToString());
         Status = "Creating backup";
         await Task.Run(() => _adbDevice!.CreateBackup(_game!.PackageName!, _backupOptions!, _cancellationTokenSource.Token));
     }
@@ -439,6 +444,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         try
         {
             EnsureDeviceConnected();
+            using var _ = LogContext.PushProperty("Device", _adbDevice!.ToString());
             Status = "Restoring backup";
             await Task.Run(() => _adbDevice!.RestoreBackup(backup));
         }
