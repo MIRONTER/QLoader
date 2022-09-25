@@ -26,6 +26,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly DownloaderService _downloaderService;
     private readonly Game? _game;
+    private ulong? _gameSizeBytes;
     private readonly InstalledApp? _app;
     private readonly Backup? _backup;
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
@@ -149,10 +150,22 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             DownloadStats = "";
             return;
         }
+
+        double speedMBytes;
+        double progressPercent;
+
+        if (_gameSizeBytes is not null)
+        {
+            speedMBytes = Math.Round((double) stats.Value.downloadSpeedBytes / 1000000, 2);
+            progressPercent = Math.Floor(stats.Value.downloadedBytes / (double) _gameSizeBytes * 100);
+
+            DownloadStats = $"{progressPercent}%, {speedMBytes}MB/s";
+            return;
+        }
         
-        var speedMBytes = Math.Round((double) stats.Value.downloadSpeedBytes / 1000000, 2);
-        var downloadedMBytes = Math.Round( stats.Value.downloadedBytes / 1000000, 2);
-        var progressPercent = Math.Min(Math.Floor(downloadedMBytes / _game!.GameSize * 97), 100);
+        speedMBytes = Math.Round((double) stats.Value.downloadSpeedBytes / 1000000, 2);
+        var downloadedMBytes = Math.Round(stats.Value.downloadedBytes / 1000000, 2);
+        progressPercent = Math.Min(Math.Floor(downloadedMBytes / _game!.GameSize * 97), 100);
 
         DownloadStats = $"{progressPercent}%, {speedMBytes}MB/s";
     }
@@ -290,7 +303,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         }, "Install failed", "Installed");
     }
     
-    private async Task DoCancellableAsync(Func<Task> func, string failureStatus, string? successStatus = null)
+    private async Task DoCancellableAsync(Func<Task> func, string? failureStatus = null, string? successStatus = null)
     {
         try
         {
@@ -304,7 +317,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         }
         catch (Exception e)
         {
-            OnFinished(failureStatus, false, e);
+            if (!string.IsNullOrEmpty(failureStatus))
+                OnFinished(failureStatus, false, e);
         }
     }
 
@@ -315,6 +329,11 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         await DownloaderService.TakeDownloadLockAsync(_cancellationTokenSource.Token);
         try
         {
+            Status = "Calculating size";
+            await DoCancellableAsync(async () =>
+            {
+                _gameSizeBytes = await _downloaderService.GetGameSizeBytesAsync(_game!);
+            });
             Status = "Downloading";
             downloadStatsSubscription = _downloaderService
                 .PollStats(TimeSpan.FromMilliseconds(100), ThreadPoolScheduler.Instance)

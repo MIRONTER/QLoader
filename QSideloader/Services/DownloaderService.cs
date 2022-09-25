@@ -136,7 +136,7 @@ public class DownloaderService
                 Log.Debug("Quota exceeded on rclone config on mirror {MirrorName}",
                     MirrorName);
             }
-            catch (RcloneTransferException e)
+            catch (RcloneOperationException e)
             {
                 Log.Warning(e, "Error downloading rclone config from mirror {MirrorName} (is mirror down?)",
                     MirrorName);
@@ -391,7 +391,7 @@ public class DownloaderService
     /// <param name="retries">Number of retries for errors.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <exception cref="DownloadQuotaExceededException">Thrown if download quota is exceeded on mirror.</exception>
-    /// <exception cref="RcloneTransferException">Thrown if a transfer error occured.</exception>
+    /// <exception cref="RcloneOperationException">Thrown if a transfer error occured.</exception>
     /// <exception cref="DownloaderServiceException">Thrown if an unknown rclone error occured.</exception>
     private async Task RcloneTransferInternalAsync(string source, string destination, string operation,
         string additionalArgs = "", int retries = 1, CancellationToken ct = default)
@@ -427,7 +427,7 @@ public class DownloaderService
                     if (!e.Message.Contains("no such host"))
                     {
                         op.SetException(e);
-                        throw new RcloneTransferException($"Rclone {operation} error on mirror {MirrorName}", e);
+                        throw new RcloneOperationException($"Rclone {operation} error on mirror {MirrorName}", e);
                     }
                     break;
             }
@@ -518,7 +518,7 @@ public class DownloaderService
                     Log.Debug("Quota exceeded on game list {GameList} on mirror {MirrorName}",
                         gameListName, MirrorName);
                 }
-                catch (RcloneTransferException e)
+                catch (RcloneOperationException e)
                 {
                     Log.Warning(e,
                         "Error downloading list {GameList} from mirror {MirrorName} (is mirror down?)",
@@ -636,7 +636,7 @@ public class DownloaderService
                 {
                     Log.Warning("Quota exceeded on mirror {MirrorName}", MirrorName);
                 }
-                catch (RcloneTransferException e)
+                catch (RcloneOperationException e)
                 {
                     Log.Warning(e, "Download error on mirror {MirrorName}", MirrorName);
                 }
@@ -902,6 +902,52 @@ public class DownloaderService
             Directory.Delete(directory, true);
         }
     }
+
+    public async Task<ulong?> GetGameSizeBytesAsync(Game game, CancellationToken ct = default)
+    {
+        using var op = Operation.Begin("Rclone calculating size of \"{ReleaseName}\"", game.ReleaseName ?? "N/A");
+        try
+        {
+            await RcloneConfigSemaphoreSlim.WaitAsync(ct);
+            RcloneConfigSemaphoreSlim.Release();
+            EnsureMirrorSelected();
+            var remotePath = $"{MirrorName}:Quest Games/{game.ReleaseName}";
+            var proxy = GeneralUtils.GetDefaultProxyHostPort();
+            var command = Cli.Wrap(PathHelper.RclonePath)
+                .WithArguments(
+                    $"size \"{remotePath}\" --fast-list --json");
+            if (proxy is not null)
+                command = command.WithEnvironmentVariables(env => env
+                    .Set("http_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}")
+                    .Set("https_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}"));
+            var result = await command.ExecuteBufferedAsync(ct);
+            var output = result.StandardOutput;
+            var dict = JsonConvert.DeserializeObject<Dictionary<string, ulong>>(output);
+            if (dict is null)
+                return null;
+            if (!dict.TryGetValue("bytes", out var sizeBytes)) return null;
+            op.Complete();
+            return sizeBytes;
+        }
+        catch (Exception e)
+        {
+            switch (e)
+            {
+                case OperationCanceledException:
+                    throw;
+                case CommandExecutionException {ExitCode: 1 or 3 or 4 or 7}:
+                    if (!e.Message.Contains("no such host"))
+                    {
+                        op.SetException(e);
+                        throw new RcloneOperationException($"Rclone size error on mirror {MirrorName}", e);
+                    }
+                    break;
+            }
+
+            op.SetException(e);
+            throw new DownloaderServiceException("Error executing rclone size", e);
+        }
+    }
 }
 
 public class DownloaderServiceException : Exception
@@ -937,14 +983,14 @@ public class DownloadQuotaExceededException : DownloaderServiceException
     public string RemotePath { get; }
 }
 
-public class RcloneTransferException : DownloaderServiceException
+public class RcloneOperationException : DownloaderServiceException
 {
-    public RcloneTransferException(string message)
+    public RcloneOperationException(string message)
         : base(message)
     {
     }
 
-    public RcloneTransferException(string message, Exception inner)
+    public RcloneOperationException(string message, Exception inner)
         : base(message, inner)
     {
     }
