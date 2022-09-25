@@ -99,7 +99,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     }
 
     [JsonProperty] private byte ConfigVersion { get; } = 1;
-    [Reactive] [JsonProperty] public bool CheckUpdatesAutomatically { get; private set; }
+    [RelaunchNeeded] [Reactive] [JsonProperty] public bool CheckUpdatesAutomatically { get; private set; }
     public string[] ConnectionTypes { get; } = {"USB", "Wireless"};
     [Reactive] [JsonProperty] public string? PreferredConnectionType { get; private set; }
     [Reactive] public string DownloadsLocationTextBoxText { get; private set; } = "";
@@ -111,7 +111,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [Reactive] [JsonProperty] public DownloadsPruningPolicy DownloadsPruningPolicy { get; set; }
     public List<DownloadsPruningPolicy> AllDownloadsPruningPolicies { get; } =
         Enum.GetValues(typeof(DownloadsPruningPolicy)).Cast<DownloadsPruningPolicy>().ToList();
-    [Reactive] [JsonProperty] public bool EnableDebugConsole { get; private set; }
+    [RelaunchNeeded] [Reactive] [JsonProperty] public bool EnableDebugConsole { get; private set; }
     [Reactive] [JsonProperty] public string LastWirelessAdbHost { get; set; } = "";
     public string VersionString { get; } = Assembly.GetExecutingAssembly()
         .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "";
@@ -129,7 +129,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [JsonProperty] public ObservableCollection<(string packageName, int versionCode)> DonatedPackages { get; } = new();
     [JsonProperty] public ObservableCollection<string> IgnoredDonationPackages { get; private set; } = new();
     [Reactive] public bool IsTrailersAddonInstalled { get; set; }
-    [Reactive] [JsonProperty] public bool EnableRemoteLogging { get; private set; }
+    [RelaunchNeeded] [Reactive] [JsonProperty] public bool EnableRemoteLogging { get; private set; }
     [Reactive] [JsonProperty] public bool EnableAutoDonation { get; private set; }
     private ReactiveCommand<bool, Unit> SaveSettings { get; }
     private ReactiveCommand<Unit, Unit> RestoreDefaults { get; }
@@ -479,19 +479,16 @@ public class SideloaderSettingsViewModel : ViewModelBase
 
     private static void ShowRelaunchNotification(string propertyName)
     {
-        if (propertyName != "EnableDebugConsole" && propertyName != "EnableRemoteLogging"
-            && propertyName != "CheckUpdatesAutomatically") return;
         Globals.ShowNotification("Settings", "Application restart is needed to apply this change",
             NotificationType.Information, TimeSpan.FromSeconds(2));
     }
 
     private void AutoSave(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is null ||
-            (typeof(SideloaderSettingsViewModel).GetProperty(e.PropertyName) is { } property && !Attribute.IsDefined(
-                property,
-                typeof(JsonPropertyAttribute)))) return;
-        ShowRelaunchNotification(e.PropertyName);
+        if (e.PropertyName is null) return;
+        var property = typeof(SideloaderSettingsViewModel).GetProperty(e.PropertyName);
+        if (property is null || !Attribute.IsDefined(property, typeof(JsonPropertyAttribute))) return;
+        if (Attribute.IsDefined(property, typeof(RelaunchNeededAttribute))) ShowRelaunchNotification(e.PropertyName);
         AutoSaveDelayTimer.Stop();
         AutoSaveDelayTimer.Start();
     }
