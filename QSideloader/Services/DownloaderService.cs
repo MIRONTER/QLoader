@@ -424,6 +424,12 @@ public class DownloaderService
                     op.SetException(e);
                     throw new DownloadQuotaExceededException(MirrorName, source, e);
                 case CommandExecutionException {ExitCode: 1 or 3 or 4 or 7}:
+                    if (e.Message.Contains("There is not enough space on the disk") ||
+                        e.Message.Contains("no space left on device"))
+                    {
+                        op.SetException(e);
+                        throw new NotEnoughSpaceException(destination, e);
+                    }
                     if (!e.Message.Contains("no such host"))
                     {
                         op.SetException(e);
@@ -965,13 +971,6 @@ public class DownloaderServiceException : Exception
 
 public class DownloadQuotaExceededException : DownloaderServiceException
 {
-    public DownloadQuotaExceededException(string mirrorName, string remotePath)
-        : base($"Quota exceeded on mirror {mirrorName} for path {remotePath}")
-    {
-        MirrorName = mirrorName;
-        RemotePath = remotePath;
-    }
-
     public DownloadQuotaExceededException(string mirrorName, string remotePath, Exception inner)
         : base($"Quota exceeded on mirror {mirrorName}", inner)
     {
@@ -985,13 +984,19 @@ public class DownloadQuotaExceededException : DownloaderServiceException
 
 public class RcloneOperationException : DownloaderServiceException
 {
-    public RcloneOperationException(string message)
-        : base(message)
-    {
-    }
-
     public RcloneOperationException(string message, Exception inner)
         : base(message, inner)
     {
     }
+}
+
+public class NotEnoughSpaceException : DownloaderServiceException
+{
+    public NotEnoughSpaceException(string path, Exception inner)
+        : base($"Not enough disk space on {path}", inner)
+    {
+        Path = path;
+    }
+
+    public string Path { get; }
 }
