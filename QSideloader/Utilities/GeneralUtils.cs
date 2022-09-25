@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -154,6 +155,23 @@ public static class GeneralUtils
             throttling = true;
             Task.Delay(throttle).ContinueWith(_ => throttling = false);
         };
+    }
+    
+    public static (string host, int port)? GetDefaultProxyHostPort()
+    {
+        const string testUrl = "http://google.com";
+        try
+        {
+            var proxyUri = WebRequest.DefaultWebProxy?.GetProxy(new Uri(testUrl));
+            if (proxyUri is null)
+                return null;
+            return (proxyUri.Host, proxyUri.Port);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Failed to get system proxy host and port");
+            return null;
+        }
     }
 }
 

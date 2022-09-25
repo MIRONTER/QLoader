@@ -48,6 +48,11 @@ public class DownloaderService
 
     static DownloaderService()
     {
+        var httpClientHandler = new HttpClientHandler
+        {
+            Proxy = WebRequest.DefaultWebProxy
+        };
+        ApiHttpClient = new HttpClient(httpClientHandler) {BaseAddress = new Uri(ApiUrl)};
         var appVersion = Assembly.GetExecutingAssembly().GetName().Version;
         var appVersionString = appVersion is not null
             ? $"{appVersion.Major}.{appVersion.Minor}.{appVersion.Build}"
@@ -82,7 +87,7 @@ public class DownloaderService
 
     private bool IsMirrorListInitialized { get; set; }
     private HttpClient HttpClient { get; } = new();
-    private static HttpClient ApiHttpClient { get; } = new() {BaseAddress = new Uri(ApiUrl)};
+    private static HttpClient ApiHttpClient { get; }
 
     /// <summary>
     ///     Downloads a new config file for rclone from a mirror.
@@ -340,7 +345,7 @@ public class DownloaderService
         }
         catch (Exception e)
         {
-            Log.Warning("Failed to exclude dead mirrors: {Message}", e.Message);
+            Log.Warning(e, "Failed to exclude dead mirrors");
         }
 
         var mirrorList = GetMirrorList();
@@ -398,10 +403,15 @@ public class DownloaderService
             var bwLimit = !string.IsNullOrEmpty(_sideloaderSettings.DownloaderBandwidthLimit)
                 ? $"--bwlimit {_sideloaderSettings.DownloaderBandwidthLimit}"
                 : "";
-            await Cli.Wrap(PathHelper.RclonePath)
+            var proxy = GeneralUtils.GetDefaultProxyHostPort();
+            var command = Cli.Wrap(PathHelper.RclonePath)
                 .WithArguments(
-                    $"{operation} --retries {retries} {bwLimit} \"{source}\" \"{destination}\" {additionalArgs}")
-                .ExecuteBufferedAsync(ct);
+                    $"{operation} --retries {retries} {bwLimit} \"{source}\" \"{destination}\" {additionalArgs}");
+            if (proxy is not null)
+                command = command.WithEnvironmentVariables(env => env
+                    .Set("http_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}")
+                    .Set("https_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}"));
+            await command.ExecuteBufferedAsync(ct);
             op.Complete();
         }
         catch (Exception e)
@@ -781,7 +791,8 @@ public class DownloaderService
                 MaxTryAgainOnFailover = 2,
                 RequestConfiguration =
                 {
-                    UserAgent = ApiHttpClient.DefaultRequestHeaders.UserAgent.ToString()
+                    UserAgent = ApiHttpClient.DefaultRequestHeaders.UserAgent.ToString(),
+                    Proxy = WebRequest.DefaultWebProxy
                 }
             };
             var downloader = new DownloadService(downloadOpt);
