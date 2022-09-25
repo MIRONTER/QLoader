@@ -452,3 +452,5 @@ $RECYCLE.BIN/
 
 Resources/videos/*
 Resources/thumbnails/*
+
+**/rclone/*
