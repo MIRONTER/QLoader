@@ -24,6 +24,13 @@ jobs:
       with:
         submodules: 'true'
 
+    - name: Download external dependencies
+      uses: wei/rclone@v1.1.1
+      env:
+        RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
+      with:
+        args: copy drive:qloader_files/dependencies/ QSideloader/
+    
     - name: Publish Debug
       run: |
         cd QSideloader
@@ -56,6 +63,13 @@ jobs:
       with:
         submodules: 'true'
 
+    - name: Download external dependencies
+      uses: wei/rclone@v1.1.1
+      env:
+        RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
+      with:
+        args: copy drive:qloader_files/dependencies/ QSideloader/
+    
     - name: Publish Debug
       run: |
         cd QSideloader
@@ -90,6 +104,13 @@ jobs:
         with:
           submodules: 'true'
 
+      - name: Download external dependencies
+        uses: wei/rclone@v1.1.1
+        env:
+          RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
+        with:
+          args: copy drive:qloader_files/dependencies/ QSideloader/
+      
       - name: Publish Debug
         run: |
           cd QSideloader
@@ -124,10 +145,18 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install zip -y
+    
     - uses: actions/checkout@v3
       with:
         submodules: 'true'
 
+    - name: Download external dependencies
+      uses: wei/rclone@v1.1.1
+      env:
+        RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
+      with:
+        args: copy drive:qloader_files/dependencies/ QSideloader/
+    
     - name: Publish Debug
       run: |
         cd QSideloader
