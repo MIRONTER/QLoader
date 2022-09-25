@@ -27,7 +27,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly DownloaderService _downloaderService;
     private readonly Game? _game;
-    private ulong? _gameSizeBytes;
+    private long? _gameSizeBytes;
     private readonly InstalledApp? _app;
     private readonly Backup? _backup;
     private readonly SideloaderSettingsViewModel _sideloaderSettings;

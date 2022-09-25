@@ -903,7 +903,7 @@ public class DownloaderService
         }
     }
 
-    public async Task<ulong?> GetGameSizeBytesAsync(Game game, CancellationToken ct = default)
+    public async Task<long?> GetGameSizeBytesAsync(Game game, CancellationToken ct = default)
     {
         using var op = Operation.Begin("Rclone calculating size of \"{ReleaseName}\"", game.ReleaseName ?? "N/A");
         try
@@ -922,7 +922,7 @@ public class DownloaderService
                     .Set("https_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}"));
             var result = await command.ExecuteBufferedAsync(ct);
             var output = result.StandardOutput;
-            var dict = JsonConvert.DeserializeObject<Dictionary<string, ulong>>(output);
+            var dict = JsonConvert.DeserializeObject<Dictionary<string, long>>(output);
             if (dict is null)
                 return null;
             if (!dict.TryGetValue("bytes", out var sizeBytes)) return null;
