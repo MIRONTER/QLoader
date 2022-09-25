@@ -30,11 +30,19 @@ jobs:
         RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
       with:
         args: copy drive:qloader_files/dependencies/ QSideloader/
+
+    - name: Download resources
+      uses: wei/rclone@v1.1.1
+      env:
+        RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
+      with:
+        args: copy --transfers 8 drive:qloader_files/Resources/ QSideloader/Resources/
     
     - name: Publish Debug
       run: |
         cd QSideloader
         dotnet publish -c Debug --self-contained true --runtime win-x64 -p:PublishSingleFile=true -o ../win-x64
+    
     - name: Prepare for upload
       env:
         TAG_NAME: ${{ github.ref_name }}
@@ -42,6 +50,7 @@ jobs:
         echo Packing win-x64
         mkdir -p builds_tag/$TAG_NAME/
         zip -r builds_tag/$TAG_NAME/win-x64.zip win-x64/*
+    
     - name: Upload artifact
       uses: wei/rclone@v1.1.1
       env:
@@ -69,11 +78,19 @@ jobs:
         RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
       with:
         args: copy drive:qloader_files/dependencies/ QSideloader/
+
+    - name: Download resources
+      uses: wei/rclone@v1.1.1
+      env:
+        RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
+      with:
+        args: copy --transfers 8 drive:qloader_files/Resources/ QSideloader/Resources/
     
     - name: Publish Debug
       run: |
         cd QSideloader
         dotnet publish -c Debug --self-contained true --runtime linux-x64 -p:PublishSingleFile=true -o ../linux-x64
+    
     - name: Prepare for upload
       env:
         TAG_NAME: ${{ github.ref_name }}
@@ -83,6 +100,7 @@ jobs:
         chmod +x linux-x64/Loader
         chmod -R +x linux-x64/tools/
         tar cvzf builds_tag/$TAG_NAME/linux-x64.tar.gz linux-x64/*
+    
     - name: Upload artifact
       uses: wei/rclone@v1.1.1
       env:
@@ -110,11 +128,19 @@ jobs:
           RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
         with:
           args: copy drive:qloader_files/dependencies/ QSideloader/
+
+      - name: Download resources
+        uses: wei/rclone@v1.1.1
+        env:
+          RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
+        with:
+          args: copy --transfers 8 drive:qloader_files/Resources/ QSideloader/Resources/
       
       - name: Publish Debug
         run: |
           cd QSideloader
           dotnet publish -c Debug --self-contained true --runtime linux-arm64 -p:PublishSingleFile=true -o ../linux-arm64
+      
       - name: Prepare for upload
         env:
           TAG_NAME: ${{ github.ref_name }}
@@ -124,6 +150,7 @@ jobs:
           chmod +x linux-arm64/Loader
           chmod -R +x linux-arm64/tools/
           tar cvzf builds_tag/$TAG_NAME/linux-arm64.tar.gz linux-arm64/*
+      
       - name: Upload artifact
         uses: wei/rclone@v1.1.1
         env:
@@ -156,11 +183,19 @@ jobs:
         RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
       with:
         args: copy drive:qloader_files/dependencies/ QSideloader/
+
+    - name: Download resources
+      uses: wei/rclone@v1.1.1
+      env:
+        RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
+      with:
+        args: copy --transfers 8 drive:qloader_files/Resources/ QSideloader/Resources/
     
     - name: Publish Debug
       run: |
         cd QSideloader
         dotnet publish -c Debug --self-contained true --runtime osx-x64 -p:PublishSingleFile=true -o ../osx-x64
+    
     - name: Prepare for upload
       env:
         TAG_NAME: ${{ github.ref_name }}
@@ -170,6 +205,7 @@ jobs:
         chmod +x osx-x64/Loader
         chmod -R +x osx-x64/tools/
         zip -r builds_tag/$TAG_NAME/osx-x64.zip osx-x64/*
+    
     - name: Upload artifact
       uses: wei/rclone@v1.1.1
       env:
