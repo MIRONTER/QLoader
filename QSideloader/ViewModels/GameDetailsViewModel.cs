@@ -115,6 +115,8 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
     [Reactive] public string DisplayName { get; set; }
     [Reactive] public string Description { get; set; } = "";
     [Reactive] public string StoreRating { get; set; } = "";
+    [Reactive] public bool ShowOculusStoreLink { get; set; }
+    [Reactive] public string? OculusStoreUrl { get; set; } = "";
     public ViewModelActivator Activator { get; }
 
     public void Dispose()
@@ -198,6 +200,9 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
             Description = game.Description ?? "";
             var ratingAggregate = Math.Round(game.QualityRatingAggregate, 2);
             StoreRating = $"{ratingAggregate} ({game.RatingCount})";
+            OculusStoreUrl = game.Url;
+            if (OculusStoreUrl is not null && game.PackageName == "com.CMGames.IntoTheRadius")
+                ShowOculusStoreLink = true;
         }
         catch (Exception e)
         {
