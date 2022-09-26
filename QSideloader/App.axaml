@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:sty="using:FluentAvalonia.Styling"
              xmlns:local="using:QSideloader"
+             xmlns:avalonia="clr-namespace:HyperText.Avalonia;assembly=HyperText.Avalonia"
              x:Class="QSideloader.App"
              Name="Loader">
     <Application.DataTemplates>
@@ -13,6 +14,7 @@
         <StyleInclude Source="avares://Aura.UI.FluentTheme/AuraUI.xaml" />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
         <sty:FluentAvaloniaTheme />
+        <avalonia:HyperLinkStyle/>
     </Application.Styles>
     
     <Application.Resources>
