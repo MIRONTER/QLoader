@@ -1,8 +1,10 @@
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -24,6 +26,8 @@ public class App : Application
 {
     public override void Initialize()
     {
+        Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("ru");
+
         Directory.SetCurrentDirectory(Path.GetDirectoryName(AppContext.BaseDirectory)!);
 
         if (!Design.IsDesignMode)

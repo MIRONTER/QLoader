@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using Avalonia.Data.Converters;
 using QSideloader.Models;
@@ -17,8 +16,8 @@ public class UpdateStatusStringValueConverter : IValueConverter
         if (value is InstalledGame game)
         {
             return game.AvailableVersionCode > game.InstalledVersionCode 
-                ? string.Format(Resources.UpdateStatusUpdateAvailable, game.InstalledVersionCode, game.AvailableVersionCode)
-                : Resources.UpdateStatusUpToDate;
+                ? string.Format(Resources.UpdateAvailable, game.InstalledVersionCode, game.AvailableVersionCode)
+                : Resources.UpToDate;
         }
 
         throw new NotSupportedException();

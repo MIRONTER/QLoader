@@ -556,13 +556,28 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="DragDropPanelText" xml:space="preserve">
         <value>Drop APK to sideload, release folder to install or backup folder to restore</value>
     </data>
-    <data name="UpdateStatusUpToDate" xml:space="preserve">
+    <data name="UpToDate" xml:space="preserve">
         <value>Up To Date</value>
     </data>
-    <data name="UpdateStatusUpdateAvailable" xml:space="preserve">
+    <data name="UpdateAvailable" xml:space="preserve">
         <value>Update Available! ({0} -&gt; {1})</value>
     </data>
     <data name="Data" xml:space="preserve">
         <value>Data</value>
+    </data>
+    <data name="NewApp" xml:space="preserve">
+        <value>New app</value>
+    </data>
+    <data name="NewVersion" xml:space="preserve">
+        <value>New version</value>
+    </data>
+    <data name="Donated" xml:space="preserve">
+        <value>Donated</value>
+    </data>
+    <data name="Ignored" xml:space="preserve">
+        <value>Ignored</value>
+    </data>
+    <data name="Blacklisted" xml:space="preserve">
+        <value>Blacklisted</value>
     </data>
 </root>

@@ -549,13 +549,28 @@
     <data name="DragDropPanelText" xml:space="preserve">
         <value>Перетащите APK или папку релиза для установки, или папку резервной копии для восстановления</value>
     </data>
-    <data name="UpdateStatusUpToDate" xml:space="preserve">
+    <data name="UpToDate" xml:space="preserve">
         <value>Нет обновлений</value>
     </data>
-    <data name="UpdateStatusUpdateAvailable" xml:space="preserve">
+    <data name="UpdateAvailable" xml:space="preserve">
         <value>Доступно обновление! ({0} -&gt; {1})</value>
     </data>
     <data name="Data" xml:space="preserve">
         <value>Данные</value>
+    </data>
+    <data name="Blacklisted" xml:space="preserve">
+        <value>В черном списке</value>
+    </data>
+    <data name="Donated" xml:space="preserve">
+        <value>Пожертвовано</value>
+    </data>
+    <data name="Ignored" xml:space="preserve">
+        <value>В списке игнора</value>
+    </data>
+    <data name="NewApp" xml:space="preserve">
+        <value>Новое приложение</value>
+    </data>
+    <data name="NewVersion" xml:space="preserve">
+        <value>Новая версия</value>
     </data>
 </root>

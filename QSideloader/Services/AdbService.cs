@@ -1061,10 +1061,10 @@ public class AdbService
                     let isNewVersion = _downloaderService.AvailableGames!.Where(g => g.PackageName == packageName)
                         .Any(g => versionCode > g.VersionCode)
                     let isHiddenFromDonation = isBlacklisted || isIgnored || isDonated || !(isNew || isNewVersion)
-                    let donationStatus = !isHiddenFromDonation ? isNew ? "New App" : "New version" :
-                        isDonated ? "Donated" :
-                        isIgnored ? "Ignored" :
-                        isBlacklisted ? "Blacklisted" : "Up To Date"
+                    let donationStatus = !isHiddenFromDonation ? isNew ? Resources.NewApp : Resources.NewVersion :
+                        isDonated ? Resources.Donated :
+                        isIgnored ? Resources.Ignored :
+                        isBlacklisted ? Resources.Blacklisted : Resources.UpToDate
                     select new InstalledApp(name, packageName, versionName, versionCode, !isNew, isHiddenFromDonation,
                         donationStatus);
             else

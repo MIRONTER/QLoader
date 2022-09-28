@@ -297,6 +297,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Blacklisted.
+        /// </summary>
+        public static string Blacklisted {
+            get {
+                return ResourceManager.GetString("Blacklisted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Browse.
         /// </summary>
         public static string BrowseButton {
@@ -546,6 +555,15 @@ namespace QSideloader.Properties {
         public static string DonateAllGamesTooltip {
             get {
                 return ResourceManager.GetString("DonateAllGamesTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Donated.
+        /// </summary>
+        public static string Donated {
+            get {
+                return ResourceManager.GetString("Donated", resourceCulture);
             }
         }
         
@@ -874,6 +892,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Ignored.
+        /// </summary>
+        public static string Ignored {
+            get {
+                return ResourceManager.GetString("Ignored", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Hide selected apps from donation list (select already ignored apps to inverse).
         /// </summary>
         public static string IgnoreSelectedAppsTooltip {
@@ -1041,6 +1068,24 @@ namespace QSideloader.Properties {
         public static string NameHeader {
             get {
                 return ResourceManager.GetString("NameHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New app.
+        /// </summary>
+        public static string NewApp {
+            get {
+                return ResourceManager.GetString("NewApp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New version.
+        /// </summary>
+        public static string NewVersion {
+            get {
+                return ResourceManager.GetString("NewVersion", resourceCulture);
             }
         }
         
@@ -1561,6 +1606,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Update Available! ({0} -&gt; {1}).
+        /// </summary>
+        public static string UpdateAvailable {
+            get {
+                return ResourceManager.GetString("UpdateAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Update Selected.
         /// </summary>
         public static string UpdateSelectedButton {
@@ -1588,24 +1642,6 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Update Available! ({0} -&gt; {1}).
-        /// </summary>
-        public static string UpdateStatusUpdateAvailable {
-            get {
-                return ResourceManager.GetString("UpdateStatusUpdateAvailable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Up To Date.
-        /// </summary>
-        public static string UpdateStatusUpToDate {
-            get {
-                return ResourceManager.GetString("UpdateStatusUpToDate", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Uploading.
         /// </summary>
         public static string Uploading {
@@ -1620,6 +1656,15 @@ namespace QSideloader.Properties {
         public static string UploadSucess {
             get {
                 return ResourceManager.GetString("UploadSucess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Up To Date.
+        /// </summary>
+        public static string UpToDate {
+            get {
+                return ResourceManager.GetString("UpToDate", resourceCulture);
             }
         }
         
