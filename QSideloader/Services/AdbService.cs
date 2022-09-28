@@ -1194,6 +1194,27 @@ public class AdbService
                 return false;
             }
         }
+        
+        /// <summary>
+        ///     Checks if specified file exists on the device.
+        /// </summary>
+        /// <param name="path">Path to file</param>
+        /// <returns>
+        ///     <see langword="true" /> if stat was successful and directory exists, <see langword="false" /> otherwise.
+        /// </returns>
+        private bool RemoteFileExists(string path)
+        {
+            try
+            {
+                using var syncService = new SyncService(_adb.AdbClient, this);
+                return syncService.Stat(path).FileMode.HasFlag(UnixFileMode.Regular);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Failed to stat {Path}", path);
+                return false;
+            }
+        }
 
         /// <summary>
         ///     Sideloads the specified game to the device.
