@@ -1393,6 +1393,9 @@ public class AdbService
                             }
                             case "uninstall":
                             {
+                                if (args.Count > 1)
+                                    throw new InvalidOperationException(
+                                        $"Wrong number of arguments in adb uninstall command: expected 1, got {args.Count}");
                                 var packageName = args.First();
                                 CreateBackup(packageName, new BackupOptions(), ct);
                                 try
@@ -1407,19 +1410,42 @@ public class AdbService
                             }
                             case "push":
                             {
+                                if (args.Count != 2)
+                                    throw new InvalidOperationException(
+                                        $"Wrong number of arguments in adb push command: expected 2, got {args.Count}");
                                 var source = Path.Combine(gamePath, args[0]);
-                                var destination = Path.Combine(gamePath, args[1]);
+                                var destination = args[1];
                                 if (Directory.Exists(source))
                                     PushDirectory(source, destination, ct: ct);
-                                else
+                                else if (File.Exists(source))
                                     PushFile(source, destination, ct);
+                                else
+                                    Log.Information("Local path {Path} doesn't exist", source);
+                                break;
+                            }
+                            case "pull":
+                            {
+                                if (args.Count != 2)
+                                    throw new InvalidOperationException(
+                                        $"Wrong number of arguments in adb pull command: expected 2, got {args.Count}");
+                                var source = args[0];
+                                var destination = Path.Combine(gamePath, args[1]);
+                                if (RemoteDirectoryExists(source))
+                                    PullDirectory(source, destination, ct: ct);
+                                else if (RemoteFileExists(source))
+                                    PullFile(source, destination, ct);
+                                else
+                                    Log.Information("Remote path {Path} doesn't exist", source);
                                 break;
                             }
                             case "shell":
                             {
                                 args = args.Select(x => x.Contains(' ') ? $"\"{x}\"" : x).ToList();
-                                if (args.Count > 2 && args[0] == "pm" && args[1] == "uninstall")
+                                if (args.Count >=2 && args[0] == "pm" && args[1] == "uninstall")
                                 {
+                                    if (args.Count != 3)
+                                        throw new InvalidOperationException(
+                                            $"Wrong number of arguments in adb shell pm uninstall command: expected 3, got {args.Count}");
                                     var packageName = args[2];
                                     CreateBackup(packageName, new BackupOptions(), ct);
                                     try
