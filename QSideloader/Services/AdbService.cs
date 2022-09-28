@@ -1138,6 +1138,8 @@ public class AdbService
         /// <param name="ct">Cancellation token.</param>
         private void PullFile(string remotePath, string localPath, CancellationToken ct = default)
         {
+            if (!Directory.Exists(localPath))
+                Directory.CreateDirectory(localPath);
             var remoteFileName = remotePath.Split('/').Last(x => !string.IsNullOrEmpty(x));
             var localFilePath = localPath + Path.DirectorySeparatorChar + remoteFileName;
             Log.Debug("Pulling file: \"{RemotePath}\" -> \"{LocalPath}\"", remotePath, localFilePath);
