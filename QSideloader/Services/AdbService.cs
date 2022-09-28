@@ -1102,7 +1102,7 @@ public class AdbService
         ///     Pushes a directory to the device.
         /// </summary>
         /// <param name="localPath">Path to a local directory.</param>
-        /// <param name="remotePath">Remote path to push the file to.</param>
+        /// <param name="remotePath">Remote path to push the directory to.</param>
         /// <param name="overwrite">Pushed directory should fully overwrite existing one (if exists).</param>
         /// <param name="ct">Cancellation token.</param>
         private void PushDirectory(string localPath, string remotePath, bool overwrite = false, CancellationToken ct = default)
