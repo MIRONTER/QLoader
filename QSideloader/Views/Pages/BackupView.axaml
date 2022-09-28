@@ -7,10 +7,11 @@
              xmlns:views="clr-namespace:QSideloader.Views"
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
              xmlns:p="clr-namespace:QSideloader.Properties"
+             xmlns:converters="clr-namespace:QSideloader.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="QSideloader.Views.Pages.BackupView">
     <UserControl.Resources>
-        <utilities:BackupContentsStringValueConverter x:Key="BackupContentsStringFromBackup" />
+        <converters:BackupContentsStringValueConverter x:Key="BackupContentsStringFromBackup" />
     </UserControl.Resources>
     <Design.DataContext>
         <vm:BackupViewModel />

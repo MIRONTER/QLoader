@@ -4,7 +4,7 @@ using System.IO;
 using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
 
-namespace QSideloader.Utilities;
+namespace QSideloader.Converters;
 
 /// <summary>
 ///     <para>

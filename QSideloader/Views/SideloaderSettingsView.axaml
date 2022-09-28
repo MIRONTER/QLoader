@@ -5,11 +5,12 @@
              xmlns:viewModels="clr-namespace:QSideloader.ViewModels"
              xmlns:utilities="clr-namespace:QSideloader.Utilities"
              xmlns:p="clr-namespace:QSideloader.Properties"
+             xmlns:converters="clr-namespace:QSideloader.Converters"
              mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="750"
              x:Class="QSideloader.Views.SideloaderSettingsView"
              AttachedToVisualTree="Visual_OnAttachedToVisualTree">
     <UserControl.Resources>
-        <utilities:DownloadPruningPolicyValueConverter x:Key="DownloadPruningPolicyStringFromEnum" />
+        <converters:DownloadPruningPolicyValueConverter x:Key="DownloadPruningPolicyStringFromEnum" />
     </UserControl.Resources>
     <Design.DataContext>
         <viewModels:SideloaderSettingsViewModel />

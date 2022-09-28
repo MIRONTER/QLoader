@@ -3,7 +3,7 @@ using System.Globalization;
 using Avalonia.Data.Converters;
 using QSideloader.ViewModels;
 
-namespace QSideloader.Utilities;
+namespace QSideloader.Converters;
 
 public class DownloadPruningPolicyValueConverter : IValueConverter
 {

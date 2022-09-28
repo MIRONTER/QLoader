@@ -23,6 +23,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using FluentAvalonia.UI.Controls;
+using QSideloader.Converters;
 using QSideloader.Models;
 using QSideloader.Properties;
 using QSideloader.Services;

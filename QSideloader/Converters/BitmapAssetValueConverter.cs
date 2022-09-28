@@ -6,7 +6,7 @@ using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 
-namespace QSideloader.Utilities;
+namespace QSideloader.Converters;
 
 /// <summary>
 ///     <para>

@@ -4,7 +4,7 @@ using System.Globalization;
 using Avalonia.Data.Converters;
 using QSideloader.Models;
 
-namespace QSideloader.Utilities;
+namespace QSideloader.Converters;
 
 public class BackupContentsStringValueConverter : IValueConverter
 {

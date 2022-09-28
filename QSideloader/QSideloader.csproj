@@ -32,7 +32,6 @@
         <IncludeArchitectureSpecific Condition="($(RuntimeIdentifier.Contains('linux')) And $(RuntimeIdentifier.Contains('arm64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\linux\arm64\**\*" />
     </ItemGroup>
     <ItemGroup>
-        <Folder Include="Converters" />
         <Folder Include="Models\" />
         <AvaloniaResource Include="Assets\**" />
         <None Remove=".gitignore" />

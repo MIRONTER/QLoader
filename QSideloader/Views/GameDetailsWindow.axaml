@@ -7,6 +7,7 @@
         xmlns:utilities="clr-namespace:QSideloader.Utilities"
         xmlns:controls="clr-namespace:HyperText.Avalonia.Controls;assembly=HyperText.Avalonia"
         xmlns:p="clr-namespace:QSideloader.Properties"
+        xmlns:converters="clr-namespace:QSideloader.Converters"
         mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="400"
         x:Class="QSideloader.Views.GameDetailsWindow"
         Title="GameDetailsWindow"
@@ -24,7 +25,7 @@
     </Design.DataContext>
 
     <Window.Resources>
-        <utilities:BitmapImageFileValueConverter x:Key="VariableImageFromFiles" />
+        <converters:BitmapImageFileValueConverter x:Key="VariableImageFromFiles" />
     </Window.Resources>
 
     <Panel>

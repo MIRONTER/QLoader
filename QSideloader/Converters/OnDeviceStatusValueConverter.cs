@@ -3,7 +3,7 @@ using System.Globalization;
 using Avalonia.Data.Converters;
 using QSideloader.Properties;
 
-namespace QSideloader.Utilities;
+namespace QSideloader.Converters;
 
 public class OnDeviceStatusValueConverter : IValueConverter
 {
