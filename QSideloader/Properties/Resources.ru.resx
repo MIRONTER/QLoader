@@ -549,4 +549,13 @@
     <data name="DragDropPanelText" xml:space="preserve">
         <value>Перетащите APK или папку релиза для установки, или папку резервной копии для восстановления</value>
     </data>
+    <data name="UpdateStatusUpToDate" xml:space="preserve">
+        <value>Нет обновлений</value>
+    </data>
+    <data name="UpdateStatusUpdateAvailable" xml:space="preserve">
+        <value>Доступно обновление! ({0} -&gt; {1})</value>
+    </data>
+    <data name="Data" xml:space="preserve">
+        <value>Данные</value>
+    </data>
 </root>

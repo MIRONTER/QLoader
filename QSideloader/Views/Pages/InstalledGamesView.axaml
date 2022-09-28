@@ -8,8 +8,12 @@
              xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
              xmlns:p="clr-namespace:QSideloader.Properties"
+             xmlns:converters="clr-namespace:QSideloader.Converters"
              mc:Ignorable="d" d:DesignWidth="1130" d:DesignHeight="450"
              x:Class="QSideloader.Views.Pages.InstalledGamesView">
+    <UserControl.Resources>
+        <converters:UpdateStatusStringValueConverter x:Key="UpdateStatusStringFromInstalledGame" />
+    </UserControl.Resources>
     <Design.DataContext>
         <vm:InstalledGamesViewModel />
     </Design.DataContext>
@@ -99,7 +103,7 @@
                                     Width="auto" IsReadOnly="True" />
                 <DataGridTextColumn Binding="{Binding GameSize}" Header="{x:Static p:Resources.GameSizeHeader}"
                                     Width="auto" IsReadOnly="True" />
-                <DataGridTextColumn Binding="{Binding UpdateStatus}" Header="{x:Static p:Resources.UpdateStatusHeader}"
+                <DataGridTextColumn Binding="{Binding ., Converter={StaticResource UpdateStatusStringFromInstalledGame}}" Header="{x:Static p:Resources.UpdateStatusHeader}"
                                     Width="auto" IsReadOnly="True" />
             </DataGrid.Columns>
             <DataGrid.Resources>

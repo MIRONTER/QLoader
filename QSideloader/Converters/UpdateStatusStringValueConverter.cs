@@ -7,23 +7,18 @@ using QSideloader.Properties;
 
 namespace QSideloader.Converters;
 
-public class BackupContentsStringValueConverter : IValueConverter
+public class UpdateStatusStringValueConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value == null)
             return null;
 
-        if (value is Backup backup)
+        if (value is InstalledGame game)
         {
-            var contentsList = new List<string>();
-            if (backup.ContainsApk)
-                contentsList.Add("Apk");
-            if (backup.ContainsObb)
-                contentsList.Add("Obb");
-            if (backup.ContainsSharedData || backup.ContainsPrivateData)
-                contentsList.Add(Resources.Data);
-            return string.Join(", ", contentsList);
+            return game.AvailableVersionCode > game.InstalledVersionCode 
+                ? string.Format(Resources.UpdateStatusUpdateAvailable, game.InstalledVersionCode, game.AvailableVersionCode)
+                : Resources.UpdateStatusUpToDate;
         }
 
         throw new NotSupportedException();

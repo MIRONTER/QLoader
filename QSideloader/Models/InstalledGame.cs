@@ -15,15 +15,9 @@ public class InstalledGame : Game
         GameSize = game.GameSize;
         InstalledVersionCode = installedVersionCode;
         InstalledVersionName = installedVersionName;
-        IsUpdateAvailable = AvailableVersionCode > InstalledVersionCode;
-        UpdateStatus = IsUpdateAvailable
-            ? $"Update Available! ({InstalledVersionCode} -> {AvailableVersionCode})"
-            : "Up To Date";
     }
 
     [JsonIgnore] public int InstalledVersionCode { get; set; }
     [JsonIgnore] public string InstalledVersionName { get; set; }
     [JsonIgnore] public int AvailableVersionCode { get; set; }
-    [JsonIgnore] public bool IsUpdateAvailable { get; set; }
-    [JsonIgnore] public string UpdateStatus { get; set; }
 }

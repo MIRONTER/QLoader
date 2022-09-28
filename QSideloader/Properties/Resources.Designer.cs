@@ -432,6 +432,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Data.
+        /// </summary>
+        public static string Data {
+            get {
+                return ResourceManager.GetString("Data", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Date.
         /// </summary>
         public static string DateHeader {
@@ -1575,6 +1584,24 @@ namespace QSideloader.Properties {
         public static string UpdateStatusHeader {
             get {
                 return ResourceManager.GetString("UpdateStatusHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Update Available! ({0} -&gt; {1}).
+        /// </summary>
+        public static string UpdateStatusUpdateAvailable {
+            get {
+                return ResourceManager.GetString("UpdateStatusUpdateAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Up To Date.
+        /// </summary>
+        public static string UpdateStatusUpToDate {
+            get {
+                return ResourceManager.GetString("UpdateStatusUpToDate", resourceCulture);
             }
         }
         
