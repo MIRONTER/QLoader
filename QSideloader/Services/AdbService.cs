@@ -1179,7 +1179,7 @@ public class AdbService
         /// </summary>
         /// <param name="path">Path to directory</param>
         /// <returns>
-        ///     <see langword="true" /> if directory exists, <see langword="false" /> otherwise.
+        ///     <see langword="true" /> if stat was successful and directory exists, <see langword="false" /> otherwise.
         /// </returns>
         private bool RemoteDirectoryExists(string path)
         {
@@ -1190,7 +1190,7 @@ public class AdbService
             }
             catch (Exception e)
             {
-                Log.Error(e, "Failed to stat the provided path");
+                Log.Error(e, "Failed to stat {Path}", path);
                 return false;
             }
         }
