@@ -1415,12 +1415,12 @@ public class AdbService
                                 break;
                             }
                             default:
-                                throw new AdbServiceException("Encountered unknown adb command");
+                                throw new AdbServiceException($"Encountered unknown adb command: {adbCommand}");
                         }
                     }
                     else
                     {
-                        throw new AdbServiceException("Encountered unknown command");
+                        throw new AdbServiceException($"Encountered unknown command: {command}");
                     }
                 }
             }
