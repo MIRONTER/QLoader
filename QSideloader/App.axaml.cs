@@ -26,13 +26,14 @@ public class App : Application
 {
     public override void Initialize()
     {
-        Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("ru");
-
         Directory.SetCurrentDirectory(Path.GetDirectoryName(AppContext.BaseDirectory)!);
 
         if (!Design.IsDesignMode)
         {
-            InitializeLogging();
+            var sideloaderSettings = Globals.SideloaderSettings;
+            if (sideloaderSettings.ForceEnglish)
+                Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("en");
+            InitializeLogging(sideloaderSettings);
         }
 
         AvaloniaXamlLoader.Load(this);
@@ -56,7 +57,7 @@ public class App : Application
         base.OnFrameworkInitializationCompleted();
     }
 
-    private static void InitializeLogging()
+    private static void InitializeLogging(SideloaderSettingsViewModel sideloaderSettings)
     {
         const string humanReadableLogPath = "debug_log.txt";
         const string clefLogPath = "debug_log.clef";
@@ -72,8 +73,6 @@ public class App : Application
         if (File.Exists("debug_log.json"))
             File.Delete("debug_log.json");
 
-        var sideloaderSettings = Globals.SideloaderSettings;
-        
         var executingAssembly = Assembly.GetExecutingAssembly();
         var programName = executingAssembly.GetName().Name;
         var versionString = executingAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?

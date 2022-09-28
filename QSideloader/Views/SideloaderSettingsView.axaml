@@ -6,7 +6,7 @@
              xmlns:utilities="clr-namespace:QSideloader.Utilities"
              xmlns:p="clr-namespace:QSideloader.Properties"
              xmlns:converters="clr-namespace:QSideloader.Converters"
-             mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="750"
+             mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="800"
              x:Class="QSideloader.Views.SideloaderSettingsView"
              AttachedToVisualTree="Visual_OnAttachedToVisualTree">
     <UserControl.Resources>
@@ -49,6 +49,11 @@
             <TextBlock Margin="0,8,0,4" VerticalAlignment="Center" Text="{x:Static p:Resources.PopularityTimeRange}" />
             <ComboBox Items="{Binding PopularityRanges}"
                       SelectedItem="{Binding PopularityRange}" />
+            
+            <ToggleSwitch Margin="0,8,0,0" 
+                          IsChecked="{Binding EnableAutoDonation}"
+                          Content="{x:Static p:Resources.EnableAutoDonation}"
+                          ToolTip.Tip="{x:Static p:Resources.EnableAutoDonationTooltip}" />
             
             <TextBlock Margin="0,8,0,4" Text="{x:Static p:Resources.DownloadsLocation}" />
             <StackPanel Orientation="Horizontal">
@@ -96,9 +101,8 @@
                         Content="{x:Static p:Resources.CopyInstallationIdButton}" />
             </StackPanel>
             
-            <ToggleSwitch IsChecked="{Binding EnableAutoDonation}"
-                          Content="{x:Static p:Resources.EnableAutoDonation}"
-                          ToolTip.Tip="{x:Static p:Resources.EnableAutoDonationTooltip}" />
+            <ToggleSwitch IsChecked="{Binding ForceEnglish}"
+                          Content="Force English display language" />
             
             <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding EnableDebugConsole}"
                           IsVisible="{Binding IsConsoleToggleable}" 

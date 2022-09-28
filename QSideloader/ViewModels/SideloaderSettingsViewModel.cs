@@ -131,6 +131,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [Reactive] public bool IsTrailersAddonInstalled { get; set; }
     [RelaunchNeeded] [Reactive] [JsonProperty] public bool EnableRemoteLogging { get; private set; }
     [Reactive] [JsonProperty] public bool EnableAutoDonation { get; private set; }
+    [RelaunchNeeded] [Reactive] [JsonProperty]  public bool ForceEnglish { get; private set; }
     private ReactiveCommand<bool, Unit> SaveSettings { get; }
     private ReactiveCommand<Unit, Unit> RestoreDefaults { get; }
     public ReactiveCommand<Unit, Unit> BrowseDownloadsDirectory { get; }
@@ -163,6 +164,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
         IgnoredDonationPackages = new ObservableCollection<string>();
         EnableRemoteLogging = false;
         EnableAutoDonation = false;
+        ForceEnglish = false;
     }
 
     private void ValidateSettings(bool save = true)
