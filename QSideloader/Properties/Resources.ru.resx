@@ -324,4 +324,229 @@
     <data name="Version" xml:space="preserve">
         <value>Версия</value>
     </data>
+    <data name="DescriptionColon" xml:space="preserve">
+        <value>Описание:</value>
+    </data>
+    <data name="DownloadAndInstallButton" xml:space="preserve">
+        <value>Загрузить и установить</value>
+    </data>
+    <data name="DownloadButton" xml:space="preserve">
+        <value>Загрузить</value>
+    </data>
+    <data name="DownloadSize" xml:space="preserve">
+        <value>Размер загрузки</value>
+    </data>
+    <data name="Note" xml:space="preserve">
+        <value>Заметка</value>
+    </data>
+    <data name="OculusStoreLinkTooltip" xml:space="preserve">
+        <value>Если вам нравится игра, купите ее чтобы поддержать разработчиков</value>
+    </data>
+    <data name="StoreRating" xml:space="preserve">
+        <value>Рейтинг в магазине</value>
+    </data>
+    <data name="AdbAuthorizationDialogTitle" xml:space="preserve">
+        <value>ADB авторизация</value>
+    </data>
+    <data name="AdbConnectionCheckHeader" xml:space="preserve">
+        <value>Проверка подключения ADB</value>
+    </data>
+    <data name="AdbConnectionCheckText" xml:space="preserve">
+        <value>Проверка подключенного устройтва...</value>
+    </data>
+    <data name="AdbConnectionDialogTitle" xml:space="preserve">
+        <value>Нет подключения к устройству</value>
+    </data>
+    <data name="AdbDevicesCopiedToClipboard" xml:space="preserve">
+        <value>Список устройств скопирован в буфер обмена</value>
+    </data>
+    <data name="AdbDevicesDialogTitle" xml:space="preserve">
+        <value>ADB устройства</value>
+    </data>
+    <data name="AlreadyInstalled" xml:space="preserve">
+        <value>Уже установлено</value>
+    </data>
+    <data name="BackupFailed" xml:space="preserve">
+        <value>Не удалось создать рез. копию</value>
+    </data>
+    <data name="BackupSuccess" xml:space="preserve">
+        <value>Рез. копия создана</value>
+    </data>
+    <data name="CalculatingSize" xml:space="preserve">
+        <value>Вычисление размера</value>
+    </data>
+    <data name="Cancelled" xml:space="preserve">
+        <value>Отменено</value>
+    </data>
+    <data name="CleaningUp" xml:space="preserve">
+        <value>Очистка</value>
+    </data>
+    <data name="ClickToCancel" xml:space="preserve">
+        <value>Кликните чтобы отменить</value>
+    </data>
+    <data name="ClickToDismiss" xml:space="preserve">
+        <value>Кликните чтобы убрать</value>
+    </data>
+    <data name="CloseButton" xml:space="preserve">
+        <value>Закрыть</value>
+    </data>
+    <data name="CopiedToClipboardHeader" xml:space="preserve">
+        <value>Скопировано в буфер обмена</value>
+    </data>
+    <data name="CopyToClipboardButton" xml:space="preserve">
+        <value>Скопировать</value>
+    </data>
+    <data name="CreatingBackup" xml:space="preserve">
+        <value>Создание рез. копии</value>
+    </data>
+    <data name="DeletingDownloadedFiles" xml:space="preserve">
+        <value>Удаление загруженных файлов</value>
+    </data>
+    <data name="DonationFailed" xml:space="preserve">
+        <value>Не удалось пожертвовать</value>
+    </data>
+    <data name="DownloadFailed" xml:space="preserve">
+        <value>Не удалось загрузить</value>
+    </data>
+    <data name="Downloading" xml:space="preserve">
+        <value>Загрузка</value>
+    </data>
+    <data name="DownloadQueued" xml:space="preserve">
+        <value>В очереди на загрузку</value>
+    </data>
+    <data name="DownloadSuccess" xml:space="preserve">
+        <value>Загружено</value>
+    </data>
+    <data name="Error" xml:space="preserve">
+        <value>Ошибка</value>
+    </data>
+    <data name="ErrorAutoDonation" xml:space="preserve">
+        <value>Ошибка выполнения авто пожертвования</value>
+    </data>
+    <data name="ErrorEnqueuingTask" xml:space="preserve">
+        <value>Ошибка добавления задачи</value>
+    </data>
+    <data name="ErrorGameDetailsDialog" xml:space="preserve">
+        <value>Ошибка открытия диалога подробностей</value>
+    </data>
+    <data name="ExceptionCopiedToClipboard" xml:space="preserve">
+        <value>Ошибка была скопирована в буфер обмена</value>
+    </data>
+    <data name="FailedNoDeviceConnection" xml:space="preserve">
+        <value>Ошибка: нет подключения к устройству</value>
+    </data>
+    <data name="FailedToDeleteDownloadedFiles" xml:space="preserve">
+        <value>Не удалось удалить загруженные файлы</value>
+    </data>
+    <data name="ForceDevicesRescanButton" xml:space="preserve">
+        <value>Принудительное сканирование</value>
+    </data>
+    <data name="IncompatibleUpdateReinstalling" xml:space="preserve">
+        <value>Несовместимое обновление, переустановка</value>
+    </data>
+    <data name="InstallFailed" xml:space="preserve">
+        <value>Не удалось установить</value>
+    </data>
+    <data name="Installing" xml:space="preserve">
+        <value>Установка</value>
+    </data>
+    <data name="InstallingApk" xml:space="preserve">
+        <value>Установка APK</value>
+    </data>
+    <data name="InstallQueued" xml:space="preserve">
+        <value>В очереди на установку</value>
+    </data>
+    <data name="InstallSuccess" xml:space="preserve">
+        <value>Установлено</value>
+    </data>
+    <data name="PerformingCustomInstall" xml:space="preserve">
+        <value>Выполнение специальной установки</value>
+    </data>
+    <data name="PreparingToUpload" xml:space="preserve">
+        <value>Подготовка к отправке</value>
+    </data>
+    <data name="PullingFromDevice" xml:space="preserve">
+        <value>Загрузка с устройства</value>
+    </data>
+    <data name="PushingObbFiles" xml:space="preserve">
+        <value>Отправка OBB файлов</value>
+    </data>
+    <data name="ReloadButton" xml:space="preserve">
+        <value>Перезагрузить</value>
+    </data>
+    <data name="RestoreFailed" xml:space="preserve">
+        <value>Не удалось восстановить</value>
+    </data>
+    <data name="RestoreQueued" xml:space="preserve">
+        <value>В очереди на восстановление</value>
+    </data>
+    <data name="RestoreSuccess" xml:space="preserve">
+        <value>Восстановлено</value>
+    </data>
+    <data name="RestoringBackup" xml:space="preserve">
+        <value>Востановление рез. копии</value>
+    </data>
+    <data name="TaskFailed" xml:space="preserve">
+        <value>Не удалось выполнить задачу</value>
+    </data>
+    <data name="TaskNameFailed" xml:space="preserve">
+        <value>Не удалось выполнить задачу {0}</value>
+    </data>
+    <data name="UninstallFailed" xml:space="preserve">
+        <value>Не удалось удалить</value>
+    </data>
+    <data name="Uninstalling" xml:space="preserve">
+        <value>Удаление</value>
+    </data>
+    <data name="UninstallQueued" xml:space="preserve">
+        <value>В очереди на удаление</value>
+    </data>
+    <data name="UninstallSuccess" xml:space="preserve">
+        <value>Удалено</value>
+    </data>
+    <data name="Uploading" xml:space="preserve">
+        <value>Отправка</value>
+    </data>
+    <data name="UploadSucess" xml:space="preserve">
+        <value>Отправлено</value>
+    </data>
+    <data name="AdbAuthorizationDialogText" xml:space="preserve">
+        <value>Для подключения к устройству требется авторизация ADB.
+Пожалуйста разрешите USB отладку в вашем шлеме.</value>
+    </data>
+    <data name="AdbConnectionDialogText" xml:space="preserve">
+        <value>Не найдено подключенное устройство. Убедитесь что выполнили следующее:
+1. Включить режим разработчика
+2. Подключить шлем к компьютеру через кабель передачи данных
+3. Закрыть все возможно конфликтующие программы (например SideQuest)
+
+Вы можете использовать {0} для загрузок без подключения к устройству.</value>
+    </data>
+    <data name="AdbConnectionDialogTextWin" xml:space="preserve">
+        <value>Не найдено подключенное устройство. Убедитесь что выполнили следующее:
+1. Включить режим разработчика
+2. Установить драйвер Oculus ADB
+3. Подключить шлем к компьютеру через кабель передачи данных
+4. Закрыть все возможно конфликтующие программы (например SideQuest или BlueStacks)
+
+Вы можете использовать {0} для загрузок без подключения к устройству.</value>
+    </data>
+    <data name="SettingsHeader" xml:space="preserve">
+        <value>Настройки</value>
+    </data>
+    <data name="NoDeviceConnection" xml:space="preserve">
+        <value>Нет подключения к устройству</value>
+    </data>
+    <data name="AdbUnauthorized" xml:space="preserve">
+        <value>ADB неавторизован</value>
+    </data>
+    <data name="MoreInfoButton" xml:space="preserve">
+        <value>Больше сведений</value>
+    </data>
+    <data name="TasksHeader" xml:space="preserve">
+        <value>Задачи</value>
+    </data>
+    <data name="DragDropPanelText" xml:space="preserve">
+        <value>Перетащите APK или папку релиза для установки, или папку резервной копии для восстановления</value>
+    </data>
 </root>

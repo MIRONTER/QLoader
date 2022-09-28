@@ -24,6 +24,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using FluentAvalonia.UI.Controls;
 using QSideloader.Models;
+using QSideloader.Properties;
 using QSideloader.Services;
 using QSideloader.Utilities;
 using QSideloader.Views;
@@ -66,7 +67,7 @@ public class MainWindowViewModel : ViewModelBase
         ShowGameDetailsCommand.ThrownExceptions.Subscribe(ex =>
         {
             Log.Error(ex, "Error while opening game details dialog");
-            ShowErrorNotification(ex, "Error while opening game details dialog");
+            ShowErrorNotification(ex, Resources.ErrorGameDetailsDialog);
         });
         ShowConnectionHelpDialog = ReactiveCommand.CreateFromObservable(ShowConnectionHelpDialogImpl);
         ShowAuthHelpDialog = ReactiveCommand.CreateFromObservable(ShowAuthHelpDialogImpl);
@@ -77,7 +78,7 @@ public class MainWindowViewModel : ViewModelBase
             Task.Run(RunAutoDonation).SafeFireAndForget(ex =>
             {
                 Log.Error(ex, "Error running auto donation");
-                ShowErrorNotification(ex, "Error running auto donation");
+                ShowErrorNotification(ex, Resources.ErrorAutoDonation);
             });
         });
         TryInstallTrailersAddon();
@@ -110,7 +111,7 @@ public class MainWindowViewModel : ViewModelBase
             if (t.IsFaulted)
             {
                 Log.Error(t.Exception!, "Error while enqueuing task");
-                Globals.ShowErrorNotification(t.Exception!, "Error while enqueuing task");
+                Globals.ShowErrorNotification(t.Exception!, Resources.ErrorEnqueuingTask);
             }
         }, TaskContinuationOptions.OnlyOnFaulted);
     }
@@ -239,7 +240,7 @@ public class MainWindowViewModel : ViewModelBase
                 {
                     var dialog = new ContentDialog
                     {
-                        Title = "Error",
+                        Title = Resources.Error,
                         Content = new ScrollViewer
                         {
                             Content = new TextBox
@@ -250,12 +251,12 @@ public class MainWindowViewModel : ViewModelBase
                             },
                             HorizontalScrollBarVisibility = ScrollBarVisibility.Visible
                         },
-                        CloseButtonText = "Close",
-                        PrimaryButtonText = "Copy to clipboard",
+                        CloseButtonText = Resources.CloseButton,
+                        PrimaryButtonText = Resources.CopyToClipboardButton,
                         PrimaryButtonCommand = ReactiveCommand.Create(async () =>
                         {
                             await Application.Current!.Clipboard!.SetTextAsync(text);
-                            ShowNotification("Copied to clipboard", "The exception has been copied to clipboard",
+                            ShowNotification(Resources.CopiedToClipboardHeader, Resources.ExceptionCopiedToClipboard,
                                 NotificationType.Success);
                         })
                     };
@@ -269,7 +270,7 @@ public class MainWindowViewModel : ViewModelBase
         return Observable.Start(() =>
         {
             var bitmap = BitmapAssetValueConverter.Instance.Convert("/Assets/adbauth.jpg", typeof(Bitmap), null,
-                CultureInfo.CurrentCulture) as Bitmap;
+                CultureInfo.InvariantCulture) as Bitmap;
             Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var image = new Image
@@ -279,8 +280,7 @@ public class MainWindowViewModel : ViewModelBase
                 };
                 var textBox = new TextBlock
                 {
-                    Text = "ADB authorization is required to connect to the device. " +
-                           "Please allow USB debugging in your headset.",
+                    Text = Resources.AdbAuthorizationDialogText
                 };
                 var stackPanel = new StackPanel
                 {
@@ -291,12 +291,12 @@ public class MainWindowViewModel : ViewModelBase
                 stackPanel.Children.Add(image);
                 var dialog = new ContentDialog
                 {
-                    Title = "ADB authorization",
+                    Title = Resources.AdbAuthorizationDialogTitle,
                     Content = new ScrollViewer
                     {
                         Content = stackPanel
                     },
-                    CloseButtonText = "Close"
+                    CloseButtonText = Resources.CloseButton
                 };
                 dialog.ShowAsync();
             });
@@ -308,26 +308,15 @@ public class MainWindowViewModel : ViewModelBase
         return Observable.Start(() =>
         {
             var appName = Assembly.GetExecutingAssembly().GetName().Name;
-            string message;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                message = "No connected device found. Make sure you have done the following:\n" +
-                          "1. Enable developer mode\n" +
-                          "2. Install Oculus ADB driver\n" +
-                          "3. Connect your headset to your computer using usb data cable\n" +
-                          "4. Close any possibly conflicting apps (SideQuest or BlueStacks for example)\n\n" +
-                          $"You may use {appName} for downloads without connecting to a device.\n";
-            else 
-                message = "No connected device found. Make sure you have done the following:\n" +
-                          "1. Enable developer mode\n" +
-                          "2. Connect your headset to your computer using usb data cable\n" +
-                          "3. Close any possibly conflicting apps (SideQuest for example)\n\n" +
-                          $"You may use {appName} for downloads without connecting to a device.\n";
+            var message = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) 
+                ? string.Format(Resources.AdbConnectionDialogTextWin, appName) 
+                : string.Format(Resources.AdbConnectionDialogText, appName);
                               
             Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var dialog = new ContentDialog
                 {
-                    Title = "No device connection",
+                    Title = Resources.AdbConnectionDialogTitle,
                     Content = new ScrollViewer
                     {
                         Content = new TextBlock
@@ -335,12 +324,12 @@ public class MainWindowViewModel : ViewModelBase
                             Text = message
                         }
                     },
-                    CloseButtonText = "Close",
-                    PrimaryButtonText = "Force rescan",
+                    CloseButtonText = Resources.CloseButton,
+                    PrimaryButtonText = Resources.ForceDevicesRescanButton,
                     PrimaryButtonCommand = ReactiveCommand.Create(() =>
                     {
                         Log.Information("Force connection check requested");
-                        ShowNotification("ADB connection check", "Checking for connected device...",
+                        ShowNotification(Resources.AdbConnectionCheckHeader, Resources.AdbConnectionCheckText,
                             NotificationType.Information, TimeSpan.FromSeconds(2));
                         Task.Run(() => _adbService.CheckDeviceConnection());
                     }),
@@ -362,7 +351,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             var dialog = new ContentDialog
             {
-                Title = "ADB devices",
+                Title = Resources.AdbDevicesDialogTitle,
                 Content = new ScrollViewer
                 {
                     Content = new TextBox
@@ -374,15 +363,15 @@ public class MainWindowViewModel : ViewModelBase
                     },
                     HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
                 },
-                CloseButtonText = "Close",
-                PrimaryButtonText = "Copy to clipboard",
+                CloseButtonText = Resources.CloseButton,
+                PrimaryButtonText = Resources.CopyToClipboardButton,
                 PrimaryButtonCommand = ReactiveCommand.Create(async () =>
                 {
                     await Application.Current!.Clipboard!.SetTextAsync(text);
-                    ShowNotification("Copied to clipboard", "The devices list has been copied to clipboard",
+                    ShowNotification(Resources.CopiedToClipboardHeader, Resources.AdbDevicesCopiedToClipboard,
                         NotificationType.Success);
                 }),
-                SecondaryButtonText = "Reload",
+                SecondaryButtonText = Resources.ReloadButton,
                 SecondaryButtonCommand = ReactiveCommand.Create(async () =>
                 {
                     await ShowAdbDevicesDialogAsync();

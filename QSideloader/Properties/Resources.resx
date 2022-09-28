@@ -334,4 +334,226 @@ Are you sure you want to continue?</value>
     <data name="DownloadAndInstallButton" xml:space="preserve">
         <value>Download &amp; Install</value>
     </data>
+    <data name="OculusStoreLinkTooltip" xml:space="preserve">
+        <value>If you like the game, buy it to support the developers</value>
+    </data>
+    <data name="DownloadSize" xml:space="preserve">
+        <value>Download size</value>
+    </data>
+    <data name="StoreRating" xml:space="preserve">
+        <value>Store rating</value>
+    </data>
+    <data name="Note" xml:space="preserve">
+        <value>Note</value>
+    </data>
+    <data name="DescriptionColon" xml:space="preserve">
+        <value>Description:</value>
+    </data>
+    <data name="DownloadButton" xml:space="preserve">
+        <value>Download</value>
+    </data>
+    <data name="ErrorGameDetailsDialog" xml:space="preserve">
+        <value>Error while opening game details dialog</value>
+    </data>
+    <data name="ErrorAutoDonation" xml:space="preserve">
+        <value>Error running auto donation</value>
+    </data>
+    <data name="ErrorEnqueuingTask" xml:space="preserve">
+        <value>Error while enqueuing task</value>
+    </data>
+    <data name="CopiedToClipboardHeader" xml:space="preserve">
+        <value>Copied to clipboard</value>
+    </data>
+    <data name="ExceptionCopiedToClipboard" xml:space="preserve">
+        <value>The exception has been copied to clipboard</value>
+    </data>
+    <data name="AdbAuthorizationDialogTitle" xml:space="preserve">
+        <value>ADB authorization</value>
+    </data>
+    <data name="AdbAuthorizationDialogText" xml:space="preserve">
+        <value>ADB authorization is required to connect to the device.
+Please allow USB debugging in your headset.</value>
+    </data>
+    <data name="CloseButton" xml:space="preserve">
+        <value>Close</value>
+    </data>
+    <data name="AdbConnectionDialogTitle" xml:space="preserve">
+        <value>No device connection</value>
+    </data>
+    <data name="AdbConnectionDialogText" xml:space="preserve">
+        <value>No connected device found. Make sure you have done the following:
+1. Enable developer mode
+2. Connect your headset to your computer using usb data cable
+3. Close any possibly conflicting apps (SideQuest for example)
+
+You may use {0} for downloads without connecting to a device.</value>
+    </data>
+    <data name="AdbConnectionDialogTextWin" xml:space="preserve">
+        <value>No connected device found. Make sure you have done the following:
+1. Enable developer mode
+2. Install Oculus ADB driver
+3. Connect your headset to your computer using usb data cable
+4. Close any possibly conflicting apps (SideQuest or BlueStacks for example)
+
+You may use {0} for downloads without connecting to a device.</value>
+    </data>
+    <data name="ForceDevicesRescanButton" xml:space="preserve">
+        <value>Force rescan</value>
+    </data>
+    <data name="AdbConnectionCheckHeader" xml:space="preserve">
+        <value>ADB connection check</value>
+    </data>
+    <data name="AdbConnectionCheckText" xml:space="preserve">
+        <value>Checking for connected device...</value>
+    </data>
+    <data name="CopyToClipboardButton" xml:space="preserve">
+        <value>Copy to clipboard</value>
+    </data>
+    <data name="AdbDevicesCopiedToClipboard" xml:space="preserve">
+        <value>The devices list has been copied to clipboard</value>
+    </data>
+    <data name="ReloadButton" xml:space="preserve">
+        <value>Reload</value>
+    </data>
+    <data name="Error" xml:space="preserve">
+        <value>Error</value>
+    </data>
+    <data name="AdbDevicesDialogTitle" xml:space="preserve">
+        <value>ADB devices</value>
+    </data>
+    <data name="ClickToCancel" xml:space="preserve">
+        <value>Click to cancel</value>
+    </data>
+    <data name="TaskFailed" xml:space="preserve">
+        <value>Task failed</value>
+    </data>
+    <data name="DownloadFailed" xml:space="preserve">
+        <value>Download failed</value>
+    </data>
+    <data name="InstallFailed" xml:space="preserve">
+        <value>Install failed</value>
+    </data>
+    <data name="DownloadSuccess" xml:space="preserve">
+        <value>Downloaded</value>
+    </data>
+    <data name="InstallSuccess" xml:space="preserve">
+        <value>Installed</value>
+    </data>
+    <data name="UninstallFailed" xml:space="preserve">
+        <value>Uninstall failed</value>
+    </data>
+    <data name="UninstallSuccess" xml:space="preserve">
+        <value>Uninstalled</value>
+    </data>
+    <data name="BackupFailed" xml:space="preserve">
+        <value>Backup failed</value>
+    </data>
+    <data name="BackupSuccess" xml:space="preserve">
+        <value>Backup created</value>
+    </data>
+    <data name="RestoreFailed" xml:space="preserve">
+        <value>Restore failed</value>
+    </data>
+    <data name="RestoreSuccess" xml:space="preserve">
+        <value>Backup restored</value>
+    </data>
+    <data name="PullingFromDevice" xml:space="preserve">
+        <value>Pulling from device</value>
+    </data>
+    <data name="PreparingToUpload" xml:space="preserve">
+        <value>Preparing to upload</value>
+    </data>
+    <data name="Uploading" xml:space="preserve">
+        <value>Uploading</value>
+    </data>
+    <data name="DonationFailed" xml:space="preserve">
+        <value>Donation failed</value>
+    </data>
+    <data name="Cancelled" xml:space="preserve">
+        <value>Cancelled</value>
+    </data>
+    <data name="UploadSucess" xml:space="preserve">
+        <value>Uploaded</value>
+    </data>
+    <data name="AlreadyInstalled" xml:space="preserve">
+        <value>Already installed</value>
+    </data>
+    <data name="DownloadQueued" xml:space="preserve">
+        <value>Download queued</value>
+    </data>
+    <data name="CalculatingSize" xml:space="preserve">
+        <value>Calculating size</value>
+    </data>
+    <data name="Downloading" xml:space="preserve">
+        <value>Downloading</value>
+    </data>
+    <data name="InstallQueued" xml:space="preserve">
+        <value>Install queued</value>
+    </data>
+    <data name="Installing" xml:space="preserve">
+        <value>Installing</value>
+    </data>
+    <data name="DeletingDownloadedFiles" xml:space="preserve">
+        <value>Deleting downloaded files</value>
+    </data>
+    <data name="FailedToDeleteDownloadedFiles" xml:space="preserve">
+        <value>Failed to delete downloaded files</value>
+    </data>
+    <data name="UninstallQueued" xml:space="preserve">
+        <value>Uninstall queued</value>
+    </data>
+    <data name="Uninstalling" xml:space="preserve">
+        <value>Uninstalling</value>
+    </data>
+    <data name="CreatingBackup" xml:space="preserve">
+        <value>Creating backup</value>
+    </data>
+    <data name="RestoringBackup" xml:space="preserve">
+        <value>Restoring backup</value>
+    </data>
+    <data name="ClickToDismiss" xml:space="preserve">
+        <value>Click to dismiss</value>
+    </data>
+    <data name="TaskNameFailed" xml:space="preserve">
+        <value>Task {0} failed</value>
+    </data>
+    <data name="FailedNoDeviceConnection" xml:space="preserve">
+        <value>Failed: no device connection</value>
+    </data>
+    <data name="RestoreQueued" xml:space="preserve">
+        <value>Restore queued</value>
+    </data>
+    <data name="InstallingApk" xml:space="preserve">
+        <value>Installing APK</value>
+    </data>
+    <data name="PerformingCustomInstall" xml:space="preserve">
+        <value>Performing custom install</value>
+    </data>
+    <data name="PushingObbFiles" xml:space="preserve">
+        <value>Pushing OBB files</value>
+    </data>
+    <data name="CleaningUp" xml:space="preserve">
+        <value>Cleaning up</value>
+    </data>
+    <data name="IncompatibleUpdateReinstalling" xml:space="preserve">
+        <value>Incompatible update, reinstalling</value>
+    </data>
+    <data name="SettingsHeader" xml:space="preserve">
+        <value>Settings</value>
+    </data>
+    <data name="NoDeviceConnection" xml:space="preserve">
+        <value>No device connection</value>
+    </data>
+    <data name="AdbUnauthorized" xml:space="preserve">
+        <value>ADB unauthorized</value>
+    </data>
+    <data name="MoreInfoButton" xml:space="preserve">
+        <value>More info</value>
+    </data>
+    <data name="TasksHeader" xml:space="preserve">
+        <value>Tasks</value>
+    </data>
+    <data name="DragDropPanelText" xml:space="preserve">
+        <value>Drop APK to sideload, release folder to install or backup folder to restore</value>
+    </data>
 </root>

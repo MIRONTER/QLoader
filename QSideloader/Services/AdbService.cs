@@ -23,6 +23,7 @@ using CliWrap;
 using CliWrap.Buffered;
 using CliWrap.Exceptions;
 using QSideloader.Models;
+using QSideloader.Properties;
 using QSideloader.Utilities;
 using QSideloader.ViewModels;
 using Serilog;
@@ -1219,7 +1220,7 @@ public class AdbService
                     {
                         if (gamePath.EndsWith(".apk"))
                         {
-                            observer.OnNext("Installing APK");
+                            observer.OnNext(Resources.InstallingApk);
                             InstallApk(observer, gamePath);
                         }
                         else
@@ -1242,7 +1243,7 @@ public class AdbService
 
                         if (File.Exists(installScriptPath))
                         {
-                            observer.OnNext("Performing custom install");
+                            observer.OnNext(Resources.PerformingCustomInstall);
                             var installScriptName = Path.GetFileName(installScriptPath);
                             Log.Information("Running commands from {InstallScriptName}", installScriptName);
                             RunInstallScript(installScriptPath, ct);
@@ -1252,7 +1253,7 @@ public class AdbService
                         {
                             foreach (var apkPath in Directory.EnumerateFiles(gamePath, "*.apk"))
                             {
-                                observer.OnNext("Installing APK");
+                                observer.OnNext(Resources.InstallingApk);
                                 InstallApk(observer, apkPath);
                             }
 
@@ -1261,7 +1262,7 @@ public class AdbService
                             {
                                 Log.Information("Found OBB directory for {PackageName}, pushing to device",
                                     game.PackageName);
-                                observer.OnNext("Pushing OBB files");
+                                observer.OnNext(Resources.PushingObbFiles);
                                 PushDirectory(Path.Combine(gamePath, game.PackageName), "/sdcard/Android/obb/", true, ct);
                             }
                         }
@@ -1279,7 +1280,7 @@ public class AdbService
                         Log.Information(e is OperationCanceledException
                             ? "Cleaning up cancelled install"
                             : "Cleaning up failed install");
-                        observer.OnNext("Cleaning up");
+                        observer.OnNext(Resources.CleaningUp);
                         CleanupRemnants(game.PackageName);
                     }
                     if (e is OperationCanceledException)
@@ -1307,7 +1308,7 @@ public class AdbService
                     if (e.Message.Contains("INSTALL_FAILED_UPDATE_INCOMPATIBLE") ||
                         e.Message.Contains("INSTALL_FAILED_VERSION_DOWNGRADE"))
                     {
-                        observer.OnNext("Incompatible update, reinstalling");
+                        observer.OnNext(Resources.IncompatibleUpdateReinstalling);
                         Log.Information("Incompatible update, reinstalling. Reason: {Message}", e.Message);
                         var apkInfo = GeneralUtils.GetApkInfo(apkPath);
                         var backup = CreateBackup(apkInfo.PackageName, new BackupOptions {NameAppend = "reinstall"}, ct);

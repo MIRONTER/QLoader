@@ -108,8 +108,9 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private void Window_OnOpened(object? sender, EventArgs e)
     {
-        //var viewModel = (MainWindowViewModel) DataContext!;
-        //viewModel.TaskList.CollectionChanged += TaskListOnCollectionChanged;
+        // Couldn't set this in styles, so this will have to do
+        this.Get<NavigationView>("NavigationView").SettingsItem.Content = Properties.Resources.SettingsHeader;
+        
         if (!Design.IsDesignMode)
             InitializeUpdater();
     }

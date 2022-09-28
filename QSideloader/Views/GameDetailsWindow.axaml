@@ -6,6 +6,7 @@
         xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
         xmlns:utilities="clr-namespace:QSideloader.Utilities"
         xmlns:controls="clr-namespace:HyperText.Avalonia.Controls;assembly=HyperText.Avalonia"
+        xmlns:p="clr-namespace:QSideloader.Properties"
         mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="400"
         x:Class="QSideloader.Views.GameDetailsWindow"
         Title="GameDetailsWindow"
@@ -65,33 +66,53 @@
                 <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="Auto,Auto,*"
                       RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*"
                       Margin="24,0,0,0">
-                    <Button Margin="0,0,0,6" Grid.Row="0" Grid.Column="0" Command="{Binding DownloadAndInstall}"
-                                             IsEnabled="{Binding IsDeviceConnected}">
-                        Download &amp; Install
-                    </Button>
-                    <Button Grid.Row="0" Grid.Column="1" Margin="12,0,0,6" Command="{Binding DownloadOnly}">Download</Button>
+                    <Button Margin="0,0,0,6" Grid.Row="0" Grid.Column="0" 
+                            Command="{Binding DownloadAndInstall}"
+                            IsEnabled="{Binding IsDeviceConnected}" 
+                            Content="{x:Static p:Resources.DownloadAndInstallButton}"/>
+                    <Button Grid.Row="0" Grid.Column="1" Margin="12,0,0,6" 
+                            Command="{Binding DownloadOnly}" 
+                            Content="{x:Static p:Resources.DownloadButton}" />
                     <controls:Hyperlink Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" Alias="Oculus Store" 
                                         Url="{Binding OculusStoreUrl}" 
                                         FontWeight="Bold"
                                         FontSize="16"
-                                        ToolTip.Tip="If you like the game, buy it to support the developers" 
+                                        ToolTip.Tip="{x:Static p:Resources.OculusStoreLinkTooltip}" 
                                         IsVisible="{Binding ShowOculusStoreLink}" />
-                    <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Margin="1,4,0,0" FontWeight="Light"
-                               Text="{Binding Game.GameSize, StringFormat={}Download size: {0} MB}" />
+                    <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Margin="1,4,0,0" FontWeight="Light">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="{}{0}: {1} MB}">
+                                <Binding Source="{x:Static p:Resources.DownloadSize}" />
+                                <Binding Path="Game.GameSize" />
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
                     <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="3" Margin="1,6,0,0" FontWeight="Light"
-                               IsVisible="{Binding StoreRating, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                               Text="{Binding StoreRating, StringFormat={}Store rating: {0} }" />
+                               IsVisible="{Binding StoreRating, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="{}{0}: {1}">
+                                <Binding Source="{x:Static p:Resources.StoreRating}" />
+                                <Binding Path="StoreRating" />
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
                     <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="4"
                                Margin="0,6,0,0"
                                HorizontalAlignment="Left"
                                Width="400"
                                TextWrapping="Wrap"
-                               IsVisible="False"
-                               Text="{Binding Game.Note, StringFormat={}Note: {0}}" />
+                               IsVisible="{Binding Game.Note, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="{}{0}: {1}">
+                                <Binding Source="{x:Static p:Resources.Note}" />
+                                <Binding Path="Game.Note" />
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
                     <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="5" FontWeight="Light"
                                Margin="0,6,0,0"
                                IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                               >Description:</TextBlock>
+                               Text="{x:Static p:Resources.DescriptionColon}" />
                     <ScrollViewer Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="6" FontWeight="Light"
                                   HorizontalAlignment="Left"
                                   VerticalAlignment="Top"

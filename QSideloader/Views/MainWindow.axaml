@@ -24,10 +24,6 @@
         <!-- ReSharper disable once Xaml.ConstructorWarning -->
         <vm:MainWindowViewModel />
     </Design.DataContext>
-    
-    <Window.Styles>
-        <Style Selector="NavigationViewItem"></Style>
-    </Window.Styles>
 
     <Grid>
         <ui:NavigationView
@@ -38,14 +34,18 @@
             IsSettingsVisible="True">
             <ui:NavigationView.MenuItems>
                 <ui:NavigationViewItem Icon="AllApps" Content="{x:Static p:Resources.InstalledGamesHeader}" Tag="InstalledGamesView" />
-                <ui:NavigationViewItem Icon="Download" Content="{x:Static p:Resources.AvailableGamesHeader}" Tag="AvailableGamesView" />
+                <ui:NavigationViewItem Icon="Cloud" Content="{x:Static p:Resources.AvailableGamesHeader}" Tag="AvailableGamesView" />
                 <ui:NavigationViewItem Icon="Upload" Content="{x:Static p:Resources.DonateGamesHeader}" Tag="GameDonationView">
                     <ui:NavigationViewItem.InfoBadge>
                         <ui:InfoBadge Value="{Binding DonatableAppsCount}" IsVisible="{Binding DonatableAppsCount}"/>
                     </ui:NavigationViewItem.InfoBadge>
                 </ui:NavigationViewItem>
-                <ui:NavigationViewItem Icon="AllApps" Content="{x:Static p:Resources.OtherAppsHeader}" Tag="OtherAppsView" />
-                <ui:NavigationViewItem Icon="AllApps" Content="{x:Static p:Resources.RestoreBackupsHeader}" Tag="BackupView" />
+                <ui:NavigationViewItem Content="{x:Static p:Resources.OtherAppsHeader}" Tag="OtherAppsView">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:FontIcon FontFamily="avares://FluentAvalonia/Fonts#Symbols" Glyph="&#xE74C;" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem Icon="Save" Content="{x:Static p:Resources.RestoreBackupsHeader}" Tag="BackupView" />
             </ui:NavigationView.MenuItems>
             <Grid RowDefinitions="*,Auto">
                 <ui:Frame x:Name="ContentFrame" Grid.Row="0" />
@@ -57,7 +57,7 @@
                             HorizontalAlignment="Center"
                             IsIconVisible="True"
                             IsClosable="False"
-                            Title="No device connection"
+                            Title="{x:Static p:Resources.NoDeviceConnection}"
                             Message="">
                     <ui:InfoBar.IsOpen>
                         <MultiBinding Converter="{x:Static BoolConverters.And}">
@@ -66,7 +66,7 @@
                         </MultiBinding>
                     </ui:InfoBar.IsOpen>
                     <ui:InfoBar.ActionButton>
-                        <Button Content="More info" Command="{Binding ShowConnectionHelpDialog}" />
+                        <Button Content="{x:Static p:Resources.MoreInfoButton}" Command="{Binding ShowConnectionHelpDialog}" />
                     </ui:InfoBar.ActionButton>
                 </ui:InfoBar>
                 <ui:InfoBar Grid.Row="0" x:Name="DeviceUnauthorizedInfoBar"
@@ -76,7 +76,7 @@
                             HorizontalAlignment="Center"
                             IsIconVisible="True"
                             IsClosable="False"
-                            Title="ADB unauthorized"
+                            Title="{x:Static p:Resources.AdbUnauthorized}"
                             Message="">
                     <ui:InfoBar.IsOpen>
                         <MultiBinding Converter="{x:Static BoolConverters.And}">
@@ -85,7 +85,7 @@
                         </MultiBinding>
                     </ui:InfoBar.IsOpen>
                     <ui:InfoBar.ActionButton>
-                        <Button Content="More info" Command="{Binding ShowAuthHelpDialog}" />
+                        <Button Content="{x:Static p:Resources.MoreInfoButton}" Command="{Binding ShowAuthHelpDialog}" />
                     </ui:InfoBar.ActionButton>
                 </ui:InfoBar>
                 <Border Grid.Row="0" Grid.RowSpan="2"
@@ -98,7 +98,7 @@
                         Margin="0,0,4,4"
                         IsVisible="{Binding TaskList.Count}">
                     <StackPanel>
-                        <TextBlock HorizontalAlignment="Left" Margin="4,0">Tasks</TextBlock>
+                        <TextBlock HorizontalAlignment="Left" Margin="4,0" Text="{x:Static p:Resources.TasksHeader}" />
                         <!--<ListView x:Name="TaskListView" 
                                   MaxHeight="180"
                                   Items="{Binding TaskList}"
@@ -137,9 +137,7 @@
                            Height="100"
                            Margin="96,36,96,24" />
                     <TextBlock MaxWidth="400" HorizontalAlignment="Center" TextAlignment="Center" Margin="12"
-                               TextWrapping="Wrap">
-                        Drop APK to sideload, release folder to install or backup folder to restore
-                    </TextBlock>
+                               TextWrapping="Wrap" Text="{x:Static p:Resources.DragDropPanelText}" />
                 </StackPanel>
             </Border>
         </Grid>
