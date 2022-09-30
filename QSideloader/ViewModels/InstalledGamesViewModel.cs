@@ -11,6 +11,7 @@ using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
 using DynamicData;
 using QSideloader.Models;
+using QSideloader.Properties;
 using QSideloader.Services;
 using QSideloader.Utilities;
 using QSideloader.Views;
@@ -100,7 +101,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             if (selectedGames.Count == 0)
             {
                 Log.Information("No games selected for update");
-                Globals.ShowNotification("Update", "No games selected", NotificationType.Information, TimeSpan.FromSeconds(2));
+                Globals.ShowNotification(Resources.Update, Resources.NoGamesSelected, NotificationType.Information, TimeSpan.FromSeconds(2));
                 return;
             }
             foreach (var game in selectedGames)
@@ -153,13 +154,14 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
                 if (skippedCount == 0)
                 {
                     Log.Information("No games to update");
-                    Globals.ShowNotification("Update", "No games to update", NotificationType.Information,
+                    Globals.ShowNotification(Resources.Update, Resources.NoGamesToUpdate, NotificationType.Information,
                         TimeSpan.FromSeconds(2));
                 }
                 else
                 {
                     Log.Information("No games to update ({SkippedCount} skipped)", skippedCount);
-                    Globals.ShowNotification("Update", $"No games to update ({skippedCount} skipped)",
+                    Globals.ShowNotification(Resources.Update,
+                        string.Format(Resources.NoGamesToUpdateSkipped, skippedCount),
                         NotificationType.Information, TimeSpan.FromSeconds(2));
                 }
                 return;
@@ -189,7 +191,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             if (selectedGames.Count == 0)
             {
                 Log.Information("No games selected for uninstall");
-                Globals.ShowNotification("Uninstall", "No games selected", NotificationType.Information, TimeSpan.FromSeconds(2));
+                Globals.ShowNotification(Resources.Uninstall, Resources.NoGamesSelected, NotificationType.Information, TimeSpan.FromSeconds(2));
                 return;
             }
             foreach (var game in selectedGames)
@@ -215,7 +217,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             if (selectedGames.Count == 0)
             {
                 Log.Information("No games selected for backup");
-                Globals.ShowNotification("Backup", "No games selected", NotificationType.Information, TimeSpan.FromSeconds(2));
+                Globals.ShowNotification(Resources.Backup, Resources.NoGamesSelected, NotificationType.Information, TimeSpan.FromSeconds(2));
                 return;
             }
             foreach (var game in selectedGames)

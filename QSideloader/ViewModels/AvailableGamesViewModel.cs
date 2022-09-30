@@ -10,6 +10,7 @@ using AdvancedSharpAdbClient;
 using Avalonia.Controls.Notifications;
 using DynamicData;
 using QSideloader.Models;
+using QSideloader.Properties;
 using QSideloader.Services;
 using QSideloader.Utilities;
 using ReactiveUI;
@@ -59,7 +60,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         Refresh.ThrownExceptions.Subscribe(ex =>
         {
             Log.Error(ex, "Error refreshing available games");
-            Globals.ShowNotification("Error", "Error refreshing available games", NotificationType.Error);
+            Globals.ShowNotification(Resources.Error, Resources.ErrorRefreshingAvailableGames, NotificationType.Error);
         });
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
         Install = ReactiveCommand.CreateFromObservable(InstallImpl);
@@ -124,8 +125,8 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             if (selectedGames.Count == 0)
             {
                 Log.Information("No games selected for download and install");
-                Globals.ShowNotification("Download & Install", "No games selected", NotificationType.Information,
-                    TimeSpan.FromSeconds(2));
+                Globals.ShowNotification(Resources.DownloadAndInstallButton, Resources.NoGamesSelected,
+                    NotificationType.Information, TimeSpan.FromSeconds(2));
                 return;
             }
             foreach (var game in selectedGames)
@@ -146,8 +147,8 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             if (selectedGames.Count == 0)
             {
                 Log.Information("No games selected for download");
-                Globals.ShowNotification("Download", "No games selected", NotificationType.Information,
-                    TimeSpan.FromSeconds(2));
+                Globals.ShowNotification(Resources.DownloadButton, Resources.NoGamesSelected,
+                    NotificationType.Information, TimeSpan.FromSeconds(2));
                 return;
             }
             foreach (var game in selectedGames)

@@ -20,6 +20,7 @@ using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
 using Newtonsoft.Json;
 using QSideloader.Models;
+using QSideloader.Properties;
 using QSideloader.Services;
 using QSideloader.Utilities;
 using ReactiveUI;
@@ -52,13 +53,13 @@ public class SideloaderSettingsViewModel : ViewModelBase
         CheckUpdates.ThrownExceptions.Subscribe(ex =>
         {
             Log.Error(ex, "Error checking for updates");
-            Globals.ShowErrorNotification(ex, "Error checking for updates");
+            Globals.ShowErrorNotification(ex, Resources.ErrorCheckingForUpdates);
         });
         SwitchMirror = ReactiveCommand.CreateFromObservable(SwitchMirrorImpl);
         SwitchMirror.ThrownExceptions.Subscribe(ex =>
         {
-            Log.Error(ex, "Error switching mirror");
-            Globals.ShowErrorNotification(ex, "Error switching mirror");
+            Log.Error(ex, "Failed to switch mirror");
+            Globals.ShowErrorNotification(ex, Resources.FailedToSwitchMirror);
         });
         ReloadMirrorList = ReactiveCommand.CreateFromObservable(ReloadMirrorListImpl);
         var isSwitchingMirrorCombined =
@@ -274,7 +275,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             catch (Exception e)
             {
                 Log.Error(e, "Failed to save settings");
-                Globals.ShowErrorNotification(e, "Failed to save settings");
+                Globals.ShowErrorNotification(e, Resources.FailedToSaveSettings);
                 throw;
             }
         });
@@ -288,7 +289,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             InitDefaults();
             AutoSaveDelayTimer.Stop();
             AutoSaveDelayTimer.Start();
-            Globals.ShowNotification("Info", "Restored default settings", NotificationType.Success,
+            Globals.ShowNotification(Resources.Info, Resources.RestoredDefaultSettings, NotificationType.Success,
                 TimeSpan.FromSeconds(3));
         });
     }
@@ -305,16 +306,16 @@ public class SideloaderSettingsViewModel : ViewModelBase
             {
                 var location = DownloadsLocationTextBoxText;
                 DownloadsLocationTextBoxText = DownloadsLocation;
-                Globals.ShowNotification("Error", "Selected downloads location is not writable",
-                    NotificationType.Error, TimeSpan.FromSeconds(5));
                 Log.Warning("New downloads location {Location} is not writable, not changing", location);
+                Globals.ShowNotification(Resources.Error, Resources.LocationNotWritable,
+                    NotificationType.Error, TimeSpan.FromSeconds(5));
                 return;
             }
             DownloadsLocation = DownloadsLocationTextBoxText;
             SaveSettings.Execute().Subscribe();
             Log.Debug("Set new downloads location: {Location}",
                 DownloadsLocationTextBoxText);
-            Globals.ShowNotification("Info", "New downloads location set", NotificationType.Success,
+            Globals.ShowNotification(Resources.Info, Resources.DownloadsLocationSet, NotificationType.Success,
                 TimeSpan.FromSeconds(2));
         });
     }
@@ -331,16 +332,16 @@ public class SideloaderSettingsViewModel : ViewModelBase
             {
                 var location = BackupsLocationTextBoxText;
                 BackupsLocationTextBoxText = BackupsLocation;
-                Globals.ShowNotification("Error", "Selected backups location is not writable",
-                    NotificationType.Error, TimeSpan.FromSeconds(5));
                 Log.Warning("New backups location {Location} is not writable, not changing", location);
+                Globals.ShowNotification(Resources.Error, Resources.LocationNotWritable,
+                    NotificationType.Error, TimeSpan.FromSeconds(5));
                 return;
             }
             BackupsLocation = BackupsLocationTextBoxText;
             SaveSettings.Execute().Subscribe();
             Log.Debug("Set new backups location: {Location}",
                 BackupsLocationTextBoxText);
-            Globals.ShowNotification("Info", "New backups location set", NotificationType.Success,
+            Globals.ShowNotification(Resources.Info, Resources.BackupsLocationSet, NotificationType.Success,
                 TimeSpan.FromSeconds(2));
         });
     }
@@ -360,13 +361,13 @@ public class SideloaderSettingsViewModel : ViewModelBase
             {
                 Log.Debug("Set new downloader bandwidth limit: {Limit}",
                     DownloaderBandwidthLimitTextBoxText);
-                Globals.ShowNotification("Info", "New downloader bandwidth limit set",
+                Globals.ShowNotification(Resources.Info, Resources.BandwidthLimitSet,
                     NotificationType.Success, TimeSpan.FromSeconds(2));
             }
             else
             {
                 Log.Debug("Removed downloader bandwidth limit");
-                Globals.ShowNotification("Info", "Removed downloader bandwidth limit",
+                Globals.ShowNotification(Resources.Info, Resources.BandwidthLimitRemoved,
                     NotificationType.Success, TimeSpan.FromSeconds(2));
             }
         });
@@ -475,13 +476,13 @@ public class SideloaderSettingsViewModel : ViewModelBase
     
     private async Task CopyInstallationIdImpl(){
         await Application.Current!.Clipboard!.SetTextAsync(InstallationId.ToString());
-        Globals.ShowNotification("Info", "Installation ID copied to clipboard", NotificationType.Success, 
+        Globals.ShowNotification(Resources.Info, Resources.InstallationIdCopied, NotificationType.Success, 
             TimeSpan.FromSeconds(2));
     }
 
     private static void ShowRelaunchNotification(string propertyName)
     {
-        Globals.ShowNotification("Settings", "Application restart is needed to apply this change",
+        Globals.ShowNotification(Resources.Settings, Resources.ApplicationRestartNeededForSetting,
             NotificationType.Information, TimeSpan.FromSeconds(2));
     }
 

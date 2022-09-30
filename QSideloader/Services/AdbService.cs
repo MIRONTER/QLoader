@@ -177,7 +177,7 @@ public class AdbService
         catch (Exception e)
         {
             Log.Error(e, "Error while checking device connection");
-            Globals.ShowErrorNotification(e, "Error while checking device connection");
+            Globals.ShowErrorNotification(e, Resources.ErrorCheckingDeviceConnection);
         }
         finally
         {
@@ -344,14 +344,14 @@ public class AdbService
             {
                 // TODO: handle failures
                 Log.Error(e, "Failed to start ADB server");
-                Globals.ShowErrorNotification(e, "Failed to start ADB server");
+                Globals.ShowErrorNotification(e, Resources.FailedToStartAdbServer);
                 throw new AdbServiceException("Failed to start ADB server", e);
             }
 
             if (!_adb.AdbServer.GetStatus().IsRunning)
             {
                 Log.Error("Failed to start ADB server");
-                Globals.ShowNotification("ADB", "Failed to start ADB server", NotificationType.Error,
+                Globals.ShowNotification("ADB", Resources.FailedToStartAdbServer, NotificationType.Error,
                     TimeSpan.Zero);
                 throw new AdbServiceException("Failed to start ADB server");
             }
@@ -517,7 +517,7 @@ public class AdbService
         catch (Exception e)
         {
             Log.Error(e, "Error while notifying device state change");
-            Globals.ShowErrorNotification(e, "Error while notifying device state change");
+            Globals.ShowErrorNotification(e, Resources.ErrorNotifyingDeviceStateChange);
         }
     }
 
@@ -653,7 +653,7 @@ public class AdbService
         catch (Exception e)
         {
             Log.Error(e, "Failed to enable Wireless ADB");
-            Globals.ShowErrorNotification(e, "Failed to enable Wireless ADB");
+            Globals.ShowErrorNotification(e, Resources.FailedToEnableWirelessAdb);
         }
     }
 
@@ -1019,7 +1019,7 @@ public class AdbService
             catch (Exception e)
             {
                 Log.Error(e, "Failed to refresh installed games");
-                Globals.ShowErrorNotification(e, "Failed to refresh installed games");
+                Globals.ShowErrorNotification(e, Resources.FailedToRefreshInstalledGames);
                 InstalledGames = new List<InstalledGame>();
             }
             finally

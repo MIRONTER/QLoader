@@ -109,7 +109,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void Window_OnOpened(object? sender, EventArgs e)
     {
         // Couldn't set this in styles, so this will have to do
-        this.Get<NavigationView>("NavigationView").SettingsItem.Content = Properties.Resources.SettingsHeader;
+        this.Get<NavigationView>("NavigationView").SettingsItem.Content = Properties.Resources.Settings;
         
         if (!Design.IsDesignMode)
             InitializeUpdater();

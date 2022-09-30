@@ -491,7 +491,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         else
         {
             Log.Error("Task {TaskName} failed", TaskName);
-            Globals.ShowNotification("Error", string.Format(Resources.TaskNameFailed, TaskName), 
+            Globals.ShowNotification(Resources.Error, string.Format(Resources.TaskNameFailed, TaskName), 
                 NotificationType.Error, TimeSpan.Zero);
         }
     }

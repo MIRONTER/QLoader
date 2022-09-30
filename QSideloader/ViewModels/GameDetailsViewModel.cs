@@ -8,6 +8,7 @@ using AdvancedSharpAdbClient;
 using Avalonia.Controls.Notifications;
 using LibVLCSharp.Shared;
 using QSideloader.Models;
+using QSideloader.Properties;
 using QSideloader.Services;
 using QSideloader.Utilities;
 using ReactiveUI;
@@ -67,7 +68,7 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
             catch (Exception e)
             {
                 Log.Warning(e, "Failed to initialize LibVLC");
-                Globals.ShowErrorNotification(e, "Failed to initialize video player", NotificationType.Warning,
+                Globals.ShowErrorNotification(e, Resources.FailedToInitVideoPlayer, NotificationType.Warning,
                     TimeSpan.FromSeconds(5));
             }
         

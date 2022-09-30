@@ -24,6 +24,7 @@ using Downloader;
 using FileHelpers;
 using Newtonsoft.Json;
 using QSideloader.Models;
+using QSideloader.Properties;
 using QSideloader.Utilities;
 using QSideloader.ViewModels;
 using Serilog;
@@ -355,7 +356,8 @@ public class DownloaderService
             throw new DownloaderServiceException("Failed to load mirror list");
         if (_mirrorList.Count == 0)
         {
-            Globals.ShowNotification("Error", "No mirrors available", NotificationType.Error, TimeSpan.FromSeconds(10));
+            Globals.ShowNotification(Resources.Error, Resources.NoMirrorsAvailable, NotificationType.Error,
+                TimeSpan.FromSeconds(10));
             throw new DownloaderServiceException("No mirrors available");
         }
         IsMirrorListInitialized = true;
@@ -570,13 +572,13 @@ public class DownloaderService
                 }
 
                 Log.Error("Failed to load popularity data");
-                Globals.ShowNotification("Error", "Failed to load popularity data", NotificationType.Warning,
+                Globals.ShowNotification(Resources.Error, Resources.FailedToLoadPopularity, NotificationType.Warning,
                     TimeSpan.FromSeconds(5));
             }
             catch (Exception e)
             {
                 Log.Error(e, "Failed to load popularity data");
-                Globals.ShowErrorNotification(e, "Failed to load popularity data", NotificationType.Warning,
+                Globals.ShowErrorNotification(e, Resources.FailedToLoadPopularity, NotificationType.Warning,
                     TimeSpan.FromSeconds(5));
             }
         }

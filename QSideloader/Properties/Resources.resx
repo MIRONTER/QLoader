@@ -538,7 +538,7 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="IncompatibleUpdateReinstalling" xml:space="preserve">
         <value>Incompatible update, reinstalling</value>
     </data>
-    <data name="SettingsHeader" xml:space="preserve">
+    <data name="Settings" xml:space="preserve">
         <value>Settings</value>
     </data>
     <data name="NoDeviceConnection" xml:space="preserve">
@@ -579,5 +579,116 @@ You may use {0} for downloads without connecting to a device.</value>
     </data>
     <data name="Blacklisted" xml:space="preserve">
         <value>Blacklisted</value>
+    </data>
+    <data name="FailedToStartAdbServer" xml:space="preserve">
+        <value>Failed to start ADB server</value>
+    </data>
+    <data name="NoMirrorsAvailable" xml:space="preserve">
+        <value>No mirrors available</value>
+    </data>
+    <data name="FailedToLoadPopularity" xml:space="preserve">
+        <value>Failed to load popularity data</value>
+    </data>
+    <data name="ErrorRefreshingAvailableGames" xml:space="preserve">
+        <value>Error refreshing available games</value>
+    </data>
+    <data name="NoGamesSelected" xml:space="preserve">
+        <value>No games selected</value>
+    </data>
+    <data name="Info" xml:space="preserve">
+        <value>Info</value>
+    </data>
+    <data name="AppliedDeviceSettings" xml:space="preserve">
+        <value>Applied device settings</value>
+    </data>
+    <data name="DeviceStorageMounted" xml:space="preserve">
+        <value>Device storage mounted</value>
+    </data>
+    <data name="NoAppsSelected" xml:space="preserve">
+        <value>No apps selected</value>
+    </data>
+    <data name="Donate" xml:space="preserve">
+        <value>Donate</value>
+    </data>
+    <data name="NoAppsToDonate" xml:space="preserve">
+        <value>No apps to donate</value>
+    </data>
+    <data name="Ignore" xml:space="preserve">
+        <value>Ignore</value>
+    </data>
+    <data name="AppsAddedToIgnore" xml:space="preserve">
+        <value>{0} apps added to ignore list</value>
+    </data>
+    <data name="AppsRemovedFromIgnore" xml:space="preserve">
+        <value>{0} apps removed from ignore list</value>
+    </data>
+    <data name="Uninstall" xml:space="preserve">
+        <value>Uninstall</value>
+    </data>
+    <data name="Update" xml:space="preserve">
+        <value>Update</value>
+    </data>
+    <data name="NoGamesToUpdate" xml:space="preserve">
+        <value>No games to update</value>
+    </data>
+    <data name="NoGamesToUpdateSkipped" xml:space="preserve">
+        <value>No games to update ({0} skipped)</value>
+    </data>
+    <data name="Backup" xml:space="preserve">
+        <value>Backup</value>
+    </data>
+    <data name="RestoredDefaultSettings" xml:space="preserve">
+        <value>Restored default settings</value>
+    </data>
+    <data name="LocationNotWritable" xml:space="preserve">
+        <value>Selected location is not writable</value>
+    </data>
+    <data name="DownloadsLocationSet" xml:space="preserve">
+        <value>New downloads location set</value>
+    </data>
+    <data name="BackupsLocationSet" xml:space="preserve">
+        <value>New backups location set</value>
+    </data>
+    <data name="BandwidthLimitSet" xml:space="preserve">
+        <value>Downloader bandwidth limit set</value>
+    </data>
+    <data name="BandwidthLimitRemoved" xml:space="preserve">
+        <value>Downloader bandwidth limit removed</value>
+    </data>
+    <data name="InstallationIdCopied" xml:space="preserve">
+        <value>Installation ID copied to clipboard</value>
+    </data>
+    <data name="ApplicationRestartNeededForSetting" xml:space="preserve">
+        <value>Application restart is needed to apply this change</value>
+    </data>
+    <data name="ErrorCheckingDeviceConnection" xml:space="preserve">
+        <value>Error while checking device connection</value>
+    </data>
+    <data name="ErrorNotifyingDeviceStateChange" xml:space="preserve">
+        <value>Error while notifying about device state change</value>
+    </data>
+    <data name="FailedToEnableWirelessAdb" xml:space="preserve">
+        <value>Failed to enable Wireless ADB</value>
+    </data>
+    <data name="FailedToRefreshInstalledGames" xml:space="preserve">
+        <value>Failed to refresh installed games</value>
+    </data>
+    <data name="ErrorApplyingDeviceSettings" xml:space="preserve">
+        <value>Error applying device settings</value>
+    </data>
+    <data name="FailedToLoadDeviceSettings" xml:space="preserve">
+        <value>Failed to load current device settings</value>
+    </data>
+    <data name="FailedToInitVideoPlayer" xml:space="preserve">
+        <value>Failed to initialize video player</value>
+    </data>
+    <data name="ErrorCheckingForUpdates" xml:space="preserve">
+        <value>Error checking for updates</value>
+    </data>
+    <data name="FailedToSwitchMirror" xml:space="preserve">
+        <value>Failed to switch mirror</value>
+    </data>
+    <data name="FailedToSaveSettings" xml:space="preserve">
+        <value />
     </data>
 </root>

@@ -171,6 +171,24 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Application restart is needed to apply this change.
+        /// </summary>
+        public static string ApplicationRestartNeededForSetting {
+            get {
+                return ResourceManager.GetString("ApplicationRestartNeededForSetting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Applied device settings.
+        /// </summary>
+        public static string AppliedDeviceSettings {
+            get {
+                return ResourceManager.GetString("AppliedDeviceSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Apply Settings.
         /// </summary>
         public static string ApplySettingsButton {
@@ -189,11 +207,38 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} apps added to ignore list.
+        /// </summary>
+        public static string AppsAddedToIgnore {
+            get {
+                return ResourceManager.GetString("AppsAddedToIgnore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} apps removed from ignore list.
+        /// </summary>
+        public static string AppsRemovedFromIgnore {
+            get {
+                return ResourceManager.GetString("AppsRemovedFromIgnore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Available Games.
         /// </summary>
         public static string AvailableGamesHeader {
             get {
                 return ResourceManager.GetString("AvailableGamesHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Backup.
+        /// </summary>
+        public static string Backup {
+            get {
+                return ResourceManager.GetString("Backup", resourceCulture);
             }
         }
         
@@ -279,11 +324,38 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to New backups location set.
+        /// </summary>
+        public static string BackupsLocationSet {
+            get {
+                return ResourceManager.GetString("BackupsLocationSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Backup created.
         /// </summary>
         public static string BackupSuccess {
             get {
                 return ResourceManager.GetString("BackupSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Downloader bandwidth limit removed.
+        /// </summary>
+        public static string BandwidthLimitRemoved {
+            get {
+                return ResourceManager.GetString("BandwidthLimitRemoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Downloader bandwidth limit set.
+        /// </summary>
+        public static string BandwidthLimitSet {
+            get {
+                return ResourceManager.GetString("BandwidthLimitSet", resourceCulture);
             }
         }
         
@@ -541,6 +613,24 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Device storage mounted.
+        /// </summary>
+        public static string DeviceStorageMounted {
+            get {
+                return ResourceManager.GetString("DeviceStorageMounted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Donate.
+        /// </summary>
+        public static string Donate {
+            get {
+                return ResourceManager.GetString("Donate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Donate All.
         /// </summary>
         public static string DonateAllButton {
@@ -721,6 +811,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to New downloads location set.
+        /// </summary>
+        public static string DownloadsLocationSet {
+            get {
+                return ResourceManager.GetString("DownloadsLocationSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Downloads pruning policy.
         /// </summary>
         public static string DownloadsPruningPolicy {
@@ -802,11 +901,38 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error applying device settings.
+        /// </summary>
+        public static string ErrorApplyingDeviceSettings {
+            get {
+                return ResourceManager.GetString("ErrorApplyingDeviceSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error running auto donation.
         /// </summary>
         public static string ErrorAutoDonation {
             get {
                 return ResourceManager.GetString("ErrorAutoDonation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error while checking device connection.
+        /// </summary>
+        public static string ErrorCheckingDeviceConnection {
+            get {
+                return ResourceManager.GetString("ErrorCheckingDeviceConnection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error checking for updates.
+        /// </summary>
+        public static string ErrorCheckingForUpdates {
+            get {
+                return ResourceManager.GetString("ErrorCheckingForUpdates", resourceCulture);
             }
         }
         
@@ -825,6 +951,24 @@ namespace QSideloader.Properties {
         public static string ErrorGameDetailsDialog {
             get {
                 return ResourceManager.GetString("ErrorGameDetailsDialog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error while notifying about device state change.
+        /// </summary>
+        public static string ErrorNotifyingDeviceStateChange {
+            get {
+                return ResourceManager.GetString("ErrorNotifyingDeviceStateChange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error refreshing available games.
+        /// </summary>
+        public static string ErrorRefreshingAvailableGames {
+            get {
+                return ResourceManager.GetString("ErrorRefreshingAvailableGames", resourceCulture);
             }
         }
         
@@ -852,6 +996,78 @@ namespace QSideloader.Properties {
         public static string FailedToDeleteDownloadedFiles {
             get {
                 return ResourceManager.GetString("FailedToDeleteDownloadedFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to enable Wireless ADB.
+        /// </summary>
+        public static string FailedToEnableWirelessAdb {
+            get {
+                return ResourceManager.GetString("FailedToEnableWirelessAdb", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to initialize video player.
+        /// </summary>
+        public static string FailedToInitVideoPlayer {
+            get {
+                return ResourceManager.GetString("FailedToInitVideoPlayer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to load current device settings.
+        /// </summary>
+        public static string FailedToLoadDeviceSettings {
+            get {
+                return ResourceManager.GetString("FailedToLoadDeviceSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to load popularity data.
+        /// </summary>
+        public static string FailedToLoadPopularity {
+            get {
+                return ResourceManager.GetString("FailedToLoadPopularity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to refresh installed games.
+        /// </summary>
+        public static string FailedToRefreshInstalledGames {
+            get {
+                return ResourceManager.GetString("FailedToRefreshInstalledGames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        public static string FailedToSaveSettings {
+            get {
+                return ResourceManager.GetString("FailedToSaveSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to start ADB server.
+        /// </summary>
+        public static string FailedToStartAdbServer {
+            get {
+                return ResourceManager.GetString("FailedToStartAdbServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to switch mirror.
+        /// </summary>
+        public static string FailedToSwitchMirror {
+            get {
+                return ResourceManager.GetString("FailedToSwitchMirror", resourceCulture);
             }
         }
         
@@ -892,6 +1108,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Ignore.
+        /// </summary>
+        public static string Ignore {
+            get {
+                return ResourceManager.GetString("Ignore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ignored.
         /// </summary>
         public static string Ignored {
@@ -924,6 +1149,24 @@ namespace QSideloader.Properties {
         public static string IncompatibleUpdateReinstalling {
             get {
                 return ResourceManager.GetString("IncompatibleUpdateReinstalling", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Info.
+        /// </summary>
+        public static string Info {
+            get {
+                return ResourceManager.GetString("Info", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Installation ID copied to clipboard.
+        /// </summary>
+        public static string InstallationIdCopied {
+            get {
+                return ResourceManager.GetString("InstallationIdCopied", resourceCulture);
             }
         }
         
@@ -1045,6 +1288,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Selected location is not writable.
+        /// </summary>
+        public static string LocationNotWritable {
+            get {
+                return ResourceManager.GetString("LocationNotWritable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to More info.
         /// </summary>
         public static string MoreInfoButton {
@@ -1090,6 +1342,24 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No apps selected.
+        /// </summary>
+        public static string NoAppsSelected {
+            get {
+                return ResourceManager.GetString("NoAppsSelected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No apps to donate.
+        /// </summary>
+        public static string NoAppsToDonate {
+            get {
+                return ResourceManager.GetString("NoAppsToDonate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No backups selected.
         /// </summary>
         public static string NoBackupsSelected {
@@ -1104,6 +1374,42 @@ namespace QSideloader.Properties {
         public static string NoDeviceConnection {
             get {
                 return ResourceManager.GetString("NoDeviceConnection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No games selected.
+        /// </summary>
+        public static string NoGamesSelected {
+            get {
+                return ResourceManager.GetString("NoGamesSelected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No games to update.
+        /// </summary>
+        public static string NoGamesToUpdate {
+            get {
+                return ResourceManager.GetString("NoGamesToUpdate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No games to update ({0} skipped).
+        /// </summary>
+        public static string NoGamesToUpdateSkipped {
+            get {
+                return ResourceManager.GetString("NoGamesToUpdateSkipped", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No mirrors available.
+        /// </summary>
+        public static string NoMirrorsAvailable {
+            get {
+                return ResourceManager.GetString("NoMirrorsAvailable", resourceCulture);
             }
         }
         
@@ -1324,6 +1630,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Restored default settings.
+        /// </summary>
+        public static string RestoredDefaultSettings {
+            get {
+                return ResourceManager.GetString("RestoredDefaultSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Restore Defaults.
         /// </summary>
         public static string RestoreDefaultsButton {
@@ -1416,9 +1731,9 @@ namespace QSideloader.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Settings.
         /// </summary>
-        public static string SettingsHeader {
+        public static string Settings {
             get {
-                return ResourceManager.GetString("SettingsHeader", resourceCulture);
+                return ResourceManager.GetString("Settings", resourceCulture);
             }
         }
         
@@ -1482,6 +1797,15 @@ namespace QSideloader.Properties {
         public static string TasksHeader {
             get {
                 return ResourceManager.GetString("TasksHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Uninstall.
+        /// </summary>
+        public static string Uninstall {
+            get {
+                return ResourceManager.GetString("Uninstall", resourceCulture);
             }
         }
         
@@ -1584,6 +1908,15 @@ namespace QSideloader.Properties {
         public static string UninstallSuccess {
             get {
                 return ResourceManager.GetString("UninstallSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Update.
+        /// </summary>
+        public static string Update {
+            get {
+                return ResourceManager.GetString("Update", resourceCulture);
             }
         }
         

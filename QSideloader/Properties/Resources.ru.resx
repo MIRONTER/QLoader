@@ -531,7 +531,7 @@
 
 Вы можете использовать {0} для загрузок без подключения к устройству.</value>
     </data>
-    <data name="SettingsHeader" xml:space="preserve">
+    <data name="Settings" xml:space="preserve">
         <value>Настройки</value>
     </data>
     <data name="NoDeviceConnection" xml:space="preserve">
@@ -572,5 +572,74 @@
     </data>
     <data name="NewVersion" xml:space="preserve">
         <value>Новая версия</value>
+    </data>
+    <data name="FailedToStartAdbServer" xml:space="preserve">
+        <value>Не удалось запустить ADB сервер</value>
+    </data>
+    <data name="NoMirrorsAvailable" xml:space="preserve">
+        <value>Нет доступных зеркал</value>
+    </data>
+    <data name="FailedToLoadPopularity" xml:space="preserve">
+        <value>Не удалось загрузить данные популярности</value>
+    </data>
+    <data name="ErrorRefreshingAvailableGames" xml:space="preserve">
+        <value>Ошибка обновления доступных игр</value>
+    </data>
+    <data name="NoGamesSelected" xml:space="preserve">
+        <value>Не выбраны игры</value>
+    </data>
+    <data name="Info" xml:space="preserve">
+        <value>Инфо</value>
+    </data>
+    <data name="AppliedDeviceSettings" xml:space="preserve">
+        <value>Настройки устройства применены</value>
+    </data>
+    <data name="DeviceStorageMounted" xml:space="preserve">
+        <value>Хранилище устройства подключено</value>
+    </data>
+    <data name="NoAppsSelected" xml:space="preserve">
+        <value>Не выбраны приложения</value>
+    </data>
+    <data name="Donate" xml:space="preserve">
+        <value>Пожертвовать</value>
+    </data>
+    <data name="NoAppsToDonate" xml:space="preserve">
+        <value>Нет приложений для пожертвования</value>
+    </data>
+    <data name="Ignore" xml:space="preserve">
+        <value>Игнорировать</value>
+    </data>
+    <data name="AppsAddedToIgnore" xml:space="preserve">
+        <value>{0} приложений добавлено в список игнорирования</value>
+    </data>
+    <data name="AppsRemovedFromIgnore" xml:space="preserve">
+        <value>{0} приложений убрано из списка игнорирования</value>
+    </data>
+    <data name="Uninstall" xml:space="preserve">
+        <value>Удалить</value>
+    </data>
+    <data name="Update" xml:space="preserve">
+        <value>Обновить</value>
+    </data>
+    <data name="NoGamesToUpdate" xml:space="preserve">
+        <value>Нет игр для обновления</value>
+    </data>
+    <data name="NoGamesToUpdateSkipped" xml:space="preserve">
+        <value>Нет игр для обновления ({0} пропущено)</value>
+    </data>
+    <data name="Backup" xml:space="preserve">
+        <value>Рез. копирование</value>
+    </data>
+    <data name="RestoredDefaultSettings" xml:space="preserve">
+        <value>Восстановлены настройки по умолчанию</value>
+    </data>
+    <data name="LocationNotWritable" xml:space="preserve">
+        <value>Нет доступа на запись в выбранном расположении</value>
+    </data>
+    <data name="DownloadsLocationSet" xml:space="preserve">
+        <value>Новое расположение загрузок установлено</value>
+    </data>
+    <data name="BackupsLocationSet" xml:space="preserve">
+        <value>Новое расположение рез. копий установлено</value>
     </data>
 </root>

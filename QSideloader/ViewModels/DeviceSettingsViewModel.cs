@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AdvancedSharpAdbClient;
 using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
+using QSideloader.Properties;
 using QSideloader.Services;
 using QSideloader.Utilities;
 using ReactiveUI;
@@ -28,7 +29,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         ApplySettings.ThrownExceptions.Subscribe(ex =>
         {
             Log.Error(ex, "Error applying device settings");
-            Globals.ShowErrorNotification(ex, "Error applying device settings");
+            Globals.ShowErrorNotification(ex, Resources.ErrorApplyingDeviceSettings);
         });
         MountStorage = ReactiveCommand.CreateFromObservable(MountStorageImpl);
         LaunchHiddenSettings = ReactiveCommand.CreateFromObservable(LaunchHiddenSettingsImpl);
@@ -92,7 +93,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 catch (Exception e)
                 {
                     Log.Error(e, "Failed to load current device settings");
-                    Globals.ShowErrorNotification(e, "Failed to load current device settings");
+                    Globals.ShowErrorNotification(e, Resources.FailedToLoadDeviceSettings);
                 }
                 break;
             case DeviceState.Offline:
@@ -292,7 +293,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 }
             }
             Log.Information("Applied device settings");
-            Globals.ShowNotification("Info", "Applied device settings", NotificationType.Success,
+            Globals.ShowNotification(Resources.Info, Resources.AppliedDeviceSettings, NotificationType.Success,
                 TimeSpan.FromSeconds(2));
         });
     }
@@ -366,7 +367,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
 
             _adbService.Device!.RunShellCommand("svc usb setFunctions mtp true", true);
             Log.Information("Mounted device storage");
-            Globals.ShowNotification("Info", "Device storage mounted", NotificationType.Success,
+            Globals.ShowNotification(Resources.Info, Resources.DeviceStorageMounted, NotificationType.Success,
                 TimeSpan.FromSeconds(2));
         });
     }

@@ -11,6 +11,7 @@ using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
 using DynamicData;
 using QSideloader.Models;
+using QSideloader.Properties;
 using QSideloader.Services;
 using QSideloader.Utilities;
 using QSideloader.Views;
@@ -123,7 +124,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
             if (selectedApps.Count == 0)
             {
                 Log.Information("No apps selected for donation");
-                Globals.ShowNotification("Donate", "No apps selected", NotificationType.Information,
+                Globals.ShowNotification(Resources.Donate, Resources.NoAppsSelected, NotificationType.Information,
                     TimeSpan.FromSeconds(2));
                 return;
             }
@@ -158,7 +159,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
             if (eligibleApps.Count == 0)
             {
                 Log.Information("No apps to donate");
-                Globals.ShowNotification("Donate", "No apps to donate", NotificationType.Information,
+                Globals.ShowNotification(Resources.Donate, Resources.NoAppsToDonate, NotificationType.Information,
                     TimeSpan.FromSeconds(2));
                 return;
             }
@@ -186,7 +187,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
             if (selectedApps.Count == 0)
             {
                 Log.Information("No apps selected to add to ignore list");
-                Globals.ShowNotification("Ignore", "No apps selected", NotificationType.Information,
+                Globals.ShowNotification(Resources.Ignore, Resources.NoAppsSelected, NotificationType.Information,
                     TimeSpan.FromSeconds(2));
                 return;
             }
@@ -212,15 +213,15 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
             
             if (!inverse)
             {
-                Globals.ShowNotification("Ignore", $"{count} apps added to ignore list", NotificationType.Success,
-                    TimeSpan.FromSeconds(2));
                 Log.Information("Added {Count} apps to ignore list", count);
+                Globals.ShowNotification(Resources.Ignore, string.Format(Resources.AppsAddedToIgnore, count),
+                    NotificationType.Success, TimeSpan.FromSeconds(2));
             }
             else
             {
-                Globals.ShowNotification("Ignore", $"{count} apps removed from ignore list", NotificationType.Success,
-                    TimeSpan.FromSeconds(2));
                 Log.Information("Removed {Count} apps from ignore list", count);
+                Globals.ShowNotification(Resources.Ignore, Resources.AppsRemovedFromIgnore, NotificationType.Success,
+                    TimeSpan.FromSeconds(2));
             }
             if (count == 0) return;
             RefreshInstalledApps(true);
@@ -243,7 +244,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
             if (selectedApps.Count == 0)
             {
                 Log.Information("No apps selected for uninstall");
-                Globals.ShowNotification("Uninstall", "No apps selected", NotificationType.Information, TimeSpan.FromSeconds(2));
+                Globals.ShowNotification(Resources.Uninstall, Resources.NoAppsSelected, NotificationType.Information, TimeSpan.FromSeconds(2));
                 return;
             }
             foreach (var app in selectedApps)
