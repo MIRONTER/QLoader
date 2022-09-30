@@ -260,7 +260,7 @@ public class DownloaderService
         }
 
         if (_mirrorList.Count == 0)
-            throw new DownloaderServiceException("Global mirror list exhausted");
+            throw new DownloaderServiceException("No mirrors available for this session");
         var random = new Random();
         MirrorName = _mirrorList[random.Next(_mirrorList.Count)];
         Log.Information("Selected mirror: {MirrorName}", MirrorName);
@@ -308,7 +308,7 @@ public class DownloaderService
         }
 
         if (mirrorList.Count == 0)
-            throw new DownloaderServiceException("Local mirror list exhausted");
+            throw new DownloaderServiceException("No mirrors available for this download");
         var random = new Random();
         MirrorName = mirrorList[random.Next(mirrorList.Count)];
         Log.Information("Selected mirror: {MirrorName}", MirrorName);
