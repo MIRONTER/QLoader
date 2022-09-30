@@ -499,7 +499,7 @@ public class DownloaderService
         catch (Exception e)
         {
             Log.Error(e, "Error downloading game list");
-            Globals.ShowErrorNotification(e, "Error downloading game list");
+            //Globals.ShowErrorNotification(e, "Error downloading game list");
             throw new DownloaderServiceException("Error downloading game list", e);
         }
         finally
