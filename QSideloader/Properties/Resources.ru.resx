@@ -142,10 +142,10 @@
     <data name="BackupConfirmationButton" xml:space="preserve">
         <value>Выполнить копирование</value>
     </data>
-    <data name="BackupPartsSelectionApplicationData" xml:space="preserve">
+    <data name="BackupPartsSelectionApplicationFiles" xml:space="preserve">
         <value>Файлы приложения (APK + OBB)</value>
     </data>
-    <data name="BackupPartsSelectionApplicationFiles" xml:space="preserve">
+    <data name="BackupPartsSelectionApplicationData" xml:space="preserve">
         <value>Данные приложения (сохранения и настройки)</value>
     </data>
     <data name="BackupPartsSelectionPrompt" xml:space="preserve">

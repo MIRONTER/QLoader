@@ -270,7 +270,7 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Application files (APK + OBB).
+        ///   Looks up a localized string similar to Application data (saves and settings).
         /// </summary>
         public static string BackupPartsSelectionApplicationData {
             get {
@@ -279,7 +279,7 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Application data (saves and settings).
+        ///   Looks up a localized string similar to Application files (APK + OBB).
         /// </summary>
         public static string BackupPartsSelectionApplicationFiles {
             get {

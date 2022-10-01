@@ -188,10 +188,10 @@ Are you sure you want to continue?</value>
     <data name="BackupPartsSelectionPrompt" xml:space="preserve">
         <value>Select parts you want to backup:</value>
     </data>
-    <data name="BackupPartsSelectionApplicationFiles" xml:space="preserve">
+    <data name="BackupPartsSelectionApplicationData" xml:space="preserve">
         <value>Application data (saves and settings)</value>
     </data>
-    <data name="BackupPartsSelectionApplicationData" xml:space="preserve">
+    <data name="BackupPartsSelectionApplicationFiles" xml:space="preserve">
         <value>Application files (APK + OBB)</value>
     </data>
     <data name="BackupConfirmationButton" xml:space="preserve">
