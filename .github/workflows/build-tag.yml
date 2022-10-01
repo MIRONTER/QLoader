@@ -39,7 +39,7 @@ jobs:
         args: copy --transfers 8 drive:qloader_files/Resources.zip ./
     
     - name: Unpack resources
-      run: unzip Resources.zip -d QSideloader/
+      run: unzip -q Resources.zip -d QSideloader/Resources/
     
     - name: Publish Debug
       run: |
@@ -90,7 +90,7 @@ jobs:
         args: copy --transfers 8 drive:qloader_files/Resources.zip ./
 
     - name: Unpack resources
-      run: unzip Resources.zip -d QSideloader/
+      run: unzip -q Resources.zip -d QSideloader/Resources/
     
     - name: Publish Debug
       run: |
@@ -119,53 +119,53 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v2
-        with:
-          dotnet-version: 6.0.x
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
 
-      - uses: actions/checkout@v3
-        with:
-          submodules: 'true'
+    - uses: actions/checkout@v3
+      with:
+        submodules: 'true'
 
-      - name: Download external dependencies
-        uses: wei/rclone@v1.1.1
-        env:
-          RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
-        with:
-          args: copy drive:qloader_files/dependencies/ QSideloader/
+    - name: Download external dependencies
+      uses: wei/rclone@v1.1.1
+      env:
+        RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
+      with:
+        args: copy drive:qloader_files/dependencies/ QSideloader/
 
-      - name: Download resources
-        uses: wei/rclone@v1.1.1
-        env:
-          RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
-        with:
-          args: copy --transfers 8 drive:qloader_files/Resources.zip ./
+    - name: Download resources
+      uses: wei/rclone@v1.1.1
+      env:
+        RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
+      with:
+        args: copy --transfers 8 drive:qloader_files/Resources.zip ./
 
-      - name: Unpack resources
-        run: unzip Resources.zip -d QSideloader/
-      
-      - name: Publish Debug
-        run: |
-          cd QSideloader
-          dotnet publish -c Debug --self-contained true --runtime linux-arm64 -p:PublishSingleFile=true -o ../linux-arm64
-      
-      - name: Prepare for upload
-        env:
-          TAG_NAME: ${{ github.ref_name }}
-        run: |
-          echo Packing linux-arm64
-          mkdir -p builds_tag/$TAG_NAME/
-          chmod +x linux-arm64/Loader
-          chmod -R +x linux-arm64/tools/
-          tar cvzf builds_tag/$TAG_NAME/linux-arm64.tar.gz linux-arm64/*
-      
-      - name: Upload artifact
-        uses: wei/rclone@v1.1.1
-        env:
-          RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
-        with:
-          args: copy -v builds_tag/ drive:qloader_files/builds_tag/
+    - name: Unpack resources
+      run: unzip -q Resources.zip -d QSideloader/Resources/
+    
+    - name: Publish Debug
+      run: |
+        cd QSideloader
+        dotnet publish -c Debug --self-contained true --runtime linux-arm64 -p:PublishSingleFile=true -o ../linux-arm64
+    
+    - name: Prepare for upload
+      env:
+        TAG_NAME: ${{ github.ref_name }}
+      run: |
+        echo Packing linux-arm64
+        mkdir -p builds_tag/$TAG_NAME/
+        chmod +x linux-arm64/Loader
+        chmod -R +x linux-arm64/tools/
+        tar cvzf builds_tag/$TAG_NAME/linux-arm64.tar.gz linux-arm64/*
+    
+    - name: Upload artifact
+      uses: wei/rclone@v1.1.1
+      env:
+        RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
+      with:
+        args: copy -v builds_tag/ drive:qloader_files/builds_tag/
 
   build-osx-x64:
 
@@ -201,7 +201,7 @@ jobs:
         args: copy --transfers 8 drive:qloader_files/Resources.zip ./
 
     - name: Unpack resources
-      run: unzip Resources.zip -d QSideloader/
+      run: unzip -q Resources.zip -d QSideloader/Resources/
     
     - name: Publish Debug
       run: |
