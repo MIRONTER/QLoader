@@ -1045,7 +1045,16 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Failed to reload mirror list.
+        /// </summary>
+        public static string FailedToReloadMirrorList {
+            get {
+                return ResourceManager.GetString("FailedToReloadMirrorList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to save settings.
         /// </summary>
         public static string FailedToSaveSettings {
             get {

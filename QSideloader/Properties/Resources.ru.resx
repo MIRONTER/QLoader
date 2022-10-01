@@ -642,4 +642,49 @@
     <data name="BackupsLocationSet" xml:space="preserve">
         <value>Новое расположение рез. копий установлено</value>
     </data>
+    <data name="ApplicationRestartNeededForSetting" xml:space="preserve">
+        <value>Необходим перезапуск приложения для применения этого изменения</value>
+    </data>
+    <data name="BandwidthLimitRemoved" xml:space="preserve">
+        <value>Лимит скорости убран</value>
+    </data>
+    <data name="BandwidthLimitSet" xml:space="preserve">
+        <value>Лимит скорости установлен</value>
+    </data>
+    <data name="ErrorApplyingDeviceSettings" xml:space="preserve">
+        <value>Ошибка применения настроек устройства</value>
+    </data>
+    <data name="ErrorCheckingDeviceConnection" xml:space="preserve">
+        <value>Ошибка проверки подключения к устройству</value>
+    </data>
+    <data name="ErrorCheckingForUpdates" xml:space="preserve">
+        <value>Ошибка проверки обновлений</value>
+    </data>
+    <data name="ErrorNotifyingDeviceStateChange" xml:space="preserve">
+        <value>Ошибка оповещения об изменении статуса устройства</value>
+    </data>
+    <data name="FailedToEnableWirelessAdb" xml:space="preserve">
+        <value>Не удалось включить беспроводной ADB</value>
+    </data>
+    <data name="FailedToInitVideoPlayer" xml:space="preserve">
+        <value>Не удалось инициализировать видео проигрыватель</value>
+    </data>
+    <data name="FailedToLoadDeviceSettings" xml:space="preserve">
+        <value>Не удалось загрузить текущие настройки устройства</value>
+    </data>
+    <data name="FailedToRefreshInstalledGames" xml:space="preserve">
+        <value>Не удалось обновить обновить установленные игры</value>
+    </data>
+    <data name="FailedToReloadMirrorList" xml:space="preserve">
+        <value>Не удалось перезагрузить список зеркал</value>
+    </data>
+    <data name="FailedToSaveSettings" xml:space="preserve">
+        <value>Не удалось сохранить настройки</value>
+    </data>
+    <data name="FailedToSwitchMirror" xml:space="preserve">
+        <value>Не удалось переключить зеркало</value>
+    </data>
+    <data name="InstallationIdCopied" xml:space="preserve">
+        <value>ID установки скопирован в буфер обмена</value>
+    </data>
 </root>

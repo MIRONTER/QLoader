@@ -689,6 +689,9 @@ You may use {0} for downloads without connecting to a device.</value>
         <value>Failed to switch mirror</value>
     </data>
     <data name="FailedToSaveSettings" xml:space="preserve">
-        <value />
+        <value>Failed to save settings</value>
+    </data>
+    <data name="FailedToReloadMirrorList" xml:space="preserve">
+        <value>Failed to reload mirror list</value>
     </data>
 </root>
