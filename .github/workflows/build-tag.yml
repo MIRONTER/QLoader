@@ -36,7 +36,10 @@ jobs:
       env:
         RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
       with:
-        args: copy --transfers 8 drive:qloader_files/Resources/ QSideloader/Resources/
+        args: copy --transfers 8 drive:qloader_files/Resources.zip ./
+    
+    - name: Unpack resources
+      run: unzip Resources.zip -d QSideloader/
     
     - name: Publish Debug
       run: |
@@ -84,7 +87,10 @@ jobs:
       env:
         RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
       with:
-        args: copy --transfers 8 drive:qloader_files/Resources/ QSideloader/Resources/
+        args: copy --transfers 8 drive:qloader_files/Resources.zip ./
+
+    - name: Unpack resources
+      run: unzip Resources.zip -d QSideloader/
     
     - name: Publish Debug
       run: |
@@ -134,7 +140,10 @@ jobs:
         env:
           RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
         with:
-          args: copy --transfers 8 drive:qloader_files/Resources/ QSideloader/Resources/
+          args: copy --transfers 8 drive:qloader_files/Resources.zip ./
+
+      - name: Unpack resources
+        run: unzip Resources.zip -d QSideloader/
       
       - name: Publish Debug
         run: |
@@ -189,7 +198,10 @@ jobs:
       env:
         RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
       with:
-        args: copy --transfers 8 drive:qloader_files/Resources/ QSideloader/Resources/
+        args: copy --transfers 8 drive:qloader_files/Resources.zip ./
+
+    - name: Unpack resources
+      run: unzip Resources.zip -d QSideloader/
     
     - name: Publish Debug
       run: |
