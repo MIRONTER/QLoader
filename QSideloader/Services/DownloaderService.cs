@@ -357,7 +357,7 @@ public class DownloaderService
         if (_mirrorList.Count == 0)
         {
             Globals.ShowNotification(Resources.Error, Resources.NoMirrorsAvailable, NotificationType.Error,
-                TimeSpan.FromSeconds(10));
+                TimeSpan.Zero);
             throw new DownloaderServiceException("No mirrors available");
         }
         IsMirrorListInitialized = true;
