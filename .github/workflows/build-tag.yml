@@ -29,7 +29,10 @@ jobs:
       env:
         RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
       with:
-        args: copy drive:qloader_files/dependencies/ QSideloader/
+        args: copy drive:qloader_files/dependencies.zip ./
+
+    - name: Unpack external dependencies
+      run: unzip -q dependencies.zip -d QSideloader/
 
     - name: Download resources
       uses: wei/rclone@v1.1.1
@@ -80,7 +83,10 @@ jobs:
       env:
         RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
       with:
-        args: copy drive:qloader_files/dependencies/ QSideloader/
+        args: copy drive:qloader_files/dependencies.zip ./
+
+    - name: Unpack external dependencies
+      run: unzip -q dependencies.zip -d QSideloader/
 
     - name: Download resources
       uses: wei/rclone@v1.1.1
@@ -133,7 +139,10 @@ jobs:
       env:
         RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
       with:
-        args: copy drive:qloader_files/dependencies/ QSideloader/
+        args: copy drive:qloader_files/dependencies.zip ./
+
+    - name: Unpack external dependencies
+      run: unzip -q dependencies.zip -d QSideloader/
 
     - name: Download resources
       uses: wei/rclone@v1.1.1
@@ -191,7 +200,10 @@ jobs:
       env:
         RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
       with:
-        args: copy drive:qloader_files/dependencies/ QSideloader/
+        args: copy drive:qloader_files/dependencies.zip ./
+
+    - name: Unpack external dependencies
+      run: unzip -q dependencies.zip -d QSideloader/
 
     - name: Download resources
       uses: wei/rclone@v1.1.1

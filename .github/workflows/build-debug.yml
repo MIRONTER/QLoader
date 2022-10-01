@@ -24,13 +24,16 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: 'true'
-    
+
     - name: Download external dependencies
       uses: wei/rclone@v1.1.1
       env:
         RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
       with:
-        args: copy drive:qloader_files/dependencies/ QSideloader/ 
+        args: copy drive:qloader_files/dependencies.zip ./
+
+    - name: Unpack external dependencies
+      run: unzip -q dependencies.zip -d QSideloader/
 
     - name: Publish Debug
       run: |
@@ -71,7 +74,10 @@ jobs:
       env:
         RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
       with:
-        args: copy drive:qloader_files/dependencies/ QSideloader/
+        args: copy drive:qloader_files/dependencies.zip ./
+
+    - name: Unpack external dependencies
+      run: unzip -q dependencies.zip -d QSideloader/
     
     - name: Publish Debug
       run: |
@@ -119,7 +125,10 @@ jobs:
       env:
         RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
       with:
-        args: copy drive:qloader_files/dependencies/ QSideloader/
+        args: copy drive:qloader_files/dependencies.zip ./
+
+    - name: Unpack external dependencies
+      run: unzip -q dependencies.zip -d QSideloader/
     
     - name: Publish Debug
       run: |
