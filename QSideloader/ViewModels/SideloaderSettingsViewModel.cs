@@ -421,7 +421,16 @@ public class SideloaderSettingsViewModel : ViewModelBase
         return Observable.Start(() =>
         {
             if (MirrorSelectionRefreshSemaphoreSlim.CurrentCount == 0) return;
-            DownloaderService.Instance.ReloadMirrorList();
+            try
+            {
+                DownloaderService.Instance.ReloadMirrorList();
+            }
+            catch
+            {
+                Globals.ShowNotification(Resources.Error, Resources.FailedToReloadMirrorList, NotificationType.Error,
+                    TimeSpan.FromSeconds(10));
+            }
+
             RefreshMirrorSelection();
         });
     }
