@@ -187,7 +187,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         await DoCancellableAsync(async () =>
         {
             _path = await DownloadAsync();
-        }, Resources.DownloadFailed);
+        }, nameof(Resources.DownloadFailed));
 
         // successStatus isn't needed here
         await DoCancellableAsync(async () =>
@@ -196,7 +196,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 _sideloaderSettings.DownloadsPruningPolicy == DownloadsPruningPolicy.DeleteAfterInstall;
             await InstallAsync(_path ?? throw new InvalidOperationException("path is null"),
                 deleteAfterInstall);
-        }, Resources.InstallFailed);
+        }, nameof(Resources.InstallFailed));
     }
 
     private async Task RunDownloadOnlyAsync()
@@ -204,7 +204,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         await DoCancellableAsync(async () =>
         {
             _path = await DownloadAsync();
-        }, Resources.DownloadFailed, Resources.DownloadSuccess);
+        }, nameof(Resources.DownloadFailed), nameof(Resources.DownloadSuccess));
     }
 
     private async Task RunInstallOnlyAsync()
@@ -218,7 +218,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                                      _sideloaderSettings.DownloadsPruningPolicy ==
                                      DownloadsPruningPolicy.DeleteAfterInstall;
             await InstallAsync(_path, deleteAfterInstall);
-        }, Resources.InstallFailed);
+        }, nameof(Resources.InstallFailed));
     }
 
     private async Task RunUninstallAsync()
@@ -227,7 +227,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         await DoCancellableAsync(async () =>
         {
             await UninstallAsync();
-        }, Resources.UninstallFailed, Resources.UninstallSuccess);
+        }, nameof(Resources.UninstallFailed), nameof(Resources.UninstallSuccess));
     }
 
     private async Task RunBackupAndUninstallAsync()
@@ -237,7 +237,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         {
             await BackupAsync();
             await UninstallAsync();
-        }, Resources.UninstallFailed, Resources.UninstallSuccess);
+        }, nameof(Resources.UninstallFailed), nameof(Resources.UninstallSuccess));
     }
 
     private async Task RunBackupAsync()
@@ -246,7 +246,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         await DoCancellableAsync(async () =>
         {
             await BackupAsync();
-        }, Resources.BackupFailed, Resources.BackupSuccess);
+        }, nameof(Resources.BackupFailed), nameof(Resources.BackupSuccess));
     }
 
     private async Task RunRestoreAsync()
@@ -255,7 +255,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         await DoCancellableAsync(async () =>
         {
             await RestoreAsync(_backup!);
-        }, Resources.RestoreFailed, Resources.RestoreSuccess);
+        }, nameof(Resources.RestoreFailed), nameof(Resources.RestoreSuccess));
     }
 
     private async Task RunPullAndUploadAsync()
@@ -295,7 +295,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             }
 
             await InstallTrailersAddonAsync();
-        }, Resources.InstallFailed, Resources.InstallSuccess);
+        }, nameof(Resources.InstallFailed), nameof(Resources.InstallSuccess));
     }
     
     private async Task DoCancellableAsync(Func<Task> func, string? failureStatus = null, string? successStatus = null)
