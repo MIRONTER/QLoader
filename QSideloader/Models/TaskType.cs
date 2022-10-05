@@ -10,5 +10,6 @@ public enum TaskType
     Backup,
     Restore,
     PullAndUpload,
-    InstallTrailersAddon
+    InstallTrailersAddon,
+    Extract
 }

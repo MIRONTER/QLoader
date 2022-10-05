@@ -982,6 +982,51 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Extract.
+        /// </summary>
+        public static string Extract {
+            get {
+                return ResourceManager.GetString("Extract", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pull selected apps from device.
+        /// </summary>
+        public static string ExtractAppsTooltip {
+            get {
+                return ResourceManager.GetString("ExtractAppsTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extraction failed.
+        /// </summary>
+        public static string ExtractionFailed {
+            get {
+                return ResourceManager.GetString("ExtractionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extract Selected.
+        /// </summary>
+        public static string ExtractSelected {
+            get {
+                return ResourceManager.GetString("ExtractSelected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extracted.
+        /// </summary>
+        public static string ExtractSuccess {
+            get {
+                return ResourceManager.GetString("ExtractSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed: no device connection.
         /// </summary>
         public static string FailedNoDeviceConnection {
@@ -1720,6 +1765,33 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Select backups folder.
+        /// </summary>
+        public static string SelectBackupsFolder {
+            get {
+                return ResourceManager.GetString("SelectBackupsFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select destination folder.
+        /// </summary>
+        public static string SelectDestinationFolder {
+            get {
+                return ResourceManager.GetString("SelectDestinationFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select downloads folder.
+        /// </summary>
+        public static string SelectDownloadsFolder {
+            get {
+                return ResourceManager.GetString("SelectDownloadsFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Selected mirror.
         /// </summary>
         public static string SelectedMirror {
@@ -1995,9 +2067,9 @@ namespace QSideloader.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Uploaded.
         /// </summary>
-        public static string UploadSucess {
+        public static string UploadSuccess {
             get {
-                return ResourceManager.GetString("UploadSucess", resourceCulture);
+                return ResourceManager.GetString("UploadSuccess", resourceCulture);
             }
         }
         

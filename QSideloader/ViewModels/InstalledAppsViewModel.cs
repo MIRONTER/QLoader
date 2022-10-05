@@ -6,10 +6,15 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using AdvancedSharpAdbClient;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
 using DynamicData;
+using Microsoft.VisualBasic.FileIO;
 using QSideloader.Models;
 using QSideloader.Properties;
 using QSideloader.Services;
@@ -46,6 +51,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
         DonateAll = ReactiveCommand.CreateFromObservable(DonateAllImpl);
         Ignore = ReactiveCommand.CreateFromObservable(IgnoreImpl);
         Uninstall = ReactiveCommand.CreateFromObservable(UninstallImpl);
+        Extract = ReactiveCommand.CreateFromTask(ExtractImpl);
 
         Func<InstalledApp, bool> DonationFilter(bool isShowHiddenFromDonation)
         {
@@ -83,6 +89,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
     public ReactiveCommand<Unit, Unit> DonateAll { get; }
     public ReactiveCommand<Unit, Unit> Ignore { get; }
     public ReactiveCommand<Unit, Unit> Uninstall { get; }
+    public ReactiveCommand<Unit, Unit> Extract { get; }
     public ReadOnlyObservableCollection<InstalledApp> InstalledApps => _installedApps;
     public bool IsBusy => _isBusy.Value;
     [Reactive] public bool IsDeviceConnected { get; private set; }
@@ -235,7 +242,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
         {
             if (!_adbService.CheckDeviceConnectionSimple())
             {
-                Log.Warning("OtherAppsViewModel.UninstallImpl: no device connection!");
+                Log.Warning("InstalledAppsViewModel.UninstallImpl: no device connection!");
                 OnDeviceOffline();
                 return;
             }
@@ -244,7 +251,8 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
             if (selectedApps.Count == 0)
             {
                 Log.Information("No apps selected for uninstall");
-                Globals.ShowNotification(Resources.Uninstall, Resources.NoAppsSelected, NotificationType.Information, TimeSpan.FromSeconds(2));
+                Globals.ShowNotification(Resources.Uninstall, Resources.NoAppsSelected, NotificationType.Information,
+                    TimeSpan.FromSeconds(2));
                 return;
             }
             foreach (var app in selectedApps)
@@ -253,6 +261,45 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
                 Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.Uninstall, App = app});
             }
         });
+    }
+
+    private async Task ExtractImpl()
+    {
+        if (!_adbService.CheckDeviceConnectionSimple())
+        {
+            Log.Warning("InstalledAppsViewModel.ExtractImpl: no device connection!");
+            OnDeviceOffline();
+            return;
+        }
+            
+        var selectedApps = _installedAppsSourceCache.Items.Where(game => game.IsSelected).ToList();
+        if (selectedApps.Count == 0)
+        {
+            Log.Information("No apps selected for extraction");
+            Globals.ShowNotification(Resources.Extract, Resources.NoAppsSelected, NotificationType.Information,
+                TimeSpan.FromSeconds(2));
+            return;
+        }
+
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            var mainWindow = desktop.MainWindow;
+            var result = await new OpenFolderDialog
+            {
+                Title = Resources.SelectDestinationFolder,
+                Directory = SpecialDirectories.Desktop
+            }.ShowAsync(mainWindow);
+            if (result is null)
+            {
+                return;
+            }
+
+            foreach (var app in selectedApps)
+            {
+                app.IsSelected = false;
+                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.Extract, App = app, Path = result});
+            }
+        }
     }
 
     private void OnDeviceStateChanged(DeviceState state)

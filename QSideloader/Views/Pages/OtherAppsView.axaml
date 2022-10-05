@@ -18,6 +18,9 @@
                     Orientation="Horizontal"
                     Spacing="12" Margin="8"
                     HorizontalAlignment="Right">
+            <Button Content="{x:Static p:Resources.ExtractSelected}" 
+                    ToolTip.Tip="{x:Static p:Resources.ExtractAppsTooltip}" 
+                    Command="{Binding Extract}"/>
             <Button ToolTip.Tip="{x:Static p:Resources.UninstallAppsTooltip}" Content="{x:Static p:Resources.UninstallSelectedButton}">
                 <Button.Flyout>
                     <Flyout Placement="Bottom">

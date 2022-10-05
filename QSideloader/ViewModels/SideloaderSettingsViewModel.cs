@@ -307,7 +307,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             {
                 var location = DownloadsLocationTextBoxText;
                 DownloadsLocationTextBoxText = DownloadsLocation;
-                Log.Warning("New downloads location {Location} is not writable, not changing", location);
+                Log.Warning("New downloads location {Location} is not setting, not changing", location);
                 Globals.ShowNotification(Resources.Error, Resources.LocationNotWritable,
                     NotificationType.Error, TimeSpan.FromSeconds(5));
                 return;
@@ -333,7 +333,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             {
                 var location = BackupsLocationTextBoxText;
                 BackupsLocationTextBoxText = BackupsLocation;
-                Log.Warning("New backups location {Location} is not writable, not changing", location);
+                Log.Warning("New backups location {Location} is not writable, not setting", location);
                 Globals.ShowNotification(Resources.Error, Resources.LocationNotWritable,
                     NotificationType.Error, TimeSpan.FromSeconds(5));
                 return;
@@ -455,7 +455,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             var mainWindow = desktop.MainWindow;
             var result = await new OpenFolderDialog
             {
-                Title = "Select downloads folder",
+                Title = Resources.SelectDownloadsFolder,
                 Directory = DownloadsLocation
             }.ShowAsync(mainWindow);
             if (result is not null)
@@ -473,7 +473,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             var mainWindow = desktop.MainWindow;
             var result = await new OpenFolderDialog
             {
-                Title = "Select backups folder",
+                Title = Resources.SelectBackupsFolder,
                 Directory = BackupsLocation
             }.ShowAsync(mainWindow);
             if (result is not null)

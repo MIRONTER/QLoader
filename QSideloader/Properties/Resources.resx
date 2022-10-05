@@ -472,7 +472,7 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="Cancelled" xml:space="preserve">
         <value>Cancelled</value>
     </data>
-    <data name="UploadSucess" xml:space="preserve">
+    <data name="UploadSuccess" xml:space="preserve">
         <value>Uploaded</value>
     </data>
     <data name="AlreadyInstalled" xml:space="preserve">
@@ -693,5 +693,29 @@ You may use {0} for downloads without connecting to a device.</value>
     </data>
     <data name="FailedToReloadMirrorList" xml:space="preserve">
         <value>Failed to reload mirror list</value>
+    </data>
+    <data name="ExtractSelected" xml:space="preserve">
+        <value>Extract Selected</value>
+    </data>
+    <data name="ExtractAppsTooltip" xml:space="preserve">
+        <value>Pull selected apps from device</value>
+    </data>
+    <data name="Extract" xml:space="preserve">
+        <value>Extract</value>
+    </data>
+    <data name="ExtractSuccess" xml:space="preserve">
+        <value>Extracted</value>
+    </data>
+    <data name="ExtractionFailed" xml:space="preserve">
+        <value>Extraction failed</value>
+    </data>
+    <data name="SelectDownloadsFolder" xml:space="preserve">
+        <value>Select downloads folder</value>
+    </data>
+    <data name="SelectBackupsFolder" xml:space="preserve">
+        <value>Select backups folder</value>
+    </data>
+    <data name="SelectDestinationFolder" xml:space="preserve">
+        <value>Select destination folder</value>
     </data>
 </root>

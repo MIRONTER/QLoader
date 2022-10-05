@@ -118,6 +118,12 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 action = RunInstallTrailersAddonAsync;
                 TaskName = "Trailers addon";
                 break;
+            case TaskType.Extract:
+                _app = taskOptions.App ?? throw new ArgumentException($"App not specified for {nameof(TaskType.Extract)} task");
+                _path = taskOptions.Path ?? throw new ArgumentException($"Path not specified for {nameof(TaskType.Extract)}");
+                TaskName = _app.Name;
+                action = RunExtractAsync;
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(taskOptions), "Unknown task type");
         }
@@ -296,6 +302,19 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
             await InstallTrailersAddonAsync();
         }, nameof(Resources.InstallFailed), nameof(Resources.InstallSuccess));
+    }
+
+    private async Task RunExtractAsync()
+    {
+        EnsureDeviceConnected();
+        Status = Resources.PullingFromDevice;
+        await DoCancellableAsync(async () =>
+        {
+            await Task.Run(() =>
+            {
+                _adbDevice!.PullApp(_app!.PackageName, _path!, _cancellationTokenSource.Token);
+            });
+        }, nameof(Resources.ExtractionFailed), nameof(Resources.ExtractSuccess));
     }
     
     private async Task DoCancellableAsync(Func<Task> func, string? failureStatus = null, string? successStatus = null)

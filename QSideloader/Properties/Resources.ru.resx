@@ -507,7 +507,7 @@
     <data name="Uploading" xml:space="preserve">
         <value>Отправка</value>
     </data>
-    <data name="UploadSucess" xml:space="preserve">
+    <data name="UploadSuccess" xml:space="preserve">
         <value>Отправлено</value>
     </data>
     <data name="AdbAuthorizationDialogText" xml:space="preserve">
