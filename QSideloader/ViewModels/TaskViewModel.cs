@@ -261,12 +261,16 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private async Task RunPullAndUploadAsync()
     {
         EnsureDeviceConnected();
-        await Task.Run(async () =>
+        await DoCancellableAsync(async () =>
         {
             Status = Resources.PullingFromDevice;
-            var path = _adbDevice!.PullApp(_app!.PackageName, "donations");
+            var path = "";
+            await Task.Run(() =>
+            {
+                path = _adbDevice!.PullApp(_app!.PackageName, "donations", _cancellationTokenSource.Token);
+            });
             Status = Resources.PreparingToUpload;
-            var apkInfo = GeneralUtils.GetApkInfo(Path.Combine(path, _app.PackageName + ".apk"));
+            var apkInfo = GeneralUtils.GetApkInfo(Path.Combine(path, _app!.PackageName + ".apk"));
             var archiveName = $"{apkInfo.ApplicationLabel} v{apkInfo.VersionCode} {apkInfo.PackageName}.zip";
             await File.WriteAllTextAsync(Path.Combine(path, "HWID.txt"),
                 GeneralUtils.GetHwid());
@@ -274,22 +278,10 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 archiveName, _cancellationTokenSource.Token);
             Directory.Delete(path, true);
             Status = Resources.Uploading;
-            await _downloaderService.UploadDonationAsync(Path.Combine("donations", archiveName), _cancellationTokenSource.Token);
+            await _downloaderService.UploadDonationAsync(Path.Combine("donations", archiveName),
+                _cancellationTokenSource.Token);
             Globals.MainWindowViewModel!.OnGameDonated(apkInfo.PackageName, apkInfo.VersionCode);
-        }).ContinueWith(t =>
-        {
-            if (t.IsFaulted)
-            {
-                var exception = t.Exception!.InnerExceptions.FirstOrDefault() ?? t.Exception;
-                Log.Error(exception, "Failed to pull and upload");
-                OnFinished(nameof(Resources.DonationFailed), false, exception);
-                throw t.Exception!;
-            }
-            if (t.IsCanceled)
-                OnFinished(nameof(Resources.Cancelled));
-            else if (t.IsCompletedSuccessfully)
-                OnFinished(nameof(Resources.UploadSucess));
-        });
+        }, nameof(Resources.DonationFailed), nameof(Resources.UploadSuccess));
     }
 
     private async Task RunInstallTrailersAddonAsync()

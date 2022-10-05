@@ -1771,8 +1771,9 @@ public class AdbService
         /// </summary>
         /// <param name="packageName">Package name of app to pull.</param>
         /// <param name="outputPath">Path to pull the app to.</param>
+        /// <param name="ct">Cancellation token.</param>
         /// <returns>Path to the directory with pulled app.</returns>
-        public string PullApp(string packageName, string outputPath)
+        public string PullApp(string packageName, string outputPath, CancellationToken ct = default)
         {
             EnsureValidPackageName(packageName);
             Log.Information("Pulling app {PackageName} from device", packageName);
@@ -1784,10 +1785,10 @@ public class AdbService
                 .ToString();
             var localApkPath = Path.Combine(path, Path.GetFileName(apkPath));
             var obbPath = $"/sdcard/Android/obb/{packageName}/";
-            PullFile(apkPath, path);
+            PullFile(apkPath, path, ct);
             File.Move(localApkPath, Path.Combine(path, packageName + ".apk"));
             if (RemoteDirectoryExists(obbPath))
-                PullDirectory(obbPath, path);
+                PullDirectory(obbPath, path, ct: ct);
             return path;
         }
 
