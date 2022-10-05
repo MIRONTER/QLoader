@@ -66,55 +66,55 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         switch (taskOptions.Type)
         {
             case TaskType.DownloadAndInstall:
-                _game = taskOptions.Game ?? throw new ArgumentException("Game not specified for DownloadAndInstall task");
+                _game = taskOptions.Game ?? throw new ArgumentException($"Game not specified for {nameof(TaskType.DownloadAndInstall)} task");
                 TaskName = _game.GameName ?? "N/A";
                 action = RunDownloadAndInstallAsync;
                 break;
             case TaskType.DownloadOnly:
-                _game = taskOptions.Game ?? throw new ArgumentException("Game not specified for DownloadOnly task");
+                _game = taskOptions.Game ?? throw new ArgumentException($"Game not specified for {nameof(TaskType.DownloadOnly)} task");
                 TaskName = _game.GameName ?? "N/A";
                 action = RunDownloadOnlyAsync;
                 break;
             case TaskType.InstallOnly:
-                _game = taskOptions.Game ?? throw new ArgumentException("Game not specified for InstallOnly task");
-                _path = taskOptions.Path ?? throw new ArgumentException("Game path not specified for InstallOnly task");
+                _game = taskOptions.Game ?? throw new ArgumentException($"Game not specified for {nameof(TaskType.InstallOnly)} task");
+                _path = taskOptions.Path ?? throw new ArgumentException($"Game path not specified for {nameof(TaskType.InstallOnly)} task");
                 TaskName = _game.GameName ?? "N/A";
                 action = RunInstallOnlyAsync;
                 break;
             case TaskType.Uninstall:
                 if (taskOptions.Game is null && taskOptions.App is null)
-                    throw new ArgumentException("Game or App not specified for Uninstall task");
+                    throw new ArgumentException($"Game or App not specified for {nameof(TaskType.Uninstall)} task");
                 if (taskOptions.Game is not null && taskOptions.App is not null)
-                    throw new ArgumentException("Game and App both specified for Uninstall task");
+                    throw new ArgumentException($"Game and App both specified for {nameof(TaskType.Uninstall)} task");
                 _game = taskOptions.Game;
                 _app = taskOptions.App;
                 TaskName = _game?.GameName ?? _app?.Name ?? "N/A";
                 action = RunUninstallAsync;
                 break;
             case TaskType.BackupAndUninstall:
-                _game = taskOptions.Game ?? throw new ArgumentException("Game not specified for BackupAndUninstall task");
-                _backupOptions = taskOptions.BackupOptions ?? throw new ArgumentException("Backup options not specified for BackupAndUninstall task");
+                _game = taskOptions.Game ?? throw new ArgumentException($"Game not specified for {nameof(TaskType.BackupAndUninstall)} task");
+                _backupOptions = taskOptions.BackupOptions ?? throw new ArgumentException($"Backup options not specified for {nameof(TaskType.BackupAndUninstall)} task");
                 TaskName = _game.GameName ?? "N/A";
                 action = RunBackupAndUninstallAsync;
                 break;
             case TaskType.Backup:
-                _game = taskOptions.Game ?? throw new ArgumentException("Game not specified for Backup task");
-                _backupOptions = taskOptions.BackupOptions ?? throw new ArgumentException("Backup options not specified for Backup task");
+                _game = taskOptions.Game ?? throw new ArgumentException($"Game not specified for {nameof(TaskType.Backup)} task");
+                _backupOptions = taskOptions.BackupOptions ?? throw new ArgumentException($"Backup options not specified for {nameof(TaskType.Backup)} task");
                 TaskName = _game.GameName ?? "N/A";
                 action = RunBackupAsync;
                 break;
             case TaskType.Restore:
-                _backup = taskOptions.Backup ?? throw new ArgumentException("Backup not specified for Restore task");
+                _backup = taskOptions.Backup ?? throw new ArgumentException($"Backup not specified for {nameof(TaskType.Restore)} task");
                 TaskName = _backup.Name;
                 action = RunRestoreAsync;
                 break;
             case TaskType.PullAndUpload:
-                _app = taskOptions.App ?? throw new ArgumentException("App not specified for PullAndUpload task");
+                _app = taskOptions.App ?? throw new ArgumentException($"App not specified for {nameof(TaskType.PullAndUpload)} task");
                 TaskName = _app.Name;
                 action = RunPullAndUploadAsync;
                 break;
             case TaskType.InstallTrailersAddon:
-                _path = taskOptions.Path;
+                _path = taskOptions.Path ?? throw new ArgumentException($"Path not specified for {nameof(TaskType.InstallTrailersAddon)}");
                 action = RunInstallTrailersAddonAsync;
                 TaskName = "Trailers addon";
                 break;
