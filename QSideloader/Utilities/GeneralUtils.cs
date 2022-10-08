@@ -91,7 +91,8 @@ public static class GeneralUtils
         {
             Log.Error(e, "Error while getting HWID");
             Log.Warning("Using InstallationId as fallback");
-            return GetHwidFallback();
+            //return GetHwidFallback();
+            throw;
         }
 
         if (hwid is null)
