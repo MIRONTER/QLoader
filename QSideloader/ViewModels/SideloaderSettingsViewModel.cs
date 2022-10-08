@@ -116,12 +116,11 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [Reactive] [JsonProperty] public string LastWirelessAdbHost { get; set; } = "";
     public string VersionString { get; } = Assembly.GetExecutingAssembly()
         .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "";
-/*#if DEBUG
+#if DEBUG
     public bool IsConsoleToggleable { get; }
 #else
     public bool IsConsoleToggleable { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-#endif*/
-    public bool IsConsoleToggleable { get; } = true;
+#endif
     [Reactive] public List<string> MirrorList { get; private set; } = new();
     [Reactive] public string? SelectedMirror { get; set; }
     public bool IsSwitchingMirror => _isSwitchingMirror.Value;
