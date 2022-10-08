@@ -11,8 +11,8 @@
         <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
         <NeutralLanguage>en</NeutralLanguage>
         <AssemblyName>Loader</AssemblyName>
-        <AssemblyVersion>0.2.5.0</AssemblyVersion>
-        <InformationalVersion>v0.2.5-dev</InformationalVersion>
+        <AssemblyVersion>0.2.5.1</AssemblyVersion>
+        <InformationalVersion>v0.2.5-beta</InformationalVersion>
         <IsPackable>false</IsPackable>
         <Company>FFA</Company>
         <ApplicationManifest>app.manifest</ApplicationManifest>
