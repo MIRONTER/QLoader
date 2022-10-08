@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QSideloader", "QSideloader\QSideloader.csproj", "{D3183CDB-EA54-4418-8D30-D0A120CAFC1F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GetHWID", "GetHWID\GetHWID.csproj", "{962FE3A6-5497-488D-A4B3-FB6F45A6F4CF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{D3183CDB-EA54-4418-8D30-D0A120CAFC1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D3183CDB-EA54-4418-8D30-D0A120CAFC1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D3183CDB-EA54-4418-8D30-D0A120CAFC1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{962FE3A6-5497-488D-A4B3-FB6F45A6F4CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{962FE3A6-5497-488D-A4B3-FB6F45A6F4CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{962FE3A6-5497-488D-A4B3-FB6F45A6F4CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{962FE3A6-5497-488D-A4B3-FB6F45A6F4CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
