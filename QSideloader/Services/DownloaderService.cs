@@ -9,6 +9,7 @@ using System.Net.Http.Json;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -87,7 +88,7 @@ public class DownloaderService
                                     MirrorListSemaphoreSlim.CurrentCount > 0 && GameListSemaphoreSlim.CurrentCount > 0;
 
     private bool IsMirrorListInitialized { get; set; }
-    private HttpClient HttpClient { get; } = new();
+    private static HttpClient HttpClient { get; } = new();
     private static HttpClient ApiHttpClient { get; }
 
     /// <summary>
@@ -98,8 +99,10 @@ public class DownloaderService
         await RcloneConfigSemaphoreSlim.WaitAsync();
         try
         {
-            Log.Information("Updating rclone config");
             EnsureMirrorSelected();
+            if (MirrorListContainsVip(MirrorList))
+                return;
+            Log.Information("Updating rclone config");
             while (true)
             {
                 if (await TryDownloadConfigAsync())
@@ -195,7 +198,45 @@ public class DownloaderService
             .GetAwaiter().GetResult();
         var matches = Regex.Matches(result.StandardOutput, mirrorPattern);
         foreach (Match match in matches) mirrorList.Add(match.Groups[1].ToString());
-        return mirrorList;
+        if (!MirrorListContainsVip(mirrorList)) return mirrorList;
+        if (CheckVipAccess())
+        {
+            Log.Information("Verified VIP access");
+            return mirrorList;
+        }
+        Globals.ShowNotification("Error", Resources.CouldntVerifyVip, NotificationType.Error, TimeSpan.Zero);
+        throw new DownloaderServiceException("Couldn't verify VIP access");
+    }
+
+    private static bool MirrorListContainsVip(IEnumerable<string> mirrorList)
+    {
+        return mirrorList.Any(x => Regex.IsMatch(x, @"FFA-9."));
+    }
+
+    private static bool CheckVipAccess()
+    {
+        var registeredHwidsResponse = HttpClient.GetAsync("https://github.com/harryeffinpotter/-Loader/raw/main/HWIDS")
+            .GetAwaiter().GetResult();
+        if (!registeredHwidsResponse.IsSuccessStatusCode)
+        {
+            Log.Error("Failed to get list of registered HWIDs: {StatusCode} {ReasonPhrase}",
+                registeredHwidsResponse.StatusCode, registeredHwidsResponse.ReasonPhrase);
+            return false;
+        }
+
+        try
+        {
+            var registeredHwidsRaw = registeredHwidsResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            var registeredHwids = registeredHwidsRaw.Split("\n").Select(x => x.Split(";")[0]);
+            var hwid = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? GeneralUtils.GetHwidCompat() : GeneralUtils.GetHwid();
+            return registeredHwids.Any(x => x == hwid);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Failed to parse list of registered HWIDs");
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -364,7 +405,7 @@ public class DownloaderService
     }
 
     /// <summary>
-    ///     Runs rclone operation (waits for rclone config lock, appends current mirror name to source path).
+    ///     Runs rclone operation.
     /// </summary>
     /// <param name="source">Source path.</param>
     /// <param name="destination">Destination path.</param>
@@ -372,6 +413,7 @@ public class DownloaderService
     /// <param name="additionalArgs">Additional rclone arguments.</param>
     /// <param name="retries">Number of retries for errors.</param>
     /// <param name="ct">Cancellation token.</param>
+    /// <remarks>This method waits for rclone config lock and appends current mirror name to source path.</remarks>
     /// <seealso cref="RcloneTransferInternalAsync" />
     private async Task RcloneTransferAsync(string source, string destination, string operation,
         string additionalArgs = "", int retries = 1, CancellationToken ct = default)
@@ -384,7 +426,7 @@ public class DownloaderService
     }
 
     /// <summary>
-    ///     Runs rclone operation (internal, just runs the command).
+    ///     Runs rclone operation.
     /// </summary>
     /// <param name="source">Source path.</param>
     /// <param name="destination">Destination path.</param>

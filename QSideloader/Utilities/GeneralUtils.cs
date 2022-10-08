@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Management;
 using CliWrap;
 using CliWrap.Buffered;
 using Microsoft.Win32;
@@ -116,6 +117,57 @@ public static class GeneralUtils
         var bytes = Encoding.UTF8.GetBytes(installationId);
         var sha256 = SHA256.Create();
         var hash = sha256.ComputeHash(bytes);
+        return BitConverter.ToString(hash).Replace("-", "");
+    }
+
+    /// <summary>
+    ///     Gets current system HWID (version compatible with Loader v2-3).
+    /// </summary>
+    /// <returns>HWID as <see cref="string" />.</returns>
+    public static string GetHwidCompat()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            throw new InvalidOperationException("Not supported on non-Windows platforms");
+        var sb = new StringBuilder();
+
+        var searcher = new ManagementObjectSearcher("root\\CIMV2",
+            "SELECT * FROM Win32_Processor");
+
+        foreach (var o in searcher.Get())
+        {
+            var queryObj = (ManagementObject) o;
+            sb.Append(queryObj["NumberOfCores"]);
+            sb.Append(queryObj["ProcessorId"]);
+            sb.Append(queryObj["Name"]);
+            sb.Append(queryObj["SocketDesignation"]);
+        }
+
+        searcher = new ManagementObjectSearcher("root\\CIMV2",
+            "SELECT * FROM Win32_BIOS");
+
+        foreach (var o in searcher.Get())
+        {
+            var queryObj = (ManagementObject) o;
+            sb.Append(queryObj["Manufacturer"]);
+            sb.Append(queryObj["Name"]);
+            sb.Append(queryObj["Version"]);
+
+        }
+
+        searcher = new ManagementObjectSearcher("root\\CIMV2",
+            "SELECT * FROM Win32_BaseBoard");
+
+        foreach (var o in searcher.Get())
+        {
+            var queryObj = (ManagementObject) o;
+            sb.Append(queryObj["Product"]);
+        }
+
+        var bytes = Encoding.ASCII.GetBytes(sb.ToString());
+        var sha = SHA256.Create();
+
+        var hash = sha.ComputeHash(bytes);
+
         return BitConverter.ToString(hash).Replace("-", "");
     }
 

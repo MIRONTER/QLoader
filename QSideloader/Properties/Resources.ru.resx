@@ -253,7 +253,7 @@
         <value>Применить настройки</value>
     </data>
     <data name="BackupsLocation" xml:space="preserve">
-        <value>Разположение резервных копий</value>
+        <value>Расположение резервных копий</value>
     </data>
     <data name="BrowseButton" xml:space="preserve">
         <value>Обзор</value>
@@ -686,5 +686,8 @@
     </data>
     <data name="InstallationIdCopied" xml:space="preserve">
         <value>ID установки скопирован в буфер обмена</value>
+    </data>
+    <data name="CouldntVerifyVip" xml:space="preserve">
+        <value>Не удалось проверить VIP доступ</value>
     </data>
 </root>

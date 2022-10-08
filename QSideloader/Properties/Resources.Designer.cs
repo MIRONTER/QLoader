@@ -495,6 +495,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Couldn&apos;t verify VIP access.
+        /// </summary>
+        public static string CouldntVerifyVip {
+            get {
+                return ResourceManager.GetString("CouldntVerifyVip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Creating backup.
         /// </summary>
         public static string CreatingBackup {
