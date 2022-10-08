@@ -105,11 +105,17 @@ public class App : Application
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && sideloaderSettings.EnableDebugConsole)
         {
             AllocConsole();
+        }
+        
+        try
+        {
             Console.Title = $"{Assembly.GetExecutingAssembly().GetName().Name} debug console";
         }
-#if DEBUG
-        Console.Title = $"{Assembly.GetExecutingAssembly().GetName().Name} debug console";
-#endif
+        catch
+        {
+            // ignored
+        }
+
         var consoleLogger = new LoggerConfiguration().MinimumLevel.Debug().WriteTo.Console().CreateLogger();
         LogStartMessage(consoleLogger, programName, versionString);
         Log.CloseAndFlush();
