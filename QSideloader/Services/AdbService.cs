@@ -833,7 +833,7 @@ public class AdbService
 
             FriendlyName = deviceData.Product switch
             {
-                "monterey" => "Quest 1",
+                "monterey" or "vr_monterey" => "Quest 1",
                 "hollywood" => "Quest 2",
                 _ => "Unknown?"
             };
