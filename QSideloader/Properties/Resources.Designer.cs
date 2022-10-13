@@ -910,6 +910,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error adding task.
+        /// </summary>
+        public static string ErrorAddingTask {
+            get {
+                return ResourceManager.GetString("ErrorAddingTask", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error applying device settings.
         /// </summary>
         public static string ErrorApplyingDeviceSettings {
@@ -946,15 +955,6 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error while enqueuing task.
-        /// </summary>
-        public static string ErrorEnqueuingTask {
-            get {
-                return ResourceManager.GetString("ErrorEnqueuingTask", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Error while opening game details dialog.
         /// </summary>
         public static string ErrorGameDetailsDialog {
@@ -978,6 +978,15 @@ namespace QSideloader.Properties {
         public static string ErrorRefreshingAvailableGames {
             get {
                 return ResourceManager.GetString("ErrorRefreshingAvailableGames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error refreshing installed games.
+        /// </summary>
+        public static string ErrorRefreshingInstalledGames {
+            get {
+                return ResourceManager.GetString("ErrorRefreshingInstalledGames", resourceCulture);
             }
         }
         
@@ -1086,15 +1095,6 @@ namespace QSideloader.Properties {
         public static string FailedToLoadPopularity {
             get {
                 return ResourceManager.GetString("FailedToLoadPopularity", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to refresh installed games.
-        /// </summary>
-        public static string FailedToRefreshInstalledGames {
-            get {
-                return ResourceManager.GetString("FailedToRefreshInstalledGames", resourceCulture);
             }
         }
         

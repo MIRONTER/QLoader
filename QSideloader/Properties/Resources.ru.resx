@@ -423,7 +423,7 @@
     <data name="ErrorAutoDonation" xml:space="preserve">
         <value>Ошибка выполнения авто пожертвования</value>
     </data>
-    <data name="ErrorEnqueuingTask" xml:space="preserve">
+    <data name="ErrorAddingTask" xml:space="preserve">
         <value>Ошибка добавления задачи</value>
     </data>
     <data name="ErrorGameDetailsDialog" xml:space="preserve">
@@ -672,8 +672,8 @@
     <data name="FailedToLoadDeviceSettings" xml:space="preserve">
         <value>Не удалось загрузить текущие настройки устройства</value>
     </data>
-    <data name="FailedToRefreshInstalledGames" xml:space="preserve">
-        <value>Не удалось обновить обновить установленные игры</value>
+    <data name="ErrorRefreshingInstalledGames" xml:space="preserve">
+        <value>Ошибка обновления установленных игр</value>
     </data>
     <data name="FailedToReloadMirrorList" xml:space="preserve">
         <value>Не удалось перезагрузить список зеркал</value>

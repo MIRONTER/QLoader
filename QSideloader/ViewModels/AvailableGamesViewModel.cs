@@ -60,7 +60,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         Refresh.ThrownExceptions.Subscribe(ex =>
         {
             Log.Error(ex, "Error refreshing available games");
-            Globals.ShowNotification(Resources.Error, Resources.ErrorRefreshingAvailableGames, NotificationType.Error);
+            Globals.ShowErrorNotification(ex, Resources.ErrorRefreshingAvailableGames);
         });
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
         Install = ReactiveCommand.CreateFromObservable(InstallImpl);

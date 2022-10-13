@@ -112,8 +112,8 @@ public class MainWindowViewModel : ViewModelBase
             if (t.IsFaulted)
             {
                 var exception = t.Exception?.InnerException ?? t.Exception!;
-                Log.Error(exception, "Error while enqueuing task");
-                Globals.ShowErrorNotification(exception, Resources.ErrorEnqueuingTask);
+                Log.Error(exception, "Error adding task");
+                Globals.ShowErrorNotification(exception, Resources.ErrorAddingTask);
             }
         }, TaskContinuationOptions.OnlyOnFaulted);
     }
@@ -237,7 +237,7 @@ public class MainWindowViewModel : ViewModelBase
         var text = message + "\n" + filteredException;
         Dispatcher.UIThread.InvokeAsync(() =>
         {
-            _notificationManager.Show(new Avalonia.Controls.Notifications.Notification("Error", message,
+            _notificationManager.Show(new Avalonia.Controls.Notifications.Notification(Resources.Error, message,
                 type, expiration, onClick: () =>
                 {
                     var dialog = new ContentDialog

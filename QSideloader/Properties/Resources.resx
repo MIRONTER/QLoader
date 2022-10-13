@@ -358,8 +358,8 @@ Are you sure you want to continue?</value>
     <data name="ErrorAutoDonation" xml:space="preserve">
         <value>Error running auto donation</value>
     </data>
-    <data name="ErrorEnqueuingTask" xml:space="preserve">
-        <value>Error while enqueuing task</value>
+    <data name="ErrorAddingTask" xml:space="preserve">
+        <value>Error adding task</value>
     </data>
     <data name="CopiedToClipboardHeader" xml:space="preserve">
         <value>Copied to clipboard</value>
@@ -670,8 +670,8 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="FailedToEnableWirelessAdb" xml:space="preserve">
         <value>Failed to enable Wireless ADB</value>
     </data>
-    <data name="FailedToRefreshInstalledGames" xml:space="preserve">
-        <value>Failed to refresh installed games</value>
+    <data name="ErrorRefreshingInstalledGames" xml:space="preserve">
+        <value>Error refreshing installed games</value>
     </data>
     <data name="ErrorApplyingDeviceSettings" xml:space="preserve">
         <value>Error applying device settings</value>

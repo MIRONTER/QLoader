@@ -1018,8 +1018,8 @@ public class AdbService
             }
             catch (Exception e)
             {
-                Log.Error(e, "Failed to refresh installed games");
-                Globals.ShowErrorNotification(e, Resources.FailedToRefreshInstalledGames);
+                Log.Error(e, "Error refreshing installed games");
+                Globals.ShowErrorNotification(e, Resources.ErrorRefreshingInstalledGames);
                 InstalledGames = new List<InstalledGame>();
             }
             finally
