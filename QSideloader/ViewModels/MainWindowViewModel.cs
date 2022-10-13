@@ -111,8 +111,9 @@ public class MainWindowViewModel : ViewModelBase
         {
             if (t.IsFaulted)
             {
-                Log.Error(t.Exception!, "Error while enqueuing task");
-                Globals.ShowErrorNotification(t.Exception!, Resources.ErrorEnqueuingTask);
+                var exception = t.Exception?.InnerException ?? t.Exception!;
+                Log.Error(exception, "Error while enqueuing task");
+                Globals.ShowErrorNotification(exception, Resources.ErrorEnqueuingTask);
             }
         }, TaskContinuationOptions.OnlyOnFaulted);
     }
