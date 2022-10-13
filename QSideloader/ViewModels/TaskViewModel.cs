@@ -114,7 +114,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 action = RunPullAndUploadAsync;
                 break;
             case TaskType.InstallTrailersAddon:
-                _path = taskOptions.Path ?? throw new ArgumentException($"Path not specified for {nameof(TaskType.InstallTrailersAddon)}");
+                _path = taskOptions.Path;
                 action = RunInstallTrailersAddonAsync;
                 TaskName = "Trailers addon";
                 break;
