@@ -104,7 +104,7 @@
                 <DataGridTextColumn Binding="{Binding GameSize}" Header="{x:Static p:Resources.GameSizeHeader}"
                                     Width="auto" IsReadOnly="True" />
                 <DataGridTextColumn Binding="{Binding ., Converter={StaticResource UpdateStatusStringFromInstalledGame}}" Header="{x:Static p:Resources.UpdateStatusHeader}"
-                                    Width="auto" IsReadOnly="True" />
+                                    Width="auto" IsReadOnly="True" SortMemberPath="IsUpdateAvailable"/>
             </DataGrid.Columns>
             <DataGrid.Resources>
                 <!-- ReSharper disable Xaml.RedundantResource -->

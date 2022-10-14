@@ -4,6 +4,11 @@ namespace QSideloader.Models;
 
 public class InstalledGame : Game
 {
+    [JsonIgnore] public int InstalledVersionCode { get; }
+    [JsonIgnore] public string InstalledVersionName { get; }
+    [JsonIgnore] public int AvailableVersionCode { get; }
+    [JsonIgnore] public bool IsUpdateAvailable { get; } // This needed to make sorting work
+    
     public InstalledGame(Game game, int installedVersionCode = -1, string installedVersionName = "N/A")
     {
         GameName = game.GameName;
@@ -15,9 +20,6 @@ public class InstalledGame : Game
         GameSize = game.GameSize;
         InstalledVersionCode = installedVersionCode;
         InstalledVersionName = installedVersionName;
+        IsUpdateAvailable = AvailableVersionCode > InstalledVersionCode;
     }
-
-    [JsonIgnore] public int InstalledVersionCode { get; set; }
-    [JsonIgnore] public string InstalledVersionName { get; set; }
-    [JsonIgnore] public int AvailableVersionCode { get; set; }
 }

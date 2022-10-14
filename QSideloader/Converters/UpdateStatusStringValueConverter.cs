@@ -15,7 +15,7 @@ public class UpdateStatusStringValueConverter : IValueConverter
 
         if (value is InstalledGame game)
         {
-            return game.AvailableVersionCode > game.InstalledVersionCode 
+            return game.IsUpdateAvailable 
                 ? string.Format(Resources.UpdateAvailable, game.InstalledVersionCode, game.AvailableVersionCode)
                 : Resources.UpToDate;
         }
