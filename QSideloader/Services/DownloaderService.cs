@@ -452,9 +452,12 @@ public class DownloaderService
                 .WithArguments(
                     $"{operation} --retries {retries} {bwLimit} \"{source}\" \"{destination}\" {additionalArgs}");
             if (proxy is not null)
+            {
+                Log.Debug("Using proxy {Host}:{Port}", proxy.Value.host, proxy.Value.port);
                 command = command.WithEnvironmentVariables(env => env
                     .Set("http_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}")
                     .Set("https_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}"));
+            }
             await command.ExecuteBufferedAsync(ct);
             op.Complete();
         }
@@ -953,6 +956,25 @@ public class DownloaderService
         }
     }
 
+    private static async Task<string> RcloneGetRemoteSizeJson(string remotePath, CancellationToken ct = default)
+    {
+        await RcloneConfigSemaphoreSlim.WaitAsync(ct);
+        RcloneConfigSemaphoreSlim.Release();
+        var proxy = GeneralUtils.GetDefaultProxyHostPort();
+        var command = Cli.Wrap(PathHelper.RclonePath)
+            .WithArguments(
+                $"size \"{remotePath}\" --fast-list --json");
+        if (proxy is not null)
+        {
+            Log.Debug("Using proxy {Host}:{Port}", proxy.Value.host, proxy.Value.port);
+            command = command.WithEnvironmentVariables(env => env
+                .Set("http_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}")
+                .Set("https_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}"));
+        }
+        var result = await command.ExecuteBufferedAsync(ct);
+        return result.StandardOutput;
+    }
+
     public async Task<long?> GetGameSizeBytesAsync(Game game, CancellationToken ct = default)
     {
         using var op = Operation.Begin("Rclone calculating size of \"{ReleaseName}\"", game.ReleaseName ?? "N/A");
@@ -962,17 +984,8 @@ public class DownloaderService
             RcloneConfigSemaphoreSlim.Release();
             EnsureMirrorSelected();
             var remotePath = $"{MirrorName}:Quest Games/{game.ReleaseName}";
-            var proxy = GeneralUtils.GetDefaultProxyHostPort();
-            var command = Cli.Wrap(PathHelper.RclonePath)
-                .WithArguments(
-                    $"size \"{remotePath}\" --fast-list --json");
-            if (proxy is not null)
-                command = command.WithEnvironmentVariables(env => env
-                    .Set("http_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}")
-                    .Set("https_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}"));
-            var result = await command.ExecuteBufferedAsync(ct);
-            var output = result.StandardOutput;
-            var dict = JsonConvert.DeserializeObject<Dictionary<string, long>>(output);
+            var sizeJson = await RcloneGetRemoteSizeJson(remotePath, ct);
+            var dict = JsonConvert.DeserializeObject<Dictionary<string, long>>(sizeJson);
             if (dict is null)
                 return null;
             if (!dict.TryGetValue("bytes", out var sizeBytes)) return null;
