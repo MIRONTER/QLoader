@@ -95,7 +95,7 @@ public static class GeneralUtils
             throw;
         }
 
-        var bytes = Encoding.UTF8.GetBytes(hwid);
+        var bytes = Encoding.UTF8.GetBytes(hwid!);
         var sha256 = SHA256.Create();
         var hash = sha256.ComputeHash(bytes);
 
