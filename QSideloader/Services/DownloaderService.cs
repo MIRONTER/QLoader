@@ -708,7 +708,6 @@ public class DownloaderService
         }
         catch (Exception e) when (e is not OperationCanceledException)
         {
-            Log.Error(e, "Error downloading release");
             throw new DownloaderServiceException("Error downloading release", e);
         }
     }
