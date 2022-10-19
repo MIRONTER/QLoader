@@ -491,10 +491,10 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         IsFinished = true;
         Status = Resources.ResourceManager.GetString(statusResourceNameOrString) ?? statusResourceNameOrString;
         DownloadStats = "";
-        Log.Information("Task {TaskId} {TaskType} {TaskName} finished. Result: {Status}",
+        Log.Information("Task {TaskId} {TaskType} {TaskName} finished. Result: {Status}. Is success: {IsSuccess}",
             TaskId, _taskType, TaskName, 
             Resources.ResourceManager.GetString(statusResourceNameOrString, CultureInfo.InvariantCulture) 
-            ?? statusResourceNameOrString);
+            ?? statusResourceNameOrString, isSuccess);
         if (isSuccess) return;
         if (e is not null)
         {
