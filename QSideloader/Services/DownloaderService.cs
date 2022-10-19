@@ -680,6 +680,10 @@ public class DownloaderService
                         "copy",
                         $"--progress --drive-acknowledge-abuse --rc --rc-addr :{RcloneStatsPort} --drive-stop-on-download-limit",
                         3, ct);
+                    if (!Directory.Exists(dstPath))
+                    {
+                        throw new DirectoryNotFoundException($"Didn't find directory with downloaded files on path \"{dstPath}\"");
+                    }
                     var json = JsonConvert.SerializeObject(game, Formatting.Indented);
                     await File.WriteAllTextAsync(Path.Combine(dstPath, "release.json"), json, ct);
                     Task.Run(() => ReportGameDownload(game.PackageName!), ct).SafeFireAndForget();
