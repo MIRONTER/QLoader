@@ -167,8 +167,10 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         {
             speedMBytes = Math.Round((double) stats.Value.downloadSpeedBytes / 1000000, 2);
             progressPercent = Math.Floor(stats.Value.downloadedBytes / (double) _gameSizeBytes * 100);
+            var progressPercentString =
+                progressPercent <= 100 ? progressPercent.ToString(CultureInfo.CurrentCulture) : "???";
 
-            DownloadStats = $"{progressPercent}%, {speedMBytes}MB/s";
+            DownloadStats = $"{progressPercentString}%, {speedMBytes}MB/s";
             return;
         }
         
