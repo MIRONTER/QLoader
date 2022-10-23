@@ -668,6 +668,7 @@ public class DownloaderService
     {
         var srcPath = $"Quest Games/{game.ReleaseName}";
         var dstPath = Path.Combine(_sideloaderSettings.DownloadsLocation, game.ReleaseName!);
+        var downloadExceptions = new List<Exception>();
         try
         {
             Log.Information("Downloading release {ReleaseName}", game.ReleaseName);
@@ -689,13 +690,15 @@ public class DownloaderService
                     Task.Run(() => ReportGameDownload(game.PackageName!), ct).SafeFireAndForget();
                     break;
                 }
-                catch (DownloadQuotaExceededException)
+                catch (DownloadQuotaExceededException e)
                 {
                     Log.Warning("Quota exceeded on mirror {MirrorName}", MirrorName);
+                    downloadExceptions.Add(e);
                 }
                 catch (RcloneOperationException e)
                 {
                     Log.Warning(e, "Download error on mirror {MirrorName}", MirrorName);
+                    downloadExceptions.Add(e);
                 }
 
                 SwitchMirror(localMirrorList);
@@ -708,7 +711,8 @@ public class DownloaderService
         }
         catch (Exception e) when (e is not OperationCanceledException)
         {
-            throw new DownloaderServiceException("Error downloading release", e);
+            downloadExceptions.Insert(0, e);
+            throw new DownloaderServiceException("Error downloading release", new AggregateException(downloadExceptions));
         }
     }
 
