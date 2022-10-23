@@ -51,8 +51,9 @@ public static class GeneralUtils
     /// <summary>
     ///     Gets current system HWID.
     /// </summary>
+    /// <param name="useCompatOnWindows">Use <see cref="GetHwidCompat"/> if on Windows.</param>
     /// <returns>HWID as <see cref="string" />.</returns>
-    public static string GetHwid()
+    public static string GetHwid(bool useCompatOnWindows)
     {
         string? hwid = null;
         try
@@ -68,11 +69,12 @@ public static class GeneralUtils
             // This algorithm is different from windows Loader v2 as that one fails on some systems
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
+                if (useCompatOnWindows)
+                    return GetHwidCompat();
                 var regKey =
                     Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Cryptography", false);
-                var regValue = regKey?.GetValue("MachineGuid");
-                if (regValue != null)
-                    hwid = regValue.ToString();
+                var regValue = regKey?.GetValue("MachineGuid") ?? throw new InvalidOperationException("Failed to get HWID");
+                hwid = regValue.ToString();
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -84,14 +86,13 @@ public static class GeneralUtils
                 if (match.Success)
                     hwid = match.Groups[1].Value;
                 else
-                    Log.Warning("Could not get HWID from ioreg");
+                    throw new InvalidOperationException("Failed to get HWID");
             }
         }
         catch (Exception e)
         {
             Log.Error(e, "Error while getting HWID");
             Log.Warning("Using InstallationId as fallback");
-            //return GetHwidFallback();
             throw;
         }
 
@@ -103,23 +104,10 @@ public static class GeneralUtils
     }
 
     /// <summary>
-    ///     Gets fallback HWID replacement derived from current <see cref="SideloaderSettingsViewModel.InstallationId" />.
-    /// </summary>
-    /// <returns>HWID as <see cref="string" />.</returns>
-    private static string GetHwidFallback()
-    {
-        var installationId = Globals.SideloaderSettings.InstallationId.ToString();
-        var bytes = Encoding.UTF8.GetBytes(installationId);
-        var sha256 = SHA256.Create();
-        var hash = sha256.ComputeHash(bytes);
-        return BitConverter.ToString(hash).Replace("-", "");
-    }
-
-    /// <summary>
     ///     Gets current system HWID (version compatible with Loader v2-3).
     /// </summary>
     /// <returns>HWID as <see cref="string" />.</returns>
-    public static string GetHwidCompat()
+    private static string GetHwidCompat()
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             throw new InvalidOperationException("Not supported on non-Windows platforms");

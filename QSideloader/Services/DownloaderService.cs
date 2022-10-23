@@ -228,7 +228,7 @@ public class DownloaderService
         {
             var registeredHwidsRaw = registeredHwidsResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult();
             var registeredHwids = registeredHwidsRaw.Split("\n").Select(x => x.Split(";")[0]);
-            var hwid = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? GeneralUtils.GetHwidCompat() : GeneralUtils.GetHwid();
+            var hwid = GeneralUtils.GetHwid(true);
             return registeredHwids.Any(x => x == hwid);
         }
         catch (Exception e)
@@ -721,7 +721,7 @@ public class DownloaderService
         using var op = Operation.Begin("Reporting game {PackageName} download to API", packageName);
         try
         {
-            var dict = new Dictionary<string, string> {{"hwid", GeneralUtils.GetHwid()}, {"package_name", packageName}};
+            var dict = new Dictionary<string, string> {{"hwid", GeneralUtils.GetHwid(false)}, {"package_name", packageName}};
             var json = JsonConvert.SerializeObject(dict, Formatting.None);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await ApiHttpClient.PostAsync("reportdownload", content);

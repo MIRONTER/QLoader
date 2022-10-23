@@ -529,7 +529,7 @@ public class AdbService
     /// <remarks><see cref="GeneralUtils.GetHwid"/> is used as salt.</remarks>
     private static string GetHashedId(string deviceSerial)
     {
-        var hwid = GeneralUtils.GetHwid();
+        var hwid = GeneralUtils.GetHwid(false);
         var saltedSerial = hwid + deviceSerial;
         using var sha256Hash = SHA256.Create();
         var hashedId = Convert.ToHexString(sha256Hash.ComputeHash(Encoding.ASCII.GetBytes(saltedSerial)))[..16];
