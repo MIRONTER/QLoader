@@ -705,7 +705,7 @@ public class AdbService
     /// <returns></returns>
     private static bool IsOculusQuest(DeviceData device)
     {
-        return device.Product is "hollywood" or "monterey" or "vr_monterey";
+        return device.Product is "hollywood" or "monterey" or "vr_monterey" or "seacliff";
     }
 
     /// <summary>
@@ -835,6 +835,7 @@ public class AdbService
             {
                 "monterey" or "vr_monterey" => "Quest 1",
                 "hollywood" => "Quest 2",
+                "seacliff" => "Quest Pro",
                 _ => "Unknown?"
             };
 
