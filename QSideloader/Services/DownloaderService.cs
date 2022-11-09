@@ -301,7 +301,7 @@ public class DownloaderService
         }
 
         if (_mirrorList.Count == 0)
-            throw new DownloaderServiceException("No mirrors available for this session");
+            throw new NoMirrorsAvailableException(true);
         var random = new Random();
         MirrorName = _mirrorList[random.Next(_mirrorList.Count)];
         Log.Information("Selected mirror: {MirrorName}", MirrorName);
@@ -349,7 +349,7 @@ public class DownloaderService
         }
 
         if (mirrorList.Count == 0)
-            throw new DownloaderServiceException("No mirrors available for this download");
+            throw new NoMirrorsAvailableException(false);
         var random = new Random();
         MirrorName = mirrorList[random.Next(mirrorList.Count)];
         Log.Information("Selected mirror: {MirrorName}", MirrorName);
@@ -399,7 +399,7 @@ public class DownloaderService
         {
             Globals.ShowNotification(Resources.Error, Resources.NoMirrorsAvailable, NotificationType.Error,
                 TimeSpan.Zero);
-            throw new DownloaderServiceException("No mirrors available");
+            throw new NoMirrorsAvailableException(true);
         }
         IsMirrorListInitialized = true;
     }
@@ -1063,4 +1063,12 @@ public class NotEnoughSpaceException : DownloaderServiceException
     }
 
     public string Path { get; }
+}
+
+public class NoMirrorsAvailableException : DownloaderServiceException
+{
+    public NoMirrorsAvailableException(bool session)
+        : base(session ? "No mirrors available for this session"  : "No mirrors available for this download")
+    {
+    }
 }
