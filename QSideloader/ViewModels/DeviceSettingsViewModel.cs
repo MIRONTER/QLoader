@@ -84,7 +84,6 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 {
                     "hollywood" => new[] {"Auto (recommended)", "72", "90", "120"},
                     "monterey" => new[] {"Auto (recommended)", "60", "72"},
-                    "seacliff" => new[] {"Auto (recommended)", "72", "90"},
                     _ => RefreshRates
                 };
                 try

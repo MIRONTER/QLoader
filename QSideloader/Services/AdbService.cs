@@ -705,7 +705,7 @@ public class AdbService
     /// <returns></returns>
     private static bool IsOculusQuest(DeviceData device)
     {
-        return device.Product is "hollywood" or "monterey" or "vr_monterey" or "seacliff";
+        return device.Product is "hollywood" or "monterey" or "vr_monterey";
     }
 
     /// <summary>
@@ -833,7 +833,7 @@ public class AdbService
 
             FriendlyName = deviceData.Product switch
             {
-                "monterey" => "Quest 1",
+                "monterey" or "vr_monterey" => "Quest 1",
                 "hollywood" => "Quest 2",
                 _ => "Unknown?"
             };
@@ -1018,8 +1018,8 @@ public class AdbService
             }
             catch (Exception e)
             {
-                Log.Error(e, "Failed to refresh installed games");
-                Globals.ShowErrorNotification(e, Resources.FailedToRefreshInstalledGames);
+                Log.Error(e, "Error refreshing installed games");
+                Globals.ShowErrorNotification(e, Resources.ErrorRefreshingInstalledGames);
                 InstalledGames = new List<InstalledGame>();
             }
             finally
