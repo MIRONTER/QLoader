@@ -234,7 +234,7 @@ public class MainWindowViewModel : ViewModelBase
         expiration ??= TimeSpan.Zero;
         // Remove invalid characters to avoid cutting off when copying to clipboard
         var filteredException = Regex.Replace(e.ToString(), @"[^\w\d\s\p{P}]", "");
-        var text = message + "\n" + filteredException;
+        var text = message + "\n\n" + filteredException;
         Dispatcher.UIThread.InvokeAsync(() =>
         {
             _notificationManager.Show(new Avalonia.Controls.Notifications.Notification(Resources.Error, message,

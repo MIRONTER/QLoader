@@ -712,7 +712,10 @@ public class DownloaderService
         catch (Exception e) when (e is not OperationCanceledException)
         {
             downloadExceptions.Insert(0, e);
-            throw new DownloaderServiceException("Error downloading release", new AggregateException(downloadExceptions));
+            // List of error messages to show to the user
+            var errorMessages = downloadExceptions.Select(x => x.Message).ToList();
+            var message = $"Failed to download release\nThe following errors occured:\n{string.Join("\n", errorMessages)}\n";
+            throw new DownloaderServiceException(message, new AggregateException(downloadExceptions));
         }
     }
 
