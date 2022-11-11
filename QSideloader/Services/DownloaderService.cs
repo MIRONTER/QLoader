@@ -9,7 +9,6 @@ using System.Net.Http.Json;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -102,6 +101,7 @@ public class DownloaderService
             EnsureMirrorSelected();
             if (MirrorListContainsVip(MirrorList))
                 return;
+            var localMirrorList = _mirrorList.ToList();
             Log.Information("Updating rclone config");
             while (true)
             {
@@ -112,7 +112,7 @@ public class DownloaderService
                     return;
                 }
 
-                SwitchMirror();
+                SwitchMirror(localMirrorList);
             }
         }
         catch (Exception e)
@@ -301,7 +301,7 @@ public class DownloaderService
         }
 
         if (_mirrorList.Count == 0)
-            throw new NoMirrorsAvailableException(true);
+            throw new NoMirrorsAvailableException(true, ExcludedMirrorList.Count);
         var random = new Random();
         MirrorName = _mirrorList[random.Next(_mirrorList.Count)];
         Log.Information("Selected mirror: {MirrorName}", MirrorName);
@@ -349,7 +349,7 @@ public class DownloaderService
         }
 
         if (mirrorList.Count == 0)
-            throw new NoMirrorsAvailableException(false);
+            throw new NoMirrorsAvailableException(false, ExcludedMirrorList.Count);
         var random = new Random();
         MirrorName = mirrorList[random.Next(mirrorList.Count)];
         Log.Information("Selected mirror: {MirrorName}", MirrorName);
@@ -399,7 +399,7 @@ public class DownloaderService
         {
             Globals.ShowNotification(Resources.Error, Resources.NoMirrorsAvailable, NotificationType.Error,
                 TimeSpan.Zero);
-            throw new NoMirrorsAvailableException(true);
+            throw new NoMirrorsAvailableException(true, ExcludedMirrorList.Count);
         }
         IsMirrorListInitialized = true;
     }
