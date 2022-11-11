@@ -81,11 +81,11 @@ public class DownloaderService
     public string MirrorName { get; private set; } = "";
 
     private List<string> ExcludedMirrorList { get; set; } = new();
-    public IReadOnlyList<string> MirrorList => _mirrorList.AsReadOnly();
+    public IEnumerable<string> MirrorList => _mirrorList.AsReadOnly();
     public static int RcloneStatsPort => 48040;
 
-    private bool CanSwitchMirror => RcloneConfigSemaphoreSlim.CurrentCount > 0 &&
-                                    MirrorListSemaphoreSlim.CurrentCount > 0 && GameListSemaphoreSlim.CurrentCount > 0;
+    private static bool CanSwitchMirror => RcloneConfigSemaphoreSlim.CurrentCount > 0 &&
+                                           MirrorListSemaphoreSlim.CurrentCount > 0 && GameListSemaphoreSlim.CurrentCount > 0;
 
     private bool IsMirrorListInitialized { get; set; }
     private static HttpClient HttpClient { get; } = new();
@@ -1070,8 +1070,9 @@ public class NotEnoughSpaceException : DownloaderServiceException
 
 public class NoMirrorsAvailableException : DownloaderServiceException
 {
-    public NoMirrorsAvailableException(bool session)
-        : base(session ? "No mirrors available for this session"  : "No mirrors available for this download")
+    public NoMirrorsAvailableException(bool session, int excludedCount)
+        : base(session ? $"No mirrors available for this session ({excludedCount} excluded)" 
+            : $"No mirrors available for this download ({excludedCount} excluded)")
     {
     }
 }
