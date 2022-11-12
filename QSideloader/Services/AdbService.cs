@@ -29,6 +29,7 @@ using QSideloader.ViewModels;
 using Serilog;
 using Serilog.Events;
 using SerilogTimings;
+using UnixFileMode = AdvancedSharpAdbClient.UnixFileMode;
 
 namespace QSideloader.Services;
 
