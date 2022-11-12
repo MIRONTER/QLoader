@@ -297,6 +297,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Backup queued.
+        /// </summary>
+        public static string BackupQueued {
+            get {
+                return ResourceManager.GetString("BackupQueued", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Backup Selected.
         /// </summary>
         public static string BackupSelectedButton {

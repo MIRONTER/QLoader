@@ -690,4 +690,31 @@
     <data name="CouldntVerifyVip" xml:space="preserve">
         <value>Не удалось проверить VIP доступ</value>
     </data>
+    <data name="BackupQueued" xml:space="preserve">
+        <value>В очереди на создание рез. копии</value>
+    </data>
+    <data name="Extract" xml:space="preserve">
+        <value>Извлечь</value>
+    </data>
+    <data name="ExtractAppsTooltip" xml:space="preserve">
+        <value>Выгрузить выбранные приложения с устройства</value>
+    </data>
+    <data name="ExtractionFailed" xml:space="preserve">
+        <value>Не удалось извлечь</value>
+    </data>
+    <data name="ExtractSelected" xml:space="preserve">
+        <value>Извлечь выбранные</value>
+    </data>
+    <data name="ExtractSuccess" xml:space="preserve">
+        <value>Извлечено</value>
+    </data>
+    <data name="SelectBackupsFolder" xml:space="preserve">
+        <value>Выберите папку для резервных копий</value>
+    </data>
+    <data name="SelectDestinationFolder" xml:space="preserve">
+        <value>Выберите папку</value>
+    </data>
+    <data name="SelectDownloadsFolder" xml:space="preserve">
+        <value>Выберите папку для загрузок</value>
+    </data>
 </root>

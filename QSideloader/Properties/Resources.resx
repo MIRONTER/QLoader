@@ -721,4 +721,7 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="CouldntVerifyVip" xml:space="preserve">
         <value>Couldn't verify VIP access</value>
     </data>
+    <data name="BackupQueued" xml:space="preserve">
+        <value>Backup queued</value>
+    </data>
 </root>

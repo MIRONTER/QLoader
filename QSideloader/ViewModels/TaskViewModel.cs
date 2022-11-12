@@ -446,10 +446,20 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task BackupAsync()
     {
-        EnsureDeviceConnected();
-        using var _ = LogContext.PushProperty("Device", _adbDevice!.ToString());
-        Status = Resources.CreatingBackup;
-        await Task.Run(() => _adbDevice!.CreateBackup(_game!.PackageName!, _backupOptions!, _cancellationTokenSource.Token));
+        Status = Resources.BackupQueued;
+        await AdbService.TakePackageOperationLockAsync(_cancellationTokenSource.Token);
+        try
+        {
+            EnsureDeviceConnected();
+            using var _ = LogContext.PushProperty("Device", _adbDevice!.ToString());
+            Status = Resources.CreatingBackup;
+            await Task.Run(() =>
+                _adbDevice!.CreateBackup(_game!.PackageName!, _backupOptions!, _cancellationTokenSource.Token));
+        }
+        finally
+        {
+            AdbService.ReleasePackageOperationLock();
+        }
     }
     
     private async Task RestoreAsync(Backup backup)
