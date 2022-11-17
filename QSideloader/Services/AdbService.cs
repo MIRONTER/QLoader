@@ -773,11 +773,11 @@ public class AdbService
     }
 
     /// <summary>
-    ///     Helper class to store <see cref="AdvancedAdbClient" />-<see cref="AdbServer" /> pair.
+    ///     Helper class to store <see cref="AdbClient" />-<see cref="AdbServer" /> pair.
     /// </summary>
     private class AdbServerClient
     {
-        public AdvancedAdbClient AdbClient { get; } = new();
+        public AdbClient AdbClient { get; } = new();
         public AdbServer AdbServer { get; } = new();
     }
 

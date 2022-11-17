@@ -56,7 +56,7 @@
         <TrimmableAssembly Include="Avalonia.Themes.Default" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="AdvancedSharpAdbClient" Version="9.9.10" />
+        <PackageReference Include="AdvancedSharpAdbClient" Version="9.9.13" />
         <PackageReference Include="AsyncAwaitBestPractices" Version="6.0.5" />
         <PackageReference Include="Aura.UI" Version="0.1.4.2" />
         <PackageReference Include="Aura.UI.FluentTheme" Version="0.1.4.2" />
