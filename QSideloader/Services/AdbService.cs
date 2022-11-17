@@ -1622,6 +1622,7 @@ public class AdbService
         {
             EnsureValidPackageName(packageName);
             Log.Information("Backing up {PackageName}", packageName);
+            using var op = Operation.Begin("Backing up {PackageName}", packageName);
             var backupPath = Path.Combine(_sideloaderSettings.BackupsLocation,
                 $"{DateTime.Now.ToString("yyyyMMddTHHmmss", CultureInfo.InvariantCulture)}_{packageName}");
             if (!string.IsNullOrEmpty(options.NameAppend))
@@ -1690,6 +1691,7 @@ public class AdbService
                     //var json = JsonConvert.SerializeObject(game);
                     //File.WriteAllText("game.json", json);
                     Log.Information("Backup of {PackageName} created", packageName);
+                    op.Complete();
                 }
                 else
                 {
