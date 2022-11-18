@@ -54,12 +54,13 @@ public class DownloaderService
             Proxy = WebRequest.DefaultWebProxy
         };
         ApiHttpClient = new HttpClient(httpClientHandler) {BaseAddress = new Uri(ApiUrl)};
+        var appName = Program.Name;
         var appVersion = Assembly.GetExecutingAssembly().GetName().Version;
         var appVersionString = appVersion is not null
             ? $"{appVersion.Major}.{appVersion.Minor}.{appVersion.Build}"
             : "Unknown";
         ApiHttpClient.DefaultRequestHeaders.UserAgent.Add(
-            new ProductInfoHeaderValue("QLoader", appVersionString));
+            new ProductInfoHeaderValue(appName, appVersionString));
     }
 
     private DownloaderService()

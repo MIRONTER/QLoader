@@ -9,6 +9,8 @@ internal static class Program
 {
     private static bool _useGpuRendering;
     
+    public static string Name => "QLoader";
+
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.

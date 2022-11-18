@@ -27,6 +27,7 @@ public class App : Application
     public override void Initialize()
     {
         Directory.SetCurrentDirectory(Path.GetDirectoryName(AppContext.BaseDirectory)!);
+        Name = Program.Name;
 
         if (!Design.IsDesignMode)
         {
@@ -74,7 +75,7 @@ public class App : Application
             File.Delete("debug_log.json");
 
         var executingAssembly = Assembly.GetExecutingAssembly();
-        var programName = executingAssembly.GetName().Name;
+        var programName = Program.Name;
         var versionString = executingAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
             .InformationalVersion ?? "";
         var os = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "Windows" :
@@ -109,7 +110,7 @@ public class App : Application
         
         try
         {
-            Console.Title = $"{Assembly.GetExecutingAssembly().GetName().Name} debug console";
+            Console.Title = $"{Program.Name} debug console";
         }
         catch
         {

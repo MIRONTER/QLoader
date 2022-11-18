@@ -309,7 +309,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         return Observable.Start(() =>
         {
-            var appName = Assembly.GetExecutingAssembly().GetName().Name;
+            var appName = Program.Name;
             var message = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) 
                 ? string.Format(Resources.AdbConnectionDialogTextWin, appName) 
                 : string.Format(Resources.AdbConnectionDialogText, appName);

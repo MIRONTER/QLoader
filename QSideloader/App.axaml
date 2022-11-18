@@ -3,8 +3,7 @@
              xmlns:sty="using:FluentAvalonia.Styling"
              xmlns:local="using:QSideloader"
              xmlns:avalonia="clr-namespace:HyperText.Avalonia;assembly=HyperText.Avalonia"
-             x:Class="QSideloader.App"
-             Name="Loader">
+             x:Class="QSideloader.App">
     <Application.DataTemplates>
         <local:ViewLocator />
     </Application.DataTemplates>

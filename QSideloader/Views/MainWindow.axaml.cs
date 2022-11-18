@@ -36,6 +36,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
 #if DEBUG
         this.AttachDevTools();
 #endif
+        Title = Program.Name;
         _sideloaderSettings = Globals.SideloaderSettings;
         var thm = AvaloniaLocator.Current.GetService<FluentAvaloniaTheme>();
         if (thm is not null)

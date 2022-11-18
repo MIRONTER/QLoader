@@ -9,7 +9,6 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="QSideloader.Views.MainWindow"
         Icon="/Assets/ffa-logo.ico"
-        Title="Loader"
         MinHeight="600"
         MinWidth="860"
         WindowStartupLocation="CenterScreen"
