@@ -717,4 +717,7 @@
     <data name="SelectDownloadsFolder" xml:space="preserve">
         <value>Выберите папку для загрузок</value>
     </data>
+    <data name="ErrorApkInfo" xml:space="preserve">
+        <value>Ошибка получения информации о APK</value>
+    </data>
 </root>

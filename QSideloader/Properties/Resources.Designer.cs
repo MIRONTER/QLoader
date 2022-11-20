@@ -928,6 +928,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error getting APK info.
+        /// </summary>
+        public static string ErrorApkInfo {
+            get {
+                return ResourceManager.GetString("ErrorApkInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error applying device settings.
         /// </summary>
         public static string ErrorApplyingDeviceSettings {

@@ -724,4 +724,7 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="BackupQueued" xml:space="preserve">
         <value>Backup queued</value>
     </data>
+    <data name="ErrorApkInfo" xml:space="preserve">
+        <value>Error getting APK info</value>
+    </data>
 </root>
