@@ -762,7 +762,16 @@ public class AdbService
             foreach (var backup in toRemove)
                 _backupList.Remove(backup);
             foreach (var backup in toAdd)
-                _backupList.Add(new Backup(backup.path));
+            {
+                try
+                {
+                    _backupList.Add(new Backup(backup.path));
+                }
+                catch (Exception e)
+                {
+                    Log.Warning(e, "Failed to add backup {Backup}", backup);
+                }
+            }
             if (toRemove.Count > 0 || toAdd.Count > 0)
                 _backupListChangeSubject.OnNext(Unit.Default);
         }
