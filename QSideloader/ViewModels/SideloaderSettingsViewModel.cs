@@ -100,7 +100,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     }
 
     [JsonProperty] private byte ConfigVersion { get; } = 1;
-    [RelaunchNeeded] [Reactive] [JsonProperty] public bool CheckUpdatesAutomatically { get; private set; }
+    [NeedsRelaunch] [Reactive] [JsonProperty] public bool CheckUpdatesAutomatically { get; private set; }
     public string[] ConnectionTypes { get; } = {"USB", "Wireless"};
     [Reactive] [JsonProperty] public string? PreferredConnectionType { get; private set; }
     [Reactive] public string DownloadsLocationTextBoxText { get; private set; } = "";
@@ -112,7 +112,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [Reactive] [JsonProperty] public DownloadsPruningPolicy DownloadsPruningPolicy { get; set; }
     public List<DownloadsPruningPolicy> AllDownloadsPruningPolicies { get; } =
         Enum.GetValues(typeof(DownloadsPruningPolicy)).Cast<DownloadsPruningPolicy>().ToList();
-    [RelaunchNeeded] [Reactive] [JsonProperty] public bool EnableDebugConsole { get; private set; }
+    [NeedsRelaunch] [Reactive] [JsonProperty] public bool EnableDebugConsole { get; private set; }
     [Reactive] [JsonProperty] public string LastWirelessAdbHost { get; set; } = "";
     public string VersionString { get; } = Assembly.GetExecutingAssembly()
         .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "";
@@ -130,9 +130,9 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [JsonProperty] public ObservableCollection<(string packageName, int versionCode)> DonatedPackages { get; } = new();
     [JsonProperty] public ObservableCollection<string> IgnoredDonationPackages { get; private set; } = new();
     [Reactive] public bool IsTrailersAddonInstalled { get; set; }
-    [RelaunchNeeded] [Reactive] [JsonProperty] public bool EnableRemoteLogging { get; private set; }
+    [NeedsRelaunch] [Reactive] [JsonProperty] public bool EnableRemoteLogging { get; private set; }
     [Reactive] [JsonProperty] public bool EnableAutoDonation { get; private set; }
-    [RelaunchNeeded] [Reactive] [JsonProperty]  public bool ForceEnglish { get; private set; }
+    [NeedsRelaunch] [Reactive] [JsonProperty]  public bool ForceEnglish { get; private set; }
     private ReactiveCommand<bool, Unit> SaveSettings { get; }
     private ReactiveCommand<Unit, Unit> RestoreDefaults { get; }
     public ReactiveCommand<Unit, Unit> BrowseDownloadsDirectory { get; }
@@ -500,7 +500,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
         if (e.PropertyName is null) return;
         var property = typeof(SideloaderSettingsViewModel).GetProperty(e.PropertyName);
         if (property is null || !Attribute.IsDefined(property, typeof(JsonPropertyAttribute))) return;
-        if (Attribute.IsDefined(property, typeof(RelaunchNeededAttribute))) ShowRelaunchNotification(e.PropertyName);
+        if (Attribute.IsDefined(property, typeof(NeedsRelaunchAttribute))) ShowRelaunchNotification(e.PropertyName);
         AutoSaveDelayTimer.Stop();
         AutoSaveDelayTimer.Start();
     }

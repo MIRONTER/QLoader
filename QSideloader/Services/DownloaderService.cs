@@ -821,7 +821,7 @@ public class DownloaderService
         if (!Regex.IsMatch(archiveName, @"^.+ v\d+ .+\.zip$"))
             throw new ArgumentException("Invalid archive name", nameof(path));
         Log.Information("Uploading donation {ArchiveName}", archiveName);
-        var md5Sum = GeneralUtils.GetFileChecksum(HashingAlgoTypes.MD5, path).ToLower();
+        var md5Sum = GeneralUtils.GetMd5FileChecksum(path).ToLower();
         await File.WriteAllTextAsync(path + ".md5sum", md5Sum, ct);
         await RcloneConfigSemaphoreSlim.WaitAsync(ct);
         RcloneConfigSemaphoreSlim.Release();

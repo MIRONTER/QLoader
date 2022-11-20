@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -12,7 +11,6 @@ using CliWrap;
 using CliWrap.Buffered;
 using Microsoft.Win32;
 using QSideloader.Models;
-using QSideloader.ViewModels;
 using Serilog;
 using SerilogTimings;
 
@@ -20,10 +18,9 @@ namespace QSideloader.Utilities;
 
 public static class GeneralUtils
 {
-    public static string GetFileChecksum(HashingAlgoTypes hashingAlgoType, string filename)
+    public static string GetMd5FileChecksum(string filename)
     {
-        using var hasher = HashAlgorithm.Create(hashingAlgoType.ToString()) ??
-                           throw new ArgumentException($"{hashingAlgoType.ToString()} is not a valid hash algorithm");
+        using var hasher = MD5.Create();
         using var stream = File.OpenRead(filename);
         var hash = hasher.ComputeHash(stream);
         return BitConverter.ToString(hash).Replace("-", "");
@@ -208,14 +205,4 @@ public static class GeneralUtils
             return null;
         }
     }
-}
-
-[SuppressMessage("ReSharper", "InconsistentNaming")]
-public enum HashingAlgoTypes
-{
-    MD5,
-    SHA1,
-    SHA256,
-    SHA384,
-    SHA512
 }
