@@ -331,8 +331,15 @@ public class DownloaderService
 
         MirrorName = mirrorName;
         Log.Information("Switched to mirror: {MirrorName} (user request)", MirrorName);
-        EnsureMetadataAvailableAsync(true).GetAwaiter().GetResult();
-        return true;
+        try
+        {
+            EnsureMetadataAvailableAsync(true).GetAwaiter().GetResult();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     /// <summary>
