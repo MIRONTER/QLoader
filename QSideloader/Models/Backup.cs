@@ -17,8 +17,7 @@ public class Backup : INotifyPropertyChanged
         if (!Directory.Exists(path)) throw new DirectoryNotFoundException(path);
         if (!File.Exists(System.IO.Path.Combine(path, ".backup")))
         {
-            Log.Error("{BackupPath} is not a valid backup", path);
-            throw new ArgumentException("Backup is not valid");
+            throw new ArgumentException($"Backup {path} is not valid");
         }
         var dirName = System.IO.Path.GetFileName(path);
         var dateString = Regex.Match(dirName, @"\d{8}T\d{6}").Value;
