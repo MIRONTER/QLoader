@@ -46,11 +46,11 @@
 
 
     <controls:CustomBorder BorderBrush="#171717"
-            BorderThickness="0"
-            Height="130"
-            CornerRadius="10"
-            Background="#1F1F1F"
-            IsOpen="{Binding IsDeviceConnected}">
+                           BorderThickness="0"
+                           Height="130"
+                           CornerRadius="10"
+                           Background="#1F1F1F"
+                           IsOpen="{Binding IsDeviceConnected}">
         <Grid ColumnDefinitions="Auto,Auto,Auto,*" RowDefinitions="*,*,*,*">
             <TextBlock Grid.Row="0" Grid.Column="0"
                        Margin="20,12,0,0" Text="{x:Static p:Resources.DeviceInfoColon}" />

@@ -30,13 +30,13 @@ public class Game : INotifyPropertyChanged
         if (note is null) return;
         Note = note;
     }
-    
+
     public Game(string gameName, string releaseName)
     {
         GameName = gameName;
         ReleaseName = releaseName;
     }
-    
+
     public Game(string gameName, string releaseName, string packageName)
     {
         GameName = gameName;
@@ -51,6 +51,7 @@ public class Game : INotifyPropertyChanged
 
     [FieldConverter(ConverterKind.Date, "yyyy-MM-dd HH:mm UTC", "en")]
     public DateTime LastUpdated { get; protected set; }
+
     public int GameSize { get; protected set; }
 
     [FieldHidden]
@@ -76,6 +77,7 @@ public class Game : INotifyPropertyChanged
             OnPropertyChanged();
         }
     }
+
     [FieldHidden] [JsonIgnore] public string? Note { get; set; }
 
     [FieldHidden]

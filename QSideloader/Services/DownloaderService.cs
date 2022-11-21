@@ -85,7 +85,8 @@ public class DownloaderService
     public static int RcloneStatsPort => 48040;
 
     private static bool CanSwitchMirror => RcloneConfigSemaphoreSlim.CurrentCount > 0 &&
-                                           MirrorListSemaphoreSlim.CurrentCount > 0 && GameListSemaphoreSlim.CurrentCount > 0;
+                                           MirrorListSemaphoreSlim.CurrentCount > 0 &&
+                                           GameListSemaphoreSlim.CurrentCount > 0;
 
     private bool IsMirrorListInitialized { get; set; }
     private static HttpClient HttpClient { get; } = new();
@@ -168,6 +169,7 @@ public class DownloaderService
                 tasks.Add(RcloneTransferAsync("Quest Games/.meta/thumbnails/", PathHelper.ThumbnailsPath, "sync",
                     retries: 3));
             }
+
             if (Directory.Exists(PathHelper.TrailersPath))
             {
                 Log.Debug("Updating trailers (async)");
@@ -205,6 +207,7 @@ public class DownloaderService
             Log.Information("Verified VIP access");
             return mirrorList;
         }
+
         Globals.ShowNotification("Error", Resources.CouldntVerifyVip, NotificationType.Error, TimeSpan.Zero);
         throw new DownloaderServiceException("Couldn't verify VIP access");
     }
@@ -409,6 +412,7 @@ public class DownloaderService
                 TimeSpan.Zero);
             throw new NoMirrorsAvailableException(true, ExcludedMirrorList.Count);
         }
+
         IsMirrorListInitialized = true;
     }
 
@@ -448,7 +452,7 @@ public class DownloaderService
     private async Task RcloneTransferInternalAsync(string source, string destination, string operation,
         string additionalArgs = "", int retries = 1, CancellationToken ct = default)
     {
-        using var op = Operation.Begin("Rclone {Operation} \"{Source}\" -> \"{Destination}\"", 
+        using var op = Operation.Begin("Rclone {Operation} \"{Source}\" -> \"{Destination}\"",
             operation, source, destination);
         try
         {
@@ -466,6 +470,7 @@ public class DownloaderService
                     .Set("http_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}")
                     .Set("https_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}"));
             }
+
             await command.ExecuteBufferedAsync(ct);
             op.Complete();
         }
@@ -485,11 +490,13 @@ public class DownloaderService
                         op.SetException(e);
                         throw new NotEnoughSpaceException(destination, e);
                     }
+
                     if (!e.Message.Contains("no such host"))
                     {
                         op.SetException(e);
                         throw new RcloneOperationException($"Rclone {operation} error on mirror {MirrorName}", e);
                     }
+
                     break;
             }
 
@@ -690,9 +697,8 @@ public class DownloaderService
                         $"--progress --drive-acknowledge-abuse --rc --rc-addr :{RcloneStatsPort} --drive-stop-on-download-limit",
                         3, ct);
                     if (!Directory.Exists(dstPath))
-                    {
-                        throw new DirectoryNotFoundException($"Didn't find directory with downloaded files on path \"{dstPath}\"");
-                    }
+                        throw new DirectoryNotFoundException(
+                            $"Didn't find directory with downloaded files on path \"{dstPath}\"");
                     var json = JsonConvert.SerializeObject(game, Formatting.Indented);
                     await File.WriteAllTextAsync(Path.Combine(dstPath, "release.json"), json, ct);
                     Task.Run(() => ReportGameDownload(game.PackageName!), ct).SafeFireAndForget();
@@ -712,7 +718,7 @@ public class DownloaderService
                 SwitchMirror(localMirrorList);
                 Log.Information("Retrying download");
             }
-                
+
 
             Log.Information("Release {ReleaseName} downloaded", game.ReleaseName);
             return dstPath;
@@ -722,7 +728,8 @@ public class DownloaderService
             downloadExceptions.Insert(0, e);
             // List of error messages to show to the user
             var errorMessages = downloadExceptions.Select(x => x.Message).ToList();
-            var message = $"Failed to download release\nThe following errors occured:\n{string.Join("\n", errorMessages)}\n";
+            var message =
+                $"Failed to download release\nThe following errors occured:\n{string.Join("\n", errorMessages)}\n";
             throw new DownloaderServiceException(message, new AggregateException(downloadExceptions));
         }
     }
@@ -736,7 +743,8 @@ public class DownloaderService
         using var op = Operation.Begin("Reporting game {PackageName} download to API", packageName);
         try
         {
-            var dict = new Dictionary<string, string> {{"hwid", GeneralUtils.GetHwid(false)}, {"package_name", packageName}};
+            var dict = new Dictionary<string, string>
+                {{"hwid", GeneralUtils.GetHwid(false)}, {"package_name", packageName}};
             var json = JsonConvert.SerializeObject(dict, Formatting.None);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await ApiHttpClient.PostAsync("reportdownload", content);
@@ -839,7 +847,8 @@ public class DownloaderService
     /// <returns>Path to downloaded archive.</returns>
     /// <exception cref="DownloaderServiceException">Thrown if trailers addon is already being downloaded.</exception>
     public async Task<string> DownloadTrailersAddon(
-        IProgress<(double bytesPerSecond, long downloadedBytes, long totalBytes)>? progress = default, CancellationToken ct = default)
+        IProgress<(double bytesPerSecond, long downloadedBytes, long totalBytes)>? progress = default,
+        CancellationToken ct = default)
     {
         if (TrailersAddonSemaphoreSlim.CurrentCount == 0)
             throw new DownloaderServiceException("Trailers addon is already downloading");
@@ -876,10 +885,11 @@ public class DownloaderService
                 }
             };
             downloader.DownloadProgressChanged +=
-                GeneralUtils.CreateThrottledEventHandler<Downloader.DownloadProgressChangedEventArgs>((_, args) =>
-                {
-                    progress?.Report((args.BytesPerSecondSpeed, args.ReceivedBytesSize, args.TotalBytesToReceive));
-                }, TimeSpan.FromMilliseconds(100));
+                GeneralUtils.CreateThrottledEventHandler<Downloader.DownloadProgressChangedEventArgs>(
+                    (_, args) =>
+                    {
+                        progress?.Report((args.BytesPerSecondSpeed, args.ReceivedBytesSize, args.TotalBytesToReceive));
+                    }, TimeSpan.FromMilliseconds(100));
             await downloader.DownloadFileTaskAsync(trailersAddonUrl, trailersAddonPath);
             ct.ThrowIfCancellationRequested();
 
@@ -951,6 +961,7 @@ public class DownloaderService
             Log.Debug("Release name {ReleaseName} is non-standard, skipping pruning", releaseName);
             return;
         }
+
         var gameName = match.Groups[1].Value;
         Log.Debug("Pruning downloaded versions for {GameName}, policy {PruningPolicy}", gameName,
             pruningPolicy);
@@ -961,7 +972,8 @@ public class DownloaderService
             DownloadsPruningPolicy.Keep2Versions => 2,
             _ => int.MaxValue
         };
-        foreach (var directory in Directory.EnumerateDirectories(_sideloaderSettings.DownloadsLocation).OrderByDescending(Path.GetFileName))
+        foreach (var directory in Directory.EnumerateDirectories(_sideloaderSettings.DownloadsLocation)
+                     .OrderByDescending(Path.GetFileName))
         {
             var directoryName = Path.GetFileName(directory);
             match = regex.Match(directoryName);
@@ -989,6 +1001,7 @@ public class DownloaderService
                 .Set("http_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}")
                 .Set("https_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}"));
         }
+
         var result = await command.ExecuteBufferedAsync(ct);
         return result.StandardOutput;
     }
@@ -1022,6 +1035,7 @@ public class DownloaderService
                         op.SetException(e);
                         throw new RcloneOperationException($"Rclone size error on mirror {MirrorName}", e);
                     }
+
                     break;
             }
 
@@ -1079,7 +1093,8 @@ public class NotEnoughSpaceException : DownloaderServiceException
 public class NoMirrorsAvailableException : DownloaderServiceException
 {
     public NoMirrorsAvailableException(bool session, int excludedCount)
-        : base(session ? $"No mirrors available for this session ({excludedCount} excluded)" 
+        : base(session
+            ? $"No mirrors available for this session ({excludedCount} excluded)"
             : $"No mirrors available for this download ({excludedCount} excluded)")
     {
     }

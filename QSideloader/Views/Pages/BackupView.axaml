@@ -20,8 +20,10 @@
                     Orientation="Horizontal"
                     Spacing="12" Margin="8"
                     HorizontalAlignment="Right">
-            <Button ToolTip.Tip="{x:Static p:Resources.RestoreSelectedBackupsTooltip}" Command="{Binding Restore}" Content="{x:Static p:Resources.RestoreSelectedButton}"/>
-            <Button ToolTip.Tip="{x:Static p:Resources.DeleteSelectedBackupsTooltip}" Content="{x:Static p:Resources.DeleteSelectedButton}">
+            <Button ToolTip.Tip="{x:Static p:Resources.RestoreSelectedBackupsTooltip}" Command="{Binding Restore}"
+                    Content="{x:Static p:Resources.RestoreSelectedButton}" />
+            <Button ToolTip.Tip="{x:Static p:Resources.DeleteSelectedBackupsTooltip}"
+                    Content="{x:Static p:Resources.DeleteSelectedButton}">
                 <Button.Flyout>
                     <Flyout Placement="Bottom">
                         <StackPanel>
@@ -30,7 +32,8 @@
                                 <Interaction.Behaviors>
                                     <EventTriggerBehavior EventName="Click">
                                         <InvokeCommandAction Command="{Binding Delete}" />
-                                        <CallMethodAction TargetObject="{Binding $parent[Button].Flyout}" MethodName="Hide" />
+                                        <CallMethodAction TargetObject="{Binding $parent[Button].Flyout}"
+                                                          MethodName="Hide" />
                                     </EventTriggerBehavior>
                                 </Interaction.Behaviors>
                             </Button>
@@ -38,7 +41,8 @@
                     </Flyout>
                 </Button.Flyout>
             </Button>
-            <Button ToolTip.Tip="{x:Static p:Resources.RefreshBackupsTooltip}" Command="{Binding Refresh}" Content="{x:Static p:Resources.RefreshButton}">
+            <Button ToolTip.Tip="{x:Static p:Resources.RefreshBackupsTooltip}" Command="{Binding Refresh}"
+                    Content="{x:Static p:Resources.RefreshButton}">
                 <Button.CommandParameter>
                     <system:Boolean>True</system:Boolean>
                 </Button.CommandParameter>
@@ -50,7 +54,7 @@
                 <DataGridTemplateColumn Width="52"
                                         IsReadOnly="False"
                                         CanUserResize="False">
-                <DataGridTemplateColumn.CellTemplate>
+                    <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="x:Boolean">
                             <CheckBox IsChecked="{Binding IsSelected}" Margin="16,0,0,0" />
                         </DataTemplate>
@@ -58,7 +62,8 @@
                 </DataGridTemplateColumn>
                 <DataGridTextColumn Header="{x:Static p:Resources.DateHeader}" Binding="{Binding Date}" />
                 <DataGridTextColumn Header="{x:Static p:Resources.BackupNameHeader}" Binding="{Binding Name}" />
-                <DataGridTextColumn Header="{x:Static p:Resources.ContentsHeader}" Binding="{Binding ., Converter={StaticResource BackupContentsStringFromBackup}}" />
+                <DataGridTextColumn Header="{x:Static p:Resources.ContentsHeader}"
+                                    Binding="{Binding ., Converter={StaticResource BackupContentsStringFromBackup}}" />
                 <!-- ReSharper restore Xaml.BindingWithContextNotResolved -->
             </DataGrid.Columns>
             <DataGrid.Resources>
@@ -68,7 +73,7 @@
                 <!-- ReSharper restore Xaml.RedundantResource -->
             </DataGrid.Resources>
         </DataGrid>
-        <views:LoadingProgressRingView Grid.Row="0" Grid.RowSpan="2" 
-                                       IsVisible="{Binding IsBusy}"/>
+        <views:LoadingProgressRingView Grid.Row="0" Grid.RowSpan="2"
+                                       IsVisible="{Binding IsBusy}" />
     </Grid>
 </UserControl>

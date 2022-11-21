@@ -67,7 +67,7 @@ public class App : Application
             File.Delete(humanReadableLogPath);
         if (File.Exists(clefLogPath) && new FileInfo(clefLogPath).Length > 10000000)
             File.Delete(clefLogPath);
-        if (File.Exists(exceptionsLogPath))// && new FileInfo(exceptionsLogPath).Length > 10000000)
+        if (File.Exists(exceptionsLogPath)) // && new FileInfo(exceptionsLogPath).Length > 10000000)
             File.Delete(exceptionsLogPath);
 
         // Delete old log file with invalid format
@@ -104,10 +104,8 @@ public class App : Application
         SetExceptionLoggers();
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && sideloaderSettings.EnableDebugConsole)
-        {
             AllocConsole();
-        }
-        
+
         try
         {
             Console.Title = $"{Program.Name} debug console";
@@ -133,7 +131,7 @@ public class App : Application
                 .CreateLogger();
             LogStartMessage(seqLogger, programName, versionString);
         }
-        
+
         Log.Logger = new LoggerConfiguration().MinimumLevel.Verbose()
             .Enrich.WithThreadId().Enrich.WithThreadName()
             .Enrich.WithExceptionDetails()
@@ -176,7 +174,9 @@ public class App : Application
                 Log.CloseAndFlush();
             }
             else
+            {
                 Log.Error(exception, "UnhandledException");
+            }
         };
     }
 
@@ -187,6 +187,7 @@ public class App : Application
                  || e.Message.Contains("does not contain a definition for 'bytes'")
                  || e.Message.Contains("does not contain a definition for 'speed'"));
     }
+
     private static void LogStartMessage(ILogger logger, string? programName, string versionString)
     {
         logger.Information("----------------------------------------");

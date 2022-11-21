@@ -101,9 +101,11 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             if (selectedGames.Count == 0)
             {
                 Log.Information("No games selected for update");
-                Globals.ShowNotification(Resources.Update, Resources.NoGamesSelected, NotificationType.Information, TimeSpan.FromSeconds(2));
+                Globals.ShowNotification(Resources.Update, Resources.NoGamesSelected, NotificationType.Information,
+                    TimeSpan.FromSeconds(2));
                 return;
             }
+
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
@@ -141,14 +143,16 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
                 .Where(game => game.AvailableVersionCode > game.InstalledVersionCode).ToList();
             var skippedCount = selectedGames.Count;
             selectedGames.RemoveAll(x => ambiguousReleases.Contains(x));
-            var alreadyUpdating = selectedGames.Where(x => runningInstalls.Any(y => y.PackageName == x.PackageName)).ToList();
+            var alreadyUpdating = selectedGames.Where(x => runningInstalls.Any(y => y.PackageName == x.PackageName))
+                .ToList();
             if (alreadyUpdating.Count > 0)
             {
                 selectedGames.RemoveAll(x => alreadyUpdating.Contains(x));
                 Log.Information("Skipped {SkippedCount} games that are already being updated", alreadyUpdating.Count);
             }
+
             skippedCount -= selectedGames.Count;
-            
+
             if (selectedGames.Count == 0)
             {
                 if (skippedCount == 0)
@@ -164,6 +168,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
                         string.Format(Resources.NoGamesToUpdateSkipped, skippedCount),
                         NotificationType.Information, TimeSpan.FromSeconds(2));
                 }
+
                 return;
             }
 
@@ -191,17 +196,20 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             if (selectedGames.Count == 0)
             {
                 Log.Information("No games selected for uninstall");
-                Globals.ShowNotification(Resources.Uninstall, Resources.NoGamesSelected, NotificationType.Information, TimeSpan.FromSeconds(2));
+                Globals.ShowNotification(Resources.Uninstall, Resources.NoGamesSelected, NotificationType.Information,
+                    TimeSpan.FromSeconds(2));
                 return;
             }
+
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
-                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.BackupAndUninstall, Game = game, BackupOptions = new BackupOptions()});
+                Globals.MainWindowViewModel!.AddTask(new TaskOptions
+                    {Type = TaskType.BackupAndUninstall, Game = game, BackupOptions = new BackupOptions()});
             }
         });
     }
-    
+
     private IObservable<Unit> BackupImpl()
     {
         return Observable.Start(() =>
@@ -217,9 +225,11 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             if (selectedGames.Count == 0)
             {
                 Log.Information("No games selected for backup");
-                Globals.ShowNotification(Resources.Backup, Resources.NoGamesSelected, NotificationType.Information, TimeSpan.FromSeconds(2));
+                Globals.ShowNotification(Resources.Backup, Resources.NoGamesSelected, NotificationType.Information,
+                    TimeSpan.FromSeconds(2));
                 return;
             }
+
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
@@ -229,7 +239,8 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
                     BackupObb = ManualBackupAppFiles,
                     BackupData = ManualBackupData
                 };
-                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.Backup, Game = game, BackupOptions = backupOptions});
+                Globals.MainWindowViewModel!.AddTask(new TaskOptions
+                    {Type = TaskType.Backup, Game = game, BackupOptions = backupOptions});
             }
         });
     }
@@ -262,7 +273,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
     private void RefreshInstalledGames(bool rescanGames)
     {
         if ((rescanGames && !_adbService.CheckDeviceConnection()) ||
-            !rescanGames && !_adbService.CheckDeviceConnectionSimple())
+            (!rescanGames && !_adbService.CheckDeviceConnectionSimple()))
         {
             Log.Warning("InstalledGamesViewModel.RefreshInstalledGames: no device connection!");
             OnDeviceOffline();
@@ -278,11 +289,11 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             if (_adbService.Device is null)
                 return;
         }
+
         _installedGamesSourceCache.Edit(innerCache =>
         {
             innerCache.AddOrUpdate(_adbService.Device!.InstalledGames);
             innerCache.Remove(_installedGamesSourceCache.Items.Except(_adbService.Device!.InstalledGames));
         });
-        
     }
 }

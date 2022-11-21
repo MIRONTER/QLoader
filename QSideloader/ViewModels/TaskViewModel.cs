@@ -65,18 +65,23 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         switch (taskOptions.Type)
         {
             case TaskType.DownloadAndInstall:
-                _game = taskOptions.Game ?? throw new ArgumentException($"Game not specified for {nameof(TaskType.DownloadAndInstall)} task");
+                _game = taskOptions.Game ??
+                        throw new ArgumentException(
+                            $"Game not specified for {nameof(TaskType.DownloadAndInstall)} task");
                 TaskName = _game.GameName ?? "N/A";
                 action = RunDownloadAndInstallAsync;
                 break;
             case TaskType.DownloadOnly:
-                _game = taskOptions.Game ?? throw new ArgumentException($"Game not specified for {nameof(TaskType.DownloadOnly)} task");
+                _game = taskOptions.Game ??
+                        throw new ArgumentException($"Game not specified for {nameof(TaskType.DownloadOnly)} task");
                 TaskName = _game.GameName ?? "N/A";
                 action = RunDownloadOnlyAsync;
                 break;
             case TaskType.InstallOnly:
-                _game = taskOptions.Game ?? throw new ArgumentException($"Game not specified for {nameof(TaskType.InstallOnly)} task");
-                _path = taskOptions.Path ?? throw new ArgumentException($"Game path not specified for {nameof(TaskType.InstallOnly)} task");
+                _game = taskOptions.Game ??
+                        throw new ArgumentException($"Game not specified for {nameof(TaskType.InstallOnly)} task");
+                _path = taskOptions.Path ??
+                        throw new ArgumentException($"Game path not specified for {nameof(TaskType.InstallOnly)} task");
                 TaskName = _game.GameName ?? "N/A";
                 action = RunInstallOnlyAsync;
                 break;
@@ -91,24 +96,33 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 action = RunUninstallAsync;
                 break;
             case TaskType.BackupAndUninstall:
-                _game = taskOptions.Game ?? throw new ArgumentException($"Game not specified for {nameof(TaskType.BackupAndUninstall)} task");
-                _backupOptions = taskOptions.BackupOptions ?? throw new ArgumentException($"Backup options not specified for {nameof(TaskType.BackupAndUninstall)} task");
+                _game = taskOptions.Game ??
+                        throw new ArgumentException(
+                            $"Game not specified for {nameof(TaskType.BackupAndUninstall)} task");
+                _backupOptions = taskOptions.BackupOptions ??
+                                 throw new ArgumentException(
+                                     $"Backup options not specified for {nameof(TaskType.BackupAndUninstall)} task");
                 TaskName = _game.GameName ?? "N/A";
                 action = RunBackupAndUninstallAsync;
                 break;
             case TaskType.Backup:
-                _game = taskOptions.Game ?? throw new ArgumentException($"Game not specified for {nameof(TaskType.Backup)} task");
-                _backupOptions = taskOptions.BackupOptions ?? throw new ArgumentException($"Backup options not specified for {nameof(TaskType.Backup)} task");
+                _game = taskOptions.Game ??
+                        throw new ArgumentException($"Game not specified for {nameof(TaskType.Backup)} task");
+                _backupOptions = taskOptions.BackupOptions ??
+                                 throw new ArgumentException(
+                                     $"Backup options not specified for {nameof(TaskType.Backup)} task");
                 TaskName = _game.GameName ?? "N/A";
                 action = RunBackupAsync;
                 break;
             case TaskType.Restore:
-                _backup = taskOptions.Backup ?? throw new ArgumentException($"Backup not specified for {nameof(TaskType.Restore)} task");
+                _backup = taskOptions.Backup ??
+                          throw new ArgumentException($"Backup not specified for {nameof(TaskType.Restore)} task");
                 TaskName = _backup.Name;
                 action = RunRestoreAsync;
                 break;
             case TaskType.PullAndUpload:
-                _app = taskOptions.App ?? throw new ArgumentException($"App not specified for {nameof(TaskType.PullAndUpload)} task");
+                _app = taskOptions.App ??
+                       throw new ArgumentException($"App not specified for {nameof(TaskType.PullAndUpload)} task");
                 TaskName = _app.Name;
                 action = RunPullAndUploadAsync;
                 break;
@@ -118,14 +132,17 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 TaskName = "Trailers addon";
                 break;
             case TaskType.Extract:
-                _app = taskOptions.App ?? throw new ArgumentException($"App not specified for {nameof(TaskType.Extract)} task");
-                _path = taskOptions.Path ?? throw new ArgumentException($"Path not specified for {nameof(TaskType.Extract)}");
+                _app = taskOptions.App ??
+                       throw new ArgumentException($"App not specified for {nameof(TaskType.Extract)} task");
+                _path = taskOptions.Path ??
+                        throw new ArgumentException($"Path not specified for {nameof(TaskType.Extract)}");
                 TaskName = _app.Name;
                 action = RunExtractAsync;
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(taskOptions), "Unknown task type");
         }
+
         RunTask = ReactiveCommand.CreateFromTask(async () =>
         {
             Hint = Resources.ClickToCancel;
@@ -172,18 +189,18 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 return;
             }
         }
-        
+
         speedMBytes = Math.Round((double) stats.Value.downloadSpeedBytes / 1000000, 2);
         var downloadedMBytes = Math.Round(stats.Value.downloadedBytes / 1000000, 2);
         progressPercent = Math.Min(Math.Floor(downloadedMBytes / _game!.GameSize * 97), 100);
 
         DownloadStats = $"{progressPercent}%, {speedMBytes}MB/s";
     }
-    
+
     private void RefreshDownloadStats((double bytesPerSecond, long downloadedBytes, long totalBytes) stats)
     {
         var speedMBytes = Math.Round(stats.bytesPerSecond / 1000000, 2);
-        var progressPercent = Math.Floor((double)stats.downloadedBytes / stats.totalBytes * 100);
+        var progressPercent = Math.Floor((double) stats.downloadedBytes / stats.totalBytes * 100);
 
         DownloadStats = $"{progressPercent}%, {speedMBytes}MB/s";
     }
@@ -191,10 +208,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private async Task RunDownloadAndInstallAsync()
     {
         EnsureDeviceConnected(true);
-        await DoCancellableAsync(async () =>
-        {
-            _path = await DownloadAsync();
-        }, nameof(Resources.DownloadFailed));
+        await DoCancellableAsync(async () => { _path = await DownloadAsync(); }, nameof(Resources.DownloadFailed));
 
         // successStatus isn't needed here
         await DoCancellableAsync(async () =>
@@ -208,10 +222,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task RunDownloadOnlyAsync()
     {
-        await DoCancellableAsync(async () =>
-        {
-            _path = await DownloadAsync();
-        }, nameof(Resources.DownloadFailed), nameof(Resources.DownloadSuccess));
+        await DoCancellableAsync(async () => { _path = await DownloadAsync(); }, nameof(Resources.DownloadFailed),
+            nameof(Resources.DownloadSuccess));
     }
 
     private async Task RunInstallOnlyAsync()
@@ -231,10 +243,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private async Task RunUninstallAsync()
     {
         EnsureDeviceConnected(true);
-        await DoCancellableAsync(async () =>
-        {
-            await UninstallAsync();
-        }, nameof(Resources.UninstallFailed), nameof(Resources.UninstallSuccess));
+        await DoCancellableAsync(async () => { await UninstallAsync(); }, nameof(Resources.UninstallFailed),
+            nameof(Resources.UninstallSuccess));
     }
 
     private async Task RunBackupAndUninstallAsync()
@@ -250,19 +260,15 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private async Task RunBackupAsync()
     {
         EnsureDeviceConnected(true);
-        await DoCancellableAsync(async () =>
-        {
-            await BackupAsync();
-        }, nameof(Resources.BackupFailed), nameof(Resources.BackupSuccess));
+        await DoCancellableAsync(async () => { await BackupAsync(); }, nameof(Resources.BackupFailed),
+            nameof(Resources.BackupSuccess));
     }
 
     private async Task RunRestoreAsync()
     {
         EnsureDeviceConnected(true);
-        await DoCancellableAsync(async () =>
-        {
-            await RestoreAsync(_backup!);
-        }, nameof(Resources.RestoreFailed), nameof(Resources.RestoreSuccess));
+        await DoCancellableAsync(async () => { await RestoreAsync(_backup!); }, nameof(Resources.RestoreFailed),
+            nameof(Resources.RestoreSuccess));
     }
 
     private async Task RunPullAndUploadAsync()
@@ -309,15 +315,16 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     {
         EnsureDeviceConnected();
         Status = Resources.PullingFromDevice;
-        await DoCancellableAsync(async () =>
-        {
-            await Task.Run(() =>
+        await DoCancellableAsync(
+            async () =>
             {
-                _adbDevice!.PullApp(_app!.PackageName, _path!, _cancellationTokenSource.Token);
-            });
-        }, nameof(Resources.ExtractionFailed), nameof(Resources.ExtractSuccess));
+                await Task.Run(() =>
+                {
+                    _adbDevice!.PullApp(_app!.PackageName, _path!, _cancellationTokenSource.Token);
+                });
+            }, nameof(Resources.ExtractionFailed), nameof(Resources.ExtractSuccess));
     }
-    
+
     private async Task DoCancellableAsync(Func<Task> func, string? failureStatus = null, string? successStatus = null)
     {
         try
@@ -460,7 +467,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             AdbService.ReleasePackageOperationLock();
         }
     }
-    
+
     private async Task RestoreAsync(Backup backup)
     {
         Status = Resources.RestoreQueued;
@@ -483,9 +490,12 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         Status = Resources.Downloading;
         if (!File.Exists(_path))
         {
-            var progress = new DelegateProgress<(double bytesPerSecond, long downloadedBytes, long totalBytes)>(RefreshDownloadStats);
+            var progress =
+                new DelegateProgress<(double bytesPerSecond, long downloadedBytes, long totalBytes)>(
+                    RefreshDownloadStats);
             _path = await _downloaderService.DownloadTrailersAddon(progress, _cancellationTokenSource.Token);
         }
+
         Status = Resources.Installing;
         DownloadStats = "";
         await GeneralUtils.InstallTrailersAddonAsync(_path, true);
@@ -501,8 +511,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         Status = Resources.ResourceManager.GetString(statusResourceNameOrString) ?? statusResourceNameOrString;
         DownloadStats = "";
         Log.Information("Task {TaskId} {TaskType} {TaskName} finished. Result: {Status}. Is success: {IsSuccess}",
-            TaskId, _taskType, TaskName, 
-            Resources.ResourceManager.GetString(statusResourceNameOrString, CultureInfo.InvariantCulture) 
+            TaskId, _taskType, TaskName,
+            Resources.ResourceManager.GetString(statusResourceNameOrString, CultureInfo.InvariantCulture)
             ?? statusResourceNameOrString, isSuccess);
         if (isSuccess) return;
         if (e is not null)
@@ -513,7 +523,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         else
         {
             Log.Error("Task {TaskName} failed", TaskName);
-            Globals.ShowNotification(Resources.Error, string.Format(Resources.TaskNameFailed, TaskName), 
+            Globals.ShowNotification(Resources.Error, string.Format(Resources.TaskNameFailed, TaskName),
                 NotificationType.Error, TimeSpan.Zero);
         }
     }
@@ -548,12 +558,13 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         // If we have already ensured that a device is connected, we stick to that device
         else
         {
-            if (_adbDevice is not null && 
+            if (_adbDevice is not null &&
                 ((simpleCheck && _adbDevice.State == DeviceState.Online) ||
-                (!simpleCheck && _adbService.PingDevice(_adbDevice)))
-                ) 
+                 (!simpleCheck && _adbService.PingDevice(_adbDevice)))
+               )
                 return;
         }
+
         OnFinished(nameof(Resources.FailedNoDeviceConnection), false);
         throw new InvalidOperationException("No device connection");
     }

@@ -15,11 +15,10 @@
             Padding="8"
             Margin="0">
         <StackPanel Orientation="Vertical" IsEnabled="{Binding IsDeviceConnected}">
-            <StackPanel Orientation="Horizontal"  Margin="0,0,0,0">
-                <TextBlock FontSize="16" FontWeight="DemiBold" Margin="0,0,0,10" Text="{x:Static p:Resources.QuestSettingsHeader}" />
-                <StackPanel Orientation="Horizontal" Margin="10,0,0,8">
-       
-                </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
+                <TextBlock FontSize="16" FontWeight="DemiBold" Margin="0,0,0,10"
+                           Text="{x:Static p:Resources.QuestSettingsHeader}" />
+                <StackPanel Orientation="Horizontal" Margin="10,0,0,8" />
             </StackPanel>
             <Border BorderBrush="#383838"
                     BorderThickness="0"
@@ -56,14 +55,15 @@
                         <TextBox MinWidth="240" Watermark="{x:Static p:Resources.UsernamePlaceholder}"
                                  Text="{Binding UsernameTextBoxText}"
                                  ToolTip.Tip="{x:Static p:Resources.UsernamePlaceholder}" />
-                        <Button Margin="8,0,0,0" Command="{Binding MountStorage}" Content="{x:Static p:Resources.MountQuestButton}"/>
-                        <Button 
-                            MinWidth = "118" Margin="8,0,0,0" VerticalAlignment="Center" 
+                        <Button Margin="8,0,0,0" Command="{Binding MountStorage}"
+                                Content="{x:Static p:Resources.MountQuestButton}" />
+                        <Button
+                            MinWidth="118" Margin="8,0,0,0" VerticalAlignment="Center"
                             Command="{Binding ApplySettings}" Content="{x:Static p:Resources.ApplySettingsButton}" />
                     </StackPanel>
                 </StackPanel>
             </Border>
-            
+
         </StackPanel>
     </Border>
 </UserControl>

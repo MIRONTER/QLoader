@@ -23,6 +23,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
 {
     private readonly AdbService _adbService;
     private readonly DownloaderService _downloaderService;
+
     // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
     private readonly ReadOnlyObservableCollection<Game> _availableGames;
@@ -56,7 +57,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             .ObserveOn(RxApp.MainThreadScheduler)
             .Bind(out _availableGames)
             .DisposeMany();
-        Refresh = ReactiveCommand.CreateFromObservable<bool,Unit>(RefreshImpl);
+        Refresh = ReactiveCommand.CreateFromObservable<bool, Unit>(RefreshImpl);
         Refresh.ThrownExceptions.Subscribe(ex =>
         {
             Log.Error(ex, "Error refreshing available games");
@@ -129,6 +130,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
                     NotificationType.Information, TimeSpan.FromSeconds(2));
                 return;
             }
+
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
@@ -151,6 +153,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
                     NotificationType.Information, TimeSpan.FromSeconds(2));
                 return;
             }
+
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
@@ -183,7 +186,8 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         }
 
         var toRemove = _availableGamesSourceCache.Items
-            .Where(game => _downloaderService.AvailableGames.All(game2 => game.ReleaseName != game2.ReleaseName)).ToList();
+            .Where(game => _downloaderService.AvailableGames.All(game2 => game.ReleaseName != game2.ReleaseName))
+            .ToList();
         _availableGamesSourceCache.Edit(innerCache =>
         {
             innerCache.AddOrUpdate(_downloaderService.AvailableGames);
@@ -195,8 +199,10 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         var games = _availableGamesSourceCache.Items.ToList();
         if (_adbService.Device is null)
+        {
             foreach (var game in games)
                 game.IsInstalled = false;
+        }
         else
         {
             while (_adbService.Device.IsRefreshingInstalledGames)

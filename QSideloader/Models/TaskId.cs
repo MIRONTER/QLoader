@@ -5,6 +5,7 @@ namespace QSideloader.Models;
 public class TaskId
 {
     private readonly int _value;
+
     public TaskId()
     {
         var random = new Random();
@@ -18,10 +19,7 @@ public class TaskId
 
     public override bool Equals(object? obj)
     {
-        if (obj is TaskId id)
-        {
-            return _value == id._value;
-        }
+        if (obj is TaskId id) return _value == id._value;
         return false;
     }
 

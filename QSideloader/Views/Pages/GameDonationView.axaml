@@ -44,13 +44,13 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Binding="{Binding Name}" Header="{x:Static p:Resources.NameHeader}" 
+                <DataGridTextColumn Binding="{Binding Name}" Header="{x:Static p:Resources.NameHeader}"
                                     Width="auto" IsReadOnly="True" />
-                <DataGridTextColumn Binding="{Binding VersionName}" Header="{x:Static p:Resources.VersionNameHeader}" 
+                <DataGridTextColumn Binding="{Binding VersionName}" Header="{x:Static p:Resources.VersionNameHeader}"
                                     Width="auto" MaxWidth="300" IsReadOnly="True" />
-                <DataGridTextColumn Binding="{Binding VersionCode}" Header="{x:Static p:Resources.VersionCodeHeader}" 
+                <DataGridTextColumn Binding="{Binding VersionCode}" Header="{x:Static p:Resources.VersionCodeHeader}"
                                     Width="auto" IsReadOnly="True" />
-                <DataGridTextColumn Binding="{Binding DonationStatus}" Header="{x:Static p:Resources.StatusHeader}" 
+                <DataGridTextColumn Binding="{Binding DonationStatus}" Header="{x:Static p:Resources.StatusHeader}"
                                     Width="auto" IsReadOnly="True" />
             </DataGrid.Columns>
             <DataGrid.Resources>
@@ -60,7 +60,7 @@
                 <!-- ReSharper restore Xaml.RedundantResource -->
             </DataGrid.Resources>
         </DataGrid>
-        <views:LoadingProgressRingView Grid.Row="0" Grid.RowSpan="2" 
-                                       IsVisible="{Binding IsBusy}"/>
+        <views:LoadingProgressRingView Grid.Row="0" Grid.RowSpan="2"
+                                       IsVisible="{Binding IsBusy}" />
     </Grid>
 </UserControl>

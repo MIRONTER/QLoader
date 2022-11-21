@@ -56,7 +56,7 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
         DisplayName = game.GameName ?? "GameName";
         DownloadAndInstall = ReactiveCommand.CreateFromObservable(DownloadAndInstallImpl);
         DownloadOnly = ReactiveCommand.CreateFromObservable(DownloadOnlyImpl);
-        
+
         // Initialize LibVLC only if trailers are installed
         if (Directory.Exists(PathHelper.TrailersPath))
             try
@@ -71,7 +71,7 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
                 Globals.ShowErrorNotification(e, Resources.FailedToInitVideoPlayer, NotificationType.Warning,
                     TimeSpan.FromSeconds(5));
             }
-        
+
         var jpgPath = Path.Combine(PathHelper.ThumbnailsPath, $"{Game.PackageName}.jpg");
         var pngPath = Path.Combine(PathHelper.ThumbnailsPath, $"{Game.PackageName}.png");
         if (File.Exists(jpgPath))
@@ -95,6 +95,7 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
                     Log.Warning("No thumbnail found for {PackageName}", Game.PackageName);
                 }
             }
+
         Task.Run(TryLoadStoreInfo);
 
         this.WhenActivated(disposables =>
@@ -142,7 +143,10 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
 
     private IObservable<Unit> DownloadOnlyImpl()
     {
-        return Observable.Start(() => { Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadOnly, Game = Game}); });
+        return Observable.Start(() =>
+        {
+            Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadOnly, Game = Game});
+        });
     }
 
     private void OnDeviceStateChanged(DeviceState state)

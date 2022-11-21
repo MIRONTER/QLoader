@@ -159,13 +159,8 @@ public class AdbService
 
                 if ((Device is null || Device?.Serial != foundDevice?.Serial) && foundDevice is not null &&
                     connectionStatus)
-                {
                     OnDeviceOnline(foundDevice);
-                }
-                else if (Device is not null && !connectionStatus)
-                {
-                    OnDeviceOffline(Device);
-                }
+                else if (Device is not null && !connectionStatus) OnDeviceOffline(Device);
                 if (DeviceList.Count == 0)
                 {
                     if (_unauthorizedDeviceList.Count > 0)
@@ -206,6 +201,7 @@ public class AdbService
             Task.Run(() => CheckDeviceConnection());
             return false;
         }
+
         Task.Run(() => WakeDevice(Device));
         return true;
     }
@@ -240,6 +236,7 @@ public class AdbService
                 device.Initialize();
                 _deviceList.Add(device);
             }
+
             _deviceList.RemoveAll(d => removedDevices.Any(x => x.Serial == d.Serial));
             _deviceListChangeSubject.OnNext(deviceList);
         }
@@ -433,10 +430,7 @@ public class AdbService
         switch (e.Device.State)
         {
             case DeviceState.Online:
-                if (DeviceList.All(x => x.Serial != e.Device.Serial))
-                {
-                    RefreshDeviceList();
-                }
+                if (DeviceList.All(x => x.Serial != e.Device.Serial)) RefreshDeviceList();
 
                 CheckDeviceConnection();
                 break;
@@ -491,7 +485,7 @@ public class AdbService
         if (!FirstDeviceSearch)
             NotifyDeviceStateChange(DeviceState.Online);
     }
-    
+
     /// <summary>
     ///     Method that is called when adb is not authorized for debugging of the device.
     /// </summary>
@@ -503,7 +497,7 @@ public class AdbService
         device.State = DeviceState.Unauthorized;
         NotifyDeviceStateChange(DeviceState.Unauthorized);
     }
-    
+
     /// <summary>
     ///     Sends new device state to <see cref="WhenDeviceStateChanged"/> subscribers.
     /// </summary>
@@ -570,7 +564,7 @@ public class AdbService
 
                 continue;
             }
-            
+
             // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
             switch (device.State)
             {
@@ -694,6 +688,7 @@ public class AdbService
         {
             _sideloaderSettings.LastWirelessAdbHost = "";
         }
+
         if (!silent)
             Log.Warning("Couldn't connect to wireless device");
     }
@@ -724,7 +719,7 @@ public class AdbService
     {
         PackageOperationSemaphoreSlim.Release();
     }
-    
+
     /// <summary>
     /// Gets output of <c>adb devices</c> command.
     /// </summary>
@@ -761,7 +756,6 @@ public class AdbService
             foreach (var backup in toRemove)
                 _backupList.Remove(backup);
             foreach (var backup in toAdd)
-            {
                 try
                 {
                     _backupList.Add(new Backup(backup.path));
@@ -770,7 +764,7 @@ public class AdbService
                 {
                     Log.Warning(e, "Failed to add backup {Backup}", backup);
                 }
-            }
+
             if (toRemove.Count > 0 || toAdd.Count > 0)
                 _backupListChangeSubject.OnNext(Unit.Default);
         }
@@ -851,7 +845,6 @@ public class AdbService
             HashedId = GetHashedId(TrueSerial ?? Serial);
 
             PackageManager = new PackageManager(_adb.AdbClient, this, true);
-
         }
 
         private PackageManager PackageManager { get; }
@@ -863,16 +856,17 @@ public class AdbService
         public List<InstalledApp> InstalledApps { get; private set; } = new();
         public bool IsRefreshingInstalledGames => _packagesSemaphoreSlim.CurrentCount == 0;
         public string FriendlyName { get; }
-        
+
         /// <summary>
         /// Stores hashed id derived from serial.
         /// </summary>
         private string HashedId { get; }
-        
+
         /// <summary>
         /// Stores true device serial even if it's a wireless connection.
         /// </summary>
         public string? TrueSerial { get; }
+
         public bool IsWireless { get; }
 
         /// <summary>
@@ -883,7 +877,7 @@ public class AdbService
         {
             return IsWireless ? $"{HashedId} (wireless)" : HashedId;
         }
-        
+
         public void Initialize()
         {
             Task.Run(OnPackageListChanged);
@@ -916,6 +910,7 @@ public class AdbService
                     op.Cancel();
                     return;
                 }
+
                 Log.Debug("Refreshing list of installed packages on {Device}", this);
                 PackageManager.RefreshPackages();
                 for (var i = 0; i < InstalledPackages.Count; i++)
@@ -927,8 +922,11 @@ public class AdbService
                         InstalledPackages[i] = package;
                     }
                     else
+                    {
                         InstalledPackages.Remove(package);
+                    }
                 }
+
                 foreach (var package in PackageManager.Packages.Keys.Where(package =>
                              InstalledPackages.All(x => x.packageName != package)).ToList())
                     InstalledPackages.Add((package, PackageManager.GetVersionInfo(package)));
@@ -1010,6 +1008,7 @@ public class AdbService
                     op.Cancel();
                     return;
                 }
+
                 Log.Information("Refreshing list of installed games on {Device}", this);
                 _downloaderService.EnsureMetadataAvailableAsync().GetAwaiter().GetResult();
                 if (InstalledPackages.Count == 0) RefreshInstalledPackages();
@@ -1054,6 +1053,7 @@ public class AdbService
             {
                 metadataAvailable = false;
             }
+
             Log.Debug("Refreshing list of installed apps on {Device}", this);
             var installedGames = InstalledGames.ToList();
             IEnumerable<InstalledApp> query;
@@ -1089,7 +1089,7 @@ public class AdbService
                         donationStatus);
             InstalledApps = query.ToList();
             var tupleList = InstalledApps.Select(g => (g.Name, g.PackageName)).ToList();
-            Log.Debug("Found {Count} installed apps on {Device}: {InstalledApps}", InstalledApps.Count, 
+            Log.Debug("Found {Count} installed apps on {Device}: {InstalledApps}", InstalledApps.Count,
                 this, tupleList);
             op.Complete();
         }
@@ -1115,12 +1115,13 @@ public class AdbService
         /// <param name="remotePath">Remote path to push the directory to.</param>
         /// <param name="overwrite">Pushed directory should fully overwrite existing one (if exists).</param>
         /// <param name="ct">Cancellation token.</param>
-        private void PushDirectory(string localPath, string remotePath, bool overwrite = false, CancellationToken ct = default)
+        private void PushDirectory(string localPath, string remotePath, bool overwrite = false,
+            CancellationToken ct = default)
         {
             if (!remotePath.EndsWith("/"))
                 remotePath += "/";
             var localDir = new DirectoryInfo(localPath).Name;
-            Log.Debug("Pushing directory: \"{LocalPath}\" -> \"{RemotePath}\", overwrite: {Overwrite}", 
+            Log.Debug("Pushing directory: \"{LocalPath}\" -> \"{RemotePath}\", overwrite: {Overwrite}",
                 localPath, remotePath + localPath.Replace("\\", "/"), overwrite);
             var dirList = Directory.GetDirectories(localPath, "*", SearchOption.AllDirectories).ToList();
             var relativeDirList = dirList.Select(dirPath => Path.GetRelativePath(localPath, dirPath));
@@ -1165,7 +1166,8 @@ public class AdbService
         /// <param name="localPath">Local path to pull to.</param>
         /// <param name="excludeDirs">Names of directories to exclude from pulling.</param>
         /// <param name="ct">Cancellation token.</param>
-        private void PullDirectory(string remotePath, string localPath, IEnumerable<string>? excludeDirs = default, CancellationToken ct = default)
+        private void PullDirectory(string remotePath, string localPath, IEnumerable<string>? excludeDirs = default,
+            CancellationToken ct = default)
         {
             if (!remotePath.EndsWith("/"))
                 remotePath += "/";
@@ -1206,7 +1208,7 @@ public class AdbService
                 return false;
             }
         }
-        
+
         /// <summary>
         ///     Checks if specified file exists on the device.
         /// </summary>
@@ -1296,7 +1298,8 @@ public class AdbService
                                 Log.Information("Found OBB directory for {PackageName}, pushing to device",
                                     game.PackageName);
                                 observer.OnNext(Resources.PushingObbFiles);
-                                PushDirectory(Path.Combine(gamePath, game.PackageName), "/sdcard/Android/obb/", true, ct);
+                                PushDirectory(Path.Combine(gamePath, game.PackageName), "/sdcard/Android/obb/", true,
+                                    ct);
                             }
                         }
                     }
@@ -1316,12 +1319,14 @@ public class AdbService
                         observer.OnNext(Resources.CleaningUp);
                         CleanupRemnants(game.PackageName);
                     }
+
                     if (e is OperationCanceledException)
                     {
                         observer.OnError(e);
                         op.Cancel();
                         return Disposable.Empty;
                     }
+
                     op.SetException(e);
                     op.Abandon();
                     observer.OnError(new AdbServiceException("Failed to sideload game", e));
@@ -1344,7 +1349,8 @@ public class AdbService
                         observer.OnNext(Resources.IncompatibleUpdateReinstalling);
                         Log.Information("Incompatible update, reinstalling. Reason: {Message}", e.Message);
                         var apkInfo = GeneralUtils.GetApkInfo(apkPath);
-                        var backup = CreateBackup(apkInfo.PackageName, new BackupOptions {NameAppend = "reinstall"}, ct);
+                        var backup = CreateBackup(apkInfo.PackageName, new BackupOptions {NameAppend = "reinstall"},
+                            ct);
                         UninstallPackageInternal(apkInfo.PackageName);
                         InstallPackage(apkPath, false, true, ct);
                         if (backup is not null)
@@ -1354,7 +1360,7 @@ public class AdbService
                     {
                         throw;
                     }
-                } 
+                }
             }
         }
 
@@ -1451,7 +1457,7 @@ public class AdbService
                             case "shell":
                             {
                                 args = args.Select(x => x.Contains(' ') ? $"\"{x}\"" : x).ToList();
-                                if (args.Count >=2 && args[0] == "pm" && args[1] == "uninstall")
+                                if (args.Count >= 2 && args[0] == "pm" && args[1] == "uninstall")
                                 {
                                     if (args.Count != 3)
                                         throw new InvalidOperationException(
@@ -1525,10 +1531,11 @@ public class AdbService
         /// <param name="grantRuntimePermissions">Grant all runtime permissions.</param>
         /// <param name="ct">Cancellation token.</param>
         /// <remarks>Legacy install method is used to avoid rare hang issues.</remarks>
-        private void InstallPackage(string apkPath, bool reinstall, bool grantRuntimePermissions, CancellationToken ct = default)
+        private void InstallPackage(string apkPath, bool reinstall, bool grantRuntimePermissions,
+            CancellationToken ct = default)
         {
             Log.Information("Installing APK: {ApkFileName}", Path.GetFileName(apkPath));
-            
+
             // List<string> args = new ();
             // if (reinstall)
             //     args.Add("-r");
@@ -1536,12 +1543,12 @@ public class AdbService
             //     args.Add("-g");
             // using Stream stream = File.OpenRead(apkPath);
             // Adb.AdbClient.Install(this, stream, args.ToArray());
-            
+
             // Using legacy PackageManager.InstallPackage method as AdbClient.Install hangs occasionally
             PackageManager.InstallPackage(apkPath, reinstall, grantRuntimePermissions, ct);
             Log.Information("Package {ApkFileName} installed", Path.GetFileName(apkPath));
         }
-        
+
         /// <summary>
         ///     Uninstalls the package with the given package name and cleans up remnants.
         /// </summary>
@@ -1585,6 +1592,7 @@ public class AdbService
                         Log.Warning("Package {PackageName} is not installed", packageName);
                     throw new PackageNotFoundException(packageName!);
                 }
+
                 if (e.Message.Contains("DELETE_FAILED_DEVICE_POLICY_MANAGER"))
                 {
                     Log.Information("Package {PackageName} is protected by device policy, trying to force uninstall",
@@ -1724,7 +1732,7 @@ public class AdbService
                 throw;
             }
         }
-        
+
         /// <summary>
         ///     Restores given backup.
         /// </summary>
@@ -1737,11 +1745,12 @@ public class AdbService
             var sharedDataBackupPath = Path.Combine(backup.Path, "data");
             var privateDataBackupPath = Path.Combine(backup.Path, "data_private");
             var obbBackupPath = Path.Combine(backup.Path, "obb");
-            
+
             var restoredApk = false;
             if (backup.ContainsApk)
             {
-                var apkPath = Directory.EnumerateFiles(backup.Path, "*.apk", SearchOption.TopDirectoryOnly).FirstOrDefault();
+                var apkPath = Directory.EnumerateFiles(backup.Path, "*.apk", SearchOption.TopDirectoryOnly)
+                    .FirstOrDefault();
                 Log.Debug("Restoring APK {ApkName}", Path.GetFileName(apkPath));
                 InstallPackage(apkPath!, true, true);
                 restoredApk = true;
@@ -1756,7 +1765,8 @@ public class AdbService
             if (backup.ContainsSharedData)
             {
                 Log.Debug("Restoring shared data");
-                PushDirectory(Directory.EnumerateDirectories(sharedDataBackupPath).First(), "/sdcard/Android/data/", true);
+                PushDirectory(Directory.EnumerateDirectories(sharedDataBackupPath).First(), "/sdcard/Android/data/",
+                    true);
             }
 
             if (backup.ContainsPrivateData)

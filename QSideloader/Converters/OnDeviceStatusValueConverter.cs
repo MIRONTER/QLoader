@@ -27,6 +27,7 @@ public class OnDeviceStatusValueConverter : IValueConverter
             if (status == "")
                 return false;
         }
+
         throw new NotSupportedException();
     }
 }

@@ -8,7 +8,7 @@ namespace QSideloader;
 internal static class Program
 {
     private static bool _useGpuRendering;
-    
+
     public static string Name => "QLoader";
 
     // Initialization code. Don't use any Avalonia, third-party APIs or any

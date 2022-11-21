@@ -96,6 +96,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                     Log.Error(e, "Failed to load current device settings");
                     Globals.ShowErrorNotification(e, Resources.FailedToLoadDeviceSettings);
                 }
+
                 break;
             case DeviceState.Offline:
                 IsDeviceConnected = false;
@@ -279,7 +280,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                     Log.Information("Set texture resolution Width:{Width} Height:{Height}", width, height);
                 }
             }
-            
+
             if (UsernameTextBoxText is not null && UsernameTextBoxText != CurrentUsername)
             {
                 if (string.IsNullOrEmpty(UsernameTextBoxText) && CurrentUsername is not null)
@@ -293,6 +294,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                     Log.Information("Set username");
                 }
             }
+
             Log.Information("Applied device settings");
             Globals.ShowNotification(Resources.Info, Resources.AppliedDeviceSettings, NotificationType.Success,
                 TimeSpan.FromSeconds(2));

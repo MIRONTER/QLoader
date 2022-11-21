@@ -22,24 +22,26 @@
                     Orientation="Horizontal"
                     Spacing="12" Margin="8"
                     HorizontalAlignment="Right">
-            <Button Command="{Binding UpdateAll}" ToolTip.Tip="{x:Static p:Resources.UpdateAllGamesTooltip}" 
+            <Button Command="{Binding UpdateAll}" ToolTip.Tip="{x:Static p:Resources.UpdateAllGamesTooltip}"
                     Content="{x:Static p:Resources.UpdateAllButton}" />
-            <Button Command="{Binding Update}" ToolTip.Tip="{x:Static p:Resources.UpdateSelectedGamesTooltip}" 
+            <Button Command="{Binding Update}" ToolTip.Tip="{x:Static p:Resources.UpdateSelectedGamesTooltip}"
                     Content="{x:Static p:Resources.UpdateSelectedButton}" />
-            <Button ToolTip.Tip="{x:Static p:Resources.BackupSelectedGamesTooltip}" Content="{x:Static p:Resources.BackupSelectedButton}">
+            <Button ToolTip.Tip="{x:Static p:Resources.BackupSelectedGamesTooltip}"
+                    Content="{x:Static p:Resources.BackupSelectedButton}">
                 <Button.Flyout>
                     <Flyout Placement="Bottom">
                         <StackPanel>
                             <TextBlock Text="{x:Static p:Resources.BackupPartsSelectionPrompt}" />
-                            <CheckBox IsChecked="{Binding ManualBackupAppFiles}" 
+                            <CheckBox IsChecked="{Binding ManualBackupAppFiles}"
                                       Content="{x:Static p:Resources.BackupPartsSelectionApplicationFiles}" />
-                            <CheckBox IsChecked="{Binding ManualBackupData}" 
+                            <CheckBox IsChecked="{Binding ManualBackupData}"
                                       Content="{x:Static p:Resources.BackupPartsSelectionApplicationData}" />
                             <Button Margin="0,6,0,0" Content="{x:Static p:Resources.BackupConfirmationButton}">
                                 <i:Interaction.Behaviors>
                                     <ia:EventTriggerBehavior EventName="Click">
                                         <ia:InvokeCommandAction Command="{Binding Backup}" />
-                                        <ia:CallMethodAction TargetObject="{Binding $parent[Button].Flyout}" MethodName="Hide" />
+                                        <ia:CallMethodAction TargetObject="{Binding $parent[Button].Flyout}"
+                                                             MethodName="Hide" />
                                     </ia:EventTriggerBehavior>
                                 </i:Interaction.Behaviors>
                             </Button>
@@ -47,7 +49,8 @@
                     </Flyout>
                 </Button.Flyout>
             </Button>
-            <Button ToolTip.Tip="{x:Static p:Resources.UninstallSelectedGamesTooltip}" Content="{x:Static p:Resources.UninstallSelectedButton}">
+            <Button ToolTip.Tip="{x:Static p:Resources.UninstallSelectedGamesTooltip}"
+                    Content="{x:Static p:Resources.UninstallSelectedButton}">
                 <Button.Flyout>
                     <Flyout Placement="Bottom">
                         <StackPanel>
@@ -56,7 +59,8 @@
                                 <i:Interaction.Behaviors>
                                     <ia:EventTriggerBehavior EventName="Click">
                                         <ia:InvokeCommandAction Command="{Binding Uninstall}" />
-                                        <ia:CallMethodAction TargetObject="{Binding $parent[Button].Flyout}" MethodName="Hide" />
+                                        <ia:CallMethodAction TargetObject="{Binding $parent[Button].Flyout}"
+                                                             MethodName="Hide" />
                                     </ia:EventTriggerBehavior>
                                 </i:Interaction.Behaviors>
                             </Button>
@@ -64,8 +68,8 @@
                     </Flyout>
                 </Button.Flyout>
             </Button>
-            <Button Command="{Binding Refresh}" IsEnabled="{Binding !IsBusy}" 
-                    ToolTip.Tip="{x:Static p:Resources.RefreshInstalledGamesTooltip}" 
+            <Button Command="{Binding Refresh}" IsEnabled="{Binding !IsBusy}"
+                    ToolTip.Tip="{x:Static p:Resources.RefreshInstalledGamesTooltip}"
                     Content="{x:Static p:Resources.RefreshButton}">
                 <Button.CommandParameter>
                     <system:Boolean>True</system:Boolean>
@@ -88,9 +92,9 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Binding="{Binding GameName}" Header="{x:Static p:Resources.GameNameHeader}" 
+                <DataGridTextColumn Binding="{Binding GameName}" Header="{x:Static p:Resources.GameNameHeader}"
                                     Width="auto" IsReadOnly="True" />
-                <DataGridTextColumn Header="{x:Static p:Resources.InstalledVersionHeader}" 
+                <DataGridTextColumn Header="{x:Static p:Resources.InstalledVersionHeader}"
                                     MaxWidth="300" Width="auto" IsReadOnly="True">
                     <DataGridTextColumn.Binding>
                         <MultiBinding StringFormat="{}{0} ({1})">
@@ -99,12 +103,15 @@
                         </MultiBinding>
                     </DataGridTextColumn.Binding>
                 </DataGridTextColumn>
-                <DataGridTextColumn Binding="{Binding ReleaseName}" Header="{x:Static p:Resources.LatestReleaseNameHeader}"
+                <DataGridTextColumn Binding="{Binding ReleaseName}"
+                                    Header="{x:Static p:Resources.LatestReleaseNameHeader}"
                                     Width="auto" IsReadOnly="True" />
                 <DataGridTextColumn Binding="{Binding GameSize}" Header="{x:Static p:Resources.GameSizeHeader}"
                                     Width="auto" IsReadOnly="True" />
-                <DataGridTextColumn Binding="{Binding ., Converter={StaticResource UpdateStatusStringFromInstalledGame}}" Header="{x:Static p:Resources.UpdateStatusHeader}"
-                                    Width="auto" IsReadOnly="True" SortMemberPath="IsUpdateAvailable"/>
+                <DataGridTextColumn
+                    Binding="{Binding ., Converter={StaticResource UpdateStatusStringFromInstalledGame}}"
+                    Header="{x:Static p:Resources.UpdateStatusHeader}"
+                    Width="auto" IsReadOnly="True" SortMemberPath="IsUpdateAvailable" />
             </DataGrid.Columns>
             <DataGrid.Resources>
                 <!-- ReSharper disable Xaml.RedundantResource -->
@@ -113,7 +120,7 @@
                 <!-- ReSharper restore Xaml.RedundantResource -->
             </DataGrid.Resources>
         </DataGrid>
-        <views:LoadingProgressRingView Grid.Row="0" Grid.RowSpan="2" 
-                                       IsVisible="{Binding IsBusy}"/>
+        <views:LoadingProgressRingView Grid.Row="0" Grid.RowSpan="2"
+                                       IsVisible="{Binding IsBusy}" />
     </Grid>
 </UserControl>

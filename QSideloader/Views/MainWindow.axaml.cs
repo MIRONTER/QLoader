@@ -57,7 +57,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         AvaloniaXamlLoader.Load(this);
     }
-    
+
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private void NavigationView_OnSelectionChanged(object? sender, NavigationViewSelectionChangedEventArgs e)
     {
@@ -96,7 +96,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
         switch (selectedTask.IsFinished)
         {
             case true when viewModel.TaskList.Contains(selectedTask):
-                Log.Debug("Dismissed finished task {TaskId} {TaskType} {TaskName}", selectedTask.TaskId, 
+                Log.Debug("Dismissed finished task {TaskId} {TaskType} {TaskName}", selectedTask.TaskId,
                     selectedTask.TaskType, selectedTask.TaskName);
                 viewModel.TaskList.Remove(selectedTask);
                 break;
@@ -111,7 +111,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         // Couldn't set this in styles, so this will have to do
         this.Get<NavigationView>("NavigationView").SettingsItem.Content = Properties.Resources.Settings;
-        
+
         if (!Design.IsDesignMode)
             InitializeUpdater();
     }
@@ -124,17 +124,21 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
             Log.Warning("Running on Windows, skipping updater initialization");
             return;
         }
+
         var appcastUrl = RuntimeInformation.ProcessArchitecture switch
         {
-            Architecture.X64 or Architecture.X86 => "https://raw.githubusercontent.com/skrimix/QLoaderFiles/master/appcast.xml",
+            Architecture.X64 or Architecture.X86 =>
+                "https://raw.githubusercontent.com/skrimix/QLoaderFiles/master/appcast.xml",
             Architecture.Arm64 => "https://raw.githubusercontent.com/skrimix/QLoaderFiles/master/appcast_arm64.xml",
             _ => ""
         };
         if (string.IsNullOrEmpty(appcastUrl))
         {
-            Log.Warning("Architecture {Architecture} is not supported by updater", RuntimeInformation.ProcessArchitecture);
+            Log.Warning("Architecture {Architecture} is not supported by updater",
+                RuntimeInformation.ProcessArchitecture);
             return;
         }
+
         Log.Information("Initializing updater");
         try
         {
@@ -224,6 +228,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
                 Log.Warning("e.Data.GetFileNames() returned null");
                 return;
             }
+
             Log.Debug("Dropped folders/files: {Files}", fileNames);
             var viewModel = ViewModel!;
             await Task.Run(() => viewModel.HandleDroppedFiles(fileNames));

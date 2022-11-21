@@ -13,7 +13,6 @@ public class DownloadPruningPolicyValueConverter : IValueConverter
             return null;
 
         if (value is DownloadsPruningPolicy policy)
-        {
             return policy switch
             {
                 DownloadsPruningPolicy.KeepAll => "Keep all versions",
@@ -22,7 +21,6 @@ public class DownloadPruningPolicyValueConverter : IValueConverter
                 DownloadsPruningPolicy.Keep2Versions => "Keep 2 versions",
                 _ => throw new ArgumentOutOfRangeException(nameof(value))
             };
-        }
 
         throw new NotSupportedException();
     }
@@ -33,7 +31,6 @@ public class DownloadPruningPolicyValueConverter : IValueConverter
             return null;
 
         if (value is string str)
-        {
             return str switch
             {
                 "Keep all versions" => DownloadsPruningPolicy.KeepAll,
@@ -42,7 +39,6 @@ public class DownloadPruningPolicyValueConverter : IValueConverter
                 "Keep 2 versions" => DownloadsPruningPolicy.Keep2Versions,
                 _ => throw new ArgumentOutOfRangeException(nameof(value))
             };
-        }
 
         throw new NotSupportedException();
     }

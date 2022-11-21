@@ -5,11 +5,12 @@
              xmlns:p="clr-namespace:QSideloader.Properties"
              mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="300"
              x:Class="QSideloader.Views.LoadingProgressRingView"
-             Background="#40000000" >
+             Background="#40000000">
     <Border Height="130" Width="130" HorizontalAlignment="Center" VerticalAlignment="Center"
-            BorderBrush="#454545" BorderThickness="2" CornerRadius="6" Background="#1F1F1F" >
+            BorderBrush="#454545" BorderThickness="2" CornerRadius="6" Background="#1F1F1F">
         <StackPanel>
-            <ProgressRing x:Name="ProgressRing" Margin="0,24,0,0" IsEnabled="{Binding $parent[UserControl].IsVisible}" IsIndeterminate="True" />
+            <ProgressRing x:Name="ProgressRing" Margin="0,24,0,0" IsEnabled="{Binding $parent[UserControl].IsVisible}"
+                          IsIndeterminate="True" />
             <TextBlock Margin="0,24,0,0" HorizontalAlignment="Center" Text="{x:Static p:Resources.LoadingEllipsis}" />
         </StackPanel>
     </Border>

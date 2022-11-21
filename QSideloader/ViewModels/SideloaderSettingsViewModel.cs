@@ -36,9 +36,9 @@ public class SideloaderSettingsViewModel : ViewModelBase
 {
     private readonly string _defaultDownloadsLocation = PathHelper.DefaultDownloadsPath;
     private readonly string _defaultBackupsLocation = PathHelper.DefaultBackupsPath;
-    private static readonly SemaphoreSlim MirrorSelectionRefreshSemaphoreSlim = new (1, 1);
+    private static readonly SemaphoreSlim MirrorSelectionRefreshSemaphoreSlim = new(1, 1);
     private readonly ObservableAsPropertyHelper<bool> _isSwitchingMirror;
-    
+
     public SideloaderSettingsViewModel()
     {
         SaveSettings = ReactiveCommand.CreateFromObservable<bool, Unit>(SaveSettingsImpl);
@@ -100,7 +100,12 @@ public class SideloaderSettingsViewModel : ViewModelBase
     }
 
     [JsonProperty] private byte ConfigVersion { get; } = 1;
-    [NeedsRelaunch] [Reactive] [JsonProperty] public bool CheckUpdatesAutomatically { get; private set; }
+
+    [NeedsRelaunch]
+    [Reactive]
+    [JsonProperty]
+    public bool CheckUpdatesAutomatically { get; private set; }
+
     public string[] ConnectionTypes { get; } = {"USB", "Wireless"};
     [Reactive] [JsonProperty] public string? PreferredConnectionType { get; private set; }
     [Reactive] public string DownloadsLocationTextBoxText { get; private set; } = "";
@@ -110,9 +115,15 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [Reactive] public string DownloaderBandwidthLimitTextBoxText { get; private set; } = "";
     [JsonProperty] public string DownloaderBandwidthLimit { get; private set; } = "";
     [Reactive] [JsonProperty] public DownloadsPruningPolicy DownloadsPruningPolicy { get; set; }
+
     public List<DownloadsPruningPolicy> AllDownloadsPruningPolicies { get; } =
         Enum.GetValues(typeof(DownloadsPruningPolicy)).Cast<DownloadsPruningPolicy>().ToList();
-    [NeedsRelaunch] [Reactive] [JsonProperty] public bool EnableDebugConsole { get; private set; }
+
+    [NeedsRelaunch]
+    [Reactive]
+    [JsonProperty]
+    public bool EnableDebugConsole { get; private set; }
+
     [Reactive] [JsonProperty] public string LastWirelessAdbHost { get; set; } = "";
     public string VersionString { get; } = Assembly.GetExecutingAssembly()
         .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "";
@@ -130,9 +141,19 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [JsonProperty] public ObservableCollection<(string packageName, int versionCode)> DonatedPackages { get; } = new();
     [JsonProperty] public ObservableCollection<string> IgnoredDonationPackages { get; private set; } = new();
     [Reactive] public bool IsTrailersAddonInstalled { get; set; }
-    [NeedsRelaunch] [Reactive] [JsonProperty] public bool EnableRemoteLogging { get; private set; }
+
+    [NeedsRelaunch]
+    [Reactive]
+    [JsonProperty]
+    public bool EnableRemoteLogging { get; private set; }
+
     [Reactive] [JsonProperty] public bool EnableAutoDonation { get; private set; }
-    [NeedsRelaunch] [Reactive] [JsonProperty]  public bool ForceEnglish { get; private set; }
+
+    [NeedsRelaunch]
+    [Reactive]
+    [JsonProperty]
+    public bool ForceEnglish { get; private set; }
+
     private ReactiveCommand<bool, Unit> SaveSettings { get; }
     private ReactiveCommand<Unit, Unit> RestoreDefaults { get; }
     public ReactiveCommand<Unit, Unit> BrowseDownloadsDirectory { get; }
@@ -147,7 +168,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> CopyInstallationId { get; }
 
     private Timer AutoSaveDelayTimer { get; } = new() {AutoReset = false, Interval = 500};
-    
+
     private void InitDefaults()
     {
         CheckUpdatesAutomatically = true;
@@ -208,7 +229,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             PreferredConnectionType = ConnectionTypes[0];
             saveNeeded = true;
         }
-        
+
         if (!PopularityRanges.Contains(PopularityRange))
         {
             Log.Debug("Popularity range is invalid, resetting to default");
@@ -311,6 +332,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
                     NotificationType.Error, TimeSpan.FromSeconds(5));
                 return;
             }
+
             DownloadsLocation = DownloadsLocationTextBoxText;
             SaveSettings.Execute().Subscribe();
             Log.Debug("Set new downloads location: {Location}",
@@ -337,6 +359,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
                     NotificationType.Error, TimeSpan.FromSeconds(5));
                 return;
             }
+
             BackupsLocation = BackupsLocationTextBoxText;
             SaveSettings.Execute().Subscribe();
             Log.Debug("Set new backups location: {Location}",
@@ -414,7 +437,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             RefreshMirrorSelection();
         });
     }
-    
+
     private IObservable<Unit> ReloadMirrorListImpl()
     {
         return Observable.Start(() =>
@@ -433,7 +456,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             RefreshMirrorSelection();
         });
     }
-    
+
     private IObservable<Unit> InstallTrailersAddonImpl()
     {
         return Observable.Start(() =>
@@ -443,10 +466,11 @@ public class SideloaderSettingsViewModel : ViewModelBase
                 IsTrailersAddonInstalled = true;
                 return;
             }
+
             Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.InstallTrailersAddon});
         });
     }
-    
+
     private async Task BrowseDownloadsDirectoryImpl()
     {
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -464,7 +488,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             }
         }
     }
-    
+
     private async Task BrowseBackupsDirectoryImpl()
     {
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -482,10 +506,11 @@ public class SideloaderSettingsViewModel : ViewModelBase
             }
         }
     }
-    
-    private async Task CopyInstallationIdImpl(){
+
+    private async Task CopyInstallationIdImpl()
+    {
         await Application.Current!.Clipboard!.SetTextAsync(InstallationId.ToString());
-        Globals.ShowNotification(Resources.Info, Resources.InstallationIdCopied, NotificationType.Success, 
+        Globals.ShowNotification(Resources.Info, Resources.InstallationIdCopied, NotificationType.Success,
             TimeSpan.FromSeconds(2));
     }
 
@@ -504,7 +529,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
         AutoSaveDelayTimer.Stop();
         AutoSaveDelayTimer.Start();
     }
-    
+
     private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         AutoSaveDelayTimer.Stop();

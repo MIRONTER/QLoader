@@ -26,7 +26,7 @@ using Serilog;
 
 namespace QSideloader.ViewModels;
 
-public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
+public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
 {
     private static readonly SemaphoreSlim RefreshSemaphoreSlim = new(1, 1);
     private readonly AdbService _adbService;
@@ -39,13 +39,13 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
     public InstalledAppsViewModel() : this(false)
     {
     }
-    
+
     public InstalledAppsViewModel(bool filterForDonations)
     {
         Activator = new ViewModelActivator();
         _adbService = AdbService.Instance;
         _sideloaderSettings = Globals.SideloaderSettings;
-        Refresh = ReactiveCommand.CreateFromObservable<bool,Unit>(RefreshImpl);
+        Refresh = ReactiveCommand.CreateFromObservable<bool, Unit>(RefreshImpl);
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
         Donate = ReactiveCommand.CreateFromObservable(DonateImpl);
         DonateAll = ReactiveCommand.CreateFromObservable(DonateAllImpl);
@@ -61,7 +61,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
         var donationFilterPredicate = this.WhenAnyValue(x => x.IsShowHiddenFromDonation)
             .DistinctUntilChanged()
             .Select(DonationFilter);
-        
+
         var cacheListBindPart = _installedAppsSourceCache.Connect()
             .RefCount()
             .ObserveOn(RxApp.MainThreadScheduler);
@@ -77,13 +77,14 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
             cacheListBind.Subscribe().DisposeWith(disposables);
             _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged).DisposeWith(disposables);
             _adbService.WhenPackageListChanged.Subscribe(_ => Refresh.Execute().Subscribe()).DisposeWith(disposables);
-            Globals.MainWindowViewModel!.WhenGameDonated.Subscribe(_ => Refresh.Execute().Subscribe()).DisposeWith(disposables);
+            Globals.MainWindowViewModel!.WhenGameDonated.Subscribe(_ => Refresh.Execute().Subscribe())
+                .DisposeWith(disposables);
             IsDeviceConnected = _adbService.CheckDeviceConnectionSimple();
             Refresh.Execute().Subscribe();
             IsShowHiddenFromDonation = false;
         });
     }
-    
+
     private ReactiveCommand<bool, Unit> Refresh { get; }
     public ReactiveCommand<Unit, Unit> Donate { get; }
     public ReactiveCommand<Unit, Unit> DonateAll { get; }
@@ -96,7 +97,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
     [Reactive] public bool IsShowHiddenFromDonation { get; set; }
 
     public ViewModelActivator Activator { get; }
-    
+
     private IObservable<Unit> RefreshImpl(bool rescan = false)
     {
         return Observable.Start(() =>
@@ -115,7 +116,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
             }
         });
     }
-    
+
     private IObservable<Unit> DonateImpl()
     {
         return Observable.Start(() =>
@@ -135,6 +136,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
                     TimeSpan.FromSeconds(2));
                 return;
             }
+
             foreach (var app in selectedApps)
             {
                 app.IsSelectedDonation = false;
@@ -178,14 +180,14 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
                     Log.Debug("Skipping {Name} because it is already being donated", app.Name);
                     continue;
                 }
-                
+
                 app.IsSelectedDonation = false;
                 Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.PullAndUpload, App = app});
                 Log.Information("Queued for donation: {Name}", app.Name);
             }
         });
     }
-    
+
     private IObservable<Unit> IgnoreImpl()
     {
         return Observable.Start(() =>
@@ -207,7 +209,8 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
                 app.IsSelectedDonation = false;
                 switch (inverse)
                 {
-                    case false when !_sideloaderSettings.IgnoredDonationPackages.Contains(app.PackageName) && !app.IsHiddenFromDonation:
+                    case false when !_sideloaderSettings.IgnoredDonationPackages.Contains(app.PackageName) &&
+                                    !app.IsHiddenFromDonation:
                         _sideloaderSettings.IgnoredDonationPackages.Add(app.PackageName);
                         count++;
                         break;
@@ -217,7 +220,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
                         break;
                 }
             }
-            
+
             if (!inverse)
             {
                 Log.Information("Added {Count} apps to ignore list", count);
@@ -230,12 +233,13 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
                 Globals.ShowNotification(Resources.Ignore, Resources.AppsRemovedFromIgnore, NotificationType.Success,
                     TimeSpan.FromSeconds(2));
             }
+
             if (count == 0) return;
             RefreshInstalledApps(true);
             Globals.MainWindowViewModel!.RefreshGameDonationBadge();
         });
     }
-    
+
     private IObservable<Unit> UninstallImpl()
     {
         return Observable.Start(() =>
@@ -255,6 +259,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
                     TimeSpan.FromSeconds(2));
                 return;
             }
+
             foreach (var app in selectedApps)
             {
                 app.IsSelected = false;
@@ -271,7 +276,7 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
             OnDeviceOffline();
             return;
         }
-            
+
         var selectedApps = _installedAppsSourceCache.Items.Where(game => game.IsSelected).ToList();
         if (selectedApps.Count == 0)
         {
@@ -289,15 +294,13 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
                 Title = Resources.SelectDestinationFolder,
                 Directory = SpecialDirectories.Desktop
             }.ShowAsync(mainWindow);
-            if (result is null)
-            {
-                return;
-            }
+            if (result is null) return;
 
             foreach (var app in selectedApps)
             {
                 app.IsSelected = false;
-                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.Extract, App = app, Path = result});
+                Globals.MainWindowViewModel!.AddTask(
+                    new TaskOptions {Type = TaskType.Extract, App = app, Path = result});
             }
         }
     }
@@ -335,23 +338,20 @@ public class InstalledAppsViewModel: ViewModelBase, IActivatableViewModel
             OnDeviceOffline();
             return;
         }
-        
+
         IsDeviceConnected = true;
-        if (rescan)
-        {
-            _adbService.Device?.RefreshInstalledApps();
-        }
+        if (rescan) _adbService.Device?.RefreshInstalledApps();
         while (_adbService.Device!.IsRefreshingInstalledGames)
         {
             Thread.Sleep(100);
             if (_adbService.Device is null)
                 return;
         }
+
         _installedAppsSourceCache.Edit(innerCache =>
         {
             innerCache.Clear();
             innerCache.AddOrUpdate(_adbService.Device!.InstalledApps);
         });
-
     }
 }

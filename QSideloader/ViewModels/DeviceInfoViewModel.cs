@@ -18,7 +18,7 @@ namespace QSideloader.ViewModels;
 
 public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
 {
-    private static readonly SemaphoreSlim DeviceListSemaphoreSlim = new(1,1);
+    private static readonly SemaphoreSlim DeviceListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim RefreshSemaphoreSlim = new(1, 1);
     private readonly AdbService _adbService;
     private readonly ObservableAsPropertyHelper<bool> _isBusy;

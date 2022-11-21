@@ -19,17 +19,18 @@ using Serilog;
 
 namespace QSideloader.ViewModels;
 
-public class BackupViewModel: ViewModelBase, IActivatableViewModel
+public class BackupViewModel : ViewModelBase, IActivatableViewModel
 {
     private readonly AdbService _adbService;
     private readonly ReadOnlyObservableCollection<Backup> _backups;
     private readonly SourceCache<Backup, DateTime> _backupsSourceCache = new(x => x.Date);
     private readonly ObservableAsPropertyHelper<bool> _isBusy;
+
     public BackupViewModel()
     {
         Activator = new ViewModelActivator();
         _adbService = AdbService.Instance;
-        Refresh = ReactiveCommand.CreateFromObservable<bool,Unit>(RefreshImpl);
+        Refresh = ReactiveCommand.CreateFromObservable<bool, Unit>(RefreshImpl);
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
         Restore = ReactiveCommand.CreateFromObservable(RestoreImpl);
         Delete = ReactiveCommand.CreateFromObservable(DeleteImpl);
@@ -56,9 +57,9 @@ public class BackupViewModel: ViewModelBase, IActivatableViewModel
     public ReadOnlyObservableCollection<Backup> Backups => _backups;
     public bool IsBusy => _isBusy.Value;
     [Reactive] public bool IsDeviceConnected { get; private set; }
-    
+
     public ViewModelActivator Activator { get; }
-    
+
     private IObservable<Unit> RefreshImpl(bool rescan)
     {
         return Observable.Start(() =>
@@ -90,9 +91,11 @@ public class BackupViewModel: ViewModelBase, IActivatableViewModel
             if (selectedBackups.Count == 0)
             {
                 Log.Information("No backups selected for restore");
-                Globals.ShowNotification(Resources.Restore, Resources.NoBackupsSelected, NotificationType.Information, TimeSpan.FromSeconds(2));
+                Globals.ShowNotification(Resources.Restore, Resources.NoBackupsSelected, NotificationType.Information,
+                    TimeSpan.FromSeconds(2));
                 return;
             }
+
             foreach (var backup in selectedBackups)
             {
                 backup.IsSelected = false;
@@ -101,7 +104,7 @@ public class BackupViewModel: ViewModelBase, IActivatableViewModel
             }
         });
     }
-    
+
     private IObservable<Unit> DeleteImpl()
     {
         return Observable.Start(() =>
@@ -110,15 +113,17 @@ public class BackupViewModel: ViewModelBase, IActivatableViewModel
             if (selectedBackups.Count == 0)
             {
                 Log.Information("No backups selected for deletion");
-                Globals.ShowNotification(Resources.Delete, Resources.NoBackupsSelected, NotificationType.Information, TimeSpan.FromSeconds(2));
+                Globals.ShowNotification(Resources.Delete, Resources.NoBackupsSelected, NotificationType.Information,
+                    TimeSpan.FromSeconds(2));
                 return;
             }
+
             foreach (var backup in selectedBackups)
             {
                 backup.IsSelected = false;
                 if (Directory.Exists(backup.Path))
                 {
-                    Directory.Delete(backup.Path,true);
+                    Directory.Delete(backup.Path, true);
                     Log.Information("Deleted backup: {BackupName}", backup);
                 }
                 else
@@ -130,7 +135,7 @@ public class BackupViewModel: ViewModelBase, IActivatableViewModel
             Refresh.Execute(true).Subscribe();
         });
     }
-    
+
     private void OnDeviceStateChanged(DeviceState state)
     {
         switch (state)

@@ -40,9 +40,11 @@ public class MainWindowViewModel : ViewModelBase
     // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
     private readonly AdbService _adbService;
     private readonly DownloaderService _downloaderService;
+
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
     // ReSharper restore PrivateFieldCanBeConvertedToLocalVariable
-    private readonly Subject<Unit> _gameDonateSubject = new ();
+
+    private readonly Subject<Unit> _gameDonateSubject = new();
     private readonly IManagedNotificationManager _notificationManager;
 
     public MainWindowViewModel(IManagedNotificationManager notificationManager)
@@ -102,7 +104,8 @@ public class MainWindowViewModel : ViewModelBase
             var taskView = new TaskView(taskOptions);
             using (LogContext.PushProperty("TaskId", taskView.TaskId))
             {
-                Log.Information("Adding task {TaskId} {TaskType} {TaskName}", taskView.TaskId, taskOptions.Type, taskView.TaskName);
+                Log.Information("Adding task {TaskId} {TaskType} {TaskName}", taskView.TaskId, taskOptions.Type,
+                    taskView.TaskName);
                 TaskList.Add(taskView);
                 taskView.Run();
             }
@@ -139,13 +142,13 @@ public class MainWindowViewModel : ViewModelBase
                 IsDeviceUnauthorized = true;
                 break;
         }
+
         Task.Run(RefreshGameDonationBadge).SafeFireAndForget();
     }
 
     public void HandleDroppedFiles(IEnumerable<string> fileNames)
     {
         foreach (var fileName in fileNames)
-        {
             if (Directory.Exists(fileName))
             {
                 if (Directory.EnumerateFiles(fileName, ".backup", SearchOption.TopDirectoryOnly).Any())
@@ -153,16 +156,19 @@ public class MainWindowViewModel : ViewModelBase
                     Log.Debug("Dropped folder {FileName} contains backup", fileName);
                     var dirName = Path.GetFileName(fileName);
                     var game = new Game(dirName, dirName);
-                    AddTask(new TaskOptions { Type = TaskType.Restore, Game = game, Path = fileName});
+                    AddTask(new TaskOptions {Type = TaskType.Restore, Game = game, Path = fileName});
                 }
+
                 if (Directory.EnumerateFiles(fileName, "*.apk", SearchOption.TopDirectoryOnly).Any())
                 {
                     Log.Debug("Dropped folder {FileName} contains APK", fileName);
                     var dirName = Path.GetFileName(fileName);
                     Game game;
                     // Try to find OBB directory and set package name
-                    var dirNames = Directory.EnumerateDirectories(fileName, "*.*", SearchOption.TopDirectoryOnly).Select(Path.GetFileName);
-                    var obbDirName = dirNames.Where(d => d is not null).FirstOrDefault(d => Regex.IsMatch(d!, @"^([A-Za-z]{1}[A-Za-z\d_]*\.)+[A-Za-z][A-Za-z\d_]*$"));
+                    var dirNames = Directory.EnumerateDirectories(fileName, "*.*", SearchOption.TopDirectoryOnly)
+                        .Select(Path.GetFileName);
+                    var obbDirName = dirNames.Where(d => d is not null).FirstOrDefault(d =>
+                        Regex.IsMatch(d!, @"^([A-Za-z]{1}[A-Za-z\d_]*\.)+[A-Za-z][A-Za-z\d_]*$"));
                     if (obbDirName is not null)
                     {
                         Log.Debug("Found OBB directory {ObbDirName}", obbDirName);
@@ -172,6 +178,7 @@ public class MainWindowViewModel : ViewModelBase
                     {
                         game = new Game(dirName, dirName);
                     }
+
                     AddTask(new TaskOptions {Game = game, Type = TaskType.InstallOnly, Path = fileName});
                 }
                 else
@@ -195,6 +202,7 @@ public class MainWindowViewModel : ViewModelBase
                     Globals.ShowErrorNotification(ex, Resources.ErrorApkInfo);
                     continue;
                 }
+
                 var game = new Game(apkInfo.ApplicationLabel, name, apkInfo.PackageName);
                 AddTask(new TaskOptions {Game = game, Type = TaskType.InstallOnly, Path = fileName});
             }
@@ -202,16 +210,15 @@ public class MainWindowViewModel : ViewModelBase
             {
                 Log.Warning("Unsupported dropped file {FileName}", fileName);
             }
-        }
     }
-    
+
     public void RefreshGameDonationBadge()
     {
         DonatableAppsCount = _adbService.CheckDeviceConnectionSimple()
             ? _adbService.Device!.InstalledApps.Count(app => !app.IsHiddenFromDonation)
             : 0;
     }
-    
+
     public void OnGameDonated(string packageName, int versionCode)
     {
         var existingDonatedPackage =
@@ -223,12 +230,15 @@ public class MainWindowViewModel : ViewModelBase
             _sideloaderSettings.DonatedPackages.Add(existingDonatedPackage);
         }
         else
+        {
             _sideloaderSettings.DonatedPackages.Add((packageName, versionCode));
+        }
+
         _adbService.Device?.RefreshInstalledApps();
         RefreshGameDonationBadge();
         _gameDonateSubject.OnNext(Unit.Default);
     }
-    
+
     public void ShowNotification(string title, string message, NotificationType type, TimeSpan? expiration = null)
     {
         Dispatcher.UIThread.InvokeAsync(() =>
@@ -237,8 +247,9 @@ public class MainWindowViewModel : ViewModelBase
                 new Avalonia.Controls.Notifications.Notification(title, message, type, expiration));
         });
     }
-    
-    public void ShowErrorNotification(Exception e, string? message, NotificationType type = NotificationType.Error, TimeSpan? expiration = null)
+
+    public void ShowErrorNotification(Exception e, string? message, NotificationType type = NotificationType.Error,
+        TimeSpan? expiration = null)
     {
         expiration ??= TimeSpan.Zero;
         // Remove invalid characters to avoid cutting off when copying to clipboard
@@ -247,7 +258,7 @@ public class MainWindowViewModel : ViewModelBase
         Dispatcher.UIThread.InvokeAsync(() =>
         {
             _notificationManager.Show(new Avalonia.Controls.Notifications.Notification(Resources.Error, message,
-                type, expiration, onClick: () =>
+                type, expiration, () =>
                 {
                     var dialog = new ContentDialog
                     {
@@ -313,16 +324,16 @@ public class MainWindowViewModel : ViewModelBase
             });
         });
     }
-    
+
     private IObservable<Unit> ShowConnectionHelpDialogImpl()
     {
         return Observable.Start(() =>
         {
             var appName = Program.Name;
-            var message = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) 
-                ? string.Format(Resources.AdbConnectionDialogTextWin, appName) 
+            var message = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? string.Format(Resources.AdbConnectionDialogTextWin, appName)
                 : string.Format(Resources.AdbConnectionDialogText, appName);
-                              
+
             Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var dialog = new ContentDialog
@@ -345,16 +356,13 @@ public class MainWindowViewModel : ViewModelBase
                         Task.Run(() => _adbService.CheckDeviceConnection());
                     }),
                     SecondaryButtonText = "adb devices",
-                    SecondaryButtonCommand = ReactiveCommand.Create(async () =>
-                    {
-                        await ShowAdbDevicesDialogAsync();
-                    })
+                    SecondaryButtonCommand = ReactiveCommand.Create(async () => { await ShowAdbDevicesDialogAsync(); })
                 };
                 dialog.ShowAsync();
             });
         });
     }
-    
+
     private async Task ShowAdbDevicesDialogAsync()
     {
         var text = await _adbService.GetDevicesStringAsync();
@@ -383,15 +391,12 @@ public class MainWindowViewModel : ViewModelBase
                         NotificationType.Success);
                 }),
                 SecondaryButtonText = Resources.ReloadButton,
-                SecondaryButtonCommand = ReactiveCommand.Create(async () =>
-                {
-                    await ShowAdbDevicesDialogAsync();
-                })
+                SecondaryButtonCommand = ReactiveCommand.Create(async () => { await ShowAdbDevicesDialogAsync(); })
             };
             dialog.ShowAsync();
         });
     }
-    
+
     private void TryInstallTrailersAddon()
     {
         var trailersAddonPath = "";
@@ -401,7 +406,7 @@ public class MainWindowViewModel : ViewModelBase
             trailersAddonPath = Path.Combine("..", "TrailersAddon.zip");
 
         if (string.IsNullOrEmpty(trailersAddonPath)) return;
-        
+
         Log.Information("Found trailers addon zip. Starting background install");
         var taskOptions = new TaskOptions {Type = TaskType.InstallTrailersAddon, Path = trailersAddonPath};
         AddTask(taskOptions);
@@ -417,15 +422,13 @@ public class MainWindowViewModel : ViewModelBase
             var runningDonations = GetTaskList().Where(x => x.TaskType is TaskType.PullAndUpload && !x.IsFinished)
                 .ToList();
             var toDonate = _adbService.Device!.InstalledApps
-                .Where(x => !x.IsHiddenFromDonation && 
+                .Where(x => !x.IsHiddenFromDonation &&
                             runningDonations.All(d => d.PackageName != x.PackageName)).ToList();
             if (!toDonate.Any()) return;
-            
+
             Log.Information("Adding donation tasks");
-            foreach (var taskOptions in toDonate.Select(app => new TaskOptions {Type = TaskType.PullAndUpload, App = app}))
-            {
-                AddTask(taskOptions);
-            }
+            foreach (var taskOptions in toDonate.Select(app => new TaskOptions
+                         {Type = TaskType.PullAndUpload, App = app})) AddTask(taskOptions);
         });
     }
 }

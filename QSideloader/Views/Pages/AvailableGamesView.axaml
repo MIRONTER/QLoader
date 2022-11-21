@@ -25,19 +25,22 @@
                  HorizontalAlignment="Left" VerticalAlignment="Center"
                  Watermark="{x:Static p:Resources.Search}"
                  Width="400"
-                 Text="{Binding SearchText, Mode=TwoWay}" 
+                 Text="{Binding SearchText, Mode=TwoWay}"
                  ToolTip.Tip="{x:Static p:Resources.Search}" />
         <StackPanel Grid.Row="0"
                     Orientation="Horizontal"
                     Spacing="12" Margin="8"
                     HorizontalAlignment="Right">
-            <Button Command="{Binding Install}" 
+            <Button Command="{Binding Install}"
                     IsEnabled="{Binding IsDeviceConnected}"
-                    ToolTip.Tip="{x:Static p:Resources.DownloadAndInstallSelectedGamesTooltip}" Content="{x:Static p:Resources.DownloadAndInstallSelectedButton}" />
+                    ToolTip.Tip="{x:Static p:Resources.DownloadAndInstallSelectedGamesTooltip}"
+                    Content="{x:Static p:Resources.DownloadAndInstallSelectedButton}" />
             <Button Command="{Binding Download}"
-                    ToolTip.Tip="{x:Static p:Resources.DownloadSelectedGamesTooltip}" Content="{x:Static p:Resources.DownloadSelectedButton}" />
+                    ToolTip.Tip="{x:Static p:Resources.DownloadSelectedGamesTooltip}"
+                    Content="{x:Static p:Resources.DownloadSelectedButton}" />
             <Button Command="{Binding Refresh}"
-                    ToolTip.Tip="{x:Static p:Resources.RefreshAvailableGamesTooltip}" Content="{x:Static p:Resources.RefreshButton}">
+                    ToolTip.Tip="{x:Static p:Resources.RefreshAvailableGamesTooltip}"
+                    Content="{x:Static p:Resources.RefreshButton}">
                 <Button.CommandParameter>
                     <system:Boolean>True</system:Boolean>
                 </Button.CommandParameter>
@@ -59,18 +62,28 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Binding="{Binding GameName}" Header="{x:Static p:Resources.GameNameHeader}" Width="auto" IsReadOnly="True"
+                <DataGridTextColumn Binding="{Binding GameName}" Header="{x:Static p:Resources.GameNameHeader}"
+                                    Width="auto" IsReadOnly="True"
                                     IsVisible="False" />
-                <DataGridTextColumn Binding="{Binding ReleaseName}" Header="{x:Static p:Resources.ReleaseNameHeader}" Width="auto"
+                <DataGridTextColumn Binding="{Binding ReleaseName}" Header="{x:Static p:Resources.ReleaseNameHeader}"
+                                    Width="auto"
                                     IsReadOnly="True" />
-                <DataGridTextColumn Binding="{Binding LastUpdated}" Header="{x:Static p:Resources.LastUpdatedHeader}" Width="auto"
+                <DataGridTextColumn Binding="{Binding LastUpdated}" Header="{x:Static p:Resources.LastUpdatedHeader}"
+                                    Width="auto"
                                     IsReadOnly="True" />
-                <DataGridTextColumn Binding="{Binding GameSize}" Header="{x:Static p:Resources.GameSizeHeader}" Width="auto" IsReadOnly="True" />
-                
-                <DataGridTextColumn Binding="{Binding Popularity[1D]}" Header="{x:Static p:Resources.Popularity1DHeader}" Width="auto" IsReadOnly="True" IsVisible="{Binding ShowPopularity1Day}"/>
-                <DataGridTextColumn Binding="{Binding Popularity[7D]}" Header="{x:Static p:Resources.Popularity7DHeader}" Width="auto" IsReadOnly="True" IsVisible="{Binding ShowPopularity7Days}"/>
-                <DataGridTextColumn Binding="{Binding Popularity[30D]}" Header="{x:Static p:Resources.Popularity30DHeader}" Width="auto" IsReadOnly="True" IsVisible="{Binding ShowPopularity30Days}"/>
-                
+                <DataGridTextColumn Binding="{Binding GameSize}" Header="{x:Static p:Resources.GameSizeHeader}"
+                                    Width="auto" IsReadOnly="True" />
+
+                <DataGridTextColumn Binding="{Binding Popularity[1D]}"
+                                    Header="{x:Static p:Resources.Popularity1DHeader}" Width="auto" IsReadOnly="True"
+                                    IsVisible="{Binding ShowPopularity1Day}" />
+                <DataGridTextColumn Binding="{Binding Popularity[7D]}"
+                                    Header="{x:Static p:Resources.Popularity7DHeader}" Width="auto" IsReadOnly="True"
+                                    IsVisible="{Binding ShowPopularity7Days}" />
+                <DataGridTextColumn Binding="{Binding Popularity[30D]}"
+                                    Header="{x:Static p:Resources.Popularity30DHeader}" Width="auto" IsReadOnly="True"
+                                    IsVisible="{Binding ShowPopularity30Days}" />
+
                 <DataGridTextColumn Binding="{Binding IsInstalled, Converter={StaticResource OnDeviceStatusFromBool}}"
                                     Header="{x:Static p:Resources.OnDeviceHeader}" Width="auto" IsReadOnly="True"
                                     IsVisible="{Binding IsDeviceConnected}" />
@@ -82,7 +95,7 @@
                 <!-- ReSharper restore Xaml.RedundantResource -->
             </DataGrid.Resources>
         </DataGrid>
-        <views:LoadingProgressRingView Grid.Row="0" Grid.RowSpan="2" 
+        <views:LoadingProgressRingView Grid.Row="0" Grid.RowSpan="2"
                                        IsVisible="{Binding IsBusy}" />
     </Grid>
 </UserControl>

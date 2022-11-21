@@ -21,68 +21,70 @@
             Margin="0">
         <StackPanel Orientation="Vertical">
             <Grid Margin="0,0,0,8" ColumnDefinitions="Auto,*,Auto">
-                <TextBlock Grid.Column="0" FontSize="16" FontWeight="DemiBold" Text="{x:Static p:Resources.LoaderSettingsHeader}" />
-                <Button Grid.Column="2" HorizontalAlignment="Right" Command="{Binding RestoreDefaults}" 
+                <TextBlock Grid.Column="0" FontSize="16" FontWeight="DemiBold"
+                           Text="{x:Static p:Resources.LoaderSettingsHeader}" />
+                <Button Grid.Column="2" HorizontalAlignment="Right" Command="{Binding RestoreDefaults}"
                         Content="{x:Static p:Resources.RestoreDefaultsButton}" />
             </Grid>
             <StackPanel Orientation="Horizontal">
-                <ToggleSwitch IsChecked="{Binding CheckUpdatesAutomatically, Mode=TwoWay}" Content="{x:Static p:Resources.CheckUpdatesAutomatically}" />
-                <Button VerticalAlignment="Bottom" MinWidth="100" Margin="20,0,0,8" Command="{Binding CheckUpdates}" 
+                <ToggleSwitch IsChecked="{Binding CheckUpdatesAutomatically, Mode=TwoWay}"
+                              Content="{x:Static p:Resources.CheckUpdatesAutomatically}" />
+                <Button VerticalAlignment="Bottom" MinWidth="100" Margin="20,0,0,8" Command="{Binding CheckUpdates}"
                         Content="{x:Static p:Resources.CheckUpdatesNowButton}" />
             </StackPanel>
-            
+
             <TextBlock VerticalAlignment="Center" Text="{x:Static p:Resources.PreferredConnectionType}" />
             <ComboBox Margin="0,4,0,0" Items="{Binding ConnectionTypes}"
                       SelectedItem="{Binding PreferredConnectionType}" />
-            
+
             <TextBlock Margin="0,8,0,4" VerticalAlignment="Center" Text="{x:Static p:Resources.SelectedMirror}" />
-            <StackPanel  Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal">
                 <ComboBox IsEnabled="{Binding !IsSwitchingMirror}" Items="{Binding MirrorList}"
                           SelectedItem="{Binding SelectedMirror}" />
                 <ProgressRing Margin="10,0,0,0" IsEnabled="{Binding IsSwitchingMirror}"
                               IsVisible="{Binding IsSwitchingMirror}" IsIndeterminate="True" Width="30" Height="30" />
-                <Button Margin="10,0,0,0" IsEnabled="{Binding !IsSwitchingMirror}" 
+                <Button Margin="10,0,0,0" IsEnabled="{Binding !IsSwitchingMirror}"
                         Command="{Binding ReloadMirrorList}" Content="{x:Static p:Resources.ReloadListButton}" />
             </StackPanel>
-            
+
             <TextBlock Margin="0,8,0,4" VerticalAlignment="Center" Text="{x:Static p:Resources.PopularityTimeRange}" />
             <ComboBox Items="{Binding PopularityRanges}"
                       SelectedItem="{Binding PopularityRange}" />
-            
-            <ToggleSwitch Margin="0,8,0,0" 
+
+            <ToggleSwitch Margin="0,8,0,0"
                           IsChecked="{Binding EnableAutoDonation}"
                           Content="{x:Static p:Resources.EnableAutoDonation}"
                           ToolTip.Tip="{x:Static p:Resources.EnableAutoDonationTooltip}" />
-            
+
             <TextBlock Margin="0,8,0,4" Text="{x:Static p:Resources.DownloadsLocation}" />
             <StackPanel Orientation="Horizontal">
                 <TextBox MinWidth="250" Padding="10,5,10,6"
                          Text="{Binding DownloadsLocationTextBoxText, Mode=TwoWay}" />
-                <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding BrowseDownloadsDirectory}" 
+                <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding BrowseDownloadsDirectory}"
                         Content="{x:Static p:Resources.BrowseButton}" />
-                <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding SetDownloadLocation}" 
+                <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding SetDownloadLocation}"
                         Content="{x:Static p:Resources.SetButton}" />
             </StackPanel>
-            
+
             <TextBlock Margin="0,8,0,4" Text="{x:Static p:Resources.BackupsLocation}" />
             <StackPanel Orientation="Horizontal">
                 <TextBox MinWidth="250" Padding="10,5,10,6"
                          Text="{Binding BackupsLocationTextBoxText, Mode=TwoWay}" />
-                <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding BrowseBackupsDirectory}" 
+                <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding BrowseBackupsDirectory}"
                         Content="{x:Static p:Resources.BrowseButton}" />
-                <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding SetBackupsLocation}" 
+                <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding SetBackupsLocation}"
                         Content="{x:Static p:Resources.SetButton}" />
             </StackPanel>
-            
+
             <TextBlock Margin="0,8,0,4" Text="{x:Static p:Resources.DownloaderBandwidthLimit}" />
             <StackPanel Orientation="Horizontal">
                 <TextBox MinWidth="100" Watermark="{x:Static p:Resources.Limit}"
-                         Text="{Binding DownloaderBandwidthLimitTextBoxText}" 
+                         Text="{Binding DownloaderBandwidthLimitTextBoxText}"
                          ToolTip.Tip="{x:Static p:Resources.DownloaderBandwidthLimitTooltip}" />
-                <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding SetDownloaderBandwidthLimit}" 
+                <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding SetDownloaderBandwidthLimit}"
                         Content="{x:Static p:Resources.SetButton}" />
             </StackPanel>
-            
+
             <TextBlock Margin="0,8,0,4" VerticalAlignment="Center" Text="{x:Static p:Resources.DownloadsPruningPolicy}" />
             <ComboBox Items="{Binding AllDownloadsPruningPolicies}" SelectedItem="{Binding DownloadsPruningPolicy}">
                 <ComboBox.ItemTemplate>
@@ -91,7 +93,7 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-            
+
             <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
                 <ToggleSwitch IsChecked="{Binding EnableRemoteLogging}"
                               Content="{x:Static p:Resources.EnableRemoteLogging}"
@@ -99,17 +101,17 @@
                 <Button Margin="4,20,0,0" Command="{Binding CopyInstallationId}"
                         Content="{x:Static p:Resources.CopyInstallationIdButton}" />
             </StackPanel>
-            
+
             <ToggleSwitch IsChecked="{Binding ForceEnglish}"
                           Content="Force English display language" />
-            
+
             <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding EnableDebugConsole}"
-                          IsVisible="{Binding IsConsoleToggleable}" 
+                          IsVisible="{Binding IsConsoleToggleable}"
                           Content="{x:Static p:Resources.ShowDebugConsole}" />
-            
+
             <Grid Margin="0,8,0,0" ColumnDefinitions="Auto,*,Auto">
-                <Button Grid.Column="0" IsEnabled="{Binding !IsTrailersAddonInstalled}" 
-                        Command="{Binding InstallTrailersAddon}" 
+                <Button Grid.Column="0" IsEnabled="{Binding !IsTrailersAddonInstalled}"
+                        Command="{Binding InstallTrailersAddon}"
                         Content="{x:Static p:Resources.InstallTrailersAddonButton}" />
                 <TextBlock Grid.Column="2" VerticalAlignment="Bottom">
                     <TextBlock.Text>

@@ -15,9 +15,7 @@ public class Backup : INotifyPropertyChanged
     {
         if (!Directory.Exists(path)) throw new DirectoryNotFoundException(path);
         if (!File.Exists(System.IO.Path.Combine(path, ".backup")))
-        {
             throw new ArgumentException($"Backup {path} is not valid");
-        }
         var dirName = System.IO.Path.GetFileName(path);
         var dateString = Regex.Match(dirName, @"\d{8}T\d{6}").Value;
         Name = dirName.Replace(dateString + "_", "");
@@ -36,7 +34,7 @@ public class Backup : INotifyPropertyChanged
     public bool ContainsObb { get; }
     public bool ContainsSharedData { get; }
     public bool ContainsPrivateData { get; }
-    
+
     public bool IsSelected
     {
         get => _isSelected;
@@ -46,14 +44,14 @@ public class Backup : INotifyPropertyChanged
             OnPropertyChanged();
         }
     }
-    
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
-    
+
     public override string ToString()
     {
         return Date.ToString("yyyyMMddTHHmmss") + "_" + Name;

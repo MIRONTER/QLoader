@@ -11,41 +11,35 @@ Console.WriteLine($"Your HWID: {hwid}\nPress any key to exit...");
 Console.ReadKey();
 
 static string GetHwid()
+{
+    string? hwid = null;
+    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
     {
-        string? hwid = null;
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        {
-            if (File.Exists("/var/lib/dbus/machine-id"))
-                hwid = File.ReadAllText("/var/lib/dbus/machine-id");
-            if (File.Exists("/etc/machine-id"))
-                hwid = File.ReadAllText("/etc/machine-id");
-        }
+        if (File.Exists("/var/lib/dbus/machine-id"))
+            hwid = File.ReadAllText("/var/lib/dbus/machine-id");
+        if (File.Exists("/etc/machine-id"))
+            hwid = File.ReadAllText("/etc/machine-id");
+    }
 
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            return GetHwidCompat();
-        }
+    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return GetHwidCompat();
 
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        {
-            var ioregOutput = Cli.Wrap("ioreg")
-                .WithArguments("-rd1 -c IOPlatformExpertDevice")
-                .ExecuteBufferedAsync().GetAwaiter().GetResult();
-            var match = Regex.Match(ioregOutput.StandardOutput, "IOPlatformUUID\" = \"(.*?)\"");
-            if (match.Success)
-                hwid = match.Groups[1].Value;
-        }
+    if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+    {
+        var ioregOutput = Cli.Wrap("ioreg")
+            .WithArguments("-rd1 -c IOPlatformExpertDevice")
+            .ExecuteBufferedAsync().GetAwaiter().GetResult();
+        var match = Regex.Match(ioregOutput.StandardOutput, "IOPlatformUUID\" = \"(.*?)\"");
+        if (match.Success)
+            hwid = match.Groups[1].Value;
+    }
 
-        if (hwid is null)
-        {
-            throw new InvalidOperationException("Failed to get HWID");
-        }
+    if (hwid is null) throw new InvalidOperationException("Failed to get HWID");
 
-        var bytes = Encoding.UTF8.GetBytes(hwid);
-        var sha256 = SHA256.Create();
-        var hash = sha256.ComputeHash(bytes);
+    var bytes = Encoding.UTF8.GetBytes(hwid);
+    var sha256 = SHA256.Create();
+    var hash = sha256.ComputeHash(bytes);
 
-        return BitConverter.ToString(hash).Replace("-", "");
+    return BitConverter.ToString(hash).Replace("-", "");
 }
 
 static string GetHwidCompat()
@@ -75,7 +69,6 @@ static string GetHwidCompat()
         sb.Append(queryObj["Manufacturer"]);
         sb.Append(queryObj["Name"]);
         sb.Append(queryObj["Version"]);
-
     }
 
     searcher = new ManagementObjectSearcher("root\\CIMV2",

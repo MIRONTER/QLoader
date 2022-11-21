@@ -8,7 +8,8 @@ public class InstalledApp : INotifyPropertyChanged
     private bool _isSelected;
     private bool _isSelectedDonation;
 
-    public InstalledApp(string name, string packageName, string versionName, int versionCode,bool isKnown, bool isHiddenFromDonation, string donationStatus)
+    public InstalledApp(string name, string packageName, string versionName, int versionCode, bool isKnown,
+        bool isHiddenFromDonation, string donationStatus)
     {
         Name = name;
         PackageName = packageName;
@@ -23,6 +24,7 @@ public class InstalledApp : INotifyPropertyChanged
     public string PackageName { get; }
     public string VersionName { get; }
     public int VersionCode { get; }
+
     public bool IsSelected
     {
         get => _isSelected;
@@ -32,6 +34,7 @@ public class InstalledApp : INotifyPropertyChanged
             OnPropertyChanged();
         }
     }
+
     public bool IsSelectedDonation
     {
         get => _isSelectedDonation;
@@ -41,10 +44,11 @@ public class InstalledApp : INotifyPropertyChanged
             OnPropertyChanged();
         }
     }
+
     public bool IsHiddenFromDonation { get; set; }
     public bool IsKnown { get; set; }
     public string DonationStatus { get; set; }
-    
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)

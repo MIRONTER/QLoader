@@ -32,11 +32,14 @@
             SelectionChanged="NavigationView_OnSelectionChanged"
             IsSettingsVisible="True">
             <ui:NavigationView.MenuItems>
-                <ui:NavigationViewItem Icon="AllApps" Content="{x:Static p:Resources.InstalledGamesHeader}" Tag="InstalledGamesView" />
-                <ui:NavigationViewItem Icon="Cloud" Content="{x:Static p:Resources.AvailableGamesHeader}" Tag="AvailableGamesView" />
-                <ui:NavigationViewItem Icon="Upload" Content="{x:Static p:Resources.DonateGamesHeader}" Tag="GameDonationView">
+                <ui:NavigationViewItem Icon="AllApps" Content="{x:Static p:Resources.InstalledGamesHeader}"
+                                       Tag="InstalledGamesView" />
+                <ui:NavigationViewItem Icon="Cloud" Content="{x:Static p:Resources.AvailableGamesHeader}"
+                                       Tag="AvailableGamesView" />
+                <ui:NavigationViewItem Icon="Upload" Content="{x:Static p:Resources.DonateGamesHeader}"
+                                       Tag="GameDonationView">
                     <ui:NavigationViewItem.InfoBadge>
-                        <ui:InfoBadge Value="{Binding DonatableAppsCount}" IsVisible="{Binding DonatableAppsCount}"/>
+                        <ui:InfoBadge Value="{Binding DonatableAppsCount}" IsVisible="{Binding DonatableAppsCount}" />
                     </ui:NavigationViewItem.InfoBadge>
                 </ui:NavigationViewItem>
                 <ui:NavigationViewItem Content="{x:Static p:Resources.OtherAppsHeader}" Tag="OtherAppsView">
@@ -44,7 +47,8 @@
                         <ui:FontIcon FontFamily="avares://FluentAvalonia/Fonts#Symbols" Glyph="&#xE74C;" />
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
-                <ui:NavigationViewItem Icon="Save" Content="{x:Static p:Resources.RestoreBackupsHeader}" Tag="BackupView" />
+                <ui:NavigationViewItem Icon="Save" Content="{x:Static p:Resources.RestoreBackupsHeader}"
+                                       Tag="BackupView" />
             </ui:NavigationView.MenuItems>
             <Grid RowDefinitions="*,Auto">
                 <ui:Frame x:Name="ContentFrame" Grid.Row="0" />
@@ -65,7 +69,8 @@
                         </MultiBinding>
                     </ui:InfoBar.IsOpen>
                     <ui:InfoBar.ActionButton>
-                        <Button Content="{x:Static p:Resources.MoreInfoButton}" Command="{Binding ShowConnectionHelpDialog}" />
+                        <Button Content="{x:Static p:Resources.MoreInfoButton}"
+                                Command="{Binding ShowConnectionHelpDialog}" />
                     </ui:InfoBar.ActionButton>
                 </ui:InfoBar>
                 <ui:InfoBar Grid.Row="0" x:Name="DeviceUnauthorizedInfoBar"

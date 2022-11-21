@@ -70,7 +70,8 @@ public static class GeneralUtils
                     return GetHwidCompat();
                 var regKey =
                     Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Cryptography", false);
-                var regValue = regKey?.GetValue("MachineGuid") ?? throw new InvalidOperationException("Failed to get HWID");
+                var regValue = regKey?.GetValue("MachineGuid") ??
+                               throw new InvalidOperationException("Failed to get HWID");
                 hwid = regValue.ToString();
             }
 
@@ -131,7 +132,6 @@ public static class GeneralUtils
             sb.Append(queryObj["Manufacturer"]);
             sb.Append(queryObj["Name"]);
             sb.Append(queryObj["Version"]);
-
         }
 
         searcher = new ManagementObjectSearcher("root\\CIMV2",
@@ -161,7 +161,7 @@ public static class GeneralUtils
             File.Delete(path);
         op.Complete();
     }
-    
+
     public static bool IsDirectoryWritable(string dirPath)
     {
         try
@@ -174,21 +174,21 @@ public static class GeneralUtils
             return false;
         }
     }
-    
+
     public static EventHandler<T> CreateThrottledEventHandler<T>(
-        EventHandler<T> handler, 
+        EventHandler<T> handler,
         TimeSpan throttle)
-    {   
+    {
         var throttling = false;
-        return (s,e) =>
+        return (s, e) =>
         {
-            if(throttling) return;              
-            handler(s,e);
+            if (throttling) return;
+            handler(s, e);
             throttling = true;
             Task.Delay(throttle).ContinueWith(_ => throttling = false);
         };
     }
-    
+
     public static (string host, int port)? GetDefaultProxyHostPort()
     {
         const string testUrl = "http://google.com";

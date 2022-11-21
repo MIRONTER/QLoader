@@ -18,7 +18,7 @@
         <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto">
             <TextBlock Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3" Margin="4" FontWeight="Bold"
                        Text="{Binding TaskName}" ToolTip.Tip="{Binding TaskName}" />
-            <TextBlock Grid.Column="0" Grid.Row="1" Margin="4,0,0,0" 
+            <TextBlock Grid.Column="0" Grid.Row="1" Margin="4,0,0,0"
                        Text="{Binding Status}" ToolTip.Tip="{Binding Status}" />
             <TextBlock Grid.Column="2" Grid.Row="1" Margin="0,0,8,0" Name="DownloadStatsText"
                        Text="{Binding DownloadStats}" />

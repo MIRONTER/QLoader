@@ -9,7 +9,8 @@ namespace QSideloader.Utilities;
 
 public static class ZipUtil
 {
-    public static async Task ExtractArchiveAsync(string archivePath, string? extractPath = null, CancellationToken ct = default)
+    public static async Task ExtractArchiveAsync(string archivePath, string? extractPath = null,
+        CancellationToken ct = default)
     {
         if (!File.Exists(archivePath))
             throw new FileNotFoundException("Archive not found", archivePath);
@@ -27,7 +28,8 @@ public static class ZipUtil
         ExtractArchiveAsync(archivePath, extractPath, ct).Wait(ct);
     }
 
-    public static async Task<string> CreateArchiveAsync(string sourcePath, string destinationPath, string archiveName, CancellationToken ct = default)
+    public static async Task<string> CreateArchiveAsync(string sourcePath, string destinationPath, string archiveName,
+        CancellationToken ct = default)
     {
         if (!Directory.Exists(sourcePath))
             throw new DirectoryNotFoundException("Invalid source path");
