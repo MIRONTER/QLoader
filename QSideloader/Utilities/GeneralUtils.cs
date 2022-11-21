@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -7,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Management;
+using System.Net.Http;
 using CliWrap;
 using CliWrap.Buffered;
 using Microsoft.Win32;
@@ -18,6 +20,16 @@ namespace QSideloader.Utilities;
 
 public static class GeneralUtils
 {
+    private static HttpClient HttpClient { get; }
+    
+    static GeneralUtils()
+    {
+        var handler = new HttpClientHandler
+        {
+            Proxy = WebRequest.DefaultWebProxy
+        };
+        HttpClient = new HttpClient(handler);
+    }
     public static string GetMd5FileChecksum(string filename)
     {
         using var hasher = MD5.Create();
@@ -204,5 +216,26 @@ public static class GeneralUtils
             Log.Error(e, "Failed to get system proxy host and port");
             return null;
         }
+    }
+    
+    public static string GetOsName() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "Windows" :
+        RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? "Linux" :
+        RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "OSX" :
+        "Unknown";
+
+    /// <summary>
+    /// Creates a paste on sprunge.us.
+    /// </summary>
+    /// <param name="text">Text content for paste.</param>
+    /// <returns>Link to created paste.</returns>
+    public static async Task<string> CreatePasteAsync(string text)
+    {
+        const string url = "http://sprunge.us";
+        var formContent = new FormUrlEncodedContent(new[]
+        {
+            new KeyValuePair<string, string>("sprunge", text)
+        });
+        var response = await HttpClient.PostAsync(url, formContent);
+        return await response.Content.ReadAsStringAsync();
     }
 }

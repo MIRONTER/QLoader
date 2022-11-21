@@ -720,4 +720,13 @@
     <data name="ErrorApkInfo" xml:space="preserve">
         <value>Ошибка получения информации о APK</value>
     </data>
+    <data name="CopyLinkButton" xml:space="preserve">
+        <value>Скопировать ссылку</value>
+    </data>
+    <data name="LinkCopiedToClipboard" xml:space="preserve">
+        <value>Ссылка была скопирована в буфер обмена</value>
+    </data>
+    <data name="CouldntCreateLink" xml:space="preserve">
+        <value>Не удалось создать ссылку</value>
+    </data>
 </root>

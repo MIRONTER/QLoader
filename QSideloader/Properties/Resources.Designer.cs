@@ -495,11 +495,29 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Copy link.
+        /// </summary>
+        public static string CopyLinkButton {
+            get {
+                return ResourceManager.GetString("CopyLinkButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Copy to clipboard.
         /// </summary>
         public static string CopyToClipboardButton {
             get {
                 return ResourceManager.GetString("CopyToClipboardButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Couldn&apos;t create link.
+        /// </summary>
+        public static string CouldntCreateLink {
+            get {
+                return ResourceManager.GetString("CouldntCreateLink", resourceCulture);
             }
         }
         
@@ -1347,6 +1365,15 @@ namespace QSideloader.Properties {
         public static string Limit {
             get {
                 return ResourceManager.GetString("Limit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Link has been copied to clipboard.
+        /// </summary>
+        public static string LinkCopiedToClipboard {
+            get {
+                return ResourceManager.GetString("LinkCopiedToClipboard", resourceCulture);
             }
         }
         

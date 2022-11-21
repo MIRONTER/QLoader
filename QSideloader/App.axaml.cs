@@ -78,12 +78,8 @@ public class App : Application
         var programName = Program.Name;
         var versionString = executingAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
             .InformationalVersion ?? "";
-        var os = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "Windows" :
-            RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? "Linux" :
-            RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "OSX" :
-            "Unknown";
         GlobalLogContext.PushProperty("AppVersion", versionString);
-        GlobalLogContext.PushProperty("OperatingSystem", os);
+        GlobalLogContext.PushProperty("OperatingSystem", GeneralUtils.GetOsName());
         GlobalLogContext.PushProperty("InstallationId", sideloaderSettings.InstallationId);
 
         var humanReadableLogger = new LoggerConfiguration().MinimumLevel.Verbose()

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -254,7 +255,13 @@ public class MainWindowViewModel : ViewModelBase
         expiration ??= TimeSpan.Zero;
         // Remove invalid characters to avoid cutting off when copying to clipboard
         var filteredException = Regex.Replace(e.ToString(), @"[^\w\d\s\p{P}]", "");
-        var text = message + "\n\n" + filteredException;
+        var appVersionString = Assembly.GetExecutingAssembly()
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "N/A";
+        var osName = GeneralUtils.GetOsName();
+        var osVersion = Environment.OSVersion.VersionString;
+        var environment = $"App Version: {appVersionString}\nOS: {osName} {osVersion}";
+        var text = message + "\n\n" + filteredException + "\n\n" + environment;
+        message += "\nClick to see details";
         Dispatcher.UIThread.InvokeAsync(() =>
         {
             _notificationManager.Show(new Avalonia.Controls.Notifications.Notification(Resources.Error, message,
@@ -274,8 +281,10 @@ public class MainWindowViewModel : ViewModelBase
                             HorizontalScrollBarVisibility = ScrollBarVisibility.Visible
                         },
                         CloseButtonText = Resources.CloseButton,
-                        PrimaryButtonText = Resources.CopyToClipboardButton,
-                        PrimaryButtonCommand = ReactiveCommand.Create(async () =>
+                        PrimaryButtonText = Resources.CopyLinkButton,
+                        PrimaryButtonCommand = ReactiveCommand.Create(async () => { await CopyLink(text); }),
+                        SecondaryButtonText = Resources.CopyToClipboardButton,
+                        SecondaryButtonCommand = ReactiveCommand.Create(async () =>
                         {
                             await Application.Current!.Clipboard!.SetTextAsync(text);
                             ShowNotification(Resources.CopiedToClipboardHeader, Resources.ExceptionCopiedToClipboard,
@@ -285,6 +294,24 @@ public class MainWindowViewModel : ViewModelBase
                     dialog.ShowAsync();
                 }));
         });
+    }
+
+    private async Task CopyLink(string text)
+    {
+        try
+        {
+            var link = await GeneralUtils.CreatePasteAsync(text);
+            await Application.Current!.Clipboard!.SetTextAsync(link);
+            ShowNotification(Resources.CopiedToClipboardHeader,
+                Resources.LinkCopiedToClipboard,
+                NotificationType.Success);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error creating paste");
+            ShowNotification("Error", Resources.CouldntCreateLink, NotificationType.Error,
+                TimeSpan.FromSeconds(5));
+        }
     }
 
     private IObservable<Unit> ShowAuthHelpDialogImpl()
