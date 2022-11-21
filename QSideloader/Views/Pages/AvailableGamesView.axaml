@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:QSideloader.ViewModels"
              xmlns:views="clr-namespace:QSideloader.Views"
-             xmlns:utilities="clr-namespace:QSideloader.Utilities"
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
              xmlns:p="clr-namespace:QSideloader.Properties"
              xmlns:converters="clr-namespace:QSideloader.Converters"

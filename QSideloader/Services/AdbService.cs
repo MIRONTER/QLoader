@@ -343,7 +343,6 @@ public class AdbService
             }
             catch (Exception e)
             {
-                // TODO: handle failures
                 Log.Error(e, "Failed to start ADB server");
                 Globals.ShowErrorNotification(e, Resources.FailedToStartAdbServer);
                 throw new AdbServiceException("Failed to start ADB server", e);
@@ -1633,6 +1632,7 @@ public class AdbService
             Log.Information("Backing up {PackageName}", packageName);
             using var op = Operation.Begin("Backing up {PackageName}", packageName);
             var backupPath = Path.Combine(_sideloaderSettings.BackupsLocation,
+                // ReSharper disable once StringLiteralTypo
                 $"{DateTime.Now.ToString("yyyyMMddTHHmmss", CultureInfo.InvariantCulture)}_{packageName}");
             if (!string.IsNullOrEmpty(options.NameAppend))
                 backupPath += $"_{options.NameAppend}";
