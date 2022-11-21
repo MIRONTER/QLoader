@@ -23,6 +23,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using FluentAvalonia.UI.Controls;
+using Newtonsoft.Json;
 using QSideloader.Converters;
 using QSideloader.Models;
 using QSideloader.Properties;
@@ -158,6 +159,22 @@ public class MainWindowViewModel : ViewModelBase
                     var dirName = Path.GetFileName(fileName);
                     var game = new Game(dirName, dirName);
                     AddTask(new TaskOptions {Type = TaskType.Restore, Game = game, Path = fileName});
+                }
+
+                if (Directory.EnumerateFiles(fileName, "release.json", SearchOption.TopDirectoryOnly).Any())
+                {
+                    Log.Debug("Dropped folder {FileName} contains release.json", fileName);
+                    try
+                    {
+                        var game = JsonConvert.DeserializeObject<Game>(
+                            File.ReadAllText(Path.Combine(fileName, "release.json")));
+                        AddTask(new TaskOptions {Type = TaskType.InstallOnly, Game = game, Path = fileName});
+                        continue;
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, "Failed to parse release.json in {FileName}. Ignoring", fileName);
+                    }
                 }
 
                 if (Directory.EnumerateFiles(fileName, "*.apk", SearchOption.TopDirectoryOnly).Any())

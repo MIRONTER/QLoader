@@ -44,15 +44,15 @@ public class Game : INotifyPropertyChanged
         PackageName = packageName;
     }
 
-    [FieldTrim(TrimMode.Right)] public string? GameName { get; protected set; }
-    public string? ReleaseName { get; protected set; }
-    public string? PackageName { get; protected set; }
-    public int VersionCode { get; protected set; }
+    [FieldTrim(TrimMode.Right)] public string? GameName { get; set; }
+    public string? ReleaseName { get; set; }
+    public string? PackageName { get; set; }
+    public int VersionCode { get; set; }
 
     [FieldConverter(ConverterKind.Date, "yyyy-MM-dd HH:mm UTC", "en")]
-    public DateTime LastUpdated { get; protected set; }
+    public DateTime LastUpdated { get; set; }
 
-    public int GameSize { get; protected set; }
+    public int GameSize { get; set; }
 
     [FieldHidden]
     [JsonIgnore]
