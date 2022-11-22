@@ -319,6 +319,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             var link = await GeneralUtils.CreatePasteAsync(text);
             await Application.Current!.Clipboard!.SetTextAsync(link);
+            Log.Information("Copied link to clipboard: {Link}", link);
             ShowNotification(Resources.CopiedToClipboardHeader,
                 Resources.LinkCopiedToClipboard,
                 NotificationType.Success);
