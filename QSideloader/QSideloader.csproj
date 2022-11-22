@@ -48,6 +48,12 @@
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
             <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
         </Content>
+        <!-- Include icon for desktop entry on Linux -->
+        <Content Condition="$(RuntimeIdentifier.Contains('linux')) Or '$(RuntimeIdentifier)'==''" Include="Assets\ffa-logo.png">
+            <Link>Loader.png</Link>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        </Content>
     </ItemGroup>
     <ItemGroup>
         <!--This helps with theme dll-s trimming.
