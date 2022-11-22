@@ -729,4 +729,7 @@
     <data name="CouldntCreateLink" xml:space="preserve">
         <value>Не удалось создать ссылку</value>
     </data>
+    <data name="SkipBackup" xml:space="preserve">
+        <value>Пропустить рез. копирование</value>
+    </data>
 </root>

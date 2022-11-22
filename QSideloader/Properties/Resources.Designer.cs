@@ -1891,6 +1891,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Skip backup.
+        /// </summary>
+        public static string SkipBackup {
+            get {
+                return ResourceManager.GetString("SkipBackup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Status.
         /// </summary>
         public static string StatusHeader {

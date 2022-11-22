@@ -736,4 +736,7 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="CouldntCreateLink" xml:space="preserve">
         <value>Couldn't create link</value>
     </data>
+    <data name="SkipBackup" xml:space="preserve">
+        <value>Skip backup</value>
+    </data>
 </root>

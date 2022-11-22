@@ -66,6 +66,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] public bool MultiSelectEnabled { get; set; } = true;
     [Reactive] public bool ManualBackupAppFiles { get; set; } = true;
     [Reactive] public bool ManualBackupData { get; set; } = true;
+    [Reactive] public bool SkipAutoBackup { get; set; }
     public ViewModelActivator Activator { get; }
 
     private IObservable<Unit> RefreshImpl(bool rescanGames = false)
@@ -185,6 +186,8 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
+            var skipBackup = SkipAutoBackup;
+            SkipAutoBackup = false;
             if (!_adbService.CheckDeviceConnectionSimple())
             {
                 Log.Warning("InstalledGamesViewModel.UninstallImpl: no device connection!");
@@ -204,8 +207,19 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
-                Globals.MainWindowViewModel!.AddTask(new TaskOptions
-                    {Type = TaskType.BackupAndUninstall, Game = game, BackupOptions = new BackupOptions()});
+                if (skipBackup)
+                {
+                    Globals.MainWindowViewModel!.AddTask(new TaskOptions
+                        {Type = TaskType.Uninstall, Game = game});
+                }
+                else
+                {
+                    Globals.MainWindowViewModel!.AddTask(new TaskOptions
+                    {
+                        Type = TaskType.BackupAndUninstall, Game = game,
+                        BackupOptions = new BackupOptions {BackupData = true, BackupApk = false, BackupObb = false}
+                    });
+                }
             }
         });
     }
