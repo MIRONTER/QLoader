@@ -53,7 +53,12 @@ public class DownloaderService
         {
             Proxy = WebRequest.DefaultWebProxy
         };
-        ApiHttpClient = new HttpClient(httpClientHandler) {BaseAddress = new Uri(ApiUrl)};
+        HttpClient = new HttpClient(httpClientHandler);
+        var apiHttpClientHandler = new HttpClientHandler
+        {
+            Proxy = WebRequest.DefaultWebProxy
+        };
+        ApiHttpClient = new HttpClient(apiHttpClientHandler) {BaseAddress = new Uri(ApiUrl)};
         var appName = Program.Name;
         var appVersion = Assembly.GetExecutingAssembly().GetName().Version;
         var appVersionString = appVersion is not null
@@ -89,7 +94,7 @@ public class DownloaderService
                                            GameListSemaphoreSlim.CurrentCount > 0;
 
     private bool IsMirrorListInitialized { get; set; }
-    private static HttpClient HttpClient { get; } = new();
+    private static HttpClient HttpClient { get; }
     private static HttpClient ApiHttpClient { get; }
 
     /// <summary>
