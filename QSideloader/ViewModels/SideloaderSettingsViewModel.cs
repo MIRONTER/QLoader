@@ -428,12 +428,12 @@ public class SideloaderSettingsViewModel : ViewModelBase
 
     private IObservable<Unit> SwitchMirrorImpl()
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
             if (MirrorSelectionRefreshSemaphoreSlim.CurrentCount == 0) return;
             var downloaderService = DownloaderService.Instance;
             if (SelectedMirror == downloaderService.MirrorName || SelectedMirror is null) return;
-            downloaderService.TryManualSwitchMirror(SelectedMirror);
+            await downloaderService.TryManualSwitchMirrorAsync(SelectedMirror);
             RefreshMirrorSelection();
         });
     }

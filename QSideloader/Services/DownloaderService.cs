@@ -217,7 +217,7 @@ public class DownloaderService
             }
         }
 
-        throw new Exception();
+        throw new DownloaderServiceException("Unexpected error while executing rclone command");
     }
 
     /// <summary>
@@ -351,7 +351,7 @@ public class DownloaderService
     /// <returns>
     ///     <c>true</c> if switched successfully, <c>false</c> otherwise.
     /// </returns>
-    public bool TryManualSwitchMirror(string mirrorName)
+    public async Task<bool> TryManualSwitchMirrorAsync(string mirrorName)
     {
         if (!_mirrorList.Contains(mirrorName))
         {
@@ -369,7 +369,7 @@ public class DownloaderService
         Log.Information("Switched to mirror: {MirrorName} (user request)", MirrorName);
         try
         {
-            EnsureMetadataAvailableAsync(true).GetAwaiter().GetResult();
+            await EnsureMetadataAvailableAsync(true);
             return true;
         }
         catch
