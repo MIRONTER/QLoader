@@ -61,7 +61,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             Log.Error(ex, "Failed to switch mirror");
             Globals.ShowErrorNotification(ex, Resources.FailedToSwitchMirror);
         });
-        ReloadMirrorList = ReactiveCommand.CreateFromObservable(ReloadMirrorListImpl);
+        ReloadMirrorList = ReactiveCommand.CreateFromTask(ReloadMirrorListImpl);
         var isSwitchingMirrorCombined =
             SwitchMirror.IsExecuting.CombineLatest(ReloadMirrorList.IsExecuting, (a, b) => a || b);
         isSwitchingMirrorCombined.ToProperty(this, x => x.IsSwitchingMirror, out _isSwitchingMirror, false,
@@ -438,23 +438,20 @@ public class SideloaderSettingsViewModel : ViewModelBase
         });
     }
 
-    private IObservable<Unit> ReloadMirrorListImpl()
+    private async Task ReloadMirrorListImpl()
     {
-        return Observable.Start(() =>
+        if (MirrorSelectionRefreshSemaphoreSlim.CurrentCount == 0) return;
+        try
         {
-            if (MirrorSelectionRefreshSemaphoreSlim.CurrentCount == 0) return;
-            try
-            {
-                DownloaderService.Instance.ReloadMirrorList();
-            }
-            catch
-            {
-                Globals.ShowNotification(Resources.Error, Resources.FailedToReloadMirrorList, NotificationType.Error,
-                    TimeSpan.FromSeconds(10));
-            }
+            await DownloaderService.Instance.ReloadMirrorListAsync();
+        }
+        catch
+        {
+            Globals.ShowNotification(Resources.Error, Resources.FailedToReloadMirrorList, NotificationType.Error,
+                TimeSpan.FromSeconds(10));
+        }
 
-            RefreshMirrorSelection();
-        });
+        RefreshMirrorSelection();
     }
 
     private IObservable<Unit> InstallTrailersAddonImpl()

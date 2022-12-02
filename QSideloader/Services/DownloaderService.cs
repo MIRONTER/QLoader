@@ -105,9 +105,7 @@ public class DownloaderService
         await RcloneConfigSemaphoreSlim.WaitAsync();
         try
         {
-            EnsureMirrorSelected();
-            if (MirrorListContainsVip(MirrorList))
-                return;
+            await EnsureMirrorSelectedAsync();
             var localMirrorList = _mirrorList.ToList();
             Log.Information("Updating rclone config");
             while (true)
@@ -115,7 +113,7 @@ public class DownloaderService
                 if (await TryDownloadConfigAsync())
                 {
                     Log.Information("Rclone config updated from {MirrorName}", MirrorName);
-                    ReloadMirrorList(true);
+                    await ReloadMirrorListAsync(true);
                     return;
                 }
 
@@ -162,7 +160,7 @@ public class DownloaderService
     /// </summary>
     private async Task UpdateResourcesAsync()
     {
-        EnsureMirrorSelected();
+        await EnsureMirrorSelectedAsync();
         Log.Information("Starting resource update in background");
 
         try
@@ -190,23 +188,53 @@ public class DownloaderService
             Log.Error(e, "Failed to update resources");
         }
     }
+    
+    private static async Task<BufferedCommandResult> ExecuteRcloneCommandAsync(string arguments, CancellationToken ct = default)
+    {
+        var proxy = GeneralUtils.GetDefaultProxyHostPort();
+        var command = Cli.Wrap(PathHelper.RclonePath)
+            .WithArguments(arguments);
+        if (proxy is not null)
+        {
+            Log.Debug("Using proxy {Host}:{Port}", proxy.Value.host, proxy.Value.port);
+            command = command.WithEnvironmentVariables(env => env
+                .Set("http_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}")
+                .Set("https_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}"));
+        }
+
+        try
+        {
+            var result = await command.ExecuteBufferedAsync(ct);
+            return result;
+        }
+        catch (CommandExecutionException e)
+        {
+            if (e.Message.Contains("Could not verify HWID"))
+            {
+                var ex = new HwidCheckFailedException(e);
+                Globals.ShowErrorNotification(ex, Resources.CouldntVerifyVip);
+                throw ex;
+            }
+        }
+
+        throw new Exception();
+    }
 
     /// <summary>
     ///     Gets the list of rclone mirrors.
     /// </summary>
     /// <returns><see cref="List{T}" /> of mirrors.</returns>
-    private static List<string> GetMirrorList()
+    private static async Task<List<string>> GetMirrorListAsync()
     {
         // regex pattern to parse mirror names from rclone output
         const string mirrorPattern = @"(FFA-\d+):";
         List<string> mirrorList = new();
-        var result = Cli.Wrap(PathHelper.RclonePath)
-            .WithArguments("listremotes")
-            .ExecuteBufferedAsync()
-            .GetAwaiter().GetResult();
+
+        var result = await ExecuteRcloneCommandAsync("listremotes");
         var matches = Regex.Matches(result.StandardOutput, mirrorPattern);
         foreach (Match match in matches) mirrorList.Add(match.Groups[1].ToString());
-        if (!MirrorListContainsVip(mirrorList)) return mirrorList;
+        return mirrorList;
+        /*if (!MirrorListContainsVip(mirrorList)) return mirrorList;
         if (CheckVipAccess())
         {
             Log.Information("Verified VIP access");
@@ -214,7 +242,7 @@ public class DownloaderService
         }
 
         Globals.ShowNotification("Error", Resources.CouldntVerifyVip, NotificationType.Error, TimeSpan.Zero);
-        throw new DownloaderServiceException("Couldn't verify VIP access");
+        throw new DownloaderServiceException("Couldn't verify VIP access");*/
     }
 
     private static bool MirrorListContainsVip(IEnumerable<string> mirrorList)
@@ -272,7 +300,7 @@ public class DownloaderService
     ///     Resets and reloads the mirror list.
     /// </summary>
     /// <param name="keepExcluded">Should not reset excluded mirrors list</param>
-    public void ReloadMirrorList(bool keepExcluded = false)
+    public async Task ReloadMirrorListAsync(bool keepExcluded = false)
     {
         // Reinitialize the mirror list with the new config and reselect mirror, if needed
         using var op = Operation.Time("Reloading mirror list");
@@ -280,11 +308,11 @@ public class DownloaderService
         _mirrorList = new List<string>();
         if (!keepExcluded)
             ExcludedMirrorList = new List<string>();
-        EnsureMirrorListInitialized();
+        await EnsureMirrorListInitializedAsync();
         if (_mirrorList.Contains(MirrorName)) return;
         Log.Information("Mirror {MirrorName} not found in new mirror list", MirrorName);
         MirrorName = "";
-        EnsureMirrorSelected();
+        await EnsureMirrorSelectedAsync();
     }
 
     /// <summary>
@@ -374,12 +402,12 @@ public class DownloaderService
     /// <summary>
     ///     Ensures that a mirror is selected.
     /// </summary>
-    private void EnsureMirrorSelected()
+    private async Task EnsureMirrorSelectedAsync()
     {
-        MirrorListSemaphoreSlim.Wait();
+        await MirrorListSemaphoreSlim.WaitAsync();
         try
         {
-            EnsureMirrorListInitialized();
+            await EnsureMirrorListInitializedAsync();
 
             if (!string.IsNullOrEmpty(MirrorName)) return;
             SwitchMirror();
@@ -394,7 +422,7 @@ public class DownloaderService
     ///     Ensures that the mirror list is initialized.
     /// </summary>
     /// <exception cref="DownloaderServiceException">Thrown if failed to load mirror list.</exception>
-    private void EnsureMirrorListInitialized()
+    private async Task EnsureMirrorListInitializedAsync()
     {
         if (IsMirrorListInitialized) return;
         try
@@ -406,7 +434,7 @@ public class DownloaderService
             Log.Warning(e, "Failed to exclude dead mirrors");
         }
 
-        var mirrorList = GetMirrorList();
+        var mirrorList = await GetMirrorListAsync();
         _mirrorList = mirrorList.Where(x => !ExcludedMirrorList.Contains(x)).ToList();
         Log.Debug("Loaded mirrors: {MirrorList}", _mirrorList);
         if (mirrorList.Count == 0)
@@ -437,7 +465,7 @@ public class DownloaderService
     {
         await RcloneConfigSemaphoreSlim.WaitAsync(ct);
         RcloneConfigSemaphoreSlim.Release();
-        EnsureMirrorSelected();
+        await EnsureMirrorSelectedAsync();
         source = $"{MirrorName}:{source}";
         await RcloneTransferInternalAsync(source, destination, operation, additionalArgs, retries, ct);
     }
@@ -464,19 +492,9 @@ public class DownloaderService
             var bwLimit = !string.IsNullOrEmpty(_sideloaderSettings.DownloaderBandwidthLimit)
                 ? $"--bwlimit {_sideloaderSettings.DownloaderBandwidthLimit}"
                 : "";
-            var proxy = GeneralUtils.GetDefaultProxyHostPort();
-            var command = Cli.Wrap(PathHelper.RclonePath)
-                .WithArguments(
-                    $"{operation} --retries {retries} {bwLimit} \"{source}\" \"{destination}\" {additionalArgs}");
-            if (proxy is not null)
-            {
-                Log.Debug("Using proxy {Host}:{Port}", proxy.Value.host, proxy.Value.port);
-                command = command.WithEnvironmentVariables(env => env
-                    .Set("http_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}")
-                    .Set("https_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}"));
-            }
 
-            await command.ExecuteBufferedAsync(ct);
+            await ExecuteRcloneCommandAsync(
+                $"{operation} --retries {retries} {bwLimit} \"{source}\" \"{destination}\" {additionalArgs}", ct);
             op.Complete();
         }
         catch (Exception e)
@@ -529,7 +547,7 @@ public class DownloaderService
             await Task.Delay(100);
         try
         {
-            EnsureMirrorSelected();
+            await EnsureMirrorSelectedAsync();
 
             var csvEngine = new FileHelperEngine<Game>();
             if (AvailableGames is not null && !refresh)
@@ -995,19 +1013,8 @@ public class DownloaderService
     {
         await RcloneConfigSemaphoreSlim.WaitAsync(ct);
         RcloneConfigSemaphoreSlim.Release();
-        var proxy = GeneralUtils.GetDefaultProxyHostPort();
-        var command = Cli.Wrap(PathHelper.RclonePath)
-            .WithArguments(
-                $"size \"{remotePath}\" --fast-list --json");
-        if (proxy is not null)
-        {
-            Log.Debug("Using proxy {Host}:{Port}", proxy.Value.host, proxy.Value.port);
-            command = command.WithEnvironmentVariables(env => env
-                .Set("http_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}")
-                .Set("https_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}"));
-        }
 
-        var result = await command.ExecuteBufferedAsync(ct);
+        var result = await ExecuteRcloneCommandAsync($"size \"{remotePath}\" --fast-list --json", ct);
         return result.StandardOutput;
     }
 
@@ -1018,7 +1025,7 @@ public class DownloaderService
         {
             await RcloneConfigSemaphoreSlim.WaitAsync(ct);
             RcloneConfigSemaphoreSlim.Release();
-            EnsureMirrorSelected();
+            await EnsureMirrorSelectedAsync();
             var remotePath = $"{MirrorName}:Quest Games/{game.ReleaseName}";
             var sizeJson = await RcloneGetRemoteSizeJson(remotePath, ct);
             var dict = JsonConvert.DeserializeObject<Dictionary<string, long>>(sizeJson);
@@ -1101,6 +1108,14 @@ public class NoMirrorsAvailableException : DownloaderServiceException
         : base(session
             ? $"No mirrors available for this session ({excludedCount} excluded)"
             : $"No mirrors available for this download ({excludedCount} excluded)")
+    {
+    }
+}
+
+public class HwidCheckFailedException : DownloaderServiceException
+{
+    public HwidCheckFailedException(Exception inner)
+        : base("Rclone returned HWID check error.", inner)
     {
     }
 }
