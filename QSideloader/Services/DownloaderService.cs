@@ -209,15 +209,11 @@ public class DownloaderService
         }
         catch (CommandExecutionException e)
         {
-            if (e.Message.Contains("Could not verify HWID"))
-            {
-                var ex = new HwidCheckFailedException(e);
-                Globals.ShowErrorNotification(ex, Resources.CouldntVerifyVip);
-                throw ex;
-            }
+            if (!e.Message.Contains("Could not verify HWID")) throw;
+            var ex = new HwidCheckFailedException(e);
+            Globals.ShowErrorNotification(ex, Resources.CouldntVerifyVip);
+            throw ex;
         }
-
-        throw new DownloaderServiceException("Unexpected error while executing rclone command");
     }
 
     /// <summary>
