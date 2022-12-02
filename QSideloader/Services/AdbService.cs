@@ -1091,6 +1091,9 @@ public class AdbService
             var tupleList = InstalledApps.Select(g => (g.Name, g.PackageName)).ToList();
             Log.Debug("Found {Count} installed apps on {Device}: {InstalledApps}", InstalledApps.Count,
                 this, tupleList);
+            var donatableApps = InstalledApps.Where(a => !a.IsHiddenFromDonation).Select(a => (a.Name, a.DonationStatus))
+                .ToList();
+            Log.Debug("Donatable apps on {Device}: {DonatableApps}", this, donatableApps);
             op.Complete();
         }
 
