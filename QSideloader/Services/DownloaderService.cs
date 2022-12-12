@@ -188,33 +188,6 @@ public class DownloaderService
             Log.Error(e, "Failed to update resources");
         }
     }
-    
-    private static async Task<BufferedCommandResult> ExecuteRcloneCommandAsync(string arguments, CancellationToken ct = default)
-    {
-        var proxy = GeneralUtils.GetDefaultProxyHostPort();
-        var command = Cli.Wrap(PathHelper.RclonePath)
-            .WithArguments(arguments);
-        if (proxy is not null)
-        {
-            Log.Debug("Using proxy {Host}:{Port}", proxy.Value.host, proxy.Value.port);
-            command = command.WithEnvironmentVariables(env => env
-                .Set("http_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}")
-                .Set("https_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}"));
-        }
-
-        try
-        {
-            var result = await command.ExecuteBufferedAsync(ct);
-            return result;
-        }
-        catch (CommandExecutionException e)
-        {
-            if (!e.Message.Contains("Could not verify HWID")) throw;
-            var ex = new HwidCheckFailedException(e);
-            Globals.ShowErrorNotification(ex, Resources.CouldntVerifyVip);
-            throw ex;
-        }
-    }
 
     /// <summary>
     ///     Gets the list of rclone mirrors.
@@ -490,7 +463,8 @@ public class DownloaderService
                 : "";
 
             await ExecuteRcloneCommandAsync(
-                $"{operation} --retries {retries} {bwLimit} \"{source}\" \"{destination}\" {additionalArgs}", ct);
+                $"{operation} --retries {retries} {bwLimit} \"{source}\" \"{destination}\" {additionalArgs}",
+                ct);
             op.Complete();
         }
         catch (Exception e)
@@ -521,6 +495,40 @@ public class DownloaderService
 
             op.SetException(e);
             throw new DownloaderServiceException($"Error executing rclone {operation}", e);
+        }
+    }
+    
+    /// <summary>
+    /// Calls rclone executable with given arguments.
+    /// </summary>
+    /// <param name="arguments">Arguments to pass to rclone.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns><see cref="BufferedCommandResult"/> of rclone command.</returns>
+    /// <exception cref="HwidCheckFailedException">Thrown if rclone returned hwid verification error.</exception>
+    private static async Task<BufferedCommandResult> ExecuteRcloneCommandAsync(string arguments, CancellationToken ct = default)
+    {
+        var proxy = GeneralUtils.GetDefaultProxyHostPort();
+        var command = Cli.Wrap(PathHelper.RclonePath)
+            .WithArguments(arguments);
+        if (proxy is not null)
+        {
+            Log.Debug("Using proxy {Host}:{Port}", proxy.Value.host, proxy.Value.port);
+            command = command.WithEnvironmentVariables(env => env
+                .Set("http_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}")
+                .Set("https_proxy", $"http://{proxy.Value.host}:{proxy.Value.port}"));
+        }
+
+        try
+        {
+            var result = await command.ExecuteBufferedAsync(ct);
+            return result;
+        }
+        catch (CommandExecutionException e)
+        {
+            if (!e.Message.Contains("Could not verify HWID")) throw;
+            var ex = new HwidCheckFailedException(e);
+            Globals.ShowErrorNotification(ex, Resources.CouldntVerifyVip);
+            throw ex;
         }
     }
 
