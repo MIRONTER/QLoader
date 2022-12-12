@@ -219,32 +219,6 @@ public class DownloaderService
         return mirrorList.Any(x => Regex.IsMatch(x, @"FFA-9."));
     }
 
-    private static bool CheckVipAccess()
-    {
-        var registeredHwidsResponse = HttpClient.GetAsync("https://github.com/harryeffinpotter/-Loader/raw/main/HWIDS")
-            .GetAwaiter().GetResult();
-        if (!registeredHwidsResponse.IsSuccessStatusCode)
-        {
-            Log.Error("Failed to get list of registered HWIDs: {StatusCode} {ReasonPhrase}",
-                registeredHwidsResponse.StatusCode, registeredHwidsResponse.ReasonPhrase);
-            return false;
-        }
-
-        try
-        {
-            var registeredHwidsRaw = registeredHwidsResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-            var registeredHwids = registeredHwidsRaw.Split("\n").Select(x => x.Split(";")[0]);
-            var hwid = GeneralUtils.GetHwid(true);
-            return registeredHwids.Any(x => x == hwid);
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "Failed to parse list of registered HWIDs");
-        }
-
-        return false;
-    }
-
     /// <summary>
     ///     Requests the lists of dead mirrors from API and excludes them.
     /// </summary>
