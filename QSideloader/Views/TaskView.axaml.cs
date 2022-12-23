@@ -56,10 +56,10 @@ public class TaskView : ReactiveUserControl<TaskViewModel>
     private void TaskView_OnPointerEnter(object? sender, PointerEventArgs e)
     {
         var border = this.Get<Border>("Border");
-        var downloadStatsText = this.Get<TextBlock>("DownloadStatsText");
+        var taskProgressTextBlock = this.Get<TextBlock>("TaskProgressText");
         var hintText = this.Get<TextBlock>("HintText");
         border.Background = new SolidColorBrush(0x1F1F1F);
-        downloadStatsText.IsVisible = false;
+        taskProgressTextBlock.IsVisible = false;
         hintText.IsVisible = true;
     }
 
@@ -67,7 +67,7 @@ public class TaskView : ReactiveUserControl<TaskViewModel>
     private void TaskView_OnPointerLeave(object? sender, PointerEventArgs e)
     {
         var border = this.Get<Border>("Border");
-        var downloadStatsText = this.Get<TextBlock>("DownloadStatsText");
+        var downloadStatsText = this.Get<TextBlock>("TaskProgressText");
         var hintText = this.Get<TextBlock>("HintText");
         border.Background = new SolidColorBrush(0x2C2C2C);
         downloadStatsText.IsVisible = true;

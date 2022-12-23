@@ -1240,9 +1240,9 @@ public class AdbService
         /// <param name="gamePath">Path to game files.</param>
         /// <param name="ct">Cancellation token.</param>
         /// <returns><see cref="IObservable{T}" /> that reports current status.</returns>
-        public IObservable<string> SideloadGame(Game game, string gamePath, CancellationToken ct = default)
+        public IObservable<(string status, string? progress)> SideloadGame(Game game, string gamePath, CancellationToken ct = default)
         {
-            return Observable.Create<string>(observer =>
+            return Observable.Create<(string status, string? progress)>(observer =>
             {
                 using var op = Operation.At(LogEventLevel.Information, LogEventLevel.Error)
                     .Begin("Sideloading game {GameName}", game.GameName ?? "Unknown");
@@ -1258,7 +1258,6 @@ public class AdbService
                     {
                         if (gamePath.EndsWith(".apk"))
                         {
-                            observer.OnNext(Resources.InstallingApk);
                             InstallApk(observer, gamePath);
                         }
                         else
@@ -1281,7 +1280,7 @@ public class AdbService
 
                         if (File.Exists(installScriptPath))
                         {
-                            observer.OnNext(Resources.PerformingCustomInstall);
+                            observer.OnNext((Resources.PerformingCustomInstall, null));
                             var installScriptName = Path.GetFileName(installScriptPath);
                             Log.Information("Running commands from {InstallScriptName}", installScriptName);
                             RunInstallScript(installScriptPath, ct);
@@ -1291,7 +1290,6 @@ public class AdbService
                         {
                             foreach (var apkPath in Directory.EnumerateFiles(gamePath, "*.apk"))
                             {
-                                observer.OnNext(Resources.InstallingApk);
                                 InstallApk(observer, apkPath);
                             }
 
@@ -1300,7 +1298,7 @@ public class AdbService
                             {
                                 Log.Information("Found OBB directory for {PackageName}, pushing to device",
                                     game.PackageName);
-                                observer.OnNext(Resources.PushingObbFiles);
+                                observer.OnNext((Resources.PushingObbFiles, null));
                                 PushDirectory(Path.Combine(gamePath, game.PackageName), "/sdcard/Android/obb/", true,
                                     ct);
                             }
@@ -1319,7 +1317,7 @@ public class AdbService
                         Log.Information(e is OperationCanceledException
                             ? "Cleaning up cancelled install"
                             : "Cleaning up failed install");
-                        observer.OnNext(Resources.CleaningUp);
+                        observer.OnNext((Resources.CleaningUp, null));
                         CleanupRemnants(game.PackageName);
                     }
 
@@ -1338,24 +1336,35 @@ public class AdbService
                 return Disposable.Empty;
             });
 
-            void InstallApk(IObserver<string> observer, string apkPath)
+            void InstallApk(IObserver<(string status, string? progress)> observer, string apkPath)
             {
                 try
                 {
-                    InstallPackage(apkPath, false, true, ct);
+                    observer.OnNext((Resources.InstallingApk, null));
+                    var progress = new Progress<int>();
+                    progress.ProgressChanged += (_, args) =>
+                    {
+                        observer.OnNext((Resources.InstallingApk, args + "%"));
+                    };
+                    InstallPackage(apkPath, false, true, progress, ct);
                 }
                 catch (PackageInstallationException e)
                 {
                     if (e.Message.Contains("INSTALL_FAILED_UPDATE_INCOMPATIBLE") ||
                         e.Message.Contains("INSTALL_FAILED_VERSION_DOWNGRADE"))
                     {
-                        observer.OnNext(Resources.IncompatibleUpdateReinstalling);
+                        observer.OnNext((Resources.IncompatibleUpdateReinstalling, null));
                         Log.Information("Incompatible update, reinstalling. Reason: {Message}", e.Message);
                         var apkInfo = GeneralUtils.GetApkInfo(apkPath);
                         var backup = CreateBackup(apkInfo.PackageName, new BackupOptions {NameAppend = "reinstall"},
                             ct);
                         UninstallPackageInternal(apkInfo.PackageName);
-                        InstallPackage(apkPath, false, true, ct);
+                        var progress = new Progress<int>();
+                        progress.ProgressChanged += (_, args) =>
+                        {
+                            observer.OnNext((Resources.IncompatibleUpdateReinstalling, args + "%"));
+                        };
+                        InstallPackage(apkPath, false, true, progress, ct);
                         if (backup is not null)
                             RestoreBackup(backup);
                     }
@@ -1407,7 +1416,7 @@ public class AdbService
                                 var reinstall = args.Contains("-r");
                                 var grantRuntimePermissions = args.Contains("-g");
                                 var apkPath = Path.Combine(gamePath, args.First(x => x.EndsWith(".apk")));
-                                InstallPackage(apkPath, reinstall, grantRuntimePermissions, ct);
+                                InstallPackage(apkPath, reinstall, grantRuntimePermissions, null, ct);
                                 break;
                             }
                             case "uninstall":
@@ -1532,9 +1541,10 @@ public class AdbService
         /// <param name="apkPath">Path to APK file.</param>
         /// <param name="reinstall">Set reinstall flag for pm.</param>
         /// <param name="grantRuntimePermissions">Grant all runtime permissions.</param>
+        /// <param name="progress">An optional parameter which, when specified, returns progress notifications. The progress is reported as a value between 0 and 100.</param>
         /// <param name="ct">Cancellation token.</param>
         /// <remarks>Legacy install method is used to avoid rare hang issues.</remarks>
-        private void InstallPackage(string apkPath, bool reinstall, bool grantRuntimePermissions,
+        private void InstallPackage(string apkPath, bool reinstall, bool grantRuntimePermissions, IProgress<int>? progress = default,
             CancellationToken ct = default)
         {
             Log.Information("Installing APK: {ApkFileName}", Path.GetFileName(apkPath));
@@ -1547,9 +1557,26 @@ public class AdbService
             // using Stream stream = File.OpenRead(apkPath);
             // Adb.AdbClient.Install(this, stream, args.ToArray());
 
-            // Using legacy PackageManager.InstallPackage method as AdbClient.Install hangs occasionally
-            PackageManager.InstallPackage(apkPath, reinstall, grantRuntimePermissions, ct);
-            Log.Information("Package {ApkFileName} installed", Path.GetFileName(apkPath));
+            progress?.Report(0);
+            
+            var progressHandler = new PackageManager.ProgressHandler((_, args) =>
+            {
+                // Round to int
+                var progressValue = (int) Math.Round(args);
+                progress?.Report(progressValue);
+            });
+            PackageManager.InstallProgressChanged += progressHandler;
+
+            try
+            {
+                // Using legacy PackageManager.InstallPackage method as AdbClient.Install hangs occasionally
+                PackageManager.InstallPackage(apkPath, reinstall, grantRuntimePermissions, ct);
+                Log.Information("Package {ApkFileName} installed", Path.GetFileName(apkPath));
+            }
+            finally
+            {
+                PackageManager.InstallProgressChanged -= progressHandler;
+            }
         }
 
         /// <summary>

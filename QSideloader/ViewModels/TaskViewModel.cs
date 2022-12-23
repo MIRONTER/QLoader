@@ -47,7 +47,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         TaskId = new TaskId();
         TaskName = "TaskName";
         GameName = "GameName";
-        DownloadStats = "DownloadStats";
+        ProgressStatus = "ProgressStatus";
         RunTask = ReactiveCommand.Create(() => { Hint = "Click to cancel"; });
         Activator = new ViewModelActivator();
     }
@@ -163,7 +163,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     public bool IsFinished { get; private set; }
     public string? GameName { get; }
     [Reactive] public string Status { get; private set; } = "Status";
-    [Reactive] public string DownloadStats { get; private set; } = "";
+    [Reactive] public string ProgressStatus { get; private set; } = "";
     [Reactive] public string Hint { get; private set; } = "";
 
     public ViewModelActivator Activator { get; }
@@ -172,7 +172,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     {
         if (stats is null)
         {
-            DownloadStats = "";
+            ProgressStatus = "";
             return;
         }
 
@@ -185,7 +185,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             progressPercent = Math.Floor(stats.Value.downloadedBytes / (double) _gameSizeBytes * 100);
             if (progressPercent <= 100)
             {
-                DownloadStats = $"{progressPercent}%, {speedMBytes}MB/s";
+                ProgressStatus = $"{progressPercent}%, {speedMBytes}MB/s";
                 return;
             }
         }
@@ -194,7 +194,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         var downloadedMBytes = Math.Round(stats.Value.downloadedBytes / 1000000, 2);
         progressPercent = Math.Min(Math.Floor(downloadedMBytes / _game!.GameSize * 97), 100);
 
-        DownloadStats = $"{progressPercent}%, {speedMBytes}MB/s";
+        ProgressStatus = $"{progressPercent}%, {speedMBytes}MB/s";
     }
 
     private void RefreshDownloadStats((double bytesPerSecond, long downloadedBytes, long totalBytes) stats)
@@ -202,7 +202,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         var speedMBytes = Math.Round(stats.bytesPerSecond / 1000000, 2);
         var progressPercent = Math.Floor((double) stats.downloadedBytes / stats.totalBytes * 100);
 
-        DownloadStats = $"{progressPercent}%, {speedMBytes}MB/s";
+        ProgressStatus = $"{progressPercent}%, {speedMBytes}MB/s";
     }
 
     private async Task RunDownloadAndInstallAsync()
@@ -369,7 +369,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         }
         finally
         {
-            DownloadStats = "";
+            ProgressStatus = "";
             downloadStatsSubscription.Dispose();
             DownloaderService.ReleaseDownloadLock();
         }
@@ -396,7 +396,11 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         _adbDevice!.SideloadGame(_game!, gamePath, _cancellationTokenSource.Token)
             .SubscribeOn(RxApp.TaskpoolScheduler)
             .Subscribe(
-                x => Status = x,
+                x =>
+                {
+                    Status = x.status;
+                    ProgressStatus = x.progress ?? "";
+                },
                 e =>
                 {
                     AdbService.ReleasePackageOperationLock();
@@ -407,6 +411,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 },
                 () =>
                 {
+                    ProgressStatus = "";
                     AdbService.ReleasePackageOperationLock();
                     if (deleteAfterInstall && Directory.Exists(gamePath))
                     {
@@ -419,7 +424,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                         catch (Exception e)
                         {
                             Log.Error(e, "Failed to delete downloaded files");
-                            // Treat as success because the installation is still successful
+                            // Treating as success because the installation is still successful
                             OnFinished(nameof(Resources.FailedToDeleteDownloadedFiles));
                         }
                     }
@@ -497,7 +502,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         }
 
         Status = Resources.Installing;
-        DownloadStats = "";
+        ProgressStatus = "";
         await GeneralUtils.InstallTrailersAddonAsync(_path, true);
         OnFinished(nameof(Resources.InstallSuccess));
     }
@@ -509,7 +514,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         Hint = Resources.ClickToDismiss;
         IsFinished = true;
         Status = Resources.ResourceManager.GetString(statusResourceNameOrString) ?? statusResourceNameOrString;
-        DownloadStats = "";
+        ProgressStatus = "";
         Log.Information("Task {TaskId} {TaskType} {TaskName} finished. Result: {Status}. Is success: {IsSuccess}",
             TaskId, _taskType, TaskName,
             Resources.ResourceManager.GetString(statusResourceNameOrString, CultureInfo.InvariantCulture)
