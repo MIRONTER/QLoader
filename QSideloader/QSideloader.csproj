@@ -11,10 +11,10 @@
         <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
         <NeutralLanguage>en</NeutralLanguage>
         <AssemblyName>Loader</AssemblyName>
-        <AssemblyVersion>0.2.7.1</AssemblyVersion>
-        <InformationalVersion>v0.2.7-hotfix1</InformationalVersion>
+        <AssemblyVersion>0.2.7.99</AssemblyVersion>
+        <InformationalVersion>v0.2.8-dev</InformationalVersion>
         <IsPackable>false</IsPackable>
-        <Company>FFA</Company>
+        <Company>skrimix</Company>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <ApplicationIcon>Assets\ffa-logo.ico</ApplicationIcon>
     </PropertyGroup>
