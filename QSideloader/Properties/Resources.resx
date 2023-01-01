@@ -739,4 +739,7 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="SkipBackup" xml:space="preserve">
         <value>Skip backup</value>
     </data>
+    <data name="ClickToSeeDetails" xml:space="preserve">
+        <value>Click to see details</value>
+    </data>
 </root>

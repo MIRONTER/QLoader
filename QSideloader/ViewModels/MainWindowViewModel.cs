@@ -278,7 +278,7 @@ public class MainWindowViewModel : ViewModelBase
         var osVersion = Environment.OSVersion.VersionString;
         var environment = $"App Version: {appVersionString}\nOS: {osName} {osVersion}";
         var text = message + "\n\n" + filteredException + "\n\n" + environment;
-        message += "\nClick to see details";
+        message += "\n" + Resources.ClickToSeeDetails;
         Dispatcher.UIThread.InvokeAsync(() =>
         {
             _notificationManager.Show(new Avalonia.Controls.Notifications.Notification(Resources.Error, message,

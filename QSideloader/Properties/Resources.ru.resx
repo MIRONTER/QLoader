@@ -382,7 +382,7 @@
         <value>Очистка</value>
     </data>
     <data name="ClickToCancel" xml:space="preserve">
-        <value>Кликните чтобы отменить</value>
+        <value>Кликните для отмены</value>
     </data>
     <data name="ClickToDismiss" xml:space="preserve">
         <value>Кликните чтобы убрать</value>
@@ -731,5 +731,8 @@
     </data>
     <data name="SkipBackup" xml:space="preserve">
         <value>Пропустить рез. копирование</value>
+    </data>
+    <data name="ClickToSeeDetails" xml:space="preserve">
+        <value>Кликните для получения подробностей</value>
     </data>
 </root>

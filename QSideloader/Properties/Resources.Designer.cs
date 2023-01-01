@@ -459,6 +459,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Click to see details.
+        /// </summary>
+        public static string ClickToSeeDetails {
+            get {
+                return ResourceManager.GetString("ClickToSeeDetails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Close.
         /// </summary>
         public static string CloseButton {
