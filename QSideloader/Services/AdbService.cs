@@ -22,6 +22,7 @@ using Avalonia.Controls.Notifications;
 using CliWrap;
 using CliWrap.Buffered;
 using CliWrap.Exceptions;
+using QSideloader.Exceptions;
 using QSideloader.Models;
 using QSideloader.Properties;
 using QSideloader.Utilities;
@@ -1872,26 +1873,5 @@ public class AdbService
             if (!Regex.IsMatch(packageName, packageNamePattern))
                 throw new ArgumentException("Package name is not valid", nameof(packageName));
         }
-    }
-}
-
-public class AdbServiceException : Exception
-{
-    public AdbServiceException(string message)
-        : base(message)
-    {
-    }
-
-    public AdbServiceException(string message, Exception inner)
-        : base(message, inner)
-    {
-    }
-}
-
-public class PackageNotFoundException : AdbServiceException
-{
-    public PackageNotFoundException(string packageName)
-        : base($"Package {packageName} not found")
-    {
     }
 }

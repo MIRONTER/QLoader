@@ -23,6 +23,7 @@ using CliWrap.Exceptions;
 using Downloader;
 using FileHelpers;
 using Newtonsoft.Json;
+using QSideloader.Exceptions;
 using QSideloader.Models;
 using QSideloader.Properties;
 using QSideloader.Utilities;
@@ -478,7 +479,7 @@ public class DownloaderService
     /// <param name="arguments">Arguments to pass to rclone.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns><see cref="BufferedCommandResult"/> of rclone command.</returns>
-    /// <exception cref="HwidCheckFailedException">Thrown if rclone returned hwid verification error.</exception>
+    /// <exception cref="HwidCheckException">Thrown if rclone returned hwid verification error.</exception>
     private static async Task<BufferedCommandResult> ExecuteRcloneCommandAsync(string arguments, CancellationToken ct = default)
     {
         var proxy = GeneralUtils.GetDefaultProxyHostPort();
@@ -500,7 +501,7 @@ public class DownloaderService
         catch (CommandExecutionException e)
         {
             if (!e.Message.Contains("Could not verify HWID")) throw;
-            var ex = new HwidCheckFailedException(e);
+            var ex = new HwidCheckException(e);
             Globals.ShowErrorNotification(ex, Resources.CouldntVerifyVip);
             throw ex;
         }
@@ -1032,68 +1033,5 @@ public class DownloaderService
             op.SetException(e);
             throw new DownloaderServiceException("Error executing rclone size", e);
         }
-    }
-}
-
-public class DownloaderServiceException : Exception
-{
-    public DownloaderServiceException(string message)
-        : base(message)
-    {
-    }
-
-    public DownloaderServiceException(string message, Exception inner)
-        : base(message, inner)
-    {
-    }
-}
-
-public class DownloadQuotaExceededException : DownloaderServiceException
-{
-    public DownloadQuotaExceededException(string mirrorName, string remotePath, Exception inner)
-        : base($"Quota exceeded on mirror {mirrorName}", inner)
-    {
-        MirrorName = mirrorName;
-        RemotePath = remotePath;
-    }
-
-    public string MirrorName { get; }
-    public string RemotePath { get; }
-}
-
-public class RcloneOperationException : DownloaderServiceException
-{
-    public RcloneOperationException(string message, Exception inner)
-        : base(message, inner)
-    {
-    }
-}
-
-public class NotEnoughSpaceException : DownloaderServiceException
-{
-    public NotEnoughSpaceException(string path, Exception inner)
-        : base($"Not enough disk space on {path}", inner)
-    {
-        Path = path;
-    }
-
-    public string Path { get; }
-}
-
-public class NoMirrorsAvailableException : DownloaderServiceException
-{
-    public NoMirrorsAvailableException(bool session, int excludedCount)
-        : base(session
-            ? $"No mirrors available for this session ({excludedCount} excluded)"
-            : $"No mirrors available for this download ({excludedCount} excluded)")
-    {
-    }
-}
-
-public class HwidCheckFailedException : DownloaderServiceException
-{
-    public HwidCheckFailedException(Exception inner)
-        : base("Rclone returned HWID check error.", inner)
-    {
     }
 }
