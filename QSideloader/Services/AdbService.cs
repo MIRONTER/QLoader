@@ -1102,13 +1102,15 @@ public class AdbService
         /// </summary>
         /// <param name="localPath">Path to a local file.</param>
         /// <param name="remotePath">Remote path to push the file to.</param>
+        /// <param name="progress">An optional parameter which, when specified, returns progress notifications.
+        /// The progress is reported as a value between 0 and 100.</param>
         /// <param name="ct">Cancellation token.</param>
-        private void PushFile(string localPath, string remotePath, CancellationToken ct = default)
+        private void PushFile(string localPath, string remotePath, IProgress<int>? progress = null, CancellationToken ct = default)
         {
             Log.Debug("Pushing file: \"{LocalPath}\" -> \"{RemotePath}\"", localPath, remotePath);
             using var syncService = new SyncService(_adb.AdbClient, this);
             using var file = File.OpenRead(localPath);
-            syncService.Push(file, remotePath, 771, DateTime.Now, null, ct);
+            syncService.Push(file, remotePath, 771, DateTime.Now, progress, ct);
         }
 
         /// <summary>
@@ -1117,9 +1119,10 @@ public class AdbService
         /// <param name="localPath">Path to a local directory.</param>
         /// <param name="remotePath">Remote path to push the directory to.</param>
         /// <param name="overwrite">Pushed directory should fully overwrite existing one (if exists).</param>
+        /// <param name="progress">An optional parameter which, when specified, returns progress notifications.</param>
         /// <param name="ct">Cancellation token.</param>
-        private void PushDirectory(string localPath, string remotePath, bool overwrite = false,
-            CancellationToken ct = default)
+        private void PushDirectory(string localPath, string remotePath, bool overwrite = false, 
+            IProgress<(int totalFiles, int currentFile, int progress)>? progress = null, CancellationToken ct = default)
         {
             if (!remotePath.EndsWith("/"))
                 remotePath += "/";
@@ -1137,11 +1140,17 @@ public class AdbService
                 RunShellCommand(
                     $"mkdir -p \"{fullPath + "/" + dirPath.Replace("./", "")}\"".Replace(@"\", "/"), true);
 
-            var fileList = Directory.EnumerateFiles(localPath, "*.*", SearchOption.AllDirectories);
-            var relativeFileList = fileList.Select(filePath => Path.GetRelativePath(localPath, filePath));
-            foreach (var file in relativeFileList)
+            var fileList = Directory.EnumerateFiles(localPath, "*.*", SearchOption.AllDirectories).ToList();
+            var relativeFileList = fileList.Select(filePath => Path.GetRelativePath(localPath, filePath)).ToList();
+            var fileCount = fileList.Count;
+            for (var i = 0; i < fileCount; i++)
+            {
+                var file = relativeFileList[i];
+                var i1 = i;
+                var fileProgress = new Progress<int>(p => progress?.Report((fileCount, i1+1, p)));
                 PushFile(localPath + Path.DirectorySeparatorChar + file,
-                    fullPath + "/" + file.Replace(@"\", "/"), ct);
+                    fullPath + "/" + file.Replace(@"\", "/"), fileProgress, ct);
+            }
         }
 
         /// <summary>
@@ -1299,8 +1308,13 @@ public class AdbService
                                 Log.Information("Found OBB directory for {PackageName}, pushing to device",
                                     game.PackageName);
                                 observer.OnNext((Resources.PushingObbFiles, null));
+                                var pushProgress = new Progress<(int totalFiles, int currentFile, int progress)> (x =>
+                                {
+                                        var progressString = $"{x.currentFile}/{x.totalFiles} ({x.progress}%)";
+                                        observer.OnNext((Resources.PushingObbFiles, progressString));
+                                    });
                                 PushDirectory(Path.Combine(gamePath, game.PackageName), "/sdcard/Android/obb/", true,
-                                    ct);
+                                    pushProgress, ct);
                             }
                         }
                     }
@@ -1446,7 +1460,7 @@ public class AdbService
                                 if (Directory.Exists(source))
                                     PushDirectory(source, destination, ct: ct);
                                 else if (File.Exists(source))
-                                    PushFile(source, destination, ct);
+                                    PushFile(source, destination, null, ct);
                                 else
                                     Log.Information("Local path {Path} doesn't exist", source);
                                 break;
