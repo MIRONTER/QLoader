@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -237,5 +238,11 @@ public static class GeneralUtils
         });
         var response = await HttpClient.PostAsync(url, formContent);
         return await response.Content.ReadAsStringAsync();
+    }
+    
+    public static string SanitizeFileName(string fileName)
+    {
+        var invalidChars = Path.GetInvalidFileNameChars();
+        return new string(fileName.Where(c => !invalidChars.Contains(c)).ToArray());
     }
 }

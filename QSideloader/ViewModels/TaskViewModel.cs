@@ -284,7 +284,9 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             });
             Status = Resources.PreparingToUpload;
             var apkInfo = GeneralUtils.GetApkInfo(Path.Combine(path, _app!.PackageName + ".apk"));
-            var archiveName = $"{apkInfo.ApplicationLabel} v{apkInfo.VersionCode} {apkInfo.PackageName}.zip";
+            var archiveName =
+                GeneralUtils.SanitizeFileName(
+                    $"{apkInfo.ApplicationLabel} v{apkInfo.VersionCode} {apkInfo.PackageName}.zip");
             await File.WriteAllTextAsync(Path.Combine(path, "HWID.txt"),
                 GeneralUtils.GetHwid(false));
             await ZipUtil.CreateArchiveAsync(path, "donations",
