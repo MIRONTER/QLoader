@@ -40,6 +40,7 @@ namespace QSideloader.Services;
 public class DownloaderService
 {
     private const string ApiUrl = "https://qloader.5698452.xyz/api/v1/";
+    private const string StaticFilesUrl = "https://qloader.5698452.xyz/files/";
     private static readonly SemaphoreSlim MirrorListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim GameListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim DownloadSemaphoreSlim = new(1, 1);
@@ -106,9 +107,14 @@ public class DownloaderService
         await RcloneConfigSemaphoreSlim.WaitAsync();
         try
         {
+            Log.Information("Updating rclone config");
+            if (await TryDownloadConfigFromServer())
+            {
+                Log.Information("Rclone config updated from server");
+                return;
+            }
             await EnsureMirrorSelectedAsync();
             var localMirrorList = _mirrorList.ToList();
-            Log.Information("Updating rclone config");
             while (true)
             {
                 if (await TryDownloadConfigAsync())
@@ -128,6 +134,27 @@ public class DownloaderService
         finally
         {
             RcloneConfigSemaphoreSlim.Release();
+        }
+
+        async Task<bool> TryDownloadConfigFromServer()
+        {
+            try
+            {
+                const string configUrl = $"{StaticFilesUrl}FFA_config";
+                var oldConfigPath = Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, "FFA_config");
+                var newConfigPath = Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, "FFA_config_new");
+                var response = await ApiHttpClient.GetAsync(configUrl);
+                response.EnsureSuccessStatusCode();
+                var config = await response.Content.ReadAsStringAsync();
+                await File.WriteAllTextAsync(newConfigPath, config);
+                File.Move(newConfigPath, oldConfigPath, true);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Log.Warning(e, "Couldn't download rclone config from server");
+                return false;
+            }
         }
 
         async Task<bool> TryDownloadConfigAsync()
@@ -645,19 +672,43 @@ public class DownloaderService
             }
         }
 
-        async Task TryLoadDonationBlacklistAsync()
+        async Task<bool> TryLoadDonationBlacklistFromServerAsync()
         {
             try
             {
-                await RcloneTransferAsync("Quest Games/.meta/nouns/blacklist.txt", "./metadata/blacklist_new.txt",
-                    "copyto");
+                const string configUrl = $"{StaticFilesUrl}blacklist.txt";
+                var response = await ApiHttpClient.GetAsync(configUrl);
+                response.EnsureSuccessStatusCode();
+                var config = await response.Content.ReadAsStringAsync();
+                await File.WriteAllTextAsync(Path.Combine("metadata", "blacklist_new.txt"), config);
                 File.Move(Path.Combine("metadata", "blacklist_new.txt"), Path.Combine("metadata", "blacklist.txt"),
                     true);
-                Log.Debug("Downloaded donation blacklist");
+                Log.Debug("Downloaded donation blacklist from server");
+                return true;
             }
             catch (Exception e)
             {
-                Log.Warning(e, "Failed to download donation blacklist");
+                Log.Warning(e, "Couldn't download donation blacklist from server");
+                return false;
+            }
+        }
+
+        async Task TryLoadDonationBlacklistAsync()
+        {
+            if (!await TryLoadDonationBlacklistFromServerAsync())
+            {
+                try
+                {
+                    await RcloneTransferAsync("Quest Games/.meta/nouns/blacklist.txt", "./metadata/blacklist_new.txt",
+                        "copyto");
+                    File.Move(Path.Combine("metadata", "blacklist_new.txt"), Path.Combine("metadata", "blacklist.txt"),
+                        true);
+                    Log.Debug("Downloaded donation blacklist from {MirrorName}", MirrorName);
+                }
+                catch (Exception e)
+                {
+                    Log.Warning(e, "Failed to download donation blacklist");
+                }
             }
 
             try
