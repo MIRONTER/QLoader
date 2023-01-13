@@ -14,6 +14,10 @@
         <option value="$PROJECT_DIR$/QSideloader/bin/publish/Release/osx-arm64" />
         <option value="$PROJECT_DIR$/QSideloader/bin/publish/Debug/linux-arm64" />
         <option value="$PROJECT_DIR$/QSideloader/bin/publish/Release/osx-x64" />
+        <option value="$PROJECT_DIR$/GetHWID/bin/Release/net7.0/win-x86/publish" />
+        <option value="$PROJECT_DIR$/GetHWID/bin/Release/net7.0/linux-arm64/publish" />
+        <option value="$PROJECT_DIR$/GetHWID/bin/Release/net7.0/linux-x64/publish" />
+        <option value="$PROJECT_DIR$/GetHWID/bin/Release/net7.0/osx-x64/publish" />
       </list>
     </option>
   </component>
