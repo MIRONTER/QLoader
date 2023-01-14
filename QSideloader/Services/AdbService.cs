@@ -144,7 +144,7 @@ public class AdbService
         DeviceSemaphoreSlim.Wait();
         try
         {
-            if (Device is not null && !assumeOffline) connectionStatus = PingDevice(Device);
+            if (Device is not null && !assumeOffline) connectionStatus = Device.Ping();
 
             if (!connectionStatus)
             {
@@ -152,7 +152,7 @@ public class AdbService
                 RefreshDeviceList();
                 foreach (var device in DeviceList)
                 {
-                    connectionStatus = PingDevice(device);
+                    connectionStatus = device.Ping();
                     if (!connectionStatus) continue;
                     foundDevice = device;
                     break;
@@ -203,7 +203,7 @@ public class AdbService
             return false;
         }
 
-        Task.Run(() => WakeDevice(Device));
+        Task.Run(() => Device.Wake());
         return true;
     }
 
@@ -437,45 +437,6 @@ public class AdbService
     }
 
     /// <summary>
-    ///     Wakes up the device by sending a power button key event.
-    /// </summary>
-    /// <param name="device">Device to wake.</param>
-    private void WakeDevice(DeviceData device)
-    {
-        try
-        {
-            RunShellCommand(device, "input keyevent KEYCODE_WAKEUP");
-        }
-        catch (Exception e)
-        {
-            Log.Warning(e, "Failed to send wake command to device {Device}", device);
-        }
-    }
-
-    /// <summary>
-    ///     Pings the device to ensure it is still connected and responding.
-    /// </summary>
-    /// <param name="device">Device to ping.</param>
-    /// <returns>
-    ///     <c>true</c> if device responded, <c>false</c> otherwise.
-    /// </returns>
-    public bool PingDevice(DeviceData device)
-    {
-        WakeDevice(device);
-        if (device.State != DeviceState.Online) return false;
-        try
-        {
-            return RunShellCommand(device, "echo 1").Trim() == "1";
-        }
-        catch (Exception e)
-        {
-            Log.Warning(e, "Failed to ping device {Device}", device);
-        }
-
-        return false;
-    }
-
-    /// <summary>
     ///     (Re)starts <see cref="DeviceMonitor" />
     /// </summary>
     /// <param name="restart">Should restart device monitor.</param>
@@ -676,7 +637,7 @@ public class AdbService
     public void TrySwitchDevice(AdbDevice device)
     {
         if (device.Serial == Device?.Serial) return;
-        if (device.State != DeviceState.Online || !PingDevice(device))
+        if (device.State != DeviceState.Online || !device.Ping())
         {
             Log.Warning("Attempted switch to offline device {Device}", device);
             RefreshDeviceList();
@@ -696,7 +657,7 @@ public class AdbService
     }
 
     /// <summary>
-    ///     Enables Wireless ADB on the device.
+    ///     Enables Wireless ADB on the device and tries to connect to it.
     /// </summary>
     /// <param name="device">Device to enable Wireless ADB on.</param>
     public async Task EnableWirelessAdbAsync(AdbDevice device)
@@ -966,6 +927,43 @@ public class AdbService
         public string RunShellCommand(string command, bool logCommand = false)
         {
             return _adbService.RunShellCommand(this, command, logCommand);
+        }
+        
+        /// <summary>
+        ///     Wakes up the device by sending a power button key event.
+        /// </summary>
+        public void Wake()
+        {
+            try
+            {
+                RunShellCommand("input keyevent KEYCODE_WAKEUP");
+            }
+            catch (Exception e)
+            {
+                Log.Warning(e, "Failed to send wake command to device {Device}", this);
+            }
+        }
+        
+        /// <summary>
+        ///     Pings the device to check if it is still connected and responding.
+        /// </summary>
+        /// <returns>
+        ///     <c>true</c> if device responded, <c>false</c> otherwise.
+        /// </returns>
+        public bool Ping()
+        {
+            Wake();
+            if (State != DeviceState.Online) return false;
+            try
+            {
+                return RunShellCommand("echo 1").Trim() == "1";
+            }
+            catch (Exception e)
+            {
+                Log.Warning(e, "Failed to ping device {Device}", this);
+            }
+
+            return false;
         }
 
         /// <summary>

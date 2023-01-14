@@ -567,7 +567,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         {
             if (_adbDevice is not null &&
                 ((simpleCheck && _adbDevice.State == DeviceState.Online) ||
-                 (!simpleCheck && _adbService.PingDevice(_adbDevice)))
+                 (!simpleCheck && _adbDevice.Ping()))
                )
                 return;
         }
