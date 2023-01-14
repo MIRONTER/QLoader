@@ -210,7 +210,7 @@ public class AdbService
     /// <summary>
     ///     Refreshes the device list.
     /// </summary>
-    private void RefreshDeviceList()
+    public void RefreshDeviceList()
     {
         try
         {
@@ -362,6 +362,78 @@ public class AdbService
         {
             AdbServerSemaphoreSlim.Release();
         }
+    }
+    
+    /// <summary>
+    /// Restarts the ADB server.
+    /// </summary>
+    public async Task RestartAdbServerAsync()
+    {
+        Log.Warning("Restarting ADB server");
+        try
+        {
+            if (_deviceMonitor is not null)
+            {
+                _deviceMonitor.DeviceChanged -= OnDeviceChanged;
+            }
+            var adbPath = PathHelper.AdbPath;
+            var adbServerStatus = _adb.AdbServer.GetStatus();
+            if (adbServerStatus.IsRunning)
+            {
+                try
+                {
+                    await Cli.Wrap(adbPath)
+                        .WithArguments("kill-server")
+                        .ExecuteBufferedAsync();
+                }
+                catch (CommandExecutionException)
+                {
+                    Array.ForEach(Process.GetProcessesByName("adb"), p => p.Kill());
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Failed to kill ADB server");
+        }
+
+
+        OnDeviceOffline(Device);
+        _deviceList.Clear();
+        _deviceListChangeSubject.OnNext(_deviceList);
+        CheckDeviceConnection();
+    }
+
+    /// <summary>
+    /// Resets ADB keys and restarts the ADB server.
+    /// </summary>
+    public void ResetAdbKeys()
+    {
+        Log.Warning("Resetting ADB keys");
+        try
+        {
+            var userProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            var adbKeyPath = Path.Combine(userProfilePath, ".android", "adbkey");
+            var adbKeyPubPath = Path.Combine(userProfilePath, ".android", "adbkey.pub");
+            File.Delete(adbKeyPath);
+            File.Delete(adbKeyPubPath);
+        }
+        finally
+        {
+            Task.Run(RestartAdbServerAsync);
+        }
+    }
+
+    /// <summary>
+    /// Reconnects to the current device.
+    /// </summary>
+    public void ReconnectDevice()
+    {
+        Log.Information("Reconnecting device");
+        OnDeviceOffline(Device);
+        _deviceList.Clear();
+        _deviceListChangeSubject.OnNext(_deviceList);
+        CheckDeviceConnection();
     }
 
     /// <summary>
@@ -978,6 +1050,7 @@ public class AdbService
                 BatteryLevel = 0;
                 op.SetException(e);
                 op.Abandon();
+                Globals.ShowErrorNotification(e, Resources.ErrorRefreshingDeviceInfo);
             }
             finally
             {

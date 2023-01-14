@@ -400,12 +400,6 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="ForceDevicesRescanButton" xml:space="preserve">
         <value>Force rescan</value>
     </data>
-    <data name="AdbConnectionCheckHeader" xml:space="preserve">
-        <value>ADB connection check</value>
-    </data>
-    <data name="AdbConnectionCheckText" xml:space="preserve">
-        <value>Checking for connected device...</value>
-    </data>
     <data name="CopyToClipboardButton" xml:space="preserve">
         <value>Copy to clipboard</value>
     </data>
@@ -741,5 +735,59 @@ You may use {0} for downloads without connecting to a device.</value>
     </data>
     <data name="ClickToSeeDetails" xml:space="preserve">
         <value>Click to see details</value>
+    </data>
+    <data name="RescanningDevices" xml:space="preserve">
+        <value>Rescanning devices</value>
+    </data>
+    <data name="ErrorRescanningDevices" xml:space="preserve">
+        <value>Error rescanning devices</value>
+    </data>
+    <data name="ErrorRefreshingDeviceInfo" xml:space="preserve">
+        <value>Error refreshing device info</value>
+    </data>
+    <data name="FailedToResetAdbKeys" xml:space="preserve">
+        <value>Failed to reset ADB keys</value>
+    </data>
+    <data name="NotImplemented" xml:space="preserve">
+        <value>Not implemented</value>
+    </data>
+    <data name="DeviceReconnectCompleted" xml:space="preserve">
+        <value>Device reconnect completed</value>
+    </data>
+    <data name="ErrorReconnectingDevice" xml:space="preserve">
+        <value>Error reconnecting device</value>
+    </data>
+    <data name="RestartingAdbServer" xml:space="preserve">
+        <value>Restarting ADB server</value>
+    </data>
+    <data name="AdbKeysReset" xml:space="preserve">
+        <value>ADB keys reset</value>
+    </data>
+    <data name="LeftoverApksCleanupCompleted" xml:space="preserve">
+        <value>Leftover APKs cleanup completed</value>
+    </data>
+    <data name="ErrorCleaningUpLeftoverApks" xml:space="preserve">
+        <value>Error cleaning up leftover APKs</value>
+    </data>
+    <data name="RescanDevices" xml:space="preserve">
+        <value>Rescan devices</value>
+    </data>
+    <data name="ReconnectToDevice" xml:space="preserve">
+        <value>Reconnect to device</value>
+    </data>
+    <data name="RestartAdbServer" xml:space="preserve">
+        <value>Restart ADB server</value>
+    </data>
+    <data name="ResetAdbKeys" xml:space="preserve">
+        <value>Reset ADB keys</value>
+    </data>
+    <data name="ForceCleanupPackage" xml:space="preserve">
+        <value>Force cleanup package</value>
+    </data>
+    <data name="CleanLeftoverApks" xml:space="preserve">
+        <value>Clean leftover APKs</value>
+    </data>
+    <data name="TroubleshootingOptions" xml:space="preserve">
+        <value>Troubleshooting options</value>
     </data>
 </root>

@@ -5,7 +5,7 @@
              xmlns:viewModels="clr-namespace:QSideloader.ViewModels"
              xmlns:p="clr-namespace:QSideloader.Properties"
              xmlns:converters="clr-namespace:QSideloader.Converters"
-             mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="800"
+             mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="860"
              x:Class="QSideloader.Views.SideloaderSettingsView"
              AttachedToVisualTree="Visual_OnAttachedToVisualTree">
     <UserControl.Resources>
@@ -108,6 +108,21 @@
             <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding EnableDebugConsole}"
                           IsVisible="{Binding IsConsoleToggleable}"
                           Content="{x:Static p:Resources.ShowDebugConsole}" />
+            
+            <Expander Margin="0,8,0,0" Header="{x:Static p:Resources.TroubleshootingOptions}" HorizontalAlignment="Left" MinWidth="600">
+                <StackPanel Orientation="Vertical">
+                    <StackPanel Orientation="Horizontal">
+                        <Button Command="{Binding RescanDevices}" Content="{x:Static p:Resources.RescanDevices}" />
+                        <Button Margin="8,0,0,0" Command="{Binding ReconnectDevice}" Content="{x:Static p:Resources.ReconnectToDevice}" />
+                        <Button Margin="8,0,0,0" Command="{Binding RestartAdbServer}" Content="{x:Static p:Resources.RestartAdbServer}" />
+                        <Button Margin="8,0,0,0" Command="{Binding ResetAdbKeys}" Content="{x:Static p:Resources.ResetAdbKeys}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
+                        <Button Command="{Binding ForceCleanupPackage}" Content="{x:Static p:Resources.ForceCleanupPackage}" />
+                        <Button Margin="8,0,0,0" Command="{Binding CleanLeftoverApks}" Content="{x:Static p:Resources.CleanLeftoverApks}" />
+                    </StackPanel>
+                </StackPanel>
+            </Expander>
 
             <Grid Margin="0,8,0,0" ColumnDefinitions="Auto,*,Auto">
                 <Button Grid.Column="0" IsEnabled="{Binding !IsTrailersAddonInstalled}"

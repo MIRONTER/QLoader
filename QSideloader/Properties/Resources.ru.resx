@@ -348,12 +348,6 @@
     <data name="AdbAuthorizationDialogTitle" xml:space="preserve">
         <value>ADB авторизация</value>
     </data>
-    <data name="AdbConnectionCheckHeader" xml:space="preserve">
-        <value>Проверка подключения ADB</value>
-    </data>
-    <data name="AdbConnectionCheckText" xml:space="preserve">
-        <value>Проверка подключенного устройтва...</value>
-    </data>
     <data name="AdbConnectionDialogTitle" xml:space="preserve">
         <value>Нет подключения к устройству</value>
     </data>
@@ -734,5 +728,59 @@
     </data>
     <data name="ClickToSeeDetails" xml:space="preserve">
         <value>Кликните для получения подробностей</value>
+    </data>
+    <data name="RescanningDevices" xml:space="preserve">
+        <value>Пересканирование устройств</value>
+    </data>
+    <data name="ErrorRescanningDevices" xml:space="preserve">
+        <value>Ошибка при сканировании устройств</value>
+    </data>
+    <data name="ErrorRefreshingDeviceInfo" xml:space="preserve">
+        <value>Ошибка при обновлении информации об устройстве</value>
+    </data>
+    <data name="FailedToResetAdbKeys" xml:space="preserve">
+        <value>Не удалось сбросить ключи ADB</value>
+    </data>
+    <data name="NotImplemented" xml:space="preserve">
+        <value>Не реализовано</value>
+    </data>
+    <data name="DeviceReconnectCompleted" xml:space="preserve">
+        <value>Переподключение к устройству выполнено</value>
+    </data>
+    <data name="ErrorReconnectingDevice" xml:space="preserve">
+        <value>Ошибка переподключения к устройству</value>
+    </data>
+    <data name="RestartingAdbServer" xml:space="preserve">
+        <value>Перезапуск ADB сервера</value>
+    </data>
+    <data name="AdbKeysReset" xml:space="preserve">
+        <value>ADB ключи сброiены</value>
+    </data>
+    <data name="LeftoverApksCleanupCompleted" xml:space="preserve">
+        <value>Очистка остаточных APK завершена</value>
+    </data>
+    <data name="ErrorCleaningUpLeftoverApks" xml:space="preserve">
+        <value>Ошибка очистки остаточных APK</value>
+    </data>
+    <data name="RescanDevices" xml:space="preserve">
+        <value>Пересканировать устройства</value>
+    </data>
+    <data name="ReconnectToDevice" xml:space="preserve">
+        <value>Переподключиться к устройству</value>
+    </data>
+    <data name="RestartAdbServer" xml:space="preserve">
+        <value>Перезапустить ADB сервер</value>
+    </data>
+    <data name="ResetAdbKeys" xml:space="preserve">
+        <value>Сбросить ключи ADB</value>
+    </data>
+    <data name="ForceCleanupPackage" xml:space="preserve">
+        <value>Принудительная очистка пакета</value>
+    </data>
+    <data name="CleanLeftoverApks" xml:space="preserve">
+        <value>Очистить остаточные APK</value>
+    </data>
+    <data name="TroubleshootingOptions" xml:space="preserve">
+        <value>Опции диагностики</value>
     </data>
 </root>

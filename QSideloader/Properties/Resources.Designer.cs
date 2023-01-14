@@ -79,24 +79,6 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ADB connection check.
-        /// </summary>
-        public static string AdbConnectionCheckHeader {
-            get {
-                return ResourceManager.GetString("AdbConnectionCheckHeader", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Checking for connected device....
-        /// </summary>
-        public static string AdbConnectionCheckText {
-            get {
-                return ResourceManager.GetString("AdbConnectionCheckText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to No connected device found. Make sure you have done the following:
         ///1. Enable developer mode
         ///2. Connect your headset to your computer using usb data cable
@@ -149,6 +131,15 @@ namespace QSideloader.Properties {
         public static string AdbDevicesDialogTitle {
             get {
                 return ResourceManager.GetString("AdbDevicesDialogTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ADB keys reset.
+        /// </summary>
+        public static string AdbKeysReset {
+            get {
+                return ResourceManager.GetString("AdbKeysReset", resourceCulture);
             }
         }
         
@@ -441,6 +432,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Clean leftover APKs.
+        /// </summary>
+        public static string CleanLeftoverApks {
+            get {
+                return ResourceManager.GetString("CleanLeftoverApks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Click to cancel.
         /// </summary>
         public static string ClickToCancel {
@@ -654,6 +654,15 @@ namespace QSideloader.Properties {
         public static string DeviceList {
             get {
                 return ResourceManager.GetString("DeviceList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Device reconnect completed.
+        /// </summary>
+        public static string DeviceReconnectCompleted {
+            get {
+                return ResourceManager.GetString("DeviceReconnectCompleted", resourceCulture);
             }
         }
         
@@ -1000,6 +1009,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error cleaning up leftover APKs.
+        /// </summary>
+        public static string ErrorCleaningUpLeftoverApks {
+            get {
+                return ResourceManager.GetString("ErrorCleaningUpLeftoverApks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error while opening game details dialog.
         /// </summary>
         public static string ErrorGameDetailsDialog {
@@ -1018,6 +1036,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error reconnecting device.
+        /// </summary>
+        public static string ErrorReconnectingDevice {
+            get {
+                return ResourceManager.GetString("ErrorReconnectingDevice", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error refreshing available games.
         /// </summary>
         public static string ErrorRefreshingAvailableGames {
@@ -1027,11 +1054,29 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error refreshing device info.
+        /// </summary>
+        public static string ErrorRefreshingDeviceInfo {
+            get {
+                return ResourceManager.GetString("ErrorRefreshingDeviceInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error refreshing installed games.
         /// </summary>
         public static string ErrorRefreshingInstalledGames {
             get {
                 return ResourceManager.GetString("ErrorRefreshingInstalledGames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error rescanning devices.
+        /// </summary>
+        public static string ErrorRescanningDevices {
+            get {
+                return ResourceManager.GetString("ErrorRescanningDevices", resourceCulture);
             }
         }
         
@@ -1153,6 +1198,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to reset ADB keys.
+        /// </summary>
+        public static string FailedToResetAdbKeys {
+            get {
+                return ResourceManager.GetString("FailedToResetAdbKeys", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to save settings.
         /// </summary>
         public static string FailedToSaveSettings {
@@ -1176,6 +1230,15 @@ namespace QSideloader.Properties {
         public static string FailedToSwitchMirror {
             get {
                 return ResourceManager.GetString("FailedToSwitchMirror", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Force cleanup package.
+        /// </summary>
+        public static string ForceCleanupPackage {
+            get {
+                return ResourceManager.GetString("ForceCleanupPackage", resourceCulture);
             }
         }
         
@@ -1369,6 +1432,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Leftover APKs cleanup completed.
+        /// </summary>
+        public static string LeftoverApksCleanupCompleted {
+            get {
+                return ResourceManager.GetString("LeftoverApksCleanupCompleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Limit.
         /// </summary>
         public static string Limit {
@@ -1540,6 +1612,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Not implemented.
+        /// </summary>
+        public static string NotImplemented {
+            get {
+                return ResourceManager.GetString("NotImplemented", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to If you like the game, buy it to support the developers.
         /// </summary>
         public static string OculusStoreLinkTooltip {
@@ -1657,6 +1738,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reconnect to device.
+        /// </summary>
+        public static string ReconnectToDevice {
+            get {
+                return ResourceManager.GetString("ReconnectToDevice", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Redownload games list.
         /// </summary>
         public static string RefreshAvailableGamesTooltip {
@@ -1725,6 +1815,51 @@ namespace QSideloader.Properties {
         public static string ReloadListButton {
             get {
                 return ResourceManager.GetString("ReloadListButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rescan devices.
+        /// </summary>
+        public static string RescanDevices {
+            get {
+                return ResourceManager.GetString("RescanDevices", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rescanning devices.
+        /// </summary>
+        public static string RescanningDevices {
+            get {
+                return ResourceManager.GetString("RescanningDevices", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reset ADB keys.
+        /// </summary>
+        public static string ResetAdbKeys {
+            get {
+                return ResourceManager.GetString("ResetAdbKeys", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Restart ADB server.
+        /// </summary>
+        public static string RestartAdbServer {
+            get {
+                return ResourceManager.GetString("RestartAdbServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Restarting ADB server.
+        /// </summary>
+        public static string RestartingAdbServer {
+            get {
+                return ResourceManager.GetString("RestartingAdbServer", resourceCulture);
             }
         }
         
@@ -1950,6 +2085,15 @@ namespace QSideloader.Properties {
         public static string TasksHeader {
             get {
                 return ResourceManager.GetString("TasksHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Troubleshooting options.
+        /// </summary>
+        public static string TroubleshootingOptions {
+            get {
+                return ResourceManager.GetString("TroubleshootingOptions", resourceCulture);
             }
         }
         

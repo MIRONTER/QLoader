@@ -69,6 +69,36 @@ public class SideloaderSettingsViewModel : ViewModelBase
         IsTrailersAddonInstalled = Directory.Exists(PathHelper.TrailersPath);
         InstallTrailersAddon = ReactiveCommand.CreateFromObservable(InstallTrailersAddonImpl);
         CopyInstallationId = ReactiveCommand.CreateFromTask(CopyInstallationIdImpl);
+        RescanDevices = ReactiveCommand.CreateFromObservable(RescanDevicesImpl);
+        RescanDevices.ThrownExceptions.Subscribe(ex =>
+        {
+            Log.Error(ex, "Error rescanning devices");
+            Globals.ShowErrorNotification(ex, Resources.ErrorRescanningDevices);
+        });
+        ReconnectDevice = ReactiveCommand.CreateFromObservable(ReconnectDeviceImpl);
+        ReconnectDevice.ThrownExceptions.Subscribe(ex =>
+        {
+            Log.Error(ex, "Error reconnecting device");
+            Globals.ShowErrorNotification(ex, Resources.ErrorReconnectingDevice);
+        });
+        RestartAdbServer = ReactiveCommand.CreateFromObservable(RestartAdbServerImpl);
+        RestartAdbServer.ThrownExceptions.Subscribe(ex =>
+        {
+            Log.Error(ex, "Failed to restart ADB server");
+        });
+        ResetAdbKeys = ReactiveCommand.CreateFromObservable(ResetAdbKeysImpl);
+        ResetAdbKeys.ThrownExceptions.Subscribe(ex =>
+        {
+            Log.Error(ex, "Failed to reset ADB keys");
+            Globals.ShowErrorNotification(ex, Resources.FailedToResetAdbKeys);
+        });
+        ForceCleanupPackage = ReactiveCommand.CreateFromObservable(ForceCleanupPackageImpl);
+        CleanLeftoverApks = ReactiveCommand.CreateFromObservable(CleanLeftoverApksImpl);
+        CleanLeftoverApks.ThrownExceptions.Subscribe(ex =>
+        {
+            Log.Error(ex, "Error cleaning up leftover APKs");
+            Globals.ShowErrorNotification(ex, Resources.ErrorCleaningUpLeftoverApks);
+        });
         InitDefaults();
         LoadSettings();
         ValidateSettings();
@@ -166,6 +196,12 @@ public class SideloaderSettingsViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> ReloadMirrorList { get; }
     public ReactiveCommand<Unit, Unit> InstallTrailersAddon { get; }
     public ReactiveCommand<Unit, Unit> CopyInstallationId { get; }
+    public ReactiveCommand<Unit, Unit> RescanDevices { get; }
+    public ReactiveCommand<Unit, Unit> ReconnectDevice { get; }
+    public ReactiveCommand<Unit, Unit> RestartAdbServer { get; }
+    public ReactiveCommand<Unit, Unit> ResetAdbKeys { get; }
+    public ReactiveCommand<Unit, Unit> ForceCleanupPackage { get; }
+    public ReactiveCommand<Unit, Unit> CleanLeftoverApks { get; }
 
     private Timer AutoSaveDelayTimer { get; } = new() {AutoReset = false, Interval = 500};
 
@@ -511,6 +547,103 @@ public class SideloaderSettingsViewModel : ViewModelBase
             TimeSpan.FromSeconds(2));
     }
 
+    private IObservable<Unit> RescanDevicesImpl()
+    {
+        return Observable.Start(() =>
+        {
+            Log.Information("Manual device rescan requested");
+            var adbService = AdbService.Instance;
+            Globals.ShowNotification(Resources.Info, Resources.RescanningDevices, NotificationType.Information,
+                    TimeSpan.FromSeconds(2));
+            adbService.RefreshDeviceList();
+            adbService.CheckDeviceConnection();
+        });
+    }
+    
+    private IObservable<Unit> ReconnectDeviceImpl()
+    {
+        return Observable.Start(() =>
+        {
+            Log.Information("Device reconnect requested");
+            try
+            {
+                var adbService = AdbService.Instance;
+                if (adbService.CheckDeviceConnection())
+                {
+                    adbService.ReconnectDevice();
+                    Globals.ShowNotification(Resources.Info, Resources.DeviceReconnectCompleted, NotificationType.Information,
+                        TimeSpan.FromSeconds(2));
+                }
+                else
+                {
+                    Globals.ShowNotification(Resources.Error, Resources.NoDeviceConnection, NotificationType.Error,
+                        TimeSpan.FromSeconds(2));
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Error reconnecting device");
+                Globals.ShowErrorNotification(e, Resources.ErrorReconnectingDevice);
+            }
+        });
+    }
+    
+    private IObservable<Unit> RestartAdbServerImpl()
+    {
+        return Observable.Start(() =>
+        {
+            Log.Information("Manual ADB server restart requested");
+            var adbService = AdbService.Instance;
+            Globals.ShowNotification(Resources.Info, Resources.RestartingAdbServer, NotificationType.Information,
+                TimeSpan.FromSeconds(2));
+            Task.Run(async () =>
+            {
+                await adbService.RestartAdbServerAsync();
+                adbService.CheckDeviceConnection();
+            });
+        });
+    }
+    
+    private IObservable<Unit> ResetAdbKeysImpl()
+    {
+        return Observable.Start(() =>
+        {
+            Log.Information("ADB keys reset requested");
+            AdbService.Instance.ResetAdbKeys();
+            Globals.ShowNotification(Resources.Info, Resources.AdbKeysReset, NotificationType.Information,
+                TimeSpan.FromSeconds(2));
+        });
+    }
+    
+    private IObservable<Unit> ForceCleanupPackageImpl()
+    {
+        return Observable.Start(() =>
+        {
+            Log.Information("Force cleanup of package requested (not implemented)");
+            Globals.ShowNotification(Resources.Info, Resources.NotImplemented, NotificationType.Information,
+                TimeSpan.FromSeconds(2));
+        });
+    }
+    
+    private IObservable<Unit> CleanLeftoverApksImpl()
+    {
+        return Observable.Start(() =>
+        {
+            Log.Information("Cleanup of leftover APKs requested");
+            var adbService = AdbService.Instance;
+            if (adbService.CheckDeviceConnection())
+            {
+                adbService.Device!.RunShellCommand("rm -v /data/local/tmp/*.apk", true);
+                Globals.ShowNotification(Resources.Info, Resources.LeftoverApksCleanupCompleted, NotificationType.Information,
+                    TimeSpan.FromSeconds(2));
+            }
+            else
+            {
+                Globals.ShowNotification(Resources.Error, Resources.NoDeviceConnection, NotificationType.Error,
+                    TimeSpan.FromSeconds(2));
+            }
+        });
+    }
     private static void ShowRelaunchNotification(string propertyName)
     {
         Globals.ShowNotification(Resources.Settings, Resources.ApplicationRestartNeededForSetting,

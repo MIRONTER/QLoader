@@ -396,7 +396,7 @@ public class MainWindowViewModel : ViewModelBase
                     PrimaryButtonCommand = ReactiveCommand.Create(() =>
                     {
                         Log.Information("Force connection check requested");
-                        ShowNotification(Resources.AdbConnectionCheckHeader, Resources.AdbConnectionCheckText,
+                        ShowNotification(Resources.Info, Resources.RescanningDevices,
                             NotificationType.Information, TimeSpan.FromSeconds(2));
                         Task.Run(() => _adbService.CheckDeviceConnection());
                     }),
