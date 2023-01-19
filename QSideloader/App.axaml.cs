@@ -100,7 +100,7 @@ public class App : Application
         SetExceptionLoggers();
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && sideloaderSettings.EnableDebugConsole)
-            ConsoleHelper.AllocateConsole();
+            AllocConsole();
 
         try
         {
@@ -190,4 +190,8 @@ public class App : Application
         logger.Information("Starting {ProgramName} {VersionString}...",
             programName, versionString);
     }
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool AllocConsole();
 }
