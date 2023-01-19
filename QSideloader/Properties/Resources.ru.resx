@@ -104,6 +104,7 @@
     </data>
     <data name="UninstallAppsConfirmation" xml:space="preserve">
         <value>Это действие удалит выбранные приложения.
+Данные НЕ будут сохранены.
 Вы уверены что хотите продолжить?</value>
     </data>
     <data name="UninstallAppsConfirmationButton" xml:space="preserve">

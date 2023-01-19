@@ -102,6 +102,7 @@ Are you sure you want to continue?</value>
     </data>
     <data name="UninstallAppsConfirmation" xml:space="preserve">
         <value>This action will uninstall selected apps.
+Data will NOT be backed up.
 Are you sure you want to continue?</value>
     </data>
     <data name="UninstallAppsConfirmationButton" xml:space="preserve">

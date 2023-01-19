@@ -2108,6 +2108,7 @@ namespace QSideloader.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to This action will uninstall selected apps.
+        ///Data will NOT be backed up.
         ///Are you sure you want to continue?.
         /// </summary>
         public static string UninstallAppsConfirmation {
