@@ -100,8 +100,7 @@ public class App : Application
         SetExceptionLoggers();
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && sideloaderSettings.EnableDebugConsole)
-            // Disabling Quick Edit mode disables text selection and scrolling in the console window, so not doing that
-            ConsoleHelper.AllocateConsole(false);
+            ConsoleHelper.AllocateConsole();
 
         try
         {
