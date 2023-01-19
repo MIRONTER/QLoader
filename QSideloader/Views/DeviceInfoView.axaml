@@ -45,16 +45,19 @@
     </UserControl.Styles>
 
 
-    <controls:CustomBorder BorderBrush="#171717"
+    <controls:CustomBorder x:Name="DeviceInfoPanel"
+                           BorderBrush="#171717"
                            BorderThickness="0"
                            Height="130"
                            CornerRadius="10"
                            Background="#1F1F1F"
                            IsOpen="{Binding IsDeviceConnected}">
         <Grid ColumnDefinitions="Auto,Auto,Auto,*" RowDefinitions="*,*,*,*">
-            <TextBlock Grid.Row="0" Grid.Column="0"
+            <TextBlock x:Name="DeviceInfoHeader"
+                       Grid.Row="0" Grid.Column="0"
                        Margin="20,12,0,0" Text="{x:Static p:Resources.DeviceInfoColon}" />
-            <Image Grid.Row="1" Grid.Column="0"
+            <Image x:Name="Quest1Image"
+                   Grid.Row="1" Grid.Column="0"
                    Grid.RowSpan="3"
                    Source="/Assets/quest2.png"
                    Width="130"
@@ -62,7 +65,8 @@
                    HorizontalAlignment="Left"
                    Margin="0,0,0,12"
                    IsVisible="{Binding IsQuest2}" />
-            <Image Grid.Row="1" Grid.Column="0"
+            <Image x:Name="Quest2Image"
+                   Grid.Row="1" Grid.Column="0"
                    Grid.RowSpan="3"
                    Source="/Assets/quest1.png"
                    Width="130"
@@ -70,10 +74,12 @@
                    HorizontalAlignment="Left"
                    Margin="0,0,0,12"
                    IsVisible="{Binding IsQuest1}" />
-            <TextBlock Grid.Row="1" Grid.Column="1"
+            <TextBlock x:Name="FriendlyNameText"
+                       Grid.Row="1" Grid.Column="1"
                        VerticalAlignment="Center"
                        Text="{Binding FriendlyName}" />
-            <TextBlock Grid.Row="2" Grid.Column="1" VerticalAlignment="Center">
+            <TextBlock x:Name="SpaceStatsText"
+                       Grid.Row="2" Grid.Column="1" VerticalAlignment="Center">
                 <TextBlock.Text>
                     <MultiBinding StringFormat="{}{0}: {1}GB      {2}: {3}GB">
                         <Binding Source="{x:Static p:Resources.Used}" />
@@ -83,7 +89,8 @@
                     </MultiBinding>
                 </TextBlock.Text>
             </TextBlock>
-            <TextBlock Grid.Row="3" Grid.Column="1" VerticalAlignment="Center">
+            <TextBlock x:Name="BatteryLevelText"
+                       Grid.Row="3" Grid.Column="1" VerticalAlignment="Center">
                 <TextBlock.Text>
                     <MultiBinding StringFormat="{}{0}: {1}%">
                         <Binding Source="{x:Static p:Resources.BatteryLevel}" />
@@ -91,7 +98,8 @@
                     </MultiBinding>
                 </TextBlock.Text>
             </TextBlock>
-            <ComboBox Grid.Row="0" Grid.RowSpan="4" Grid.Column="2" Margin="8"
+            <ComboBox x:Name="DeviceList"
+                      Grid.Row="0" Grid.RowSpan="4" Grid.Column="2" Margin="8"
                       MinWidth="170"
                       PlaceholderText="{x:Static p:Resources.DeviceList}"
                       IsEnabled="{Binding IsDeviceSwitchEnabled}"
@@ -110,7 +118,8 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-            <Button Grid.Row="0" Grid.RowSpan="4" Grid.Column="2" Margin="8" IsVisible="{Binding !IsDeviceWireless}"
+            <Button x:Name="EnableWirelessButton"
+                    Grid.Row="0" Grid.RowSpan="4" Grid.Column="2" Margin="8" IsVisible="{Binding !IsDeviceWireless}"
                     IsEnabled="{Binding IsDeviceSwitchEnabled}"
                     Command="{Binding EnableWirelessAdb}" Content="{x:Static p:Resources.EnableWirelessAdb}" />
         </Grid>

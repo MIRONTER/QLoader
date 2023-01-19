@@ -17,7 +17,8 @@
     </Design.DataContext>
     <Grid RowDefinitions="Auto,*">
         <!-- ReSharper disable once Xaml.StyleClassNotFound -->
-        <TextBox Grid.Row="0"
+        <TextBox x:Name="SearchBox"
+                 Grid.Row="0"
                  Margin="8,0,0,0"
                  Classes="clearButton"
                  AcceptsReturn="False"
@@ -27,18 +28,22 @@
                  Width="400"
                  Text="{Binding SearchText, Mode=TwoWay}"
                  ToolTip.Tip="{x:Static p:Resources.Search}" />
-        <StackPanel Grid.Row="0"
+        <StackPanel x:Name="ButtonPanel"
+                    Grid.Row="0"
                     Orientation="Horizontal"
                     Spacing="12" Margin="8"
                     HorizontalAlignment="Right">
-            <Button Command="{Binding Install}"
+            <Button x:Name="InstallButton"
+                    Command="{Binding Install}"
                     IsEnabled="{Binding IsDeviceConnected}"
                     ToolTip.Tip="{x:Static p:Resources.DownloadAndInstallSelectedGamesTooltip}"
                     Content="{x:Static p:Resources.DownloadAndInstallSelectedButton}" />
-            <Button Command="{Binding Download}"
+            <Button x:Name="DownloadButton"
+                    Command="{Binding Download}"
                     ToolTip.Tip="{x:Static p:Resources.DownloadSelectedGamesTooltip}"
                     Content="{x:Static p:Resources.DownloadSelectedButton}" />
-            <Button Command="{Binding Refresh}"
+            <Button x:Name="RefreshButton"
+                    Command="{Binding Refresh}"
                     ToolTip.Tip="{x:Static p:Resources.RefreshAvailableGamesTooltip}"
                     Content="{x:Static p:Resources.RefreshButton}">
                 <Button.CommandParameter>

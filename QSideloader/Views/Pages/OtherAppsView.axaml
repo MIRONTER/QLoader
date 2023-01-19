@@ -14,20 +14,25 @@
         <vm:InstalledAppsViewModel />
     </Design.DataContext>
     <Grid RowDefinitions="Auto,*" IsEnabled="{Binding IsDeviceConnected}">
-        <StackPanel Grid.Row="0"
+        <StackPanel x:Name="ButtonPanel"
+                    Grid.Row="0"
                     Orientation="Horizontal"
                     Spacing="12" Margin="8"
                     HorizontalAlignment="Right">
-            <Button Content="{x:Static p:Resources.ExtractSelected}"
+            <Button x:Name="ExtractButton"
+                    Content="{x:Static p:Resources.ExtractSelected}"
                     ToolTip.Tip="{x:Static p:Resources.ExtractAppsTooltip}"
                     Command="{Binding Extract}" />
-            <Button ToolTip.Tip="{x:Static p:Resources.UninstallAppsTooltip}"
+            <Button x:Name="UninstallButton"
+                    ToolTip.Tip="{x:Static p:Resources.UninstallAppsTooltip}"
                     Content="{x:Static p:Resources.UninstallSelectedButton}">
                 <Button.Flyout>
                     <Flyout Placement="Bottom">
                         <StackPanel>
-                            <TextBlock Text="{x:Static p:Resources.UninstallAppsConfirmation}" />
-                            <Button Margin="0,6,0,0" Content="{x:Static p:Resources.UninstallAppsConfirmationButton}">
+                            <TextBlock x:Name="UninstallConfirmText"
+                                       Text="{x:Static p:Resources.UninstallAppsConfirmation}" />
+                            <Button x:Name="UninstallConfirmButton"
+                                    Margin="0,6,0,0" Content="{x:Static p:Resources.UninstallAppsConfirmationButton}">
                                 <i:Interaction.Behaviors>
                                     <ia:EventTriggerBehavior EventName="Click">
                                         <ia:InvokeCommandAction Command="{Binding Uninstall}" />
@@ -40,7 +45,8 @@
                     </Flyout>
                 </Button.Flyout>
             </Button>
-            <Button Command="{Binding Refresh}" ToolTip.Tip="{x:Static p:Resources.RefreshInstalledAppsTooltip}"
+            <Button x:Name="RefreshButton"
+                    Command="{Binding Refresh}" ToolTip.Tip="{x:Static p:Resources.RefreshInstalledAppsTooltip}"
                     Content="{x:Static p:Resources.RefreshButton}">
                 <Button.CommandParameter>
                     <system:Boolean>True</system:Boolean>

@@ -18,25 +18,33 @@
         <vm:InstalledGamesViewModel />
     </Design.DataContext>
     <Grid RowDefinitions="Auto,*" IsEnabled="{Binding IsDeviceConnected}">
-        <StackPanel Grid.Row="0"
+        <StackPanel x:Name="ButtonPanel"
+                    Grid.Row="0"
                     Orientation="Horizontal"
                     Spacing="12" Margin="8"
                     HorizontalAlignment="Right">
-            <Button Command="{Binding UpdateAll}" ToolTip.Tip="{x:Static p:Resources.UpdateAllGamesTooltip}"
+            <Button x:Name="UpdateAllButton"
+                    Command="{Binding UpdateAll}" ToolTip.Tip="{x:Static p:Resources.UpdateAllGamesTooltip}"
                     Content="{x:Static p:Resources.UpdateAllButton}" />
-            <Button Command="{Binding Update}" ToolTip.Tip="{x:Static p:Resources.UpdateSelectedGamesTooltip}"
+            <Button x:Name="UpdateButton"
+                    Command="{Binding Update}" ToolTip.Tip="{x:Static p:Resources.UpdateSelectedGamesTooltip}"
                     Content="{x:Static p:Resources.UpdateSelectedButton}" />
-            <Button ToolTip.Tip="{x:Static p:Resources.BackupSelectedGamesTooltip}"
+            <Button x:Name="BackupButton"
+                    ToolTip.Tip="{x:Static p:Resources.BackupSelectedGamesTooltip}"
                     Content="{x:Static p:Resources.BackupSelectedButton}">
                 <Button.Flyout>
                     <Flyout Placement="Bottom">
                         <StackPanel>
-                            <TextBlock Text="{x:Static p:Resources.BackupPartsSelectionPrompt}" />
-                            <CheckBox IsChecked="{Binding ManualBackupAppFiles}"
+                            <TextBlock x:Name="BackupPartsSelectPrompt" 
+                                       Text="{x:Static p:Resources.BackupPartsSelectionPrompt}" />
+                            <CheckBox x:Name="BackupAppFilesCheckBox" 
+                                      IsChecked="{Binding ManualBackupAppFiles}"
                                       Content="{x:Static p:Resources.BackupPartsSelectionApplicationFiles}" />
-                            <CheckBox IsChecked="{Binding ManualBackupData}"
+                            <CheckBox x:Name="BackupAppDataCheckBox"
+                                      IsChecked="{Binding ManualBackupData}"
                                       Content="{x:Static p:Resources.BackupPartsSelectionApplicationData}" />
-                            <Button Margin="0,6,0,0" Content="{x:Static p:Resources.BackupConfirmationButton}">
+                            <Button x:Name="BackupConfirmButton" 
+                                    Margin="0,6,0,0" Content="{x:Static p:Resources.BackupConfirmationButton}">
                                 <i:Interaction.Behaviors>
                                     <ia:EventTriggerBehavior EventName="Click">
                                         <ia:InvokeCommandAction Command="{Binding Backup}" />
@@ -49,14 +57,18 @@
                     </Flyout>
                 </Button.Flyout>
             </Button>
-            <Button ToolTip.Tip="{x:Static p:Resources.UninstallSelectedGamesTooltip}"
+            <Button x:Name="UninstallButton"
+                    ToolTip.Tip="{x:Static p:Resources.UninstallSelectedGamesTooltip}"
                     Content="{x:Static p:Resources.UninstallSelectedButton}">
                 <Button.Flyout>
                     <Flyout Placement="Bottom">
                         <StackPanel>
-                            <TextBlock Text="{x:Static p:Resources.UninstallGamesConfirmation}" />
-                            <CheckBox IsChecked="{Binding SkipAutoBackup}" Content="{x:Static p:Resources.SkipBackup}" />
-                            <Button Margin="0,6,0,0" Content="{x:Static p:Resources.UninstallGamesConfirmationButton}">
+                            <TextBlock x:Name="UninstallConfirmText" 
+                                       Text="{x:Static p:Resources.UninstallGamesConfirmation}" />
+                            <CheckBox x:Name="SkipBackupCheckBox" 
+                                      IsChecked="{Binding SkipAutoBackup}" Content="{x:Static p:Resources.SkipBackup}" />
+                            <Button x:Name="UninstallConfirmButton"
+                                    Margin="0,6,0,0" Content="{x:Static p:Resources.UninstallGamesConfirmationButton}">
                                 <i:Interaction.Behaviors>
                                     <ia:EventTriggerBehavior EventName="Click">
                                         <ia:InvokeCommandAction Command="{Binding Uninstall}" />
@@ -69,7 +81,8 @@
                     </Flyout>
                 </Button.Flyout>
             </Button>
-            <Button Command="{Binding Refresh}" IsEnabled="{Binding !IsBusy}"
+            <Button x:Name="RefreshButton"
+                    Command="{Binding Refresh}" IsEnabled="{Binding !IsBusy}"
                     ToolTip.Tip="{x:Static p:Resources.RefreshInstalledGamesTooltip}"
                     Content="{x:Static p:Resources.RefreshButton}">
                 <Button.CommandParameter>

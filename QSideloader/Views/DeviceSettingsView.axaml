@@ -16,9 +16,9 @@
             Margin="0">
         <StackPanel Orientation="Vertical" IsEnabled="{Binding IsDeviceConnected}">
             <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
-                <TextBlock FontSize="16" FontWeight="DemiBold" Margin="0,0,0,10"
+                <TextBlock x:Name="QuestSettingsHeaderText"
+                           FontSize="16" FontWeight="DemiBold" Margin="0,0,0,10"
                            Text="{x:Static p:Resources.QuestSettingsHeader}" />
-                <StackPanel Orientation="Horizontal" Margin="10,0,0,8" />
             </StackPanel>
             <Border BorderBrush="#383838"
                     BorderThickness="0"
@@ -26,40 +26,41 @@
                     Padding="2" HorizontalAlignment="Left">
                 <StackPanel Orientation="Vertical">
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
-                        <ComboBox Margin="0,0,0,0" PlaceholderText="Refresh rate"
+                        <ComboBox x:Name="RefreshRateBox"
+                                  Margin="0,0,0,0" PlaceholderText="Refresh rate"
                                   MinWidth="120"
                                   Items="{Binding RefreshRates}"
                                   SelectedItem="{Binding SelectedRefreshRate, Mode=TwoWay}"
                                   ToolTip.Tip="Refresh rate" />
-                        <ComboBox Margin="8,0,0,0" PlaceholderText="GPU level"
+                        <ComboBox x:Name="GpuLevelBox"
+                                  Margin="8,0,0,0" PlaceholderText="GPU level"
                                   MinWidth="112"
                                   Items="{Binding GpuLevels, Mode=TwoWay}"
                                   SelectedItem="{Binding SelectedGpuLevel}"
                                   ToolTip.Tip="GPU level" />
-                        <ComboBox Margin="8,0,0,0" PlaceholderText="CPU level"
+                        <ComboBox x:Name="CpuLevelBox"
+                                  Margin="8,0,0,0" PlaceholderText="CPU level"
                                   MinWidth="112"
                                   Items="{Binding CpuLevels, Mode=TwoWay}"
                                   SelectedItem="{Binding SelectedCpuLevel}"
                                   ToolTip.Tip="CPU level" />
-                        <!--TextBox Margin="8,0,0,0" MinWidth="224" Watermark="Resolution (0 for auto)"
-                             Text="{Binding ResolutionTextBoxText, Mode=TwoWay}">
-                        <ToolTip.Tip>Resolution (leave empty for default)</ToolTip.Tip>
-                    </TextBox-->
-                        <ComboBox Margin="8,0,0,0" PlaceholderText="Default texture size"
+                        <ComboBox x:Name="TextureSizeBox"
+                                  Margin="8,0,0,0" PlaceholderText="Default texture size"
                                   MinWidth="100"
                                   Items="{Binding TextureSizes, Mode=TwoWay}"
                                   SelectedItem="{Binding SelectedTextureSize}"
                                   ToolTip.Tip="Default texture size" />
                     </StackPanel>
                     <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
-                        <TextBox MinWidth="240" Watermark="{x:Static p:Resources.UsernamePlaceholder}"
+                        <TextBox x:Name="UserNameText" MinWidth="240" Watermark="{x:Static p:Resources.UsernamePlaceholder}"
                                  Text="{Binding UsernameTextBoxText}"
                                  ToolTip.Tip="{x:Static p:Resources.UsernamePlaceholder}" />
-                        <Button Margin="8,0,0,0" Command="{Binding MountStorage}"
+                        <Button x:Name="MountStorageButton"
+                                Margin="8,0,0,0" Command="{Binding MountStorage}"
                                 Content="{x:Static p:Resources.MountQuestButton}" />
-                        <Button
-                            MinWidth="118" Margin="8,0,0,0" VerticalAlignment="Center"
-                            Command="{Binding ApplySettings}" Content="{x:Static p:Resources.ApplySettingsButton}" />
+                        <Button x:Name="ApplySettingsButton" 
+                                MinWidth="118" Margin="8,0,0,0" VerticalAlignment="Center"
+                                Command="{Binding ApplySettings}" Content="{x:Static p:Resources.ApplySettingsButton}" />
                     </StackPanel>
                 </StackPanel>
             </Border>

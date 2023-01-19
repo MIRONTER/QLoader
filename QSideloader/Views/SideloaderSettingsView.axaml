@@ -5,7 +5,7 @@
              xmlns:viewModels="clr-namespace:QSideloader.ViewModels"
              xmlns:p="clr-namespace:QSideloader.Properties"
              xmlns:converters="clr-namespace:QSideloader.Converters"
-             mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="860"
+             mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="950"
              x:Class="QSideloader.Views.SideloaderSettingsView"
              AttachedToVisualTree="Visual_OnAttachedToVisualTree">
     <UserControl.Resources>

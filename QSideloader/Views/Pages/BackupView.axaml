@@ -16,19 +16,24 @@
         <vm:BackupViewModel />
     </Design.DataContext>
     <Grid RowDefinitions="Auto,*">
-        <StackPanel Grid.Row="0"
+        <StackPanel x:Name="ButtonPanel"
+                    Grid.Row="0"
                     Orientation="Horizontal"
                     Spacing="12" Margin="8"
                     HorizontalAlignment="Right">
-            <Button ToolTip.Tip="{x:Static p:Resources.RestoreSelectedBackupsTooltip}" Command="{Binding Restore}"
+            <Button x:Name="RestoreButton"
+                    ToolTip.Tip="{x:Static p:Resources.RestoreSelectedBackupsTooltip}" Command="{Binding Restore}"
                     Content="{x:Static p:Resources.RestoreSelectedButton}" />
-            <Button ToolTip.Tip="{x:Static p:Resources.DeleteSelectedBackupsTooltip}"
+            <Button x:Name="DeleteButton"
+                    ToolTip.Tip="{x:Static p:Resources.DeleteSelectedBackupsTooltip}"
                     Content="{x:Static p:Resources.DeleteSelectedButton}">
                 <Button.Flyout>
                     <Flyout Placement="Bottom">
                         <StackPanel>
-                            <TextBlock Text="{x:Static p:Resources.DeleteBackupsConfirmation}" />
-                            <Button Margin="0,6,0,0" Content="{x:Static p:Resources.DeleteBackupsConfirmationButton}">
+                            <TextBlock x:Name="DeleteConfirmText" 
+                                       Text="{x:Static p:Resources.DeleteBackupsConfirmation}" />
+                            <Button x:Name="DeleteConfirmButton" 
+                                    Margin="0,6,0,0" Content="{x:Static p:Resources.DeleteBackupsConfirmationButton}">
                                 <Interaction.Behaviors>
                                     <EventTriggerBehavior EventName="Click">
                                         <InvokeCommandAction Command="{Binding Delete}" />
@@ -41,14 +46,16 @@
                     </Flyout>
                 </Button.Flyout>
             </Button>
-            <Button ToolTip.Tip="{x:Static p:Resources.RefreshBackupsTooltip}" Command="{Binding Refresh}"
+            <Button x:Name="RefreshButton" 
+                    ToolTip.Tip="{x:Static p:Resources.RefreshBackupsTooltip}" 
+                    Command="{Binding Refresh}"
                     Content="{x:Static p:Resources.RefreshButton}">
                 <Button.CommandParameter>
                     <system:Boolean>True</system:Boolean>
                 </Button.CommandParameter>
             </Button>
         </StackPanel>
-        <DataGrid Grid.Row="1" Items="{Binding Backups}">
+        <DataGrid x:Name="BackupsGrid" Grid.Row="1" Items="{Binding Backups}">
             <DataGrid.Columns>
                 <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
                 <DataGridTemplateColumn Width="52"

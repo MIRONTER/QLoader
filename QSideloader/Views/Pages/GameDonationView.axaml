@@ -12,18 +12,24 @@
         <vm:InstalledAppsViewModel />
     </Design.DataContext>
     <Grid RowDefinitions="Auto,*" IsEnabled="{Binding IsDeviceConnected}">
-        <StackPanel Grid.Row="0"
+        <StackPanel x:Name="ButtonPanel"
+                    Grid.Row="0"
                     Orientation="Horizontal"
                     Spacing="12" Margin="8"
                     HorizontalAlignment="Right">
-            <CheckBox IsChecked="{Binding IsShowHiddenFromDonation}" Content="{x:Static p:Resources.ShowHidden}" />
-            <Button Command="{Binding DonateAll}" ToolTip.Tip="{x:Static p:Resources.DonateAllGamesTooltip}"
+            <CheckBox x:Name="ShowHiddenCheckBox" 
+                      IsChecked="{Binding IsShowHiddenFromDonation}" Content="{x:Static p:Resources.ShowHidden}" />
+            <Button x:Name="DonateAllButton" 
+                    Command="{Binding DonateAll}" ToolTip.Tip="{x:Static p:Resources.DonateAllGamesTooltip}"
                     Content="{x:Static p:Resources.DonateAllButton}" />
-            <Button Command="{Binding Donate}" ToolTip.Tip="{x:Static p:Resources.DonateTooltip}"
+            <Button x:Name="DonateButton"
+                    Command="{Binding Donate}" ToolTip.Tip="{x:Static p:Resources.DonateTooltip}"
                     Content="{x:Static p:Resources.DonateSelectedButton}" />
-            <Button Command="{Binding Ignore}" ToolTip.Tip="{x:Static p:Resources.IgnoreSelectedAppsTooltip}"
+            <Button x:Name="IgnoreButton"
+                    Command="{Binding Ignore}" ToolTip.Tip="{x:Static p:Resources.IgnoreSelectedAppsTooltip}"
                     Content="{x:Static p:Resources.IgnoreSelectedButton}" />
-            <Button Command="{Binding Refresh}" ToolTip.Tip="{x:Static p:Resources.RefreshInstalledAppsTooltip}"
+            <Button x:Name="RefreshButton"
+                    Command="{Binding Refresh}" ToolTip.Tip="{x:Static p:Resources.RefreshInstalledAppsTooltip}"
                     Content="{x:Static p:Resources.RefreshButton}">
                 <Button.CommandParameter>
                     <system:Boolean>True</system:Boolean>
