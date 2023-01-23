@@ -22,7 +22,7 @@ using Serilog.Formatting.Compact;
 
 namespace QSideloader;
 
-public class App : Application
+public partial class App : Application
 {
     public override void Initialize()
     {
@@ -100,7 +100,8 @@ public class App : Application
         SetExceptionLoggers();
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && sideloaderSettings.EnableDebugConsole)
-            AllocConsole();
+            if (!AllocConsole())
+                Log.Error("AllocConsole failed: {Error}", Marshal.GetLastPInvokeError());
 
         try
         {
@@ -115,7 +116,7 @@ public class App : Application
         LogStartMessage(consoleLogger, programName, versionString);
         Log.CloseAndFlush();
 
-        Logger? seqLogger = null;
+        var seqLogger = Logger.None;
         if (sideloaderSettings.EnableRemoteLogging)
         {
             var seqLevelSwitch = new LoggingLevelSwitch();
@@ -134,7 +135,7 @@ public class App : Application
             .Enrich.FromGlobalLogContext()
             .Enrich.FromLogContext()
             .WriteTo.Logger(humanReadableLogger)
-            .WriteTo.Logger(seqLogger ?? Logger.None)
+            .WriteTo.Logger(seqLogger)
             .WriteTo.File(new CompactJsonFormatter(), clefLogPath)
             .WriteTo.Logger(consoleLogger)
             .CreateLogger();
@@ -191,7 +192,7 @@ public class App : Application
             programName, versionString);
     }
 
-    [DllImport("kernel32.dll", SetLastError = true)]
+    [LibraryImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool AllocConsole();
+    private static partial bool AllocConsole();
 }
