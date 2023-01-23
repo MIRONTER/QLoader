@@ -218,7 +218,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
         DownloaderBandwidthLimitTextBoxText = "";
         DownloadsPruningPolicy = DownloadsPruningPolicy.DeleteAfterInstall;
         LastWirelessAdbHost = "";
-        EnableDebugConsole = true;
+        EnableDebugConsole = false;
         PopularityRange = PopularityRanges[0];
         IgnoredDonationPackages = new ObservableCollection<string>();
         EnableRemoteLogging = false;
