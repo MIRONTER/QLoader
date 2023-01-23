@@ -1791,7 +1791,8 @@ public class AdbService
                     PullDirectory($"/sdcard/backup_tmp/{packageName}/", privateDataBackupPath,
                         new List<string> {"cache", "code_cache"}, ct);
                     RunShellCommand("rm -rf /sdcard/backup_tmp/", true);
-                    var privateDataHasFiles = Directory.EnumerateFiles(privateDataBackupPath).Any();
+                    var privateDataHasFiles = Directory.EnumerateFiles(privateDataBackupPath, "*",
+                        SearchOption.AllDirectories).Any();
                     if (!privateDataHasFiles)
                         Directory.Delete(privateDataBackupPath, true);
                     backupEmpty = backupEmpty && !privateDataHasFiles;
