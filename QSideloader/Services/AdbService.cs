@@ -1179,6 +1179,7 @@ public class AdbService
         /// <param name="ct">Cancellation token.</param>
         private void PushFile(string localPath, string remotePath, IProgress<int>? progress = null, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             Log.Debug("Pushing file: \"{LocalPath}\" -> \"{RemotePath}\"", localPath, remotePath);
             using var syncService = new SyncService(_adb.AdbClient, this);
             using var file = File.OpenRead(localPath);
@@ -1196,6 +1197,7 @@ public class AdbService
         private void PushDirectory(string localPath, string remotePath, bool overwrite = false, 
             IProgress<(int totalFiles, int currentFile, int progress)>? progress = null, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             if (!remotePath.EndsWith("/"))
                 remotePath += "/";
             var localDir = new DirectoryInfo(localPath).Name;
@@ -1233,6 +1235,7 @@ public class AdbService
         /// <param name="ct">Cancellation token.</param>
         private void PullFile(string remotePath, string localPath, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             if (!Directory.Exists(localPath))
                 Directory.CreateDirectory(localPath);
             var remoteFileName = remotePath.Split('/').Last(x => !string.IsNullOrEmpty(x));
@@ -1253,6 +1256,7 @@ public class AdbService
         private void PullDirectory(string remotePath, string localPath, IEnumerable<string>? excludeDirs = default,
             CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             if (!remotePath.EndsWith("/"))
                 remotePath += "/";
             var remoteDirName = remotePath.Split('/').Last(x => !string.IsNullOrEmpty(x));
@@ -1325,6 +1329,7 @@ public class AdbService
         {
             return Observable.Create<(string status, string? progress)>(observer =>
             {
+                ct.ThrowIfCancellationRequested();
                 using var op = Operation.At(LogEventLevel.Information, LogEventLevel.Error)
                     .Begin("Sideloading game {GameName}", game.GameName ?? "Unknown");
                 var reinstall = false;
@@ -1473,6 +1478,7 @@ public class AdbService
         {
             try
             {
+                ct.ThrowIfCancellationRequested();
                 if (!File.Exists(scriptPath))
                     throw new FileNotFoundException("Install script not found", scriptPath);
                 var scriptName = Path.GetFileName(scriptPath);
@@ -1633,6 +1639,7 @@ public class AdbService
         private void InstallPackage(string apkPath, bool reinstall, bool grantRuntimePermissions, IProgress<int>? progress = default,
             CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             Log.Information("Installing APK: {ApkFileName}", Path.GetFileName(apkPath));
 
             // List<string> args = new ();
