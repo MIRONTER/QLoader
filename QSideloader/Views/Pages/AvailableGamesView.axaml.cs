@@ -7,6 +7,7 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
 using FluentAvalonia.UI.Controls;
+using QSideloader.Controls;
 using QSideloader.Models;
 using QSideloader.Utilities;
 using QSideloader.ViewModels;
@@ -41,11 +42,23 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
 
     private void MainWindow_OnKeyDown(object? sender, KeyEventArgs e)
     {
-        //Log.Debug("Key pressed: {Key}", e.Key);
-        // If user starts typing, focus the search box
-        if (e.Key is >= Key.A and <= Key.Z)
+        Log.Debug("Key pressed: {Key}", e.Key);
+        switch (e.Key)
         {
-            this.Get<TextBox>("SearchBox").Focus();
+            // If user starts typing, focus the search box
+            case >= Key.D0 and <= Key.Z:
+                this.Get<TextBox>("SearchBox").Focus();
+                break;
+            // If arrow down or up is pressed, focus the data grid
+            case Key.Down or Key.Up:
+                var dataGrid = this.Get<DataGrid>("AvailableGamesDataGrid");
+                var isDataGridFocused = dataGrid.IsFocused;
+                if (!isDataGridFocused)
+                {
+                    dataGrid.Focus();
+                    dataGrid.SelectedIndex = 0;
+                }
+                break;
         }
     }
 
@@ -67,5 +80,20 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
             ?.MainWindow;
         if (mainWindow is not null)
             mainWindow.KeyDown -= MainWindow_OnKeyDown;
+    }
+
+    private void AvailableGamesDataGrid_EnterKeyDown(object? sender, RoutedEventArgs e)
+    {
+        var dataGrid = (CustomDataGrid?) sender;
+        var selectedGame = (Game?) dataGrid?.SelectedItem;
+        if (selectedGame is null) return;
+        Log.Debug("Enter key pressed on game {Game}", selectedGame);
+        var viewModel = (AvailableGamesViewModel?) DataContext;
+        if (viewModel is null) return;
+        if (viewModel.IsDeviceConnected)
+            viewModel.InstallSingle.Execute(selectedGame).Subscribe(_ => { }, _ => { });
+        else
+            viewModel.DownloadSingle.Execute(selectedGame).Subscribe(_ => { }, _ => { });
+        e.Handled = true;
     }
 }
