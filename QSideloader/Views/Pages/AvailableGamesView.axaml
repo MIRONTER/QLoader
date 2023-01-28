@@ -8,7 +8,9 @@
              xmlns:p="clr-namespace:QSideloader.Properties"
              xmlns:converters="clr-namespace:QSideloader.Converters"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="450"
-             x:Class="QSideloader.Views.Pages.AvailableGamesView">
+             x:Class="QSideloader.Views.Pages.AvailableGamesView"
+             AttachedToVisualTree="Visual_OnAttachedToVisualTree"
+             DetachedFromVisualTree="Visual_OnDetachedFromVisualTree">
     <UserControl.Resources>
         <converters:OnDeviceStatusValueConverter x:Key="OnDeviceStatusFromBool" />
     </UserControl.Resources>
