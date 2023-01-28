@@ -50,6 +50,15 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
                 case >= Key.D0 and <= Key.Z:
                     this.Get<TextBox>("SearchBox").Focus();
                     break;
+            }
+    }
+    
+    private void MainWindow_OnKeyUp(object? sender, KeyEventArgs e)
+    {
+        //Log.Debug("Key released: {Key}, modifiers: {Modifiers}", e.Key, e.KeyModifiers);
+        if (e.KeyModifiers == KeyModifiers.None)
+            switch (e.Key)
+            {
                 // If Enter or arrow down/up is pressed, focus the data grid
                 case Key.Down or Key.Up or Key.Enter:
                     var dataGrid = this.Get<DataGrid>("AvailableGamesDataGrid");
@@ -79,8 +88,9 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
         if (Application.Current is null) return;
         var mainWindow = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
             ?.MainWindow;
-        if (mainWindow is not null)
-            mainWindow.KeyDown += MainWindow_OnKeyDown;
+        if (mainWindow is null) return;
+        mainWindow.KeyDown += MainWindow_OnKeyDown;
+        mainWindow.KeyUp += MainWindow_OnKeyUp;
     }
 
     private void Visual_OnDetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
@@ -89,8 +99,9 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
         if (Application.Current is null) return;
         var mainWindow = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
             ?.MainWindow;
-        if (mainWindow is not null)
-            mainWindow.KeyDown -= MainWindow_OnKeyDown;
+        if (mainWindow is null) return;
+        mainWindow.KeyDown -= MainWindow_OnKeyDown;
+        mainWindow.KeyUp -= MainWindow_OnKeyUp;
     }
 
     private void AvailableGamesDataGrid_EnterKeyDown(object? sender, RoutedEventArgs e)
