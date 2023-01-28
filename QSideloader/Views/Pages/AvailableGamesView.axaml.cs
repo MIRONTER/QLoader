@@ -42,15 +42,15 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
 
     private void MainWindow_OnKeyDown(object? sender, KeyEventArgs e)
     {
-        Log.Debug("Key pressed: {Key}", e.Key);
+        //Log.Debug("Key pressed: {Key}", e.Key);
         switch (e.Key)
         {
             // If user starts typing, focus the search box
             case >= Key.D0 and <= Key.Z:
                 this.Get<TextBox>("SearchBox").Focus();
                 break;
-            // If arrow down or up is pressed, focus the data grid
-            case Key.Down or Key.Up:
+            // If Enter or arrow down/up is pressed, focus the data grid
+            case Key.Down or Key.Up or Key.Enter:
                 var dataGrid = this.Get<DataGrid>("AvailableGamesDataGrid");
                 var isDataGridFocused = dataGrid.IsFocused;
                 if (!isDataGridFocused)
