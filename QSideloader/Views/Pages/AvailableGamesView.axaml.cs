@@ -42,23 +42,34 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
 
     private void MainWindow_OnKeyDown(object? sender, KeyEventArgs e)
     {
-        //Log.Debug("Key pressed: {Key}", e.Key);
-        switch (e.Key)
+        //Log.Debug("Key pressed: {Key}, modifiers: {Modifiers}", e.Key, e.KeyModifiers);
+        if (e.KeyModifiers == KeyModifiers.None)
+            switch (e.Key)
+            {
+                // If user starts typing, focus the search box
+                case >= Key.D0 and <= Key.Z:
+                    this.Get<TextBox>("SearchBox").Focus();
+                    break;
+                // If Enter or arrow down/up is pressed, focus the data grid
+                case Key.Down or Key.Up or Key.Enter:
+                    var dataGrid = this.Get<DataGrid>("AvailableGamesDataGrid");
+                    var isDataGridFocused = dataGrid.IsFocused;
+                    if (!isDataGridFocused)
+                    {
+                        dataGrid.Focus();
+                        dataGrid.SelectedIndex = 0;
+                    }
+                    break;
+                // If Escape is pressed clear the search box
+                case Key.Escape:
+                    this.Get<TextBox>("SearchBox").Text = "";
+                    break;
+            }
+        else
         {
-            // If user starts typing, focus the search box
-            case >= Key.D0 and <= Key.Z:
+            // If Ctrl+F is pressed, focus the search box
+            if (e is {KeyModifiers: KeyModifiers.Control, Key: Key.F})
                 this.Get<TextBox>("SearchBox").Focus();
-                break;
-            // If Enter or arrow down/up is pressed, focus the data grid
-            case Key.Down or Key.Up or Key.Enter:
-                var dataGrid = this.Get<DataGrid>("AvailableGamesDataGrid");
-                var isDataGridFocused = dataGrid.IsFocused;
-                if (!isDataGridFocused)
-                {
-                    dataGrid.Focus();
-                    dataGrid.SelectedIndex = 0;
-                }
-                break;
         }
     }
 
