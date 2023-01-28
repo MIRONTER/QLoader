@@ -354,10 +354,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         try
         {
             Status = Resources.CalculatingSize;
-            await DoCancellableAsync(async () =>
-            {
-                _gameSizeBytes = await _downloaderService.GetGameSizeBytesAsync(_game!);
-            });
+            _gameSizeBytes = await _downloaderService.GetGameSizeBytesAsync(_game!, _cancellationTokenSource.Token);
             Status = Resources.Downloading;
             downloadStatsSubscription = _downloaderService
                 .PollStats(TimeSpan.FromMilliseconds(100), ThreadPoolScheduler.Instance)
