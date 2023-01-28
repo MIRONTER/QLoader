@@ -51,6 +51,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
         AddHandler(DragDrop.DropEvent, Drop);
         var navigationView = this.Get<NavigationView>("NavigationView");
         navigationView.SelectedItem = navigationView.MenuItems.OfType<NavigationViewItem>().First();
+        this.GetObservable(ClientSizeProperty).Subscribe(_ => RecalculateTaskListBoxHeight());
     }
 
     private void InitializeComponent()
@@ -85,6 +86,14 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
         }
     }
 
+    private void RecalculateTaskListBoxHeight()
+    {
+        var windowHeight = ClientSize.Height;
+        var taskListBox = this.Get<ListBox>("TaskListBox");
+        taskListBox.MaxHeight = (int) windowHeight / 3 / 60 * 60;
+        //Log.Debug("Recalculated TaskListBox height to {Height}", taskListBox.MaxHeight);
+    }
+
     private void TaskListBox_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (e.AddedItems.Count == 0) return;
@@ -112,8 +121,9 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
         // Couldn't set this in styles, so this will have to do
         this.Get<NavigationView>("NavigationView").SettingsItem.Content = Properties.Resources.Settings;
 
-        if (!Design.IsDesignMode)
-            InitializeUpdater();
+        if (Design.IsDesignMode) return;
+        InitializeUpdater();
+        RecalculateTaskListBoxHeight();
     }
 
     private void InitializeUpdater()
