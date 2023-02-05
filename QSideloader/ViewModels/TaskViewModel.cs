@@ -131,6 +131,12 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 action = RunInstallTrailersAddonAsync;
                 TaskName = "Trailers addon";
                 break;
+            case TaskType.PullPicturesAndVideos:
+                _path = taskOptions.Path ??
+                        throw new ArgumentException($"Path not specified for {nameof(TaskType.PullPicturesAndVideos)}");
+                action = PullPicturesAndVideosAsync;
+                TaskName = "Pull pictures and videos";
+                break;
             case TaskType.Extract:
                 _app = taskOptions.App ??
                        throw new ArgumentException($"App not specified for {nameof(TaskType.Extract)} task");
@@ -181,8 +187,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
         if (_gameSizeBytes is not null)
         {
-            speedMBytes = Math.Round((double) stats.Value.downloadSpeedBytes / 1000000, 2);
-            progressPercent = Math.Floor(stats.Value.downloadedBytes / (double) _gameSizeBytes * 100);
+            speedMBytes = Math.Round((double)stats.Value.downloadSpeedBytes / 1000000, 2);
+            progressPercent = Math.Floor(stats.Value.downloadedBytes / (double)_gameSizeBytes * 100);
             if (progressPercent <= 100)
             {
                 ProgressStatus = $"{progressPercent}%, {speedMBytes}MB/s";
@@ -190,7 +196,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             }
         }
 
-        speedMBytes = Math.Round((double) stats.Value.downloadSpeedBytes / 1000000, 2);
+        speedMBytes = Math.Round((double)stats.Value.downloadSpeedBytes / 1000000, 2);
         var downloadedMBytes = Math.Round(stats.Value.downloadedBytes / 1000000, 2);
         progressPercent = Math.Min(Math.Floor(downloadedMBytes / _game!.GameSize * 97), 100);
 
@@ -200,7 +206,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private void RefreshDownloadStats((double bytesPerSecond, long downloadedBytes, long totalBytes) stats)
     {
         var speedMBytes = Math.Round(stats.bytesPerSecond / 1000000, 2);
-        var progressPercent = Math.Floor((double) stats.downloadedBytes / stats.totalBytes * 100);
+        var progressPercent = Math.Floor((double)stats.downloadedBytes / stats.totalBytes * 100);
 
         ProgressStatus = $"{progressPercent}%, {speedMBytes}MB/s";
     }
@@ -326,6 +332,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 });
             }, nameof(Resources.ExtractionFailed), nameof(Resources.ExtractSuccess));
     }
+
 
     private async Task DoCancellableAsync(Func<Task> func, string? failureStatus = null, string? successStatus = null)
     {
@@ -504,6 +511,17 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         ProgressStatus = "";
         await GeneralUtils.InstallTrailersAddonAsync(_path, true);
         OnFinished(nameof(Resources.InstallSuccess));
+    }
+
+    private async Task PullPicturesAndVideosAsync()
+    {
+        EnsureDeviceConnected();
+        Status = Resources.PullingPicturesAndVideos;
+        await DoCancellableAsync(
+            async () =>
+            {
+                await Task.Run(() => { _adbDevice!.PullPicturesAndVideos(_path!, _cancellationTokenSource.Token); });
+            }, nameof(Resources.PullPicturesAndVideosFailed), nameof(Resources.PullPicturesAndVideosSuccess));
     }
 
     private void OnFinished(string statusResourceNameOrString, bool isSuccess = true, Exception? e = null)

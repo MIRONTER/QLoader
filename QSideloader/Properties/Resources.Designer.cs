@@ -180,7 +180,7 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Apply Settings.
+        ///   Looks up a localized string similar to Apply.
         /// </summary>
         public static string ApplySettingsButton {
             get {
@@ -1495,7 +1495,7 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Mount Quest as Drive.
+        ///   Looks up a localized string similar to Mount.
         /// </summary>
         public static string MountQuestButton {
             get {
@@ -1716,6 +1716,51 @@ namespace QSideloader.Properties {
         public static string PullingFromDevice {
             get {
                 return ResourceManager.GetString("PullingFromDevice", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pulling pictures and videos.
+        /// </summary>
+        public static string PullingPicturesAndVideos {
+            get {
+                return ResourceManager.GetString("PullingPicturesAndVideos", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pull pictures and videos from device.
+        /// </summary>
+        public static string PullingPicturesAndVideosTooltip {
+            get {
+                return ResourceManager.GetString("PullingPicturesAndVideosTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pull screen/videoshots.
+        /// </summary>
+        public static string PullPicturesAndVideos {
+            get {
+                return ResourceManager.GetString("PullPicturesAndVideos", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pull failed.
+        /// </summary>
+        public static string PullPicturesAndVideosFailed {
+            get {
+                return ResourceManager.GetString("PullPicturesAndVideosFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pull succeeded.
+        /// </summary>
+        public static string PullPicturesAndVideosSuccess {
+            get {
+                return ResourceManager.GetString("PullPicturesAndVideosSuccess", resourceCulture);
             }
         }
         

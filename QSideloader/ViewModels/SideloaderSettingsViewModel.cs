@@ -82,10 +82,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             Globals.ShowErrorNotification(ex, Resources.ErrorReconnectingDevice);
         });
         RestartAdbServer = ReactiveCommand.CreateFromObservable(RestartAdbServerImpl);
-        RestartAdbServer.ThrownExceptions.Subscribe(ex =>
-        {
-            Log.Error(ex, "Failed to restart ADB server");
-        });
+        RestartAdbServer.ThrownExceptions.Subscribe(ex => { Log.Error(ex, "Failed to restart ADB server"); });
         ResetAdbKeys = ReactiveCommand.CreateFromObservable(ResetAdbKeysImpl);
         ResetAdbKeys.ThrownExceptions.Subscribe(ex =>
         {
@@ -136,7 +133,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [JsonProperty]
     public bool CheckUpdatesAutomatically { get; private set; }
 
-    public string[] ConnectionTypes { get; } = {"USB", "Wireless"};
+    public string[] ConnectionTypes { get; } = { "USB", "Wireless" };
     [Reactive] [JsonProperty] public string? PreferredConnectionType { get; private set; }
     [Reactive] public string DownloadsLocationTextBoxText { get; private set; } = "";
     [JsonProperty] public string DownloadsLocation { get; private set; } = "";
@@ -155,8 +152,10 @@ public class SideloaderSettingsViewModel : ViewModelBase
     public bool EnableDebugConsole { get; private set; }
 
     [Reactive] [JsonProperty] public string LastWirelessAdbHost { get; set; } = "";
+
     public string VersionString { get; } = Assembly.GetExecutingAssembly()
         .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "";
+
 /*#if DEBUG
     public bool IsConsoleToggleable { get; }
 #else
@@ -166,7 +165,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [Reactive] public List<string> MirrorList { get; private set; } = new();
     [Reactive] public string? SelectedMirror { get; set; }
     public bool IsSwitchingMirror => _isSwitchingMirror.Value;
-    public string[] PopularityRanges { get; } = {"30 days", "7 days", "1 day", "None"};
+    public string[] PopularityRanges { get; } = { "30 days", "7 days", "1 day", "None" };
     [Reactive] [JsonProperty] public string? PopularityRange { get; private set; }
     [JsonProperty] public Guid InstallationId { get; private set; } = Guid.NewGuid();
     [JsonProperty] public ObservableCollection<(string packageName, int versionCode)> DonatedPackages { get; } = new();
@@ -204,7 +203,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> ForceCleanupPackage { get; }
     public ReactiveCommand<Unit, Unit> CleanLeftoverApks { get; }
 
-    private Timer AutoSaveDelayTimer { get; } = new() {AutoReset = false, Interval = 500};
+    private Timer AutoSaveDelayTimer { get; } = new() { AutoReset = false, Interval = 500 };
 
     private void InitDefaults()
     {
@@ -501,7 +500,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
                 return;
             }
 
-            Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.InstallTrailersAddon});
+            Globals.MainWindowViewModel!.AddTask(new TaskOptions { Type = TaskType.InstallTrailersAddon });
         });
     }
 
@@ -555,12 +554,12 @@ public class SideloaderSettingsViewModel : ViewModelBase
             Log.Information("Manual device rescan requested");
             var adbService = AdbService.Instance;
             Globals.ShowNotification(Resources.Info, Resources.RescanningDevices, NotificationType.Information,
-                    TimeSpan.FromSeconds(2));
+                TimeSpan.FromSeconds(2));
             adbService.RefreshDeviceList();
             adbService.CheckDeviceConnection();
         });
     }
-    
+
     private IObservable<Unit> ReconnectDeviceImpl()
     {
         return Observable.Start(() =>
@@ -572,7 +571,8 @@ public class SideloaderSettingsViewModel : ViewModelBase
                 if (adbService.CheckDeviceConnection())
                 {
                     adbService.ReconnectDevice();
-                    Globals.ShowNotification(Resources.Info, Resources.DeviceReconnectCompleted, NotificationType.Information,
+                    Globals.ShowNotification(Resources.Info, Resources.DeviceReconnectCompleted,
+                        NotificationType.Information,
                         TimeSpan.FromSeconds(2));
                 }
                 else
@@ -588,7 +588,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             }
         });
     }
-    
+
     private IObservable<Unit> RestartAdbServerImpl()
     {
         return Observable.Start(() =>
@@ -604,7 +604,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             });
         });
     }
-    
+
     private IObservable<Unit> ResetAdbKeysImpl()
     {
         return Observable.Start(() =>
@@ -615,7 +615,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
                 TimeSpan.FromSeconds(2));
         });
     }
-    
+
     private IObservable<Unit> ForceCleanupPackageImpl()
     {
         return Observable.Start(() =>
@@ -625,7 +625,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
                 TimeSpan.FromSeconds(2));
         });
     }
-    
+
     private IObservable<Unit> CleanLeftoverApksImpl()
     {
         return Observable.Start(() =>
@@ -635,7 +635,8 @@ public class SideloaderSettingsViewModel : ViewModelBase
             if (adbService.CheckDeviceConnection())
             {
                 adbService.Device!.RunShellCommand("rm -v /data/local/tmp/*.apk", true);
-                Globals.ShowNotification(Resources.Info, Resources.LeftoverApksCleanupCompleted, NotificationType.Information,
+                Globals.ShowNotification(Resources.Info, Resources.LeftoverApksCleanupCompleted,
+                    NotificationType.Information,
                     TimeSpan.FromSeconds(2));
             }
             else
@@ -645,6 +646,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             }
         });
     }
+
     private static void ShowRelaunchNotification(string propertyName)
     {
         Globals.ShowNotification(Resources.Settings, Resources.ApplicationRestartNeededForSetting,

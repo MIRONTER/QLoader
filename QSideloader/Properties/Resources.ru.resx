@@ -784,4 +784,7 @@
     <data name="TroubleshootingOptions" xml:space="preserve">
         <value>Опции диагностики</value>
     </data>
+    <data name="PullingPicturesAndVideos" xml:space="preserve">
+        <value>Загрузка изображений и видео</value>
+    </data>
 </root>
