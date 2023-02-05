@@ -11,5 +11,6 @@ public enum TaskType
     Restore,
     PullAndUpload,
     InstallTrailersAddon,
-    Extract
+    Extract,
+    PullPicturesAndVideos
 }

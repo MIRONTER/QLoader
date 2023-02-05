@@ -5,8 +5,12 @@ using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AdvancedSharpAdbClient;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
+using QSideloader.Models;
 using QSideloader.Properties;
 using QSideloader.Services;
 using QSideloader.Utilities;
@@ -23,6 +27,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
 
     public DeviceSettingsViewModel()
     {
+        PullPicturesAndVideos = ReactiveCommand.CreateFromTask(PullPicturesAndVideosImpl);
         _adbService = AdbService.Instance;
         Activator = new ViewModelActivator();
         ApplySettings = ReactiveCommand.CreateFromObservable(ApplySettingsImpl, this.IsValid());
@@ -47,6 +52,8 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
             _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged).DisposeWith(disposables);
         });
     }
+
+    public ReactiveCommand<Unit, Unit> PullPicturesAndVideos { get; set; }
 
     [Reactive] public bool IsDeviceConnected { get; private set; }
     [Reactive] public string[] RefreshRates { get; private set; } = Array.Empty<string>();
@@ -111,7 +118,32 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         else
             IsDeviceConnected = false;
     }
-
+    private async Task PullPicturesAndVideosImpl()
+    {
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            var mainWindow = desktop.MainWindow;
+            var pullPicturesAndVideosLocation = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            var result = await new OpenFolderDialog
+            {
+                Title = Resources.SelectDestinationFolder,
+                Directory = pullPicturesAndVideosLocation
+            }.ShowAsync(mainWindow);
+            if (result is not null)
+            {
+                Globals.MainWindowViewModel!.AddTask(new TaskOptions
+                {
+                    Type = TaskType.PullPicturesAndVideos,
+                    Path = result
+                });
+            }
+            else
+            {
+                Log.Information("No output folder selected");
+                return;
+            }
+        }
+    }
     private void LoadCurrentSettings()
     {
         Log.Debug("Loading device settings");

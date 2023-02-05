@@ -255,10 +255,10 @@ Are you sure you want to continue?</value>
         <value>Username (leave empty for default)</value>
     </data>
     <data name="MountQuestButton" xml:space="preserve">
-        <value>Mount Quest as Drive</value>
+        <value>Mount</value>
     </data>
     <data name="ApplySettingsButton" xml:space="preserve">
-        <value>Apply Settings</value>
+        <value>Apply</value>
     </data>
     <data name="LoaderSettingsHeader" xml:space="preserve">
         <value>Loader Settings</value>
@@ -790,5 +790,20 @@ You may use {0} for downloads without connecting to a device.</value>
     </data>
     <data name="TroubleshootingOptions" xml:space="preserve">
         <value>Troubleshooting options</value>
+    </data>
+    <data name="PullPicturesAndVideos" xml:space="preserve">
+        <value>Pull screen/videoshots</value>
+    </data>
+    <data name="PullPicturesAndVideosSuccess" xml:space="preserve">
+        <value>Pull succeeded</value>
+    </data>
+    <data name="PullingPicturesAndVideosTooltip" xml:space="preserve">
+        <value>Pull pictures and videos from device</value>
+    </data>
+    <data name="PullPicturesAndVideosFailed" xml:space="preserve">
+        <value>Pull failed</value>
+    </data>
+    <data name="PullingPicturesAndVideos" xml:space="preserve">
+        <value>Pulling pictures and videos</value>
     </data>
 </root>
