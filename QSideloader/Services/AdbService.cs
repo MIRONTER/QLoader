@@ -1245,15 +1245,14 @@ public class AdbService
             using var file = File.OpenWrite(localFilePath);
             syncService.Pull(remotePath, file, null, ct);
         }
-
         
-        public void PullPicturesAndVideos (string Path, CancellationToken ct = default)
+        public void PullPicturesAndVideos (string path, CancellationToken ct = default)
         {
-            PullDirectory("/sdcard/Oculus/VideoShots", Path, null,
-                ct);
-            PullDirectory("/sdcard/Oculus/Screenshots", Path , null,
-                ct);
+            Log.Information("Pulling pictures and videos from {Device} to {Path}", this, path);
+            PullDirectory("/sdcard/Oculus/VideoShots", path, null, ct);
+            PullDirectory("/sdcard/Oculus/Screenshots", path , null, ct);
         }
+        
         /// <summary>
         ///     Recursively pulls a directory from the device.
         /// </summary>
