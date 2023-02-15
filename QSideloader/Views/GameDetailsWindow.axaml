@@ -18,7 +18,8 @@
         CanResize="False"
         SizeToContent="Manual"
         KeyUp="OnKeyUp"
-        Closing="Window_OnClosing">
+        Closing="Window_OnClosing"
+        LostFocus="Window_OnLostFocus">
     <Design.DataContext>
         <viewModels:GameDetailsViewModel />
     </Design.DataContext>

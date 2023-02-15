@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Avalonia;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
 using QSideloader.ViewModels;
@@ -46,5 +47,11 @@ public class GameDetailsWindow : ReactiveWindow<GameDetailsViewModel>
     private void Window_OnClosing(object? sender, CancelEventArgs e)
     {
         if (DataContext is GameDetailsViewModel viewModel) viewModel.Dispose();
+    }
+
+    [SuppressMessage("ReSharper", "UnusedParameter.Local")]
+    private void Window_OnLostFocus(object? sender, RoutedEventArgs e)
+    {
+        Close();
     }
 }

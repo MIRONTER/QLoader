@@ -21,6 +21,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using FluentAvalonia.UI.Controls;
 using Newtonsoft.Json;
@@ -55,7 +56,7 @@ public class MainWindowViewModel : ViewModelBase
         _downloaderService = DownloaderService.Instance;
         _sideloaderSettings = Globals.SideloaderSettings;
         _notificationManager = notificationManager;
-        ShowGameDetailsCommand = ReactiveCommand.CreateFromTask<Game>(async game =>
+        ShowGameDetailsCommand = ReactiveCommand.Create<Game>(game =>
         {
             if (_downloaderService.AvailableGames is null) return;
             Log.Debug("Opening game details dialog for {GameName}", game.GameName);
@@ -65,7 +66,7 @@ public class MainWindowViewModel : ViewModelBase
             {
                 var mainWindow = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
                     ?.MainWindow;
-                await dialog.ShowDialog(mainWindow);
+                dialog.Show(mainWindow);
             }
         });
         ShowGameDetailsCommand.ThrownExceptions.Subscribe(ex =>
