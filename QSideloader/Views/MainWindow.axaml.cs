@@ -138,8 +138,8 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
         var appcastUrl = RuntimeInformation.ProcessArchitecture switch
         {
             Architecture.X64 or Architecture.X86 =>
-                "https://raw.githubusercontent.com/skrimix/QLoaderFiles/master/appcast.xml",
-            Architecture.Arm64 => "https://raw.githubusercontent.com/skrimix/QLoaderFiles/master/appcast_arm64.xml",
+                "https://qloader.5698452.xyz/files/appcast.xml",
+            Architecture.Arm64 => "https://qloader.5698452.xyz/files/appcast_arm64.xml",
             _ => ""
         };
         if (string.IsNullOrEmpty(appcastUrl))
