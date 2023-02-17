@@ -1,12 +1,17 @@
 ﻿using System;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
 using FluentAvalonia.UI.Controls;
+using QSideloader.Controls;
 using QSideloader.Models;
 using QSideloader.Utilities;
 using QSideloader.ViewModels;
+using Serilog;
 
 namespace QSideloader.Views.Pages;
 
@@ -36,25 +41,78 @@ public class InstalledGamesView : ReactiveUserControl<InstalledGamesViewModel>
         e.Handled = true;
     }
 
-    /*private void SetMultiSelectEnabled(bool state)
+    private void MainWindow_OnKeyUp(object? sender, KeyEventArgs e)
     {
-        if (state)
-        {
-            ViewModel!.MultiSelectEnabled = true;
-            var updateButton = this.FindControl<Button>("UpdateButton");
-            updateButton.Content = "Update Selected";
-        }
-        else
-        {
-            ViewModel?.ResetSelections();
-            ViewModel!.MultiSelectEnabled = false;
-            var updateButton = this.FindControl<Button>("UpdateButton");
-            updateButton.Content = "Update All";
-        }
+        //Log.Debug("Key released: {Key}, modifiers: {Modifiers}", e.Key, e.KeyModifiers);
+        var dataGrid = this.Get<DataGrid>("InstalledGamesDataGrid");
+        var selectedGame = (Game?) dataGrid.SelectedItem;
+        if (e.KeyModifiers == KeyModifiers.None)
+            switch (e.Key)
+            {
+                // If Enter or arrow down/up is pressed, focus the data grid
+                case Key.Down or Key.Up:
+                    var isDataGridFocused = dataGrid.IsFocused;
+                    if (!isDataGridFocused)
+                    {
+                        dataGrid.Focus();
+                        dataGrid.SelectedIndex = 0;
+                    }
+                    e.Handled = true;
+                    break;
+                // If Space is pressed, toggle the selected game's selected state
+                case Key.Space:
+                    if (selectedGame is null) return;
+                    selectedGame.IsSelected = !selectedGame.IsSelected;
+                    e.Handled = true;
+                    break;
+                // If Alt is pressed, show game details for the selected game
+                case Key.LeftAlt or Key.RightAlt:
+                    if (selectedGame is null) return;
+                    Globals.MainWindowViewModel!.ShowGameDetailsCommand.Execute(selectedGame).Subscribe(_ => { }, _ => { });
+                    e.Handled = true;
+                    break;
+            }
     }
 
-    private void MultiSelectButton_OnClick(object? sender, RoutedEventArgs e)
+    private void Visual_OnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
     {
-        SetMultiSelectEnabled(!ViewModel!.MultiSelectEnabled);
-    }*/
+        // Subscribe to main window key down event
+        if (Application.Current is null) return;
+        var mainWindow = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+            ?.MainWindow;
+        if (mainWindow is null) return;
+        mainWindow.KeyUp += MainWindow_OnKeyUp;
+    }
+
+    private void Visual_OnDetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+    {
+        // Unsubscribe from main window key down event
+        if (Application.Current is null) return;
+        var mainWindow = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+            ?.MainWindow;
+        if (mainWindow is null) return;
+        mainWindow.KeyUp -= MainWindow_OnKeyUp;
+    }
+
+    private void InstalledGamesDataGrid_OnEnterKeyDown(object? sender, RoutedEventArgs e)
+    {
+        var dataGrid = (CustomDataGrid?) sender;
+        var selectedGame = (Game?) dataGrid?.SelectedItem;
+        if (selectedGame is null) return;
+        Log.Debug("Enter key pressed on game {Game}", selectedGame);
+        var viewModel = (InstalledGamesViewModel?) DataContext;
+        if (viewModel is null) return;
+        viewModel.UpdateSingle.Execute(selectedGame).Subscribe(_ => { }, _ => { });
+        e.Handled = true;
+    }
+
+    private void InstalledGamesDataGrid_OnPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        var dataGrid = (DataGrid?) sender;
+        if (dataGrid is null || e.InitialPressMouseButton != MouseButton.Middle) return;
+        var source = e.Source as IControl;
+        if (source?.DataContext is not Game selectedGame) return;
+        Globals.MainWindowViewModel!.ShowGameDetailsCommand.Execute(selectedGame).Subscribe(_ => { }, _ => { });
+        e.Handled = true;
+    }
 }

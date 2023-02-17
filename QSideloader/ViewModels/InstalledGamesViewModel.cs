@@ -37,6 +37,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
         Update = ReactiveCommand.CreateFromObservable(UpdateImpl);
         UpdateAll = ReactiveCommand.CreateFromObservable(UpdateAllImpl);
+        UpdateSingle = ReactiveCommand.CreateFromObservable<Game, Unit>(UpdateSingleImpl);
         Uninstall = ReactiveCommand.CreateFromObservable(UninstallImpl);
         Backup = ReactiveCommand.CreateFromObservable(BackupImpl);
         var cacheListBind = _installedGamesSourceCache.Connect()
@@ -58,6 +59,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
     public ReactiveCommand<bool, Unit> Refresh { get; }
     public ReactiveCommand<Unit, Unit> Update { get; }
     public ReactiveCommand<Unit, Unit> UpdateAll { get; }
+    public ReactiveCommand<Game, Unit> UpdateSingle { get; }
     public ReactiveCommand<Unit, Unit> Uninstall { get; }
     public ReactiveCommand<Unit, Unit> Backup { get; }
     public ReadOnlyObservableCollection<InstalledGame> InstalledGames => _installedGames;
@@ -179,6 +181,22 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
                 Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadAndInstall, Game = game});
                 Log.Information("Queued for update: {ReleaseName}", game.ReleaseName);
             }
+        });
+    }
+    
+    private IObservable<Unit> UpdateSingleImpl(Game game)
+    {
+        return Observable.Start(() =>
+        {
+            if (!_adbService.CheckDeviceConnectionSimple())
+            {
+                Log.Warning("InstalledGamesViewModel.UpdateSingleImpl: no device connection!");
+                OnDeviceOffline();
+                return;
+            }
+
+            Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadAndInstall, Game = game});
+            Log.Information("Queued for update: {ReleaseName}", game.ReleaseName);
         });
     }
 

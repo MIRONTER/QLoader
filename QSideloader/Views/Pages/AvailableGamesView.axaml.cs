@@ -38,6 +38,7 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
         // TODO: let user set action in settings?
         //Globals.MainWindowViewModel!.QueueForInstall(selectedGame);
         Globals.MainWindowViewModel!.ShowGameDetailsCommand.Execute(selectedGame).Subscribe(_ => { }, _ => { });
+        e.Handled = true;
     }
 
     private void MainWindow_OnKeyDown(object? sender, KeyEventArgs e)
@@ -49,6 +50,7 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
                 // If user starts typing, focus the search box
                 case >= Key.D0 and <= Key.Z:
                     this.Get<TextBox>("SearchBox").Focus();
+                    e.Handled = true;
                     break;
             }
     }
@@ -56,29 +58,47 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
     private void MainWindow_OnKeyUp(object? sender, KeyEventArgs e)
     {
         //Log.Debug("Key released: {Key}, modifiers: {Modifiers}", e.Key, e.KeyModifiers);
+        var dataGrid = this.Get<DataGrid>("AvailableGamesDataGrid");
+        var selectedGame = (Game?) dataGrid.SelectedItem;
         if (e.KeyModifiers == KeyModifiers.None)
             switch (e.Key)
             {
                 // If Enter or arrow down/up is pressed, focus the data grid
                 case Key.Down or Key.Up or Key.Enter:
-                    var dataGrid = this.Get<DataGrid>("AvailableGamesDataGrid");
                     var isDataGridFocused = dataGrid.IsFocused;
                     if (!isDataGridFocused)
                     {
                         dataGrid.Focus();
                         dataGrid.SelectedIndex = 0;
                     }
+                    e.Handled = true;
                     break;
                 // If Escape is pressed clear the search box
                 case Key.Escape:
                     this.Get<TextBox>("SearchBox").Text = "";
+                    e.Handled = true;
+                    break;
+                // If Space is pressed, toggle the selected game's selected state
+                case Key.Space:
+                    if (selectedGame is null) return;
+                    selectedGame.IsSelected = !selectedGame.IsSelected;
+                    e.Handled = true;
+                    break;
+                // If Alt is pressed, show game details for the selected game
+                case Key.LeftAlt or Key.RightAlt:
+                    if (selectedGame is null) return;
+                    Globals.MainWindowViewModel!.ShowGameDetailsCommand.Execute(selectedGame).Subscribe(_ => { }, _ => { });
+                    e.Handled = true;
                     break;
             }
         else
         {
             // If Ctrl+F is pressed, focus the search box
             if (e is {KeyModifiers: KeyModifiers.Control, Key: Key.F})
+            {
                 this.Get<TextBox>("SearchBox").Focus();
+                e.Handled = true;
+            }
         }
     }
 
@@ -104,7 +124,7 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
         mainWindow.KeyUp -= MainWindow_OnKeyUp;
     }
 
-    private void AvailableGamesDataGrid_EnterKeyDown(object? sender, RoutedEventArgs e)
+    private void AvailableGamesDataGrid_OnEnterKeyDown(object? sender, RoutedEventArgs e)
     {
         var dataGrid = (CustomDataGrid?) sender;
         var selectedGame = (Game?) dataGrid?.SelectedItem;
@@ -116,6 +136,16 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
             viewModel.InstallSingle.Execute(selectedGame).Subscribe(_ => { }, _ => { });
         else
             viewModel.DownloadSingle.Execute(selectedGame).Subscribe(_ => { }, _ => { });
+        e.Handled = true;
+    }
+
+    private void AvailableGamesDataGrid_OnPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        var dataGrid = (DataGrid?) sender;
+        if (dataGrid is null || e.InitialPressMouseButton != MouseButton.Middle) return;
+        var source = e.Source as IControl;
+        if (source?.DataContext is not Game selectedGame) return;
+        Globals.MainWindowViewModel!.ShowGameDetailsCommand.Execute(selectedGame).Subscribe(_ => { }, _ => { });
         e.Handled = true;
     }
 }

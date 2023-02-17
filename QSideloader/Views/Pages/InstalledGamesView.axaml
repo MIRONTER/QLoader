@@ -9,8 +9,11 @@
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
              xmlns:p="clr-namespace:QSideloader.Properties"
              xmlns:converters="clr-namespace:QSideloader.Converters"
+             xmlns:controls="clr-namespace:QSideloader.Controls"
              mc:Ignorable="d" d:DesignWidth="1130" d:DesignHeight="450"
-             x:Class="QSideloader.Views.Pages.InstalledGamesView">
+             x:Class="QSideloader.Views.Pages.InstalledGamesView"
+             AttachedToVisualTree="Visual_OnAttachedToVisualTree"
+             DetachedFromVisualTree="Visual_OnDetachedFromVisualTree">
     <UserControl.Resources>
         <converters:UpdateStatusStringValueConverter x:Key="UpdateStatusStringFromInstalledGame" />
     </UserControl.Resources>
@@ -91,10 +94,12 @@
             </Button>
         </StackPanel>
         <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
-        <DataGrid Grid.Row="1" x:Name="InstalledGamesDataGrid"
+        <controls:CustomDataGrid Grid.Row="1" x:Name="InstalledGamesDataGrid"
                   Items="{Binding InstalledGames}"
                   AutoGenerateColumns="False" CanUserResizeColumns="True"
-                  DoubleTapped="InstalledGamesDataGrid_OnDoubleTapped">
+                  DoubleTapped="InstalledGamesDataGrid_OnDoubleTapped"
+                  PointerReleased="InstalledGamesDataGrid_OnPointerReleased"
+                  EnterKeyDown="InstalledGamesDataGrid_OnEnterKeyDown">
             <DataGrid.Columns>
                 <DataGridTemplateColumn Width="52"
                                         IsReadOnly="False"
@@ -133,7 +138,7 @@
                 <SolidColorBrush x:Key="DataGridCellFocusVisualSecondaryBrush">Transparent</SolidColorBrush>
                 <!-- ReSharper restore Xaml.RedundantResource -->
             </DataGrid.Resources>
-        </DataGrid>
+        </controls:CustomDataGrid>
         <views:LoadingProgressRingView Grid.Row="0" Grid.RowSpan="2"
                                        IsVisible="{Binding IsBusy}" />
     </Grid>

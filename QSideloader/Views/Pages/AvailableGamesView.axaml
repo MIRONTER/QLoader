@@ -59,7 +59,8 @@
                   Items="{Binding AvailableGames}"
                   AutoGenerateColumns="False" CanUserResizeColumns="True"
                   DoubleTapped="AvailableGamesDataGrid_OnDoubleTapped"
-                  EnterKeyDown="AvailableGamesDataGrid_EnterKeyDown">
+                  PointerReleased="AvailableGamesDataGrid_OnPointerReleased"
+                  EnterKeyDown="AvailableGamesDataGrid_OnEnterKeyDown">
             <DataGrid.Columns>
                 <DataGridTemplateColumn Width="52"
                                         IsReadOnly="False"
