@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:QSideloader.ViewModels"
              xmlns:p="clr-namespace:QSideloader.Properties"
-             mc:Ignorable="d" d:DesignWidth="555" d:DesignHeight="128"
+             mc:Ignorable="d" d:DesignWidth="570" d:DesignHeight="128"
              x:Class="QSideloader.Views.DeviceSettingsView">
     <Design.DataContext>
         <viewModels:DeviceSettingsViewModel />
