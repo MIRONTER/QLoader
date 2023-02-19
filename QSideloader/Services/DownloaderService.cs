@@ -231,20 +231,6 @@ public class DownloaderService
         var matches = Regex.Matches(result.StandardOutput, mirrorPattern);
         foreach (Match match in matches) mirrorList.Add(match.Groups[1].ToString());
         return mirrorList;
-        /*if (!MirrorListContainsVip(mirrorList)) return mirrorList;
-        if (CheckVipAccess())
-        {
-            Log.Information("Verified VIP access");
-            return mirrorList;
-        }
-
-        Globals.ShowNotification("Error", Resources.CouldntVerifyVip, NotificationType.Error, TimeSpan.Zero);
-        throw new DownloaderServiceException("Couldn't verify VIP access");*/
-    }
-
-    private static bool MirrorListContainsVip(IEnumerable<string> mirrorList)
-    {
-        return mirrorList.Any(x => Regex.IsMatch(x, @"FFA-9."));
     }
 
     /// <summary>
