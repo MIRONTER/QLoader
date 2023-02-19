@@ -71,6 +71,11 @@ public class InstalledGamesView : ReactiveUserControl<InstalledGamesViewModel>
                     Globals.MainWindowViewModel!.ShowGameDetailsCommand.Execute(selectedGame).Subscribe(_ => { }, _ => { });
                     e.Handled = true;
                     break;
+                // If F5 is pressed, refresh the list
+                case Key.F5:
+                    ViewModel!.Refresh.Execute(true).Subscribe(_ => { }, _ => { });
+                    e.Handled = true;
+                    break;
             }
     }
 
