@@ -50,7 +50,6 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
                 // If user starts typing, focus the search box
                 case >= Key.D0 and <= Key.Z:
                     this.Get<TextBox>("SearchBox").Focus();
-                    e.Handled = true;
                     break;
             }
     }
