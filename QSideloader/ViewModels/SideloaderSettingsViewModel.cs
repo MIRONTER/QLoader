@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -207,22 +208,56 @@ public class SideloaderSettingsViewModel : ViewModelBase
 
     private void InitDefaults()
     {
-        CheckUpdatesAutomatically = true;
-        PreferredConnectionType = ConnectionTypes[0];
-        DownloadsLocation = _defaultDownloadsLocation;
-        DownloadsLocationTextBoxText = DownloadsLocation;
-        BackupsLocation = _defaultBackupsLocation;
-        BackupsLocationTextBoxText = BackupsLocation;
-        DownloaderBandwidthLimit = "";
-        DownloaderBandwidthLimitTextBoxText = "";
-        DownloadsPruningPolicy = DownloadsPruningPolicy.DeleteAfterInstall;
-        LastWirelessAdbHost = "";
-        EnableDebugConsole = false;
-        PopularityRange = PopularityRanges[0];
-        IgnoredDonationPackages = new ObservableCollection<string>();
-        EnableRemoteLogging = false;
-        EnableAutoDonation = false;
-        ForceEnglish = false;
+        // List of default values for settings, null means that the setting should not be reset to default
+        var defaultValues = new Dictionary<string, dynamic?> {
+            { "CheckUpdatesAutomatically", true },
+            { "PreferredConnectionType", ConnectionTypes[0] },
+            { "DownloadsLocation", _defaultDownloadsLocation },
+            { "DownloadsLocationTextBoxText", _defaultDownloadsLocation },
+            { "BackupsLocation", _defaultBackupsLocation },
+            { "BackupsLocationTextBoxText", _defaultBackupsLocation },
+            { "DownloaderBandwidthLimit", "" },
+            { "DownloaderBandwidthLimitTextBoxText", "" },
+            { "DownloadsPruningPolicy", DownloadsPruningPolicy.DeleteAfterInstall },
+            { "LastWirelessAdbHost", "" },
+            { "EnableDebugConsole", false },
+            { "PopularityRange", PopularityRanges[0] },
+            { "InstallationId", null },
+            { "DonatedPackages", null },
+            { "IgnoredDonationPackages", new ObservableCollection<string>() },
+            { "EnableRemoteLogging", false },
+            { "EnableAutoDonation", false },
+            { "ForceEnglish", false }
+        };
+
+        var props = GetType().GetProperties().Where(
+            prop => Attribute.IsDefined(prop, typeof(JsonPropertyAttribute))).ToList();
+        foreach (var prop in props)
+        {
+            if (!defaultValues.ContainsKey(prop.Name))
+            {
+                throw new InvalidOperationException($"Missing default value for {prop.Name} setting");
+            }
+
+            var defaultValue = defaultValues[prop.Name];
+            if (defaultValue == null)
+            {
+                continue;
+            }
+            if (typeof(IList).IsAssignableFrom(prop.PropertyType))
+            {
+                var collection = (IList)prop.GetValue(this)!;
+                collection.Clear();
+                foreach (var item in (IEnumerable)defaultValue)
+                {
+                    collection.Add(item);
+                }
+            }
+            else
+            {
+                prop.SetValue(this, defaultValue);
+            }
+        }
     }
 
     private void ValidateSettings(bool save = true)
