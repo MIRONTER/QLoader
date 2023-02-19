@@ -46,6 +46,24 @@
                 <Button Margin="10,0,0,0" IsEnabled="{Binding !IsSwitchingMirror}"
                         Command="{Binding ReloadMirrorList}" Content="{x:Static p:Resources.ReloadListButton}" />
             </StackPanel>
+            
+            <StackPanel Orientation="Horizontal">
+                <ToggleSwitch Margin="0,8,0,0" 
+                              VerticalAlignment="Top"
+                              IsChecked="{Binding EnableTaskAutoDismiss}"
+                              Content="{x:Static p:Resources.EnableTaskAutoDismiss}" 
+                              ToolTip.Tip="{x:Static p:Resources.EnableTaskAutoDismissTooltip}"/>
+                <StackPanel Orientation="Horizontal" Margin="0,34,0,0">
+                    <TextBox MinWidth="50" Padding="10,5,10,6" Margin="4,0,0,0"
+                             VerticalAlignment="Top"
+                             IsEnabled="{Binding EnableTaskAutoDismiss}"
+                             Text="{Binding TaskAutoDismissDelayTextBoxText}"
+                             Watermark="{x:Static p:Resources.TaskAutoDismissDelay}"
+                             ToolTip.Tip="{x:Static p:Resources.TaskAutoDismissDelay}"/>
+                    <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding SetTaskAutoDismissDelay}"
+                            Content="{x:Static p:Resources.SetButton}" />
+                </StackPanel>
+            </StackPanel>
 
             <TextBlock Margin="0,8,0,4" VerticalAlignment="Center" Text="{x:Static p:Resources.PopularityTimeRange}" />
             <ComboBox Items="{Binding PopularityRanges}"

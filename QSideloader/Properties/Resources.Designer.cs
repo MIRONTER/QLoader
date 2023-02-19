@@ -937,6 +937,24 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enable task auto dismiss.
+        /// </summary>
+        public static string EnableTaskAutoDismiss {
+            get {
+                return ResourceManager.GetString("EnableTaskAutoDismiss", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Automatically dismiss tasks after successful completion.
+        /// </summary>
+        public static string EnableTaskAutoDismissTooltip {
+            get {
+                return ResourceManager.GetString("EnableTaskAutoDismissTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Enable Wireless ADB.
         /// </summary>
         public static string EnableWirelessAdb {
@@ -1329,6 +1347,15 @@ namespace QSideloader.Properties {
         public static string Info {
             get {
                 return ResourceManager.GetString("Info", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Input is not a valid number.
+        /// </summary>
+        public static string InputNotANumber {
+            get {
+                return ResourceManager.GetString("InputNotANumber", resourceCulture);
             }
         }
         
@@ -2103,6 +2130,24 @@ namespace QSideloader.Properties {
         public static string StoreRating {
             get {
                 return ResourceManager.GetString("StoreRating", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delay (in seconds, default: 10).
+        /// </summary>
+        public static string TaskAutoDismissDelay {
+            get {
+                return ResourceManager.GetString("TaskAutoDismissDelay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Task auto dismiss delay set.
+        /// </summary>
+        public static string TaskAutoDismissDelaySet {
+            get {
+                return ResourceManager.GetString("TaskAutoDismissDelaySet", resourceCulture);
             }
         }
         

@@ -806,4 +806,19 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="PullingPicturesAndVideos" xml:space="preserve">
         <value>Pulling pictures and videos</value>
     </data>
+    <data name="EnableTaskAutoDismiss" xml:space="preserve">
+        <value>Enable task auto dismiss</value>
+    </data>
+    <data name="EnableTaskAutoDismissTooltip" xml:space="preserve">
+        <value>Automatically dismiss tasks after successful completion</value>
+    </data>
+    <data name="TaskAutoDismissDelay" xml:space="preserve">
+        <value>Delay (in seconds, default: 10)</value>
+    </data>
+    <data name="TaskAutoDismissDelaySet" xml:space="preserve">
+        <value>Task auto dismiss delay set</value>
+    </data>
+    <data name="InputNotANumber" xml:space="preserve">
+        <value>Input is not a valid number</value>
+    </data>
 </root>

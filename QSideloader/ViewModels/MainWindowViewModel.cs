@@ -127,6 +127,25 @@ public class MainWindowViewModel : ViewModelBase
     {
         return TaskList.ToList();
     }
+    
+    public void OnTaskFinished(bool isSuccess, TaskId taskId)
+    {
+        if (!isSuccess || !_sideloaderSettings.EnableTaskAutoDismiss) return;
+        if (!int.TryParse(_sideloaderSettings.TaskAutoDismissDelayTextBoxText, out var delaySec))
+        {
+            delaySec = 10;
+        }
+        Task.Delay(delaySec * 1000).ContinueWith(_ =>
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var task = TaskList.FirstOrDefault(t => Equals(t.TaskId, taskId));
+                if (task is null) return;
+                Log.Information("Auto-dismissing completed task {TaskId} {TaskType} {TaskName}", task.TaskId,
+                    task.TaskType, task.TaskName);
+                TaskList.Remove(task);
+            })
+        );
+    }
 
     private void OnDeviceStateChanged(DeviceState state)
     {

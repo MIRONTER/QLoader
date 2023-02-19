@@ -461,7 +461,7 @@
         <value>Подготовка к отправке</value>
     </data>
     <data name="PullingFromDevice" xml:space="preserve">
-        <value>Загрузка с устройства</value>
+        <value>Выгрузка с устройства</value>
     </data>
     <data name="PushingObbFiles" xml:space="preserve">
         <value>Отправка OBB файлов</value>
@@ -785,6 +785,33 @@
         <value>Опции диагностики</value>
     </data>
     <data name="PullingPicturesAndVideos" xml:space="preserve">
-        <value>Загрузка изображений и видео</value>
+        <value>Выгрузка изображений и видео</value>
+    </data>
+    <data name="PullingPicturesAndVideosTooltip" xml:space="preserve">
+        <value>Выгрузить изображения и видео</value>
+    </data>
+    <data name="PullPicturesAndVideos" xml:space="preserve">
+        <value>Выгрузить медиа</value>
+    </data>
+    <data name="PullPicturesAndVideosSuccess" xml:space="preserve">
+        <value>Успешно выгружено</value>
+    </data>
+    <data name="PullPicturesAndVideosFailed" xml:space="preserve">
+        <value>Не удалось выгрузить</value>
+    </data>
+    <data name="EnableTaskAutoDismiss" xml:space="preserve">
+        <value>Включить авто очистку задач</value>
+    </data>
+    <data name="EnableTaskAutoDismissTooltip" xml:space="preserve">
+        <value>Автоматически убирать задачи после успешного выполнения</value>
+    </data>
+    <data name="TaskAutoDismissDelay" xml:space="preserve">
+        <value>Задержка (в секундах, по умолчанию: 10)</value>
+    </data>
+    <data name="TaskAutoDismissDelaySet" xml:space="preserve">
+        <value>Задержка очистки задач установлена</value>
+    </data>
+    <data name="InputNotANumber" xml:space="preserve">
+        <value>Введенное значение не является числом</value>
     </data>
 </root>

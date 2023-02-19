@@ -49,6 +49,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
         SetBackupsLocation = ReactiveCommand.CreateFromObservable(SetBackupsLocationImpl, this.IsValid());
         SetDownloaderBandwidthLimit =
             ReactiveCommand.CreateFromObservable(SetDownloaderBandwidthLimitImpl, this.IsValid());
+        SetTaskAutoDismissDelay = ReactiveCommand.CreateFromObservable(SetTaskAutoDismissDelayImpl, this.IsValid());
         RestoreDefaults = ReactiveCommand.CreateFromObservable(RestoreDefaultsImpl);
         CheckUpdates = ReactiveCommand.CreateFromObservable(CheckUpdatesImpl);
         CheckUpdates.ThrownExceptions.Subscribe(ex =>
@@ -113,6 +114,9 @@ public class SideloaderSettingsViewModel : ViewModelBase
             x => string.IsNullOrEmpty(x) ||
                  int.TryParse(Regex.Match(x, @"^(\d+)[BKMGTP]{0,1}$").Groups[1].ToString(), out _),
             "Invalid format. Allowed format: Number in KiB/s, or number with suffix B|K|M|G|T|P (e.g. 1000 or 10M)");
+        this.ValidationRule(viewModel => viewModel.TaskAutoDismissDelayTextBoxText,
+            x => string.IsNullOrEmpty(x) || int.TryParse(x, out _),
+            "Invalid format. Allowed format: Number in seconds (e.g. 10)");
         AutoSaveDelayTimer.Elapsed += (_, _) =>
         {
             ValidateSettings(false);
@@ -185,6 +189,13 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [Reactive]
     [JsonProperty]
     public bool ForceEnglish { get; private set; }
+    
+    [Reactive] [JsonProperty] public bool EnableTaskAutoDismiss { get; private set; }
+    [Reactive] public string TaskAutoDismissDelayTextBoxText { get; private set; } = "";
+    /// <summary>
+    /// Task auto dismiss delay in seconds
+    /// </summary>
+    [JsonProperty] public int TaskAutoDismissDelay { get; private set; } = 10;
 
     private ReactiveCommand<bool, Unit> SaveSettings { get; }
     private ReactiveCommand<Unit, Unit> RestoreDefaults { get; }
@@ -193,6 +204,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> BrowseBackupsDirectory { get; }
     public ReactiveCommand<Unit, Unit> SetBackupsLocation { get; }
     public ReactiveCommand<Unit, Unit> SetDownloaderBandwidthLimit { get; }
+    public ReactiveCommand<Unit, Unit> SetTaskAutoDismissDelay { get; }
     public ReactiveCommand<Unit, Unit> CheckUpdates { get; }
     public ReactiveCommand<Unit, Unit> SwitchMirror { get; }
     public ReactiveCommand<Unit, Unit> ReloadMirrorList { get; }
@@ -228,7 +240,10 @@ public class SideloaderSettingsViewModel : ViewModelBase
             { "IgnoredDonationPackages", new ObservableCollection<string>() },
             { "EnableRemoteLogging", false },
             { "EnableAutoDonation", false },
-            { "ForceEnglish", false }
+            { "ForceEnglish", false },
+            { "EnableTaskAutoDismiss", true },
+            { "TaskAutoDismissDelay", 10 },
+            { "TaskAutoDismissDelayTextBoxText", "10" },
         };
 
         var props = GetType().GetProperties().Where(
@@ -312,6 +327,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
         DownloadsLocationTextBoxText = DownloadsLocation;
         BackupsLocationTextBoxText = BackupsLocation;
         DownloaderBandwidthLimitTextBoxText = DownloaderBandwidthLimit;
+        TaskAutoDismissDelayTextBoxText = TaskAutoDismissDelay.ToString();
         if (save && saveNeeded)
             SaveSettings.Execute().Subscribe();
     }
@@ -464,6 +480,38 @@ public class SideloaderSettingsViewModel : ViewModelBase
                 Log.Debug("Removed downloader bandwidth limit");
                 Globals.ShowNotification(Resources.Info, Resources.BandwidthLimitRemoved,
                     NotificationType.Success, TimeSpan.FromSeconds(2));
+            }
+        });
+    }
+    
+    private IObservable<Unit> SetTaskAutoDismissDelayImpl()
+    {
+        return Observable.Start(() =>
+        {
+            Log.Debug("Setting new task auto dismiss delay: {Delay}",
+                TaskAutoDismissDelayTextBoxText);
+            if (string.IsNullOrEmpty(TaskAutoDismissDelayTextBoxText))
+                TaskAutoDismissDelayTextBoxText = "10";
+            if (int.TryParse(TaskAutoDismissDelayTextBoxText, out var delay))
+            {
+                if (delay < 0)
+                {
+                    Log.Warning("Task auto dismiss delay cannot be negative, setting to 0");
+                    delay = 0;
+                    TaskAutoDismissDelayTextBoxText = "0";
+                }
+
+                TaskAutoDismissDelay = delay;
+                SaveSettings.Execute().Subscribe();
+                Log.Debug("Set new task auto dismiss delay");
+                Globals.ShowNotification(Resources.Info, Resources.TaskAutoDismissDelaySet,
+                    NotificationType.Success, TimeSpan.FromSeconds(2));
+            }
+            else
+            {
+                Log.Warning("Task auto dismiss delay is not a valid number");
+                Globals.ShowNotification(Resources.Error, Resources.InputNotANumber,
+                    NotificationType.Error, TimeSpan.FromSeconds(5));
             }
         });
     }

@@ -536,6 +536,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             TaskId, _taskType, TaskName,
             Resources.ResourceManager.GetString(statusResourceNameOrString, CultureInfo.InvariantCulture)
             ?? statusResourceNameOrString, isSuccess);
+        Globals.MainWindowViewModel!.OnTaskFinished(isSuccess, TaskId);
         if (isSuccess) return;
         if (e is not null)
         {
