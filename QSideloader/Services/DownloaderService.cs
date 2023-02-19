@@ -777,7 +777,7 @@ public class DownloaderService
     ///     Reports the download of the provided package name to the API.
     /// </summary>
     /// <param name="packageName">Package name of the downloaded game.</param>
-    private async Task ReportGameDownload(string packageName)
+    private static async Task ReportGameDownload(string packageName)
     {
         using var op = Operation.Begin("Reporting game {PackageName} download to API", packageName);
         try
@@ -903,7 +903,6 @@ public class DownloaderService
                 File.Delete(trailersAddonPath);
             var downloadOpt = new DownloadConfiguration
             {
-                OnTheFlyDownload = false,
                 ChunkCount = 6,
                 ParallelDownload = true,
                 BufferBlockSize = 8000,
@@ -915,21 +914,13 @@ public class DownloaderService
                 }
             };
             var downloader = new DownloadService(downloadOpt);
-            downloader.DownloadProgressChanged += (_, _) =>
-            {
-                if (ct.IsCancellationRequested)
-                {
-                    downloader.CancelAsync();
-                    downloader.Package.Clear();
-                }
-            };
             downloader.DownloadProgressChanged +=
                 GeneralUtils.CreateThrottledEventHandler<Downloader.DownloadProgressChangedEventArgs>(
                     (_, args) =>
                     {
                         progress?.Report((args.BytesPerSecondSpeed, args.ReceivedBytesSize, args.TotalBytesToReceive));
                     }, TimeSpan.FromMilliseconds(100));
-            await downloader.DownloadFileTaskAsync(trailersAddonUrl, trailersAddonPath);
+            await downloader.DownloadFileTaskAsync(trailersAddonUrl, trailersAddonPath, ct);
             ct.ThrowIfCancellationRequested();
 
             op.Complete();
@@ -961,7 +952,7 @@ public class DownloaderService
     /// <param name="packageName">Package name to search info for.</param>
     /// <returns><see cref="OculusGame" /> containing the info, or <c>null</c> if no info was found.</returns>
     /// <exception cref="HttpRequestException">Thrown if API request was unsuccessful.</exception>
-    public async Task<OculusGame?> GetGameStoreInfo(string? packageName)
+    public static async Task<OculusGame?> GetGameStoreInfo(string? packageName)
     {
         if (packageName is null)
             return null;
