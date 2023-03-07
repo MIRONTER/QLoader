@@ -39,14 +39,14 @@ public static class GeneralUtils
         return BitConverter.ToString(hash).Replace("-", "");
     }
 
-    public static ApkInfo GetApkInfo(string apkPath)
+    public static async Task<ApkInfo> GetApkInfoAsync(string apkPath)
     {
         if (!File.Exists(apkPath))
             throw new FileNotFoundException("Apk file not found", apkPath);
 
-        var aaptOutput = Cli.Wrap(PathHelper.AaptPath)
+        var aaptOutput = await Cli.Wrap(PathHelper.AaptPath)
             .WithArguments($"dump badging \"{apkPath}\"")
-            .ExecuteBufferedAsync().GetAwaiter().GetResult();
+            .ExecuteBufferedAsync();
 
         var apkInfo = new ApkInfo
         {

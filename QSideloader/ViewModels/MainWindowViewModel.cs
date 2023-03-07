@@ -232,7 +232,7 @@ public class MainWindowViewModel : ViewModelBase
                 ApkInfo apkInfo;
                 try
                 {
-                    apkInfo = GeneralUtils.GetApkInfo(fileName);
+                    apkInfo = GeneralUtils.GetApkInfoAsync(fileName).GetAwaiter().GetResult();
                 }
                 catch (Exception ex)
                 {

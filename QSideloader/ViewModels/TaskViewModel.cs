@@ -289,7 +289,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 path = _adbDevice!.PullApp(_app!.PackageName, "donations", _cancellationTokenSource.Token);
             });
             Status = Resources.PreparingToUpload;
-            var apkInfo = GeneralUtils.GetApkInfo(Path.Combine(path, _app!.PackageName + ".apk"));
+            var apkInfo = await GeneralUtils.GetApkInfoAsync(Path.Combine(path, _app!.PackageName + ".apk"));
             var archiveName =
                 GeneralUtils.SanitizeFileName(
                     $"{apkInfo.ApplicationLabel} v{apkInfo.VersionCode} {apkInfo.PackageName}.zip");
