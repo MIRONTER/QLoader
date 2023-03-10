@@ -38,6 +38,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     private readonly string _defaultDownloadsLocation = PathHelper.DefaultDownloadsPath;
     private readonly string _defaultBackupsLocation = PathHelper.DefaultBackupsPath;
     private static readonly SemaphoreSlim MirrorSelectionRefreshSemaphoreSlim = new(1, 1);
+    private static readonly SemaphoreSlim SettingsFileSemaphoreSlim = new(1, 1);
     private readonly ObservableAsPropertyHelper<bool> _isSwitchingMirror;
 
     public SideloaderSettingsViewModel()
@@ -336,6 +337,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     {
         if (File.Exists(PathHelper.SettingsPath))
         {
+            SettingsFileSemaphoreSlim.Wait();
             try
             {
                 var json = File.ReadAllText(PathHelper.SettingsPath);
@@ -349,6 +351,10 @@ public class SideloaderSettingsViewModel : ViewModelBase
                 InitDefaults();
                 SaveSettings.Execute().Subscribe();
             }
+            finally
+            {
+                SettingsFileSemaphoreSlim.Release();
+            }
         }
         else
         {
@@ -361,6 +367,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     {
         return Observable.Start(() =>
         {
+            SettingsFileSemaphoreSlim.Wait();
             try
             {
                 var json = JsonConvert.SerializeObject(this, Formatting.Indented);
@@ -386,6 +393,10 @@ public class SideloaderSettingsViewModel : ViewModelBase
                 Log.Error(e, "Failed to save settings");
                 Globals.ShowErrorNotification(e, Resources.FailedToSaveSettings);
                 throw;
+            }
+            finally
+            {
+                SettingsFileSemaphoreSlim.Release();
             }
         });
     }
