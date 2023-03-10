@@ -139,7 +139,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [JsonProperty]
     public bool CheckUpdatesAutomatically { get; private set; }
 
-    public string[] ConnectionTypes { get; } = { "USB", "Wireless" };
+    public string[] ConnectionTypes { get; } = {"USB", "Wireless"};
     [Reactive] [JsonProperty] public string? PreferredConnectionType { get; private set; }
     [Reactive] public string DownloadsLocationTextBoxText { get; private set; } = "";
     [JsonProperty] public string DownloadsLocation { get; private set; } = "";
@@ -172,7 +172,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [Reactive] public List<string> MirrorList { get; private set; } = new();
     [Reactive] public string? SelectedMirror { get; set; }
     public bool IsSwitchingMirror => _isSwitchingMirror.Value;
-    public string[] PopularityRanges { get; } = { "30 days", "7 days", "1 day", "None" };
+    public string[] PopularityRanges { get; } = {"30 days", "7 days", "1 day", "None"};
     [Reactive] [JsonProperty] public string? PopularityRange { get; private set; }
     [JsonProperty] public Guid InstallationId { get; private set; } = Guid.NewGuid();
     [JsonProperty] public ObservableCollection<(string packageName, int versionCode)> DonatedPackages { get; } = new();
@@ -190,13 +190,15 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [Reactive]
     [JsonProperty]
     public bool ForceEnglish { get; private set; }
-    
+
     [Reactive] [JsonProperty] public bool EnableTaskAutoDismiss { get; private set; }
     [Reactive] public string TaskAutoDismissDelayTextBoxText { get; private set; } = "";
+
     /// <summary>
     /// Task auto dismiss delay in seconds
     /// </summary>
-    [JsonProperty] public int TaskAutoDismissDelay { get; private set; } = 10;
+    [JsonProperty]
+    public int TaskAutoDismissDelay { get; private set; } = 10;
 
     private ReactiveCommand<bool, Unit> SaveSettings { get; }
     private ReactiveCommand<Unit, Unit> RestoreDefaults { get; }
@@ -218,33 +220,34 @@ public class SideloaderSettingsViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> ForceCleanupPackage { get; }
     public ReactiveCommand<Unit, Unit> CleanLeftoverApks { get; }
 
-    private Timer AutoSaveDelayTimer { get; } = new() { AutoReset = false, Interval = 500 };
+    private Timer AutoSaveDelayTimer { get; } = new() {AutoReset = false, Interval = 500};
 
     private void InitDefaults()
     {
         // List of default values for settings, null means that the setting should not be reset to default
-        var defaultValues = new Dictionary<string, dynamic?> {
-            { "CheckUpdatesAutomatically", true },
-            { "PreferredConnectionType", ConnectionTypes[0] },
-            { "DownloadsLocation", _defaultDownloadsLocation },
-            { "DownloadsLocationTextBoxText", _defaultDownloadsLocation },
-            { "BackupsLocation", _defaultBackupsLocation },
-            { "BackupsLocationTextBoxText", _defaultBackupsLocation },
-            { "DownloaderBandwidthLimit", "" },
-            { "DownloaderBandwidthLimitTextBoxText", "" },
-            { "DownloadsPruningPolicy", DownloadsPruningPolicy.DeleteAfterInstall },
-            { "LastWirelessAdbHost", "" },
-            { "EnableDebugConsole", false },
-            { "PopularityRange", PopularityRanges[0] },
-            { "InstallationId", null },
-            { "DonatedPackages", null },
-            { "IgnoredDonationPackages", new ObservableCollection<string>() },
-            { "EnableRemoteLogging", false },
-            { "EnableAutoDonation", false },
-            { "ForceEnglish", false },
-            { "EnableTaskAutoDismiss", true },
-            { "TaskAutoDismissDelay", 10 },
-            { "TaskAutoDismissDelayTextBoxText", "10" },
+        var defaultValues = new Dictionary<string, dynamic?>
+        {
+            {"CheckUpdatesAutomatically", true},
+            {"PreferredConnectionType", ConnectionTypes[0]},
+            {"DownloadsLocation", _defaultDownloadsLocation},
+            {"DownloadsLocationTextBoxText", _defaultDownloadsLocation},
+            {"BackupsLocation", _defaultBackupsLocation},
+            {"BackupsLocationTextBoxText", _defaultBackupsLocation},
+            {"DownloaderBandwidthLimit", ""},
+            {"DownloaderBandwidthLimitTextBoxText", ""},
+            {"DownloadsPruningPolicy", DownloadsPruningPolicy.DeleteAfterInstall},
+            {"LastWirelessAdbHost", ""},
+            {"EnableDebugConsole", false},
+            {"PopularityRange", PopularityRanges[0]},
+            {"InstallationId", null},
+            {"DonatedPackages", null},
+            {"IgnoredDonationPackages", new ObservableCollection<string>()},
+            {"EnableRemoteLogging", false},
+            {"EnableAutoDonation", false},
+            {"ForceEnglish", false},
+            {"EnableTaskAutoDismiss", true},
+            {"TaskAutoDismissDelay", 10},
+            {"TaskAutoDismissDelayTextBoxText", "10"}
         };
 
         var props = GetType().GetProperties().Where(
@@ -252,23 +255,15 @@ public class SideloaderSettingsViewModel : ViewModelBase
         foreach (var prop in props)
         {
             if (!defaultValues.ContainsKey(prop.Name))
-            {
                 throw new InvalidOperationException($"Missing default value for {prop.Name} setting");
-            }
 
             var defaultValue = defaultValues[prop.Name];
-            if (defaultValue == null)
-            {
-                continue;
-            }
+            if (defaultValue == null) continue;
             if (typeof(IList).IsAssignableFrom(prop.PropertyType))
             {
-                var collection = (IList)prop.GetValue(this)!;
+                var collection = (IList) prop.GetValue(this)!;
                 collection.Clear();
-                foreach (var item in (IEnumerable)defaultValue)
-                {
-                    collection.Add(item);
-                }
+                foreach (var item in (IEnumerable) defaultValue) collection.Add(item);
             }
             else
             {
@@ -494,7 +489,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             }
         });
     }
-    
+
     private IObservable<Unit> SetTaskAutoDismissDelayImpl()
     {
         return Observable.Start(() =>
@@ -595,7 +590,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
                 return;
             }
 
-            Globals.MainWindowViewModel!.AddTask(new TaskOptions { Type = TaskType.InstallTrailersAddon });
+            Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.InstallTrailersAddon});
         });
     }
 

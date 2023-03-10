@@ -6,10 +6,10 @@ using Avalonia.Styling;
 
 namespace QSideloader.Controls;
 
-public class CustomDataGrid: DataGrid, IStyleable
+public class CustomDataGrid : DataGrid, IStyleable
 {
     Type IStyleable.StyleKey => typeof(DataGrid);
-    
+
     public event EventHandler<RoutedEventArgs> EnterKeyDown
     {
         add => AddHandler(EnterKeyDownEvent, value);
@@ -18,7 +18,7 @@ public class CustomDataGrid: DataGrid, IStyleable
 
     private static readonly RoutedEvent<RoutedEventArgs> EnterKeyDownEvent =
         RoutedEvent.Register<DataGrid, RoutedEventArgs>(nameof(EnterKeyDown), RoutingStrategies.Bubble);
-    
+
     // Overriden KeyDown event to allow for custom keybindings
     protected override void OnKeyDown(KeyEventArgs e)
     {

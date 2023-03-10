@@ -142,7 +142,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             }
         });
     }
-    
+
     private IObservable<Unit> InstallSingleImpl(Game game)
     {
         return Observable.Start(() =>
@@ -155,7 +155,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
                 IsDeviceConnected = false;
                 return;
             }
-            
+
             Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadAndInstall, Game = game});
         });
     }
@@ -182,7 +182,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             }
         });
     }
-    
+
     private IObservable<Unit> DownloadSingleImpl(Game game)
     {
         return Observable.Start(() =>

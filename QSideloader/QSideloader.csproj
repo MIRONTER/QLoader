@@ -20,23 +20,23 @@
         <ApplicationIcon>Assets\ffa-logo.ico</ApplicationIcon>
     </PropertyGroup>
     <ItemGroup>
-        <Tools Condition="$(RuntimeIdentifier.Contains('win')) Or '$(RuntimeIdentifier)'==''" Include="tools\windows\**\*" />
-        <Tools Condition="$(RuntimeIdentifier.Contains('linux')) Or '$(RuntimeIdentifier)'==''" Include="tools\linux\**\*" />
-        <Tools Condition="$(RuntimeIdentifier.Contains('osx')) Or '$(RuntimeIdentifier)'==''" Include="tools\darwin\**\*" />
-        <ArchitectureSpecificTools Include="tools\windows\x64\**\*;tools\windows\x86\**\*" />
-        <ArchitectureSpecificTools Include="tools\darwin\x64\**\*;tools\darwin\arm64\**\*" />
-        <ArchitectureSpecificTools Include="tools\linux\x64\**\*;tools\linux\arm64\**\*" />
-        <NeededArchitectureSpecificTools Condition="($(RuntimeIdentifier.Contains('win')) And $(RuntimeIdentifier.Contains('x64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\windows\x64\**\*" />
-        <NeededArchitectureSpecificTools Condition="($(RuntimeIdentifier.Contains('win')) And $(RuntimeIdentifier.Contains('x86'))) Or '$(RuntimeIdentifier)'==''" Include="tools\windows\x86\**\*" />
-        <NeededArchitectureSpecificTools Condition="($(RuntimeIdentifier.Contains('osx')) And $(RuntimeIdentifier.Contains('x64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\darwin\x64\**\*" />
-        <NeededArchitectureSpecificTools Condition="($(RuntimeIdentifier.Contains('osx')) And $(RuntimeIdentifier.Contains('arm64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\darwin\arm64\**\*" />
-        <NeededArchitectureSpecificTools Condition="($(RuntimeIdentifier.Contains('linux')) And $(RuntimeIdentifier.Contains('x64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\linux\x64\**\*" />
-        <NeededArchitectureSpecificTools Condition="($(RuntimeIdentifier.Contains('linux')) And $(RuntimeIdentifier.Contains('arm64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\linux\arm64\**\*" />
+        <Tools Condition="$(RuntimeIdentifier.Contains('win')) Or '$(RuntimeIdentifier)'==''" Include="tools\windows\**\*"/>
+        <Tools Condition="$(RuntimeIdentifier.Contains('linux')) Or '$(RuntimeIdentifier)'==''" Include="tools\linux\**\*"/>
+        <Tools Condition="$(RuntimeIdentifier.Contains('osx')) Or '$(RuntimeIdentifier)'==''" Include="tools\darwin\**\*"/>
+        <ArchitectureSpecificTools Include="tools\windows\x64\**\*;tools\windows\x86\**\*"/>
+        <ArchitectureSpecificTools Include="tools\darwin\x64\**\*;tools\darwin\arm64\**\*"/>
+        <ArchitectureSpecificTools Include="tools\linux\x64\**\*;tools\linux\arm64\**\*"/>
+        <NeededArchitectureSpecificTools Condition="($(RuntimeIdentifier.Contains('win')) And $(RuntimeIdentifier.Contains('x64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\windows\x64\**\*"/>
+        <NeededArchitectureSpecificTools Condition="($(RuntimeIdentifier.Contains('win')) And $(RuntimeIdentifier.Contains('x86'))) Or '$(RuntimeIdentifier)'==''" Include="tools\windows\x86\**\*"/>
+        <NeededArchitectureSpecificTools Condition="($(RuntimeIdentifier.Contains('osx')) And $(RuntimeIdentifier.Contains('x64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\darwin\x64\**\*"/>
+        <NeededArchitectureSpecificTools Condition="($(RuntimeIdentifier.Contains('osx')) And $(RuntimeIdentifier.Contains('arm64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\darwin\arm64\**\*"/>
+        <NeededArchitectureSpecificTools Condition="($(RuntimeIdentifier.Contains('linux')) And $(RuntimeIdentifier.Contains('x64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\linux\x64\**\*"/>
+        <NeededArchitectureSpecificTools Condition="($(RuntimeIdentifier.Contains('linux')) And $(RuntimeIdentifier.Contains('arm64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\linux\arm64\**\*"/>
     </ItemGroup>
     <ItemGroup>
-        <Folder Include="Models\" />
-        <AvaloniaResource Include="Assets\**" />
-        <None Remove=".gitignore" />
+        <Folder Include="Models\"/>
+        <AvaloniaResource Include="Assets\**"/>
+        <None Remove=".gitignore"/>
         <Content Include="@(Tools)" Exclude="@(ArchitectureSpecificTools)">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
             <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
@@ -60,95 +60,95 @@
         <!--This helps with theme dll-s trimming.
         If you will publish your application in self-contained mode with p:PublishTrimmed=true and it will use Fluent theme Default theme will be trimmed from the output and vice versa.
         https://github.com/AvaloniaUI/Avalonia/issues/5593 -->
-        <TrimmableAssembly Include="Avalonia.Themes.Fluent" />
-        <TrimmableAssembly Include="Avalonia.Themes.Default" />
+        <TrimmableAssembly Include="Avalonia.Themes.Fluent"/>
+        <TrimmableAssembly Include="Avalonia.Themes.Default"/>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="AdvancedSharpAdbClient" Version="9.9.14" />
-        <PackageReference Include="AsyncAwaitBestPractices" Version="6.0.6" />
-        <PackageReference Include="Aura.UI" Version="0.1.4.2" />
-        <PackageReference Include="Aura.UI.FluentTheme" Version="0.1.4.2" />
-        <PackageReference Include="Avalonia" Version="0.10.18" />
-        <PackageReference Include="Avalonia.Desktop" Version="0.10.18" />
+        <PackageReference Include="AdvancedSharpAdbClient" Version="9.9.14"/>
+        <PackageReference Include="AsyncAwaitBestPractices" Version="6.0.6"/>
+        <PackageReference Include="Aura.UI" Version="0.1.4.2"/>
+        <PackageReference Include="Aura.UI.FluentTheme" Version="0.1.4.2"/>
+        <PackageReference Include="Avalonia" Version="0.10.18"/>
+        <PackageReference Include="Avalonia.Desktop" Version="0.10.18"/>
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-        <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="0.10.18" />
-        <PackageReference Include="Avalonia.HtmlRenderer" Version="0.10.0" />
-        <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.18" />
-        <PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.18" />
-        <PackageReference Include="CliWrap" Version="3.6.0" />
-        <PackageReference Include="Downloader" Version="3.0.3" />
-        <PackageReference Include="DynamicData" Version="7.12.11" />
-        <PackageReference Include="FileHelpers" Version="3.5.2" />
-        <PackageReference Include="FluentAvaloniaUI" Version="1.4.5" />
-        <PackageReference Include="HyperText.Avalonia" Version="1.0.0" />
-        <PackageReference Include="NetSparkleUpdater.SparkleUpdater" Version="9.9.21" />
-        <PackageReference Include="NetSparkleUpdater.UI.Avalonia" Version="9.9.10" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
-        <PackageReference Include="ReactiveUI.Fody" Version="18.4.22" />
-        <PackageReference Include="ReactiveUI.Validation" Version="3.1.7" />
-        <PackageReference Include="Serilog" Version="2.12.0" />
-        <PackageReference Include="Serilog.Enrichers.GlobalLogContext" Version="3.0.0" />
-        <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0" />
-        <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
-        <PackageReference Include="Serilog.Formatting.Compact" Version="1.1.0" />
-        <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
-        <PackageReference Include="Serilog.Sinks.Debug" Version="2.0.0" />
-        <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+        <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="0.10.18"/>
+        <PackageReference Include="Avalonia.HtmlRenderer" Version="0.10.0"/>
+        <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.18"/>
+        <PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.18"/>
+        <PackageReference Include="CliWrap" Version="3.6.0"/>
+        <PackageReference Include="Downloader" Version="3.0.3"/>
+        <PackageReference Include="DynamicData" Version="7.12.11"/>
+        <PackageReference Include="FileHelpers" Version="3.5.2"/>
+        <PackageReference Include="FluentAvaloniaUI" Version="1.4.5"/>
+        <PackageReference Include="HyperText.Avalonia" Version="1.0.0"/>
+        <PackageReference Include="NetSparkleUpdater.SparkleUpdater" Version="9.9.21"/>
+        <PackageReference Include="NetSparkleUpdater.UI.Avalonia" Version="9.9.10"/>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.2"/>
+        <PackageReference Include="ReactiveUI.Fody" Version="18.4.22"/>
+        <PackageReference Include="ReactiveUI.Validation" Version="3.1.7"/>
+        <PackageReference Include="Serilog" Version="2.12.0"/>
+        <PackageReference Include="Serilog.Enrichers.GlobalLogContext" Version="3.0.0"/>
+        <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0"/>
+        <PackageReference Include="Serilog.Exceptions" Version="8.4.0"/>
+        <PackageReference Include="Serilog.Formatting.Compact" Version="1.1.0"/>
+        <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0"/>
+        <PackageReference Include="Serilog.Sinks.Debug" Version="2.0.0"/>
+        <PackageReference Include="Serilog.Sinks.File" Version="5.0.0"/>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="LibVLCSharp" Version="3.6.7" />
-        <PackageReference Include="LibVLCSharp.Avalonia" Version="3.6.7" />
-        <PackageReference Include="Serilog.Sinks.Seq" Version="5.2.2" />
-        <PackageReference Include="SerilogTimings" Version="3.0.1" />
-        <PackageReference Include="System.Management" Version="7.0.0" />
-        <PackageReference Include="System.Net.Http.Json" Version="7.0.0" />
-        <PackageReference Condition="$(RuntimeIdentifier.Contains('win')) Or '$(RuntimeIdentifier)'==''" Include="VideoLAN.LibVLC.Windows" Version="3.0.18" />
-        <PackageReference Condition="$(RuntimeIdentifier.Contains('osx')) Or '$(RuntimeIdentifier)'==''" Include="VideoLAN.LibVLC.Mac" Version="3.1.3.1" />
-        <VlcWindowsX64IncludeFiles Include="libvlc.dll" />
-        <VlcWindowsX64IncludeFiles Include="libvlccore.dll" />
-        <VlcWindowsX64IncludeFiles Include="plugins\access\libimem_plugin.dll" />
-        <VlcWindowsX64IncludeFiles Include="plugins\access\libfilesystem_plugin.dll" />
-        <VlcWindowsX64IncludeFiles Include="plugins\codec\libavcodec_plugin.dll" />
-        <VlcWindowsX64IncludeFiles Include="plugins\codec\libd3d11va_plugin.dll" />
-        <VlcWindowsX64IncludeFiles Include="plugins\audio_output\libdirectsound_plugin.dll" />
-        <VlcWindowsX64IncludeFiles Include="plugins\audio_output\libwasapi_plugin.dll" />
-        <VlcWindowsX64IncludeFiles Include="plugins\video_output\libdirect3d9_plugin.dll" />
-        <VlcWindowsX64IncludeFiles Include="plugins\video_output\libdirect3d11_plugin.dll" />
-        <VlcWindowsX64IncludeFiles Include="plugins\video_output\libdrawable_plugin.dll" />
-        <VlcWindowsX64IncludeFiles Include="plugins\video_output\libvmem_plugin.dll" />
-        <VlcWindowsX86IncludeFiles Include="@(VlcWindowsX64IncludeFiles)" />
+        <PackageReference Include="LibVLCSharp" Version="3.6.7"/>
+        <PackageReference Include="LibVLCSharp.Avalonia" Version="3.6.7"/>
+        <PackageReference Include="Serilog.Sinks.Seq" Version="5.2.2"/>
+        <PackageReference Include="SerilogTimings" Version="3.0.1"/>
+        <PackageReference Include="System.Management" Version="7.0.0"/>
+        <PackageReference Include="System.Net.Http.Json" Version="7.0.0"/>
+        <PackageReference Condition="$(RuntimeIdentifier.Contains('win')) Or '$(RuntimeIdentifier)'==''" Include="VideoLAN.LibVLC.Windows" Version="3.0.18"/>
+        <PackageReference Condition="$(RuntimeIdentifier.Contains('osx')) Or '$(RuntimeIdentifier)'==''" Include="VideoLAN.LibVLC.Mac" Version="3.1.3.1"/>
+        <VlcWindowsX64IncludeFiles Include="libvlc.dll"/>
+        <VlcWindowsX64IncludeFiles Include="libvlccore.dll"/>
+        <VlcWindowsX64IncludeFiles Include="plugins\access\libimem_plugin.dll"/>
+        <VlcWindowsX64IncludeFiles Include="plugins\access\libfilesystem_plugin.dll"/>
+        <VlcWindowsX64IncludeFiles Include="plugins\codec\libavcodec_plugin.dll"/>
+        <VlcWindowsX64IncludeFiles Include="plugins\codec\libd3d11va_plugin.dll"/>
+        <VlcWindowsX64IncludeFiles Include="plugins\audio_output\libdirectsound_plugin.dll"/>
+        <VlcWindowsX64IncludeFiles Include="plugins\audio_output\libwasapi_plugin.dll"/>
+        <VlcWindowsX64IncludeFiles Include="plugins\video_output\libdirect3d9_plugin.dll"/>
+        <VlcWindowsX64IncludeFiles Include="plugins\video_output\libdirect3d11_plugin.dll"/>
+        <VlcWindowsX64IncludeFiles Include="plugins\video_output\libdrawable_plugin.dll"/>
+        <VlcWindowsX64IncludeFiles Include="plugins\video_output\libvmem_plugin.dll"/>
+        <VlcWindowsX86IncludeFiles Include="@(VlcWindowsX64IncludeFiles)"/>
     </ItemGroup>
     <ItemGroup>
-      <Compile Update="Views\Pages\GameDonationView.axaml.cs">
-        <DependentUpon>GameDonationView.axaml</DependentUpon>
-        <SubType>Code</SubType>
-      </Compile>
-      <Compile Update="Views\Pages\SettingsView.axaml.cs">
-        <DependentUpon>SettingsView.axaml</DependentUpon>
-        <SubType>Code</SubType>
-      </Compile>
-      <Compile Update="Views\Pages\OtherAppsView.axaml.cs">
-        <DependentUpon>OtherAppsView.axaml</DependentUpon>
-        <SubType>Code</SubType>
-      </Compile>
-      <Compile Update="Views\Pages\InstalledGamesView.axaml.cs">
-        <DependentUpon>InstalledGamesView.axaml</DependentUpon>
-        <SubType>Code</SubType>
-      </Compile>
-      <Compile Update="Views\Pages\AvailableGamesView.axaml.cs">
-        <DependentUpon>AvailableGamesView.axaml</DependentUpon>
-        <SubType>Code</SubType>
-      </Compile>
-      <Compile Update="Properties\Resources.Designer.cs">
-        <DesignTime>True</DesignTime>
-        <AutoGen>True</AutoGen>
-        <DependentUpon>Resources.resx</DependentUpon>
-      </Compile>
+        <Compile Update="Views\Pages\GameDonationView.axaml.cs">
+            <DependentUpon>GameDonationView.axaml</DependentUpon>
+            <SubType>Code</SubType>
+        </Compile>
+        <Compile Update="Views\Pages\SettingsView.axaml.cs">
+            <DependentUpon>SettingsView.axaml</DependentUpon>
+            <SubType>Code</SubType>
+        </Compile>
+        <Compile Update="Views\Pages\OtherAppsView.axaml.cs">
+            <DependentUpon>OtherAppsView.axaml</DependentUpon>
+            <SubType>Code</SubType>
+        </Compile>
+        <Compile Update="Views\Pages\InstalledGamesView.axaml.cs">
+            <DependentUpon>InstalledGamesView.axaml</DependentUpon>
+            <SubType>Code</SubType>
+        </Compile>
+        <Compile Update="Views\Pages\AvailableGamesView.axaml.cs">
+            <DependentUpon>AvailableGamesView.axaml</DependentUpon>
+            <SubType>Code</SubType>
+        </Compile>
+        <Compile Update="Properties\Resources.Designer.cs">
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+            <DependentUpon>Resources.resx</DependentUpon>
+        </Compile>
     </ItemGroup>
     <ItemGroup>
-      <EmbeddedResource Update="Properties\Resources.resx">
-        <Generator>PublicResXFileCodeGenerator</Generator>
-        <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      </EmbeddedResource>
+        <EmbeddedResource Update="Properties\Resources.resx">
+            <Generator>PublicResXFileCodeGenerator</Generator>
+            <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+        </EmbeddedResource>
     </ItemGroup>
 </Project>

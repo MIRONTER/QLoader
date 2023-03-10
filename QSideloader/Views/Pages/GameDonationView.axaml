@@ -17,9 +17,9 @@
                     Orientation="Horizontal"
                     Spacing="12" Margin="8"
                     HorizontalAlignment="Right">
-            <CheckBox x:Name="ShowHiddenCheckBox" 
+            <CheckBox x:Name="ShowHiddenCheckBox"
                       IsChecked="{Binding IsShowHiddenFromDonation}" Content="{x:Static p:Resources.ShowHidden}" />
-            <Button x:Name="DonateAllButton" 
+            <Button x:Name="DonateAllButton"
                     Command="{Binding DonateAll}" ToolTip.Tip="{x:Static p:Resources.DonateAllGamesTooltip}"
                     Content="{x:Static p:Resources.DonateAllButton}" />
             <Button x:Name="DonateButton"

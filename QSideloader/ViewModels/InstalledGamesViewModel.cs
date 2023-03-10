@@ -183,7 +183,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             }
         });
     }
-    
+
     private IObservable<Unit> UpdateSingleImpl(Game game)
     {
         return Observable.Start(() =>
@@ -226,18 +226,14 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             {
                 game.IsSelected = false;
                 if (skipBackup)
-                {
                     Globals.MainWindowViewModel!.AddTask(new TaskOptions
                         {Type = TaskType.Uninstall, Game = game});
-                }
                 else
-                {
                     Globals.MainWindowViewModel!.AddTask(new TaskOptions
                     {
                         Type = TaskType.BackupAndUninstall, Game = game,
                         BackupOptions = new BackupOptions {BackupData = true, BackupApk = false, BackupObb = false}
                     });
-                }
             }
         });
     }

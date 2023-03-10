@@ -38,15 +38,15 @@
                 <Button.Flyout>
                     <Flyout Placement="Bottom">
                         <StackPanel>
-                            <TextBlock x:Name="BackupPartsSelectPrompt" 
+                            <TextBlock x:Name="BackupPartsSelectPrompt"
                                        Text="{x:Static p:Resources.BackupPartsSelectionPrompt}" />
-                            <CheckBox x:Name="BackupAppFilesCheckBox" 
+                            <CheckBox x:Name="BackupAppFilesCheckBox"
                                       IsChecked="{Binding ManualBackupAppFiles}"
                                       Content="{x:Static p:Resources.BackupPartsSelectionApplicationFiles}" />
                             <CheckBox x:Name="BackupAppDataCheckBox"
                                       IsChecked="{Binding ManualBackupData}"
                                       Content="{x:Static p:Resources.BackupPartsSelectionApplicationData}" />
-                            <Button x:Name="BackupConfirmButton" 
+                            <Button x:Name="BackupConfirmButton"
                                     Margin="0,6,0,0" Content="{x:Static p:Resources.BackupConfirmationButton}">
                                 <i:Interaction.Behaviors>
                                     <ia:EventTriggerBehavior EventName="Click">
@@ -66,9 +66,9 @@
                 <Button.Flyout>
                     <Flyout Placement="Bottom">
                         <StackPanel>
-                            <TextBlock x:Name="UninstallConfirmText" 
+                            <TextBlock x:Name="UninstallConfirmText"
                                        Text="{x:Static p:Resources.UninstallGamesConfirmation}" />
-                            <CheckBox x:Name="SkipBackupCheckBox" 
+                            <CheckBox x:Name="SkipBackupCheckBox"
                                       IsChecked="{Binding SkipAutoBackup}" Content="{x:Static p:Resources.SkipBackup}" />
                             <Button x:Name="UninstallConfirmButton"
                                     Margin="0,6,0,0" Content="{x:Static p:Resources.UninstallGamesConfirmationButton}">
@@ -95,11 +95,11 @@
         </StackPanel>
         <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
         <controls:CustomDataGrid Grid.Row="1" x:Name="InstalledGamesDataGrid"
-                  Items="{Binding InstalledGames}"
-                  AutoGenerateColumns="False" CanUserResizeColumns="True"
-                  DoubleTapped="InstalledGamesDataGrid_OnDoubleTapped"
-                  PointerReleased="InstalledGamesDataGrid_OnPointerReleased"
-                  EnterKeyDown="InstalledGamesDataGrid_OnEnterKeyDown">
+                                 Items="{Binding InstalledGames}"
+                                 AutoGenerateColumns="False" CanUserResizeColumns="True"
+                                 DoubleTapped="InstalledGamesDataGrid_OnDoubleTapped"
+                                 PointerReleased="InstalledGamesDataGrid_OnPointerReleased"
+                                 EnterKeyDown="InstalledGamesDataGrid_OnEnterKeyDown">
             <DataGrid.Columns>
                 <DataGridTemplateColumn Width="52"
                                         IsReadOnly="False"

@@ -53,13 +53,14 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
                     break;
             }
     }
-    
+
     private void MainWindow_OnKeyUp(object? sender, KeyEventArgs e)
     {
         //Log.Debug("Key released: {Key}, modifiers: {Modifiers}", e.Key, e.KeyModifiers);
         var dataGrid = this.Get<DataGrid>("AvailableGamesDataGrid");
         var selectedGame = (Game?) dataGrid.SelectedItem;
         if (e.KeyModifiers == KeyModifiers.None)
+        {
             switch (e.Key)
             {
                 // If Enter or arrow down/up is pressed, focus the data grid
@@ -70,6 +71,7 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
                         dataGrid.Focus();
                         dataGrid.SelectedIndex = 0;
                     }
+
                     e.Handled = true;
                     break;
                 // If Escape is pressed clear the search box
@@ -86,7 +88,8 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
                 // If Alt is pressed, show game details for the selected game
                 case Key.LeftAlt or Key.RightAlt:
                     if (selectedGame is null) return;
-                    Globals.MainWindowViewModel!.ShowGameDetailsCommand.Execute(selectedGame).Subscribe(_ => { }, _ => { });
+                    Globals.MainWindowViewModel!.ShowGameDetailsCommand.Execute(selectedGame)
+                        .Subscribe(_ => { }, _ => { });
                     e.Handled = true;
                     break;
                 // If F5 is pressed, refresh the list
@@ -95,6 +98,7 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
                     e.Handled = true;
                     break;
             }
+        }
         else
         {
             // If Ctrl+F is pressed, focus the search box

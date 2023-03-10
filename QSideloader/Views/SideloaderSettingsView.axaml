@@ -46,20 +46,20 @@
                 <Button Margin="10,0,0,0" IsEnabled="{Binding !IsSwitchingMirror}"
                         Command="{Binding ReloadMirrorList}" Content="{x:Static p:Resources.ReloadListButton}" />
             </StackPanel>
-            
+
             <StackPanel Orientation="Horizontal">
-                <ToggleSwitch Margin="0,8,0,0" 
+                <ToggleSwitch Margin="0,8,0,0"
                               VerticalAlignment="Top"
                               IsChecked="{Binding EnableTaskAutoDismiss}"
-                              Content="{x:Static p:Resources.EnableTaskAutoDismiss}" 
-                              ToolTip.Tip="{x:Static p:Resources.EnableTaskAutoDismissTooltip}"/>
+                              Content="{x:Static p:Resources.EnableTaskAutoDismiss}"
+                              ToolTip.Tip="{x:Static p:Resources.EnableTaskAutoDismissTooltip}" />
                 <StackPanel Orientation="Horizontal" Margin="0,34,0,0">
                     <TextBox MinWidth="50" Padding="10,5,10,6" Margin="4,0,0,0"
                              VerticalAlignment="Top"
                              IsEnabled="{Binding EnableTaskAutoDismiss}"
                              Text="{Binding TaskAutoDismissDelayTextBoxText}"
                              Watermark="{x:Static p:Resources.TaskAutoDismissDelay}"
-                             ToolTip.Tip="{x:Static p:Resources.TaskAutoDismissDelay}"/>
+                             ToolTip.Tip="{x:Static p:Resources.TaskAutoDismissDelay}" />
                     <Button Margin="4,0,0,0" VerticalAlignment="Top" Command="{Binding SetTaskAutoDismissDelay}"
                             Content="{x:Static p:Resources.SetButton}" />
                 </StackPanel>
@@ -126,18 +126,24 @@
             <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding EnableDebugConsole}"
                           IsVisible="{Binding IsConsoleToggleable}"
                           Content="{x:Static p:Resources.ShowDebugConsole}" />
-            
-            <Expander Margin="0,8,0,0" Header="{x:Static p:Resources.TroubleshootingOptions}" HorizontalAlignment="Left" MinWidth="600">
+
+            <Expander Margin="0,8,0,0" Header="{x:Static p:Resources.TroubleshootingOptions}"
+                      HorizontalAlignment="Left" MinWidth="600">
                 <StackPanel Orientation="Vertical">
                     <StackPanel Orientation="Horizontal">
                         <Button Command="{Binding RescanDevices}" Content="{x:Static p:Resources.RescanDevices}" />
-                        <Button Margin="8,0,0,0" Command="{Binding ReconnectDevice}" Content="{x:Static p:Resources.ReconnectToDevice}" />
-                        <Button Margin="8,0,0,0" Command="{Binding RestartAdbServer}" Content="{x:Static p:Resources.RestartAdbServer}" />
-                        <Button Margin="8,0,0,0" Command="{Binding ResetAdbKeys}" Content="{x:Static p:Resources.ResetAdbKeys}" />
+                        <Button Margin="8,0,0,0" Command="{Binding ReconnectDevice}"
+                                Content="{x:Static p:Resources.ReconnectToDevice}" />
+                        <Button Margin="8,0,0,0" Command="{Binding RestartAdbServer}"
+                                Content="{x:Static p:Resources.RestartAdbServer}" />
+                        <Button Margin="8,0,0,0" Command="{Binding ResetAdbKeys}"
+                                Content="{x:Static p:Resources.ResetAdbKeys}" />
                     </StackPanel>
                     <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
-                        <Button Command="{Binding ForceCleanupPackage}" Content="{x:Static p:Resources.ForceCleanupPackage}" />
-                        <Button Margin="8,0,0,0" Command="{Binding CleanLeftoverApks}" Content="{x:Static p:Resources.CleanLeftoverApks}" />
+                        <Button Command="{Binding ForceCleanupPackage}"
+                                Content="{x:Static p:Resources.ForceCleanupPackage}" />
+                        <Button Margin="8,0,0,0" Command="{Binding CleanLeftoverApks}"
+                                Content="{x:Static p:Resources.CleanLeftoverApks}" />
                     </StackPanel>
                 </StackPanel>
             </Expander>

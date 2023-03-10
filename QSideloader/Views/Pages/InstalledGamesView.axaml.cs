@@ -57,6 +57,7 @@ public class InstalledGamesView : ReactiveUserControl<InstalledGamesViewModel>
                         dataGrid.Focus();
                         dataGrid.SelectedIndex = 0;
                     }
+
                     e.Handled = true;
                     break;
                 // If Space is pressed, toggle the selected game's selected state
@@ -68,7 +69,8 @@ public class InstalledGamesView : ReactiveUserControl<InstalledGamesViewModel>
                 // If Alt is pressed, show game details for the selected game
                 case Key.LeftAlt or Key.RightAlt:
                     if (selectedGame is null) return;
-                    Globals.MainWindowViewModel!.ShowGameDetailsCommand.Execute(selectedGame).Subscribe(_ => { }, _ => { });
+                    Globals.MainWindowViewModel!.ShowGameDetailsCommand.Execute(selectedGame)
+                        .Subscribe(_ => { }, _ => { });
                     e.Handled = true;
                     break;
                 // If F5 is pressed, refresh the list

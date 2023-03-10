@@ -187,8 +187,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
         if (_gameSizeBytes is not null)
         {
-            speedMBytes = Math.Round((double)stats.Value.downloadSpeedBytes / 1000000, 2);
-            progressPercent = Math.Floor(stats.Value.downloadedBytes / (double)_gameSizeBytes * 100);
+            speedMBytes = Math.Round((double) stats.Value.downloadSpeedBytes / 1000000, 2);
+            progressPercent = Math.Floor(stats.Value.downloadedBytes / (double) _gameSizeBytes * 100);
             if (progressPercent <= 100)
             {
                 ProgressStatus = $"{progressPercent}%, {speedMBytes}MB/s";
@@ -196,7 +196,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             }
         }
 
-        speedMBytes = Math.Round((double)stats.Value.downloadSpeedBytes / 1000000, 2);
+        speedMBytes = Math.Round((double) stats.Value.downloadSpeedBytes / 1000000, 2);
         var downloadedMBytes = Math.Round(stats.Value.downloadedBytes / 1000000, 2);
         progressPercent = Math.Min(Math.Floor(downloadedMBytes / _game!.GameSize * 97), 100);
 
@@ -206,7 +206,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private void RefreshDownloadStats((double bytesPerSecond, long downloadedBytes, long totalBytes) stats)
     {
         var speedMBytes = Math.Round(stats.bytesPerSecond / 1000000, 2);
-        var progressPercent = Math.Floor((double)stats.downloadedBytes / stats.totalBytes * 100);
+        var progressPercent = Math.Floor((double) stats.downloadedBytes / stats.totalBytes * 100);
 
         ProgressStatus = $"{progressPercent}%, {speedMBytes}MB/s";
     }

@@ -127,14 +127,11 @@ public class MainWindowViewModel : ViewModelBase
     {
         return TaskList.ToList();
     }
-    
+
     public void OnTaskFinished(bool isSuccess, TaskId taskId)
     {
         if (!isSuccess || !_sideloaderSettings.EnableTaskAutoDismiss) return;
-        if (!int.TryParse(_sideloaderSettings.TaskAutoDismissDelayTextBoxText, out var delaySec))
-        {
-            delaySec = 10;
-        }
+        if (!int.TryParse(_sideloaderSettings.TaskAutoDismissDelayTextBoxText, out var delaySec)) delaySec = 10;
         Task.Delay(delaySec * 1000).ContinueWith(_ =>
             Dispatcher.UIThread.InvokeAsync(() =>
             {

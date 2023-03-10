@@ -118,6 +118,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         else
             IsDeviceConnected = false;
     }
+
     private async Task PullPicturesAndVideosImpl()
     {
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -140,10 +141,10 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
             else
             {
                 Log.Information("No output folder selected");
-                return;
             }
         }
     }
+
     private void LoadCurrentSettings()
     {
         Log.Debug("Loading device settings");

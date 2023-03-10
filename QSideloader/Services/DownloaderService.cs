@@ -113,6 +113,7 @@ public class DownloaderService
                 Log.Information("Rclone config updated from server");
                 return;
             }
+
             await EnsureMirrorSelectedAsync();
             var localMirrorList = _mirrorList.ToList();
             while (true)
@@ -485,7 +486,7 @@ public class DownloaderService
             throw new DownloaderServiceException($"Error executing rclone {operation}", e);
         }
     }
-    
+
     /// <summary>
     /// Calls rclone executable with given arguments.
     /// </summary>
@@ -493,7 +494,8 @@ public class DownloaderService
     /// <param name="ct">Cancellation token.</param>
     /// <returns><see cref="BufferedCommandResult"/> of rclone command.</returns>
     /// <exception cref="HwidCheckException">Thrown if rclone returned hwid verification error.</exception>
-    private static async Task<BufferedCommandResult> ExecuteRcloneCommandAsync(string arguments, CancellationToken ct = default)
+    private static async Task<BufferedCommandResult> ExecuteRcloneCommandAsync(string arguments,
+        CancellationToken ct = default)
     {
         var proxy = GeneralUtils.GetDefaultProxyHostPort();
         var command = Cli.Wrap(PathHelper.RclonePath)
@@ -682,7 +684,6 @@ public class DownloaderService
         async Task TryLoadDonationBlacklistAsync()
         {
             if (!await TryLoadDonationBlacklistFromServerAsync())
-            {
                 try
                 {
                     await RcloneTransferAsync("Quest Games/.meta/nouns/blacklist.txt", "./metadata/blacklist_new.txt",
@@ -695,7 +696,6 @@ public class DownloaderService
                 {
                     Log.Warning(e, "Failed to download donation blacklist");
                 }
-            }
 
             try
             {

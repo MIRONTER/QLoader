@@ -22,7 +22,7 @@ namespace QSideloader.Utilities;
 public static class GeneralUtils
 {
     private static HttpClient HttpClient { get; }
-    
+
     static GeneralUtils()
     {
         var handler = new HttpClientHandler
@@ -31,6 +31,7 @@ public static class GeneralUtils
         };
         HttpClient = new HttpClient(handler);
     }
+
     public static string GetMd5FileChecksum(string filename)
     {
         using var hasher = MD5.Create();
@@ -218,11 +219,14 @@ public static class GeneralUtils
             return null;
         }
     }
-    
-    public static string GetOsName() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "Windows" :
-        RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? "Linux" :
-        RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "OSX" :
-        "Unknown";
+
+    public static string GetOsName()
+    {
+        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "Windows" :
+            RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? "Linux" :
+            RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "OSX" :
+            "Unknown";
+    }
 
     /// <summary>
     /// Creates a paste on sprunge.us.
@@ -239,7 +243,7 @@ public static class GeneralUtils
         var response = await HttpClient.PostAsync(url, formContent);
         return await response.Content.ReadAsStringAsync();
     }
-    
+
     public static string SanitizeFileName(string fileName)
     {
         var invalidChars = Path.GetInvalidFileNameChars();

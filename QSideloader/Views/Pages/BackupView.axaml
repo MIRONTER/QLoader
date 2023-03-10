@@ -30,9 +30,9 @@
                 <Button.Flyout>
                     <Flyout Placement="Bottom">
                         <StackPanel>
-                            <TextBlock x:Name="DeleteConfirmText" 
+                            <TextBlock x:Name="DeleteConfirmText"
                                        Text="{x:Static p:Resources.DeleteBackupsConfirmation}" />
-                            <Button x:Name="DeleteConfirmButton" 
+                            <Button x:Name="DeleteConfirmButton"
                                     Margin="0,6,0,0" Content="{x:Static p:Resources.DeleteBackupsConfirmationButton}">
                                 <Interaction.Behaviors>
                                     <EventTriggerBehavior EventName="Click">
@@ -46,8 +46,8 @@
                     </Flyout>
                 </Button.Flyout>
             </Button>
-            <Button x:Name="RefreshButton" 
-                    ToolTip.Tip="{x:Static p:Resources.RefreshBackupsTooltip}" 
+            <Button x:Name="RefreshButton"
+                    ToolTip.Tip="{x:Static p:Resources.RefreshBackupsTooltip}"
                     Command="{Binding Refresh}"
                     Content="{x:Static p:Resources.RefreshButton}">
                 <Button.CommandParameter>

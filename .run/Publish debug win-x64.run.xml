@@ -1,6 +1,10 @@
 ﻿<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Publish debug win-x64" type="DotNetFolderPublish" factoryName="Publish to folder">
-    <riderPublish configuration="Debug" delete_existing_files="true" include_native_libs_for_self_extract="true" platform="Any CPU" produce_single_file="true" ready_to_run="true" runtime="win-x64" self_contained="true" target_folder="$PROJECT_DIR$/QSideloader/bin/publish/Debug/win-x64" target_framework="net7.0" uuid_high="-3235769417038805992" uuid_low="-8272883125021115361" />
-    <method v="2" />
-  </configuration>
+    <configuration default="false" name="Publish debug win-x64" type="DotNetFolderPublish"
+                   factoryName="Publish to folder">
+        <riderPublish configuration="Debug" delete_existing_files="true" include_native_libs_for_self_extract="true"
+                      platform="Any CPU" produce_single_file="true" ready_to_run="true" runtime="win-x64"
+                      self_contained="true" target_folder="$PROJECT_DIR$/QSideloader/bin/publish/Debug/win-x64"
+                      target_framework="net7.0" uuid_high="-3235769417038805992" uuid_low="-8272883125021115361"/>
+        <method v="2"/>
+    </configuration>
 </component>

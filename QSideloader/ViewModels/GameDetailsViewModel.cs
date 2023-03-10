@@ -189,7 +189,7 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
         MediaPlayer = null;
         mediaPlayer.Stop();
         ShowTrailerPlayer = false;
-        mediaPlayer.Hwnd = IntPtr.Zero;
+        mediaPlayer.Hwnd = nint.Zero;
         mediaPlayer.XWindow = 0U;
         mediaPlayer.Dispose();
     }

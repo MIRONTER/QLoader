@@ -56,11 +56,11 @@
         </StackPanel>
         <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
         <controls:CustomDataGrid Grid.Row="1" x:Name="AvailableGamesDataGrid"
-                  Items="{Binding AvailableGames}"
-                  AutoGenerateColumns="False" CanUserResizeColumns="True"
-                  DoubleTapped="AvailableGamesDataGrid_OnDoubleTapped"
-                  PointerReleased="AvailableGamesDataGrid_OnPointerReleased"
-                  EnterKeyDown="AvailableGamesDataGrid_OnEnterKeyDown">
+                                 Items="{Binding AvailableGames}"
+                                 AutoGenerateColumns="False" CanUserResizeColumns="True"
+                                 DoubleTapped="AvailableGamesDataGrid_OnDoubleTapped"
+                                 PointerReleased="AvailableGamesDataGrid_OnPointerReleased"
+                                 EnterKeyDown="AvailableGamesDataGrid_OnEnterKeyDown">
             <DataGrid.Columns>
                 <DataGridTemplateColumn Width="52"
                                         IsReadOnly="False"

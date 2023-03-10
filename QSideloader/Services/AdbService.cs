@@ -363,7 +363,7 @@ public class AdbService
             AdbServerSemaphoreSlim.Release();
         }
     }
-    
+
     /// <summary>
     /// Restarts the ADB server.
     /// </summary>
@@ -372,14 +372,10 @@ public class AdbService
         Log.Warning("Restarting ADB server");
         try
         {
-            if (_deviceMonitor is not null)
-            {
-                _deviceMonitor.DeviceChanged -= OnDeviceChanged;
-            }
+            if (_deviceMonitor is not null) _deviceMonitor.DeviceChanged -= OnDeviceChanged;
             var adbPath = PathHelper.AdbPath;
             var adbServerStatus = _adb.AdbServer.GetStatus();
             if (adbServerStatus.IsRunning)
-            {
                 try
                 {
                     await Cli.Wrap(adbPath)
@@ -390,7 +386,6 @@ public class AdbService
                 {
                     Array.ForEach(Process.GetProcessesByName("adb"), p => p.Kill());
                 }
-            }
         }
         catch (Exception e)
         {
@@ -928,7 +923,7 @@ public class AdbService
         {
             return _adbService.RunShellCommand(this, command, logCommand);
         }
-        
+
         /// <summary>
         ///     Wakes up the device by sending a power button key event.
         /// </summary>
@@ -943,7 +938,7 @@ public class AdbService
                 Log.Warning(e, "Failed to send wake command to device {Device}", this);
             }
         }
-        
+
         /// <summary>
         ///     Pings the device to check if it is still connected and responding.
         /// </summary>
@@ -1167,7 +1162,8 @@ public class AdbService
             var tupleList = InstalledApps.Select(g => (g.Name, g.PackageName)).ToList();
             Log.Debug("Found {Count} installed apps on {Device}: {InstalledApps}", InstalledApps.Count,
                 this, tupleList);
-            var donatableApps = InstalledApps.Where(a => !a.IsHiddenFromDonation).Select(a => (a.Name, a.DonationStatus))
+            var donatableApps = InstalledApps.Where(a => !a.IsHiddenFromDonation)
+                .Select(a => (a.Name, a.DonationStatus))
                 .ToList();
             Log.Debug("Donatable apps on {Device}: {DonatableApps}", this, donatableApps);
             op.Complete();
@@ -1181,7 +1177,8 @@ public class AdbService
         /// <param name="progress">An optional parameter which, when specified, returns progress notifications.
         /// The progress is reported as a value between 0 and 100.</param>
         /// <param name="ct">Cancellation token.</param>
-        private void PushFile(string localPath, string remotePath, IProgress<int>? progress = null, CancellationToken ct = default)
+        private void PushFile(string localPath, string remotePath, IProgress<int>? progress = null,
+            CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
             Log.Debug("Pushing file: \"{LocalPath}\" -> \"{RemotePath}\"", localPath, remotePath);
@@ -1198,7 +1195,7 @@ public class AdbService
         /// <param name="overwrite">Pushed directory should fully overwrite existing one (if exists).</param>
         /// <param name="progress">An optional parameter which, when specified, returns progress notifications.</param>
         /// <param name="ct">Cancellation token.</param>
-        private void PushDirectory(string localPath, string remotePath, bool overwrite = false, 
+        private void PushDirectory(string localPath, string remotePath, bool overwrite = false,
             IProgress<(int totalFiles, int currentFile, int progress)>? progress = null, CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
@@ -1225,7 +1222,7 @@ public class AdbService
             {
                 var file = relativeFileList[i];
                 var i1 = i;
-                var fileProgress = new Progress<int>(p => progress?.Report((fileCount, i1+1, p)));
+                var fileProgress = new Progress<int>(p => progress?.Report((fileCount, i1 + 1, p)));
                 PushFile(localPath + Path.DirectorySeparatorChar + file,
                     fullPath + "/" + file.Replace(@"\", "/"), fileProgress, ct);
             }
@@ -1249,14 +1246,14 @@ public class AdbService
             using var file = File.OpenWrite(localFilePath);
             syncService.Pull(remotePath, file, null, ct);
         }
-        
-        public void PullPicturesAndVideos (string path, CancellationToken ct = default)
+
+        public void PullPicturesAndVideos(string path, CancellationToken ct = default)
         {
             Log.Information("Pulling pictures and videos from {Device} to {Path}", this, path);
             PullDirectory("/sdcard/Oculus/VideoShots", path, null, ct);
-            PullDirectory("/sdcard/Oculus/Screenshots", path , null, ct);
+            PullDirectory("/sdcard/Oculus/Screenshots", path, null, ct);
         }
-        
+
         /// <summary>
         ///     Recursively pulls a directory from the device.
         /// </summary>
@@ -1336,7 +1333,8 @@ public class AdbService
         /// <param name="gamePath">Path to game files.</param>
         /// <param name="ct">Cancellation token.</param>
         /// <returns><see cref="IObservable{T}" /> that reports current status.</returns>
-        public IObservable<(string status, string? progress)> SideloadGame(Game game, string gamePath, CancellationToken ct = default)
+        public IObservable<(string status, string? progress)> SideloadGame(Game game, string gamePath,
+            CancellationToken ct = default)
         {
             return Observable.Create<(string status, string? progress)>(observer =>
             {
@@ -1354,13 +1352,9 @@ public class AdbService
                     if (File.Exists(gamePath))
                     {
                         if (gamePath.EndsWith(".apk"))
-                        {
                             InstallApk(observer, gamePath);
-                        }
                         else
-                        {
                             throw new InvalidOperationException("Attempted to sideload a non-APK file");
-                        }
                     }
                     else
                     {
@@ -1386,9 +1380,7 @@ public class AdbService
                             // install APKs, copy OBB dir
                         {
                             foreach (var apkPath in Directory.EnumerateFiles(gamePath, "*.apk"))
-                            {
                                 InstallApk(observer, apkPath);
-                            }
 
                             if (game.PackageName is not null &&
                                 Directory.Exists(Path.Combine(gamePath, game.PackageName)))
@@ -1396,11 +1388,11 @@ public class AdbService
                                 Log.Information("Found OBB directory for {PackageName}, pushing to device",
                                     game.PackageName);
                                 observer.OnNext((Resources.PushingObbFiles, null));
-                                var pushProgress = new Progress<(int totalFiles, int currentFile, int progress)> (x =>
+                                var pushProgress = new Progress<(int totalFiles, int currentFile, int progress)>(x =>
                                 {
-                                        var progressString = $"{x.currentFile}/{x.totalFiles} ({x.progress}%)";
-                                        observer.OnNext((Resources.PushingObbFiles, progressString));
-                                    });
+                                    var progressString = $"{x.currentFile}/{x.totalFiles} ({x.progress}%)";
+                                    observer.OnNext((Resources.PushingObbFiles, progressString));
+                                });
                                 PushDirectory(Path.Combine(gamePath, game.PackageName), "/sdcard/Android/obb/", true,
                                     pushProgress, ct);
                             }
@@ -1647,7 +1639,8 @@ public class AdbService
         /// <param name="progress">An optional parameter which, when specified, returns progress notifications. The progress is reported as a value between 0 and 100.</param>
         /// <param name="ct">Cancellation token.</param>
         /// <remarks>Legacy install method is used to avoid rare hang issues.</remarks>
-        private void InstallPackage(string apkPath, bool reinstall, bool grantRuntimePermissions, IProgress<int>? progress = default,
+        private void InstallPackage(string apkPath, bool reinstall, bool grantRuntimePermissions,
+            IProgress<int>? progress = default,
             CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
@@ -1662,7 +1655,7 @@ public class AdbService
             // Adb.AdbClient.Install(this, stream, args.ToArray());
 
             progress?.Report(0);
-            
+
             var progressHandler = new PackageManager.ProgressHandler((_, args) =>
             {
                 // Round to int
