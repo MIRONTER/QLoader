@@ -1018,10 +1018,12 @@ public class AdbService
         /// </remarks>
         public void RefreshInfo()
         {
-            using var op = Operation.At(LogEventLevel.Debug).Begin("Refreshing device info");
+            using var op = Operation.At(LogEventLevel.Debug, LogEventLevel.Error).Begin("Refreshing device info");
             // Check whether refresh is already running
             var alreadyRefreshing = _deviceInfoSemaphoreSlim.CurrentCount < 1;
             _deviceInfoSemaphoreSlim.Wait();
+            string? dfOutput = null;
+            string? dumpsysOutput = null;
             try
             {
                 // If device info has just been refreshed we can skip
@@ -1031,13 +1033,13 @@ public class AdbService
                     return;
                 }
 
-                var dfOutput = RunShellCommand("df /storage/emulated");
+                dfOutput = RunShellCommand("df /storage/emulated");
                 var dfOutputSplit = dfOutput.Split(new[] {"\r\n", "\r", "\n"}, StringSplitOptions.None);
                 var line = Regex.Split(dfOutputSplit[1], @"\s{1,}");
                 SpaceUsed = (float) Math.Round(float.Parse(line[2]) / 1000000, 2);
                 SpaceFree = (float) Math.Round(float.Parse(line[3]) / 1000000, 2);
 
-                var dumpsysOutput = RunShellCommand("dumpsys battery | grep level");
+                dumpsysOutput = RunShellCommand("dumpsys battery | grep level");
                 BatteryLevel = int.Parse(Regex.Match(dumpsysOutput, @"[0-9]{1,3}").ToString());
                 op.Complete();
             }
@@ -1048,6 +1050,8 @@ public class AdbService
                 BatteryLevel = 0;
                 op.SetException(e);
                 op.Abandon();
+                Log.Error("df output:\n{DfOutput}", dfOutput);
+                Log.Error("dumpsys battery level output: {DumpsysOutput}", dumpsysOutput);
                 Globals.ShowErrorNotification(e, Resources.ErrorRefreshingDeviceInfo);
             }
             finally
