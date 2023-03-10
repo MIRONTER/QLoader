@@ -123,7 +123,7 @@ public partial class App : Application
             seqLogger = new LoggerConfiguration().MinimumLevel.ControlledBy(seqLevelSwitch)
                 .Enrich.With<PathsMaskingEnricher>()
                 .WriteTo.Seq("https://qloader.5698452.xyz/seq-ingest/",
-                    apiKey: "scSaNHjkaRxTtanoeVpJ",
+                    apiKey: "8amCetov6BE6Hhg6HTBQ",
                     controlLevelSwitch: seqLevelSwitch)
                 .CreateLogger();
             LogStartMessage(seqLogger, programName, versionString);
