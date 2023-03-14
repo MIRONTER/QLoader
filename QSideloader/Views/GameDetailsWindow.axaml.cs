@@ -1,8 +1,8 @@
-﻿using System.ComponentModel;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
 using QSideloader.ViewModels;
@@ -44,14 +44,29 @@ public class GameDetailsWindow : ReactiveWindow<GameDetailsViewModel>
     }
 
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
-    private void Window_OnClosing(object? sender, CancelEventArgs e)
+    private void MainWindow_OnActivated(object? sender, EventArgs e)
     {
-        if (DataContext is GameDetailsViewModel viewModel) viewModel.Dispose();
+        Close();
     }
 
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
-    private void Window_OnLostFocus(object? sender, RoutedEventArgs e)
+    private void Window_OnOpened(object? sender, EventArgs e)
     {
-        Close();
+        if (Application.Current is null) return;
+        var mainWindow = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+            ?.MainWindow;
+        if (mainWindow is null) return;
+        mainWindow.Activated += MainWindow_OnActivated;
+    }
+
+    [SuppressMessage("ReSharper", "UnusedParameter.Local")]
+    private void Window_OnClosed(object? sender, EventArgs e)
+    {
+        if (DataContext is GameDetailsViewModel viewModel) viewModel.Dispose();
+        if (Application.Current is null) return;
+        var mainWindow = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+            ?.MainWindow;
+        if (mainWindow is null) return;
+        mainWindow.Activated -= MainWindow_OnActivated;
     }
 }
