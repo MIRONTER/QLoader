@@ -510,7 +510,15 @@ public class DownloaderService
 
         try
         {
-            var result = await command.ExecuteBufferedAsync(ct);
+            using var forcefulCts = new CancellationTokenSource();
+            // When the cancellation token is triggered,
+            // schedule forceful cancellation as a fallback.
+            await using var link = ct.Register(() =>
+                // ReSharper disable once AccessToDisposedClosure
+                forcefulCts.CancelAfter(TimeSpan.FromSeconds(3))
+            );
+            var result = await command.ExecuteBufferedAsync(Console.OutputEncoding, Console.OutputEncoding,
+                forcefulCts.Token, ct);
             return result;
         }
         catch (CommandExecutionException e)
