@@ -897,7 +897,7 @@ public class DownloaderService
         try
         {
             const string trailersAddonUrl =
-                "https://github.com/skrimix/QLoaderFiles/releases/latest/download/TrailersAddon.zip";
+                "https://qloader.5698452.xyz/files/TrailersAddon.zip";
             Log.Information("Downloading trailers addon from {TrailersAddonUrl}", trailersAddonUrl);
             if (File.Exists(trailersAddonPath))
                 File.Delete(trailersAddonPath);
