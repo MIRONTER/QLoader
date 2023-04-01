@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
@@ -21,6 +22,7 @@ using NetSparkleUpdater.SignatureVerifiers;
 using NetSparkleUpdater.UI.Avalonia;
 using QSideloader.Utilities;
 using QSideloader.ViewModels;
+using ReactiveUI;
 using Serilog;
 
 namespace QSideloader.Views;
@@ -51,7 +53,9 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
         AddHandler(DragDrop.DropEvent, Drop);
         var navigationView = this.Get<NavigationView>("NavigationView");
         navigationView.SelectedItem = navigationView.MenuItems.OfType<NavigationViewItem>().First();
-        this.GetObservable(ClientSizeProperty).Subscribe(_ => RecalculateTaskListBoxHeight());
+        this.GetObservable(ClientSizeProperty).Throttle(TimeSpan.FromMilliseconds(100))
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(_ => RecalculateTaskListBoxHeight());
     }
 
     private void InitializeComponent()
@@ -190,7 +194,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (_isClosing || ViewModel!.TaskList.Count == 0 || ViewModel.TaskList.All(x => x.IsFinished))
         {
             Log.Information("Closing application");
-            Log.CloseAndFlush();
+            await Log.CloseAndFlushAsync();
             return;
         }
 
