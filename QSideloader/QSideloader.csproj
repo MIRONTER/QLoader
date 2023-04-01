@@ -17,7 +17,7 @@
         <IsPackable>false</IsPackable>
         <Company>skrimix</Company>
         <ApplicationManifest>app.manifest</ApplicationManifest>
-        <ApplicationIcon>Assets\ffa-logo.ico</ApplicationIcon>
+        <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     </PropertyGroup>
     <ItemGroup>
         <Tools Condition="$(RuntimeIdentifier.Contains('win')) Or '$(RuntimeIdentifier)'==''" Include="tools\windows\**\*"/>
@@ -50,7 +50,7 @@
             <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
         </Content>
         <!-- Include icon for desktop entry on Linux -->
-        <Content Condition="$(RuntimeIdentifier.Contains('linux')) Or '$(RuntimeIdentifier)'==''" Include="Assets\ffa-logo.png">
+        <Content Condition="$(RuntimeIdentifier.Contains('linux')) Or '$(RuntimeIdentifier)'==''" Include="Assets\app.png">
             <Link>Loader.png</Link>
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
             <ExcludeFromSingleFile>true</ExcludeFromSingleFile>

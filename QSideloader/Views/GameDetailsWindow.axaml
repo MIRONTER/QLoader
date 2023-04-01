@@ -12,6 +12,7 @@
         Title="GameDetailsWindow"
         Width="1000"
         Height="400"
+        Icon="/Assets/app.ico"
         WindowStartupLocation="CenterOwner"
         TransparencyLevelHint="AcrylicBlur"
         ExtendClientAreaToDecorationsHint="True"
