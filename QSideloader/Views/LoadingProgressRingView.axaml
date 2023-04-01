@@ -10,7 +10,7 @@
             BorderBrush="#454545" BorderThickness="2" CornerRadius="6" Background="#1F1F1F">
         <StackPanel>
             <ProgressRing x:Name="ProgressRing" Margin="0,24,0,0" IsEnabled="{Binding $parent[UserControl].IsVisible}"
-                          IsIndeterminate="True" />
+                          IsIndeterminate="{Binding $parent[UserControl].IsVisible}" />
             <TextBlock Margin="0,24,0,0" HorizontalAlignment="Center" Text="{x:Static p:Resources.LoadingEllipsis}" />
         </StackPanel>
     </Border>
