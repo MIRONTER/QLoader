@@ -560,6 +560,7 @@ public class DownloaderService
             if (AvailableGames is not null && !refresh)
                 return;
             AvailableGames = null;
+            var emptyRetries = 0;
             Log.Information("Downloading game list");
             while (true)
             {
@@ -567,9 +568,10 @@ public class DownloaderService
                     try
                     {
                         AvailableGames = csvEngine.ReadFile(Path.Combine("metadata", "FFA.txt")).ToList();
-                        if (AvailableGames.Count == 0)
+                        if (AvailableGames.Count == 0 && emptyRetries < 3)
                         {
                             Log.Warning("Loaded empty game list from mirror {MirrorName}, retrying", MirrorName);
+                            emptyRetries++;
                             continue;
                         }
 
