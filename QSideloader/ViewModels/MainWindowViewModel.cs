@@ -173,9 +173,9 @@ public class MainWindowViewModel : ViewModelBase
                 if (Directory.EnumerateFiles(fileName, ".backup", SearchOption.TopDirectoryOnly).Any())
                 {
                     Log.Debug("Dropped folder {FileName} contains backup", fileName);
-                    var dirName = Path.GetFileName(fileName);
-                    var game = new Game(dirName, dirName);
-                    AddTask(new TaskOptions {Type = TaskType.Restore, Game = game, Path = fileName});
+                    var backup = new Backup(fileName);
+                    AddTask(new TaskOptions {Type = TaskType.Restore, Backup = backup});
+                    continue;
                 }
 
                 if (Directory.EnumerateFiles(fileName, "release.json", SearchOption.TopDirectoryOnly).Any())
@@ -190,7 +190,7 @@ public class MainWindowViewModel : ViewModelBase
                     }
                     catch (Exception ex)
                     {
-                        Log.Warning(ex, "Failed to parse release.json in {FileName}. Ignoring", fileName);
+                        Log.Warning(ex, "Failed to use release.json in {FileName}. Ignoring", fileName);
                     }
                 }
 
