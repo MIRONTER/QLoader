@@ -107,6 +107,11 @@ public class DownloaderService
         await RcloneConfigSemaphoreSlim.WaitAsync();
         try
         {
+            if (!File.Exists(Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, "FFA_config")))
+            {
+                Log.Warning("FFA_config not found, skipping rclone config update");
+                return;
+            }
             Log.Information("Updating rclone config");
             if (await TryDownloadConfigFromServer())
             {
