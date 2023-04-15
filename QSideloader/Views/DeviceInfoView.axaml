@@ -56,7 +56,7 @@
             <TextBlock x:Name="DeviceInfoHeader"
                        Grid.Row="0" Grid.Column="0"
                        Margin="20,12,0,0" Text="{x:Static p:Resources.DeviceInfoColon}" />
-            <Image x:Name="Quest1Image"
+            <Image x:Name="Quest2Image"
                    Grid.Row="1" Grid.Column="0"
                    Grid.RowSpan="3"
                    Source="/Assets/quest2.png"
@@ -65,7 +65,7 @@
                    HorizontalAlignment="Left"
                    Margin="0,0,0,12"
                    IsVisible="{Binding IsQuest2}" />
-            <Image x:Name="Quest2Image"
+            <Image x:Name="Quest1Image"
                    Grid.Row="1" Grid.Column="0"
                    Grid.RowSpan="3"
                    Source="/Assets/quest1.png"
