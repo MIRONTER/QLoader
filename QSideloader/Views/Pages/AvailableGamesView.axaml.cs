@@ -49,7 +49,12 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
             {
                 // If user starts typing, focus the search box
                 case >= Key.D0 and <= Key.Z:
-                    this.Get<TextBox>("SearchBox").Focus();
+                    var searchBox = this.Get<TextBox>("SearchBox");
+                    if (!searchBox.IsFocused)
+                    {
+                        searchBox.Text = "";
+                        searchBox.Focus();
+                    }
                     break;
             }
     }
@@ -104,7 +109,11 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
             // If Ctrl+F is pressed, focus the search box
             if (e is {KeyModifiers: KeyModifiers.Control, Key: Key.F})
             {
-                this.Get<TextBox>("SearchBox").Focus();
+                var searchBox = this.Get<TextBox>("SearchBox");
+                // Highlight the text
+                searchBox.Focus();
+                searchBox.SelectionStart = 0;
+                searchBox.SelectionEnd = searchBox.Text.Length;
                 e.Handled = true;
             }
         }
@@ -137,7 +146,7 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
         var dataGrid = (CustomDataGrid?) sender;
         var selectedGame = (Game?) dataGrid?.SelectedItem;
         if (selectedGame is null) return;
-        Log.Debug("Enter key pressed on game {Game}", selectedGame);
+        //Log.Debug("Enter key pressed on game {Game}", selectedGame);
         var viewModel = (AvailableGamesViewModel?) DataContext;
         if (viewModel is null) return;
         if (viewModel.IsDeviceConnected)
