@@ -41,9 +41,9 @@ public class InstalledGamesView : ReactiveUserControl<InstalledGamesViewModel>
         e.Handled = true;
     }
 
-    private void MainWindow_OnKeyUp(object? sender, KeyEventArgs e)
+    private void MainWindow_OnKeyDown(object? sender, KeyEventArgs e)
     {
-        //Log.Debug("Key released: {Key}, modifiers: {Modifiers}", e.Key, e.KeyModifiers);
+        //Log.Debug("Key pressed: {Key}, modifiers: {Modifiers}", e.Key, e.KeyModifiers);
         var dataGrid = this.Get<DataGrid>("InstalledGamesDataGrid");
         var selectedGame = (Game?) dataGrid.SelectedItem;
         if (e.KeyModifiers == KeyModifiers.None)
@@ -58,25 +58,21 @@ public class InstalledGamesView : ReactiveUserControl<InstalledGamesViewModel>
                         dataGrid.SelectedIndex = 0;
                     }
 
-                    e.Handled = true;
                     break;
                 // If Space is pressed, toggle the selected game's selected state
                 case Key.Space:
                     if (selectedGame is null) return;
                     selectedGame.IsSelected = !selectedGame.IsSelected;
-                    e.Handled = true;
                     break;
                 // If Alt is pressed, show game details for the selected game
                 case Key.LeftAlt or Key.RightAlt:
                     if (selectedGame is null) return;
                     Globals.MainWindowViewModel!.ShowGameDetailsCommand.Execute(selectedGame)
                         .Subscribe(_ => { }, _ => { });
-                    e.Handled = true;
                     break;
                 // If F5 is pressed, refresh the list
                 case Key.F5:
                     ViewModel!.Refresh.Execute(true).Subscribe(_ => { }, _ => { });
-                    e.Handled = true;
                     break;
             }
     }
@@ -88,7 +84,7 @@ public class InstalledGamesView : ReactiveUserControl<InstalledGamesViewModel>
         var mainWindow = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
             ?.MainWindow;
         if (mainWindow is null) return;
-        mainWindow.KeyUp += MainWindow_OnKeyUp;
+        mainWindow.KeyDown += MainWindow_OnKeyDown;
     }
 
     private void Visual_OnDetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
@@ -98,7 +94,7 @@ public class InstalledGamesView : ReactiveUserControl<InstalledGamesViewModel>
         var mainWindow = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
             ?.MainWindow;
         if (mainWindow is null) return;
-        mainWindow.KeyUp -= MainWindow_OnKeyUp;
+        mainWindow.KeyDown -= MainWindow_OnKeyDown;
     }
 
     private void InstalledGamesDataGrid_OnEnterKeyDown(object? sender, RoutedEventArgs e)

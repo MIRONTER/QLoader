@@ -44,24 +44,6 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
     private void MainWindow_OnKeyDown(object? sender, KeyEventArgs e)
     {
         //Log.Debug("Key pressed: {Key}, modifiers: {Modifiers}", e.Key, e.KeyModifiers);
-        if (e.KeyModifiers == KeyModifiers.None)
-            switch (e.Key)
-            {
-                // If user starts typing, focus the search box
-                case >= Key.D0 and <= Key.Z:
-                    var searchBox = this.Get<TextBox>("SearchBox");
-                    if (!searchBox.IsFocused)
-                    {
-                        searchBox.Text = "";
-                        searchBox.Focus();
-                    }
-                    break;
-            }
-    }
-
-    private void MainWindow_OnKeyUp(object? sender, KeyEventArgs e)
-    {
-        //Log.Debug("Key released: {Key}, modifiers: {Modifiers}", e.Key, e.KeyModifiers);
         var dataGrid = this.Get<DataGrid>("AvailableGamesDataGrid");
         var selectedGame = (Game?) dataGrid.SelectedItem;
         if (e.KeyModifiers == KeyModifiers.None)
@@ -76,31 +58,34 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
                         dataGrid.Focus();
                         dataGrid.SelectedIndex = 0;
                     }
-
-                    e.Handled = true;
                     break;
                 // If Escape is pressed clear the search box
                 case Key.Escape:
                     this.Get<TextBox>("SearchBox").Text = "";
-                    e.Handled = true;
                     break;
                 // If Space is pressed, toggle the selected game's selected state
                 case Key.Space:
                     if (selectedGame is null) return;
                     selectedGame.IsSelected = !selectedGame.IsSelected;
-                    e.Handled = true;
                     break;
                 // If Alt is pressed, show game details for the selected game
                 case Key.LeftAlt or Key.RightAlt:
                     if (selectedGame is null) return;
                     Globals.MainWindowViewModel!.ShowGameDetailsCommand.Execute(selectedGame)
                         .Subscribe(_ => { }, _ => { });
-                    e.Handled = true;
                     break;
                 // If F5 is pressed, refresh the list
                 case Key.F5:
                     ViewModel!.Refresh.Execute(true).Subscribe(_ => { }, _ => { });
-                    e.Handled = true;
+                    break;
+                // If user starts typing, focus the search box
+                case >= Key.D0 and <= Key.Z:
+                    var searchBox = this.Get<TextBox>("SearchBox");
+                    if (!searchBox.IsFocused)
+                    {
+                        searchBox.Text = "";
+                        searchBox.Focus();
+                    }
                     break;
             }
         }
@@ -127,7 +112,6 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
             ?.MainWindow;
         if (mainWindow is null) return;
         mainWindow.KeyDown += MainWindow_OnKeyDown;
-        mainWindow.KeyUp += MainWindow_OnKeyUp;
     }
 
     private void Visual_OnDetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
@@ -138,7 +122,6 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
             ?.MainWindow;
         if (mainWindow is null) return;
         mainWindow.KeyDown -= MainWindow_OnKeyDown;
-        mainWindow.KeyUp -= MainWindow_OnKeyUp;
     }
 
     private void AvailableGamesDataGrid_OnEnterKeyDown(object? sender, RoutedEventArgs e)
