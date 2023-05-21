@@ -9,7 +9,7 @@
         xmlns:converters="clr-namespace:QSideloader.Converters"
         mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="400"
         x:Class="QSideloader.Views.GameDetailsWindow"
-        Title="GameDetailsWindow"
+        Title="Game Details"
         Width="1000"
         Height="400"
         Icon="/Assets/app.ico"
