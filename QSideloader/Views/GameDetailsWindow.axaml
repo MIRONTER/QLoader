@@ -12,6 +12,8 @@
         Title="Game Details"
         Width="1000"
         Height="400"
+        MaxHeight="400"
+        MaxWidth="1000"
         Icon="/Assets/app.ico"
         WindowStartupLocation="CenterOwner"
         TransparencyLevelHint="AcrylicBlur"
