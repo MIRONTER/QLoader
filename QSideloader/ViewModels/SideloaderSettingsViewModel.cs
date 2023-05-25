@@ -332,7 +332,6 @@ public class SideloaderSettingsViewModel : ViewModelBase
     {
         if (File.Exists(PathHelper.SettingsPath))
         {
-            SettingsFileSemaphoreSlim.Wait();
             try
             {
                 var json = File.ReadAllText(PathHelper.SettingsPath);
@@ -345,10 +344,6 @@ public class SideloaderSettingsViewModel : ViewModelBase
                 Log.Error(e, "Failed to load settings, resetting to defaults");
                 InitDefaults();
                 SaveSettings.Execute().Subscribe();
-            }
-            finally
-            {
-                SettingsFileSemaphoreSlim.Release();
             }
         }
         else
