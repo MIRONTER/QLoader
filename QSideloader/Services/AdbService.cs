@@ -336,8 +336,6 @@ public class AdbService
 
                 Cli.Wrap(adbPath)
                     .WithArguments("start-server")
-                    // Enable mDNS discovery for Android 11+ Wireless ADB
-                    .WithEnvironmentVariables(env => env.Set("ADB_MDNS_OPENSCREEN", "1"))
                     .ExecuteBufferedAsync()
                     .GetAwaiter().GetResult();
             }
