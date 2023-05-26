@@ -1140,7 +1140,7 @@ public class AdbService
                     let isDonated = _sideloaderSettings.DonatedPackages.Any(i =>
                         i.packageName == packageName && i.versionCode >= versionCode)
                     let isNewVersion = _downloaderService.AvailableGames!.Where(g => g.PackageName == packageName)
-                        .Any(g => versionCode > g.VersionCode)
+                        .All(g => versionCode > g.VersionCode)
                     let isHiddenFromDonation = isBlacklisted || isIgnored || isDonated || !(isNew || isNewVersion)
                     let donationStatus = !isHiddenFromDonation ? isNew ? Resources.NewApp : Resources.NewVersion :
                         isDonated ? Resources.Donated :
