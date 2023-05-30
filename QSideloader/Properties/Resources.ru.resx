@@ -157,7 +157,7 @@
         <value>Выберите данные, которые хотите скопировать:</value>
     </data>
     <data name="BackupSelectedButton" xml:space="preserve">
-        <value>Резрвное копирование выбранных</value>
+        <value>Резeрвное копирование выбранных</value>
     </data>
     <data name="BackupSelectedGamesTooltip" xml:space="preserve">
         <value>Создать резервные копии для выбранных игр</value>
