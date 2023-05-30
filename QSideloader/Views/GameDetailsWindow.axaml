@@ -122,8 +122,11 @@
                                   VerticalAlignment="Top"
                                   Width="400"
                                   MaxHeight="370">
-                        <TextBlock
-                            TextWrapping="Wrap" FontWeight="Light"
+                        <TextBox
+                            Background="Transparent"
+                            BorderThickness="0"
+                            IsReadOnly="True"
+                            TextWrapping="Wrap"  FontWeight="Light"
                             IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                             Text="{Binding Description}" />
                     </ScrollViewer>
