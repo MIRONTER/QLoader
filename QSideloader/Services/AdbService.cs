@@ -968,7 +968,7 @@ public class AdbService
         /// <summary>
         ///     Refreshes the <see cref="InstalledPackages" /> list
         /// </summary>
-        private void RefreshInstalledPackages()
+        public void RefreshInstalledPackages()
         {
             using var op = Operation.At(LogEventLevel.Debug).Begin("Refreshing installed packages on {Device}", this);
             var skip = _packagesSemaphoreSlim.CurrentCount == 0;
@@ -1105,7 +1105,6 @@ public class AdbService
 
                 Log.Information("Refreshing list of installed games on {Device}", this);
                 _downloaderService.EnsureMetadataAvailableAsync().GetAwaiter().GetResult();
-                if (InstalledPackages.Count == 0) RefreshInstalledPackages();
                 var query = from package in InstalledPackages.ToList()
                     where package.versionInfo is not null
                     // We can't determine which particular release is installed, so we list all releases with appropriate package name

@@ -310,7 +310,10 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
         IsDeviceConnected = true;
         if (rescanGames)
+        {
+            _adbService.Device!.RefreshInstalledPackages();
             _adbService.Device!.RefreshInstalledGames();
+        }
         while (_adbService.Device!.IsRefreshingInstalledGames)
         {
             Thread.Sleep(100);
