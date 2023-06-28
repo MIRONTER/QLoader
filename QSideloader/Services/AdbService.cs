@@ -874,6 +874,10 @@ public class AdbService
             HashedId = GetHashedId(TrueSerial ?? Serial);
 
             PackageManager = new PackageManager(_adb.AdbClient, this, true);
+            
+            var bootCompleted = RunShellCommand("getprop sys.boot_completed");
+            if (!bootCompleted.Contains("1"))
+                Log.Warning("Device {HashedId} has not finished booting yet", HashedId);
         }
 
         private PackageManager PackageManager { get; }
