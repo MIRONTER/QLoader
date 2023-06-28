@@ -1,29 +1,26 @@
-﻿using System;
+using System;
 using System.Globalization;
 using Avalonia.Data.Converters;
-using QSideloader.Properties;
+using ByteSizeLib;
 
 namespace QSideloader.Converters;
 
-public class OnDeviceStatusValueConverter : IValueConverter
+public class GameSizeValueConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value == null)
             return null;
 
-        if (value is not bool status) throw new NotSupportedException();
-        return status ? Resources.OnDeviceHeader : "";
+        if (value is not int mBytes) throw new NotSupportedException();
+        return ByteSize.FromMebiBytes(mBytes).ToBinaryString();
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is string status)
+        if (value is string size)
         {
-            if (status == Resources.OnDeviceHeader)
-                return true;
-            if (status == "")
-                return false;
+            return Math.Round(ByteSize.Parse(size).MebiBytes);
         }
 
         throw new NotSupportedException();

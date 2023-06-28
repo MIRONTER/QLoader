@@ -14,6 +14,7 @@
              DetachedFromVisualTree="Visual_OnDetachedFromVisualTree">
     <UserControl.Resources>
         <converters:OnDeviceStatusValueConverter x:Key="OnDeviceStatusFromBool" />
+        <converters:GameSizeValueConverter x:Key="GameSizeFromMBytesInt" />
     </UserControl.Resources>
     <Design.DataContext>
         <vm:AvailableGamesViewModel />
@@ -81,7 +82,7 @@
                 <DataGridTextColumn Binding="{Binding LastUpdated}" Header="{x:Static p:Resources.LastUpdatedHeader}"
                                     Width="auto"
                                     IsReadOnly="True" />
-                <DataGridTextColumn Binding="{Binding GameSize}" Header="{x:Static p:Resources.GameSizeHeader}"
+                <DataGridTextColumn Binding="{Binding GameSize, Converter={StaticResource GameSizeFromMBytesInt}}" Header="{x:Static p:Resources.GameSizeHeader}"
                                     Width="auto" IsReadOnly="True" />
 
                 <DataGridTextColumn Binding="{Binding Popularity[1D]}"

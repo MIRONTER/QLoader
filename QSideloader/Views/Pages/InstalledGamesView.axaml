@@ -16,6 +16,7 @@
              DetachedFromVisualTree="Visual_OnDetachedFromVisualTree">
     <UserControl.Resources>
         <converters:UpdateStatusStringValueConverter x:Key="UpdateStatusStringFromInstalledGame" />
+        <converters:GameSizeValueConverter x:Key="GameSizeFromMBytesInt" />
     </UserControl.Resources>
     <Design.DataContext>
         <vm:InstalledGamesViewModel />
@@ -125,7 +126,7 @@
                 <DataGridTextColumn Binding="{Binding ReleaseName}"
                                     Header="{x:Static p:Resources.LatestReleaseNameHeader}"
                                     Width="auto" IsReadOnly="True" />
-                <DataGridTextColumn Binding="{Binding GameSize}" Header="{x:Static p:Resources.GameSizeHeader}"
+                <DataGridTextColumn Binding="{Binding GameSize, Converter={StaticResource GameSizeFromMBytesInt}}" Header="{x:Static p:Resources.GameSizeHeader}"
                                     Width="auto" IsReadOnly="True" />
                 <DataGridTextColumn
                     Binding="{Binding ., Converter={StaticResource UpdateStatusStringFromInstalledGame}}"
