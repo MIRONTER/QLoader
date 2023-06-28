@@ -21,14 +21,12 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
 {
     private static LibVLC? _libVlc;
     private readonly AdbService _adbService;
-    private readonly DownloaderService _downloaderService;
 
     // Dummy constructor for XAML, do not use
     public GameDetailsViewModel()
     {
         Activator = new ViewModelActivator();
         _adbService = AdbService.Instance;
-        _downloaderService = DownloaderService.Instance;
         Game = new Game("GameName", "ReleaseName", 1337, "NoteText");
         DisplayName = "GameName";
         Description = "DescriptionText";
@@ -51,7 +49,6 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
     {
         Activator = new ViewModelActivator();
         _adbService = AdbService.Instance;
-        _downloaderService = DownloaderService.Instance;
         Game = game;
         DisplayName = game.GameName ?? "GameName";
         DownloadAndInstall = ReactiveCommand.CreateFromObservable(DownloadAndInstallImpl);
@@ -198,7 +195,7 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
     {
         try
         {
-            var game = await DownloaderService.GetGameStoreInfo(Game.PackageName);
+            var game = await ApiClient.GetGameStoreInfo(Game.PackageName);
             if (game is null) return;
             if (!string.IsNullOrEmpty(game.DisplayName))
                 DisplayName = game.DisplayName;

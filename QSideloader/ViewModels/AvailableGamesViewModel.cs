@@ -233,14 +233,19 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         {
             foreach (var game in games)
                 game.IsInstalled = false;
+            return;
         }
-        else
+        while (_adbService.Device.IsRefreshingInstalledGames)
+            Thread.Sleep(100);
+        if (_adbService.Device is null)
         {
-            while (_adbService.Device.IsRefreshingInstalledGames)
-                Thread.Sleep(100);
-            var installedPackages = _adbService.Device.InstalledPackages.ToList();
-            foreach (var game in games.Where(game => game.PackageName is not null))
-                game.IsInstalled = installedPackages.Any(p => p.packageName == game.PackageName!);
+            foreach (var game in games)
+                game.IsInstalled = false;
+            return;
         }
+        var installedPackages = _adbService.Device.InstalledPackages.ToList();
+        foreach (var game in games.Where(game => game.PackageName is not null))
+            game.IsInstalled = installedPackages.Any(p => p.packageName == game.PackageName!);
+        
     }
 }

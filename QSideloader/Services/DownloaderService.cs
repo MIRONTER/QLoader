@@ -4,13 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Reflection;
-using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,11 +30,10 @@ using SerilogTimings;
 namespace QSideloader.Services;
 
 /// <summary>
-///     Service for all download/upload operations and API calls.
+///     Service for all download/upload operations.
 /// </summary>
 public class DownloaderService
 {
-    private const string ApiUrl = "https://qloader.5698452.xyz/api/v1/";
     private const string StaticFilesUrl = "https://qloader.5698452.xyz/files/";
     private static readonly SemaphoreSlim MirrorListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim GameListSemaphoreSlim = new(1, 1);
@@ -56,18 +50,6 @@ public class DownloaderService
             Proxy = WebRequest.DefaultWebProxy
         };
         HttpClient = new HttpClient(httpClientHandler);
-        var apiHttpClientHandler = new HttpClientHandler
-        {
-            Proxy = WebRequest.DefaultWebProxy
-        };
-        ApiHttpClient = new HttpClient(apiHttpClientHandler) {BaseAddress = new Uri(ApiUrl)};
-        var appName = Program.Name;
-        var appVersion = Assembly.GetExecutingAssembly().GetName().Version;
-        var appVersionString = appVersion is not null
-            ? $"{appVersion.Major}.{appVersion.Minor}.{appVersion.Build}"
-            : "Unknown";
-        ApiHttpClient.DefaultRequestHeaders.UserAgent.Add(
-            new ProductInfoHeaderValue(appName, appVersionString));
     }
 
     private DownloaderService()
@@ -97,7 +79,7 @@ public class DownloaderService
 
     private bool IsMirrorListInitialized { get; set; }
     private static HttpClient HttpClient { get; }
-    private static HttpClient ApiHttpClient { get; }
+
 
     /// <summary>
     ///     Downloads a new config file for rclone from a mirror.
@@ -146,12 +128,9 @@ public class DownloaderService
         {
             try
             {
-                const string configUrl = $"{StaticFilesUrl}FFA_config";
                 var oldConfigPath = Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, "FFA_config");
                 var newConfigPath = Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, "FFA_config_new");
-                var response = await ApiHttpClient.GetAsync(configUrl);
-                response.EnsureSuccessStatusCode();
-                var config = await response.Content.ReadAsStringAsync();
+                var config = await ApiClient.GetRcloneConfig();
                 await File.WriteAllTextAsync(newConfigPath, config);
                 File.Move(newConfigPath, oldConfigPath, true);
                 return true;
@@ -244,8 +223,7 @@ public class DownloaderService
     /// </summary>
     private void ExcludeDeadMirrors()
     {
-        var list = ApiHttpClient.GetFromJsonAsync<List<Dictionary<string, JsonElement>>>("mirrors?status=DOWN")
-            .GetAwaiter().GetResult();
+        var list = ApiClient.GetDeadMirrors().GetAwaiter().GetResult();
         if (list is null) return;
         var count = 0;
         foreach (var mirrorName in list.Select(mirror => mirror["mirror_name"].GetString())
@@ -634,13 +612,8 @@ public class DownloaderService
         {
             try
             {
-                List<Dictionary<string, JsonElement>>? popularity;
-                using (var _ = Operation.Time("Requesting popularity from API"))
-                {
-                    popularity =
-                        await ApiHttpClient.GetFromJsonAsync<List<Dictionary<string, JsonElement>>>("popularity");
-                }
-
+                var popularity = await ApiClient.GetPopularity();
+                
                 if (popularity is not null)
                 {
                     var popularityMax1D = popularity.Max(x => x["1D"].GetInt32());
@@ -679,11 +652,8 @@ public class DownloaderService
         {
             try
             {
-                const string configUrl = $"{StaticFilesUrl}blacklist.txt";
-                var response = await ApiHttpClient.GetAsync(configUrl);
-                response.EnsureSuccessStatusCode();
-                var config = await response.Content.ReadAsStringAsync();
-                await File.WriteAllTextAsync(Path.Combine("metadata", "blacklist_new.txt"), config);
+                var blacklist = await ApiClient.GetDonationBlacklist();
+                await File.WriteAllTextAsync(Path.Combine("metadata", "blacklist_new.txt"), blacklist);
                 File.Move(Path.Combine("metadata", "blacklist_new.txt"), Path.Combine("metadata", "blacklist.txt"),
                     true);
                 Log.Debug("Downloaded donation blacklist from server");
@@ -755,7 +725,7 @@ public class DownloaderService
                             $"Didn't find directory with downloaded files on path \"{dstPath}\"");
                     var json = JsonConvert.SerializeObject(game, Formatting.Indented);
                     await File.WriteAllTextAsync(Path.Combine(dstPath, "release.json"), json, ct);
-                    Task.Run(() => ReportGameDownload(game.PackageName!), ct).SafeFireAndForget();
+                    Task.Run(() => ApiClient.ReportGameDownload(game.PackageName!), ct).SafeFireAndForget();
                     break;
                 }
                 catch (DownloadQuotaExceededException e)
@@ -788,29 +758,7 @@ public class DownloaderService
         }
     }
 
-    /// <summary>
-    ///     Reports the download of the provided package name to the API.
-    /// </summary>
-    /// <param name="packageName">Package name of the downloaded game.</param>
-    private static async Task ReportGameDownload(string packageName)
-    {
-        using var op = Operation.Begin("Reporting game {PackageName} download to API", packageName);
-        try
-        {
-            var dict = new Dictionary<string, string>
-                {{"hwid", GeneralUtils.GetHwid(true)}, {"package_name", packageName}};
-            var json = JsonConvert.SerializeObject(dict, Formatting.None);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await ApiHttpClient.PostAsync("reportdownload", content);
-            response.EnsureSuccessStatusCode();
-            op.Complete();
-        }
-        catch (Exception e)
-        {
-            op.SetException(e);
-            op.Abandon();
-        }
-    }
+    
 
     public static async Task TakeDownloadLockAsync(CancellationToken ct = default)
     {
@@ -849,7 +797,7 @@ public class DownloaderService
     ///     Gets the download stats from rclone.
     /// </summary>
     /// <returns></returns>
-    private async Task<(float downloadSpeedBytes, double downloadedBytes)?> GetRcloneDownloadStats()
+    private static async Task<(float downloadSpeedBytes, double downloadedBytes)?> GetRcloneDownloadStats()
     {
         try
         {
@@ -924,7 +872,7 @@ public class DownloaderService
                 MaxTryAgainOnFailover = 2,
                 RequestConfiguration =
                 {
-                    UserAgent = ApiHttpClient.DefaultRequestHeaders.UserAgent.ToString(),
+                    UserAgent = ApiClient.HttpUserAgent,
                     Proxy = WebRequest.DefaultWebProxy
                 }
             };
@@ -962,38 +910,14 @@ public class DownloaderService
     }
 
     /// <summary>
-    ///     Gets the store info about the game.
+    /// Prunes downloaded versions of the release according to the pruning policy.
     /// </summary>
-    /// <param name="packageName">Package name to search info for.</param>
-    /// <returns><see cref="OculusGame" /> containing the info, or <c>null</c> if no info was found.</returns>
-    /// <exception cref="HttpRequestException">Thrown if API request was unsuccessful.</exception>
-    public static async Task<OculusGame?> GetGameStoreInfo(string? packageName)
-    {
-        if (packageName is null)
-            return null;
-        using var op = Operation.Begin("Getting game store info for {PackageName}", packageName);
-        var uri = $"oculusgames/{packageName}";
-        var response = await ApiHttpClient.GetAsync(uri);
-        if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.NotFound)
-        {
-            op.Abandon();
-            throw new HttpRequestException($"Failed to get game store info for {packageName}");
-        }
-
-        var responseContent = await response.Content.ReadAsStringAsync();
-        // If response is empty dictionary, the api didn't find the game
-        if (responseContent == "{}")
-        {
-            Log.Information("Game store info not found for {PackageName}", packageName);
-            op.Complete();
-            return null;
-        }
-
-        var game = JsonConvert.DeserializeObject<OculusGame>(responseContent);
-        op.Complete();
-        return game;
-    }
-
+    /// <param name="releaseName">Name of the release to prune.</param>
+    /// <remarks>
+    /// Pruning will be skipped unless the release name is in the following format:
+    /// <code>Game Name v1.2.3+456</code>
+    /// </remarks>
+    /// <seealso cref="SideloaderSettingsViewModel.DownloadsPruningPolicy"/>
     public void PruneDownloadedVersions(string releaseName)
     {
         var regex = new Regex(@"(.+) v\d+\+.+");
@@ -1031,6 +955,12 @@ public class DownloaderService
         }
     }
 
+    /// <summary>
+    /// Calculates size of the remote directory.
+    /// </summary>
+    /// <param name="remotePath">Path to the remote directory.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Output of <c>rclone size</c> command.</returns>
     private static async Task<string> RcloneGetRemoteSizeJson(string remotePath, CancellationToken ct = default)
     {
         await RcloneConfigSemaphoreSlim.WaitAsync(ct);
@@ -1040,6 +970,14 @@ public class DownloaderService
         return result.StandardOutput;
     }
 
+    /// <summary>
+    /// Calculates size of the game game release
+    /// </summary>
+    /// <param name="game">Game to calculate size of.</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Size of the game release in bytes or <c>null</c> if the size could not be calculated.</returns>
+    /// <exception cref="RcloneOperationException">Thrown if rclone command returned error.</exception>
+    /// <exception cref="DownloaderServiceException">Thrown if an unknown error occured.</exception>
     public async Task<long?> GetGameSizeBytesAsync(Game game, CancellationToken ct = default)
     {
         using var op = Operation.Begin("Rclone calculating size of \"{ReleaseName}\"", game.ReleaseName ?? "N/A");
