@@ -28,6 +28,9 @@ public class App : Application
     {
         Directory.SetCurrentDirectory(Path.GetDirectoryName(AppContext.BaseDirectory)!);
         Name = Program.Name;
+        
+        // Force Russian locale
+        //Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("ru");
 
         if (!Design.IsDesignMode)
         {

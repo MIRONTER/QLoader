@@ -28,7 +28,7 @@
         <ui:NavigationView
             x:Name="NavigationView"
             ExpandedModeThresholdWidth="1252"
-            OpenPaneLength="210"
+            OpenPaneLength="{Binding NavigationMenuWidth}"
             SelectionChanged="NavigationView_OnSelectionChanged"
             IsSettingsVisible="True">
             <ui:NavigationView.MenuItems>

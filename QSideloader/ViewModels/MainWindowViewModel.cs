@@ -10,6 +10,7 @@ using System.Reactive.Subjects;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using AdvancedSharpAdbClient;
 using AsyncAwaitBestPractices;
@@ -21,7 +22,6 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using Avalonia.Threading;
 using FluentAvalonia.UI.Controls;
 using Newtonsoft.Json;
@@ -95,6 +95,10 @@ public class MainWindowViewModel : ViewModelBase
     [Reactive] public bool IsDeviceUnauthorized { get; private set; }
     public ObservableCollection<TaskView> TaskList { get; } = new();
     [Reactive] public int DonatableAppsCount { get; private set; }
+    // Navigation menu width: 245 for Russian locale, 210 for others
+    public int NavigationMenuWidth => Thread.CurrentThread.CurrentUICulture.Name.Contains("ru", StringComparison.OrdinalIgnoreCase)
+        ? 245
+        : 210;
     public IObservable<Unit> WhenGameDonated => _gameDonateSubject.AsObservable();
 
     public ReactiveCommand<Game, Unit> ShowGameDetailsCommand { get; }
