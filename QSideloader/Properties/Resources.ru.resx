@@ -732,7 +732,7 @@
         <value>Пропустить рез. копирование</value>
     </data>
     <data name="ClickToSeeDetails" xml:space="preserve">
-        <value>Кликните для получения подробностей</value>
+        <value>Нажмите для получения подробностей</value>
     </data>
     <data name="RescanningDevices" xml:space="preserve">
         <value>Пересканирование устройств</value>

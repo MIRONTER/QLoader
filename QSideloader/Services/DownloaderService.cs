@@ -753,7 +753,7 @@ public class DownloaderService
             // List of error messages to show to the user
             var errorMessages = downloadExceptions.Select(x => x.Message).ToList();
             var message =
-                $"Failed to download release\nThe following errors occured:\n{string.Join("\n", errorMessages)}\n";
+                $"Failed to download release\nThe following errors occured (in reverse order):\n{string.Join("\n", errorMessages)}\n";
             throw new DownloaderServiceException(message, new AggregateException(downloadExceptions));
         }
     }
