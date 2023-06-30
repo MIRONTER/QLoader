@@ -1433,12 +1433,21 @@ public class AdbService
                 {
                     if (!reinstall && game.PackageName is not null)
                     {
+                        var type = e is OperationCanceledException
+                            ? "cancelled"
+                            : "failed";
                         // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
-                        Log.Information(e is OperationCanceledException
-                            ? "Cleaning up cancelled install"
-                            : "Cleaning up failed install");
+                        Log.Information($"Cleaning up {type} install");
                         observer.OnNext((Resources.CleaningUp, null));
-                        CleanupRemnants(game.PackageName);
+                        try
+                        {
+                            CleanupRemnants(game.PackageName);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "Failed to clean up install");
+                            throw new AdbServiceException("Failed to clean up install", ex);
+                        }
                     }
 
                     if (e is OperationCanceledException)
@@ -1653,6 +1662,7 @@ public class AdbService
             catch (Exception e)
             {
                 Log.Error(e, "Failed to clean up remnants of package {PackageName}", packageName);
+                throw new CleanupException(packageName, e);
             }
         }
 
