@@ -62,7 +62,7 @@
                                 Margin="8,0,0,0" Command="{Binding MountStorage}"
                                 Content="{x:Static p:Resources.MountQuestButton}" />
                         <Button Margin="8,0,0,0"
-                                Command="{Binding PullPicturesAndVideos}"
+                                Command="{Binding PullMedia}"
                                 ToolTip.Tip="{x:Static p:Resources.PullingPicturesAndVideosTooltip}"
                                 Content="{x:Static p:Resources.PullPicturesAndVideos}" />
                         <Button x:Name="ApplySettingsButton"

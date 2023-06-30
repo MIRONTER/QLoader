@@ -145,6 +145,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [JsonProperty] public string DownloadsLocation { get; private set; } = "";
     [Reactive] public string BackupsLocationTextBoxText { get; private set; } = "";
     [JsonProperty] public string BackupsLocation { get; private set; } = "";
+    [JsonProperty] public string LastMediaPullLocation { get; set; } = "";
     [Reactive] public string DownloaderBandwidthLimitTextBoxText { get; private set; } = "";
     [JsonProperty] public string DownloaderBandwidthLimit { get; private set; } = "";
     [Reactive] [JsonProperty] public DownloadsPruningPolicy DownloadsPruningPolicy { get; set; }
@@ -233,6 +234,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             {"DownloadsLocationTextBoxText", _defaultDownloadsLocation},
             {"BackupsLocation", _defaultBackupsLocation},
             {"BackupsLocationTextBoxText", _defaultBackupsLocation},
+            {"LastMediaPullLocation", ""},
             {"DownloaderBandwidthLimit", ""},
             {"DownloaderBandwidthLimitTextBoxText", ""},
             {"DownloadsPruningPolicy", DownloadsPruningPolicy.DeleteAfterInstall},
@@ -302,6 +304,16 @@ public class SideloaderSettingsViewModel : ViewModelBase
                 Log.Debug("Backups location is invalid, resetting to default");
                 Directory.CreateDirectory(_defaultBackupsLocation);
                 BackupsLocation = _defaultBackupsLocation;
+                saveNeeded = true;
+            }
+        }
+
+        if (!Directory.Exists(LastMediaPullLocation))
+        {
+            if (LastMediaPullLocation != "")
+            {
+                Log.Debug("Last media pull location is invalid, resetting to default");
+                LastMediaPullLocation = "";
                 saveNeeded = true;
             }
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -24,11 +25,13 @@ namespace QSideloader.ViewModels;
 public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
 {
     private readonly AdbService _adbService;
+    private readonly SideloaderSettingsViewModel _sideloaderSettings;
 
     public DeviceSettingsViewModel()
     {
-        PullPicturesAndVideos = ReactiveCommand.CreateFromTask(PullPicturesAndVideosImpl);
+        PullMedia = ReactiveCommand.CreateFromTask(PullMediaImpl);
         _adbService = AdbService.Instance;
+        _sideloaderSettings = Globals.SideloaderSettings;
         Activator = new ViewModelActivator();
         ApplySettings = ReactiveCommand.CreateFromObservable(ApplySettingsImpl, this.IsValid());
         ApplySettings.ThrownExceptions.Subscribe(ex =>
@@ -53,7 +56,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         });
     }
 
-    public ReactiveCommand<Unit, Unit> PullPicturesAndVideos { get; set; }
+    public ReactiveCommand<Unit, Unit> PullMedia { get; set; }
 
     [Reactive] public bool IsDeviceConnected { get; private set; }
     [Reactive] public string[] RefreshRates { get; private set; } = Array.Empty<string>();
@@ -119,28 +122,32 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
             IsDeviceConnected = false;
     }
 
-    private async Task PullPicturesAndVideosImpl()
+    private async Task PullMediaImpl()
     {
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var mainWindow = desktop.MainWindow;
-            var pullPicturesAndVideosLocation = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            var result = await new OpenFolderDialog
+            // Default to last used location or desktop
+            var defaultLocation = !string.IsNullOrEmpty(_sideloaderSettings.LastMediaPullLocation) ?
+                                  _sideloaderSettings.LastMediaPullLocation :
+                                  Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            var selectedLocation = await new OpenFolderDialog
             {
                 Title = Resources.SelectDestinationFolder,
-                Directory = pullPicturesAndVideosLocation
+                Directory = defaultLocation
             }.ShowAsync(mainWindow);
-            if (result is not null)
+            if (selectedLocation is not null)
             {
+                _sideloaderSettings.LastMediaPullLocation = selectedLocation;
                 Globals.MainWindowViewModel!.AddTask(new TaskOptions
                 {
-                    Type = TaskType.PullPicturesAndVideos,
-                    Path = result
+                    Type = TaskType.PullMedia,
+                    Path = selectedLocation + Path.DirectorySeparatorChar + "OculusMedia"
                 });
             }
             else
             {
-                Log.Information("No output folder selected");
+                Log.Information("No folder selected for media pull");
             }
         }
     }

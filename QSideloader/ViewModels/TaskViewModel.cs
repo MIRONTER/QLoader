@@ -131,10 +131,10 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 action = RunInstallTrailersAddonAsync;
                 TaskName = "Trailers addon";
                 break;
-            case TaskType.PullPicturesAndVideos:
+            case TaskType.PullMedia:
                 _path = taskOptions.Path ??
-                        throw new ArgumentException($"Path not specified for {nameof(TaskType.PullPicturesAndVideos)}");
-                action = PullPicturesAndVideosAsync;
+                        throw new ArgumentException($"Path not specified for {nameof(TaskType.PullMedia)}");
+                action = RunPullMediaAsync;
                 TaskName = "Pull pictures and videos";
                 break;
             case TaskType.Extract:
@@ -332,6 +332,17 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 });
             }, nameof(Resources.ExtractionFailed), nameof(Resources.ExtractSuccess));
     }
+    
+    private async Task RunPullMediaAsync()
+    {
+        EnsureDeviceConnected();
+        Status = Resources.PullingPicturesAndVideos;
+        await DoCancellableAsync(
+            async () =>
+            {
+                await Task.Run(() => { _adbDevice!.PullMedia(_path!, _cancellationTokenSource.Token); });
+            }, nameof(Resources.PullPicturesAndVideosFailed), nameof(Resources.PullPicturesAndVideosSuccess));
+    }
 
 
     private async Task DoCancellableAsync(Func<Task> func, string? failureStatus = null, string? successStatus = null)
@@ -511,17 +522,6 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         ProgressStatus = "";
         await GeneralUtils.InstallTrailersAddonAsync(_path, true);
         OnFinished(nameof(Resources.InstallSuccess));
-    }
-
-    private async Task PullPicturesAndVideosAsync()
-    {
-        EnsureDeviceConnected();
-        Status = Resources.PullingPicturesAndVideos;
-        await DoCancellableAsync(
-            async () =>
-            {
-                await Task.Run(() => { _adbDevice!.PullPicturesAndVideos(_path!, _cancellationTokenSource.Token); });
-            }, nameof(Resources.PullPicturesAndVideosFailed), nameof(Resources.PullPicturesAndVideosSuccess));
     }
 
     private void OnFinished(string statusResourceNameOrString, bool isSuccess = true, Exception? e = null)

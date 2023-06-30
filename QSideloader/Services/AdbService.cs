@@ -1273,7 +1273,7 @@ public class AdbService
             syncService.Pull(remotePath, file, null, ct);
         }
 
-        public void PullPicturesAndVideos(string path, CancellationToken ct = default)
+        public void PullMedia(string path, CancellationToken ct = default)
         {
             Log.Information("Pulling pictures and videos from {Device} to {Path}", this, path);
             PullDirectory("/sdcard/Oculus/VideoShots", path, null, ct);
