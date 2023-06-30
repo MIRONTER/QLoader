@@ -158,12 +158,6 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
             }
 
             Log.Information("Donating all eligible apps");
-            var runningDonations = new List<TaskView>();
-            Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                runningDonations = Globals.MainWindowViewModel!.GetTaskList()
-                    .Where(x => x.TaskType == TaskType.PullAndUpload && !x.IsFinished).ToList();
-            }).Wait();
             var eligibleApps = _installedAppsSourceCache.Items.Where(app => !app.IsHiddenFromDonation).ToList();
             if (eligibleApps.Count == 0)
             {
@@ -175,12 +169,6 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
 
             foreach (var app in eligibleApps)
             {
-                if (runningDonations.Any(x => x.PackageName == app.PackageName))
-                {
-                    Log.Debug("Skipping {Name} because it is already being donated", app.Name);
-                    continue;
-                }
-
                 app.IsSelectedDonation = false;
                 Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.PullAndUpload, App = app});
                 Log.Information("Queued for donation: {Name}", app.Name);

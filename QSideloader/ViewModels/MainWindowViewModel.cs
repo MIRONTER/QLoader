@@ -76,6 +76,7 @@ public class MainWindowViewModel : ViewModelBase
         });
         ShowConnectionHelpDialog = ReactiveCommand.CreateFromObservable(ShowConnectionHelpDialogImpl);
         ShowAuthHelpDialog = ReactiveCommand.CreateFromObservable(ShowAuthHelpDialogImpl);
+        DonateAllGames = ReactiveCommand.CreateFromObservable(DonateAllGamesImpl);
         _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged);
         _adbService.WhenPackageListChanged.Subscribe(_ =>
         {
@@ -99,11 +100,27 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Game, Unit> ShowGameDetailsCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowConnectionHelpDialog { get; }
     public ReactiveCommand<Unit, Unit> ShowAuthHelpDialog { get; }
+    public ReactiveCommand<Unit, Unit> DonateAllGames { get; }
 
     public void AddTask(TaskOptions taskOptions)
     {
         Dispatcher.UIThread.InvokeAsync(() =>
         {
+            // Don't allow to add duplicate donation tasks
+            if (taskOptions is {Type: TaskType.PullAndUpload, App: { }})
+            {
+                var runningDonations = new List<TaskView>();
+                Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    runningDonations = Globals.MainWindowViewModel!.GetTaskList()
+                        .Where(x => x.TaskType == TaskType.PullAndUpload && !x.IsFinished).ToList();
+                }).Wait();
+                if (runningDonations.Any(x => x.PackageName == taskOptions.App.PackageName))
+                {
+                    Log.Debug("Donation task for {PackageName} already running", taskOptions.App.PackageName);
+                    return;
+                }
+            }
             var taskView = new TaskView(taskOptions);
             using (LogContext.PushProperty("TaskId", taskView.TaskId))
             {
@@ -272,6 +289,32 @@ public class MainWindowViewModel : ViewModelBase
         _adbService.Device?.RefreshInstalledApps();
         RefreshGameDonationBadge();
         _gameDonateSubject.OnNext(Unit.Default);
+    }
+    
+    private IObservable<Unit> DonateAllGamesImpl()
+    {
+        return Observable.Start(() =>
+        {
+            if (!_adbService.CheckDeviceConnectionSimple())
+            {
+                Log.Warning("MainWindowViewModel.DonateAllGamesImpl: no device connection!");
+                return;
+            }
+
+            Log.Information("Donating all eligible apps");
+            var eligibleApps = _adbService.Device!.InstalledApps.Where(app => !app.IsHiddenFromDonation).ToList();
+            if (eligibleApps.Count == 0)
+            {
+                Log.Information("No apps to donate");
+                return;
+            }
+
+            foreach (var app in eligibleApps)
+            {
+                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.PullAndUpload, App = app});
+                Log.Information("Queued for donation: {Name}", app.Name);
+            }
+        });
     }
 
     public void ShowNotification(string title, string message, NotificationType type, TimeSpan? expiration = null)
