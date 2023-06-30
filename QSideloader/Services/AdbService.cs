@@ -413,6 +413,10 @@ public class AdbService
             File.Delete(adbKeyPath);
             File.Delete(adbKeyPubPath);
         }
+        catch (Exception e)
+        {
+            Log.Warning(e, "Failed to delete ADB keys");
+        }
         finally
         {
             Task.Run(RestartAdbServerAsync);
