@@ -475,6 +475,7 @@ public class MainWindowViewModel : ViewModelBase
     private async Task ShowAdbDevicesDialogAsync()
     {
         var text = await _adbService.GetDevicesStringAsync();
+        Log.Information("adb devices output: {Output}", text);
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
             var dialog = new ContentDialog
