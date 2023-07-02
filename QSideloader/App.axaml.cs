@@ -26,7 +26,9 @@ public class App : Application
 {
     public override void Initialize()
     {
-        Directory.SetCurrentDirectory(Path.GetDirectoryName(AppContext.BaseDirectory)!);
+        // Set current directory to app's directory
+        Directory.SetCurrentDirectory(AppContext.BaseDirectory);
+        
         Name = Program.Name;
         
         // Force Russian locale
