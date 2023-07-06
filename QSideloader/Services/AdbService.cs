@@ -374,7 +374,7 @@ public class AdbService
         {
             if (_deviceMonitor is not null) _deviceMonitor.DeviceChanged -= OnDeviceChanged;
             var adbPath = PathHelper.AdbPath;
-            var adbServerStatus = _adb.AdbServer.GetStatus();
+            var adbServerStatus = await _adb.AdbServer.GetStatusAsync();
             if (adbServerStatus.IsRunning)
                 try
                 {
@@ -572,7 +572,7 @@ public class AdbService
         Log.Information("Searching for devices");
         unauthorizedDevices = new List<DeviceData>();
         List<AdbDevice> oculusDeviceList = new();
-        var deviceList = _adb.AdbClient.GetDevices();
+        var deviceList = _adb.AdbClient.GetDevices().ToList();
         if (deviceList.Count == 0)
         {
             Log.Warning("No ADB devices found");
@@ -703,19 +703,20 @@ public class AdbService
 
         try
         {
-            for (var i = 0; i < 5; i++)
+            var result = await _adb.AdbClient.ConnectAsync(host, 5555,
+                new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token);
+            
+            if (result is not null && result.Contains($"connected to {host}:5555"))
             {
-                _adb.AdbClient.Connect(host);
-                if (_adb.AdbClient.GetDevices().Any(x => x.Serial.Contains(host)))
-                {
-                    RefreshDeviceList();
-                    _sideloaderSettings.LastWirelessAdbHost = host;
-                    return;
-                }
-
-                Log.Debug("Wireless device on {Host} not connected, trying again", host);
-                await Task.Delay(500);
+                RefreshDeviceList();
+                _sideloaderSettings.LastWirelessAdbHost = host;
+                return;
             }
+        }
+        catch (OperationCanceledException)
+        {
+            _sideloaderSettings.LastWirelessAdbHost = "";
+            Log.Warning("Wireless device connection timed out");
         }
         catch
         {
@@ -1602,7 +1603,7 @@ public class AdbService
                             case "shell":
                             {
                                 args = args.Select(x => x.Contains(' ') ? $"\"{x}\"" : x).ToList();
-                                if (args.Count >= 2 && args[0] == "pm" && args[1] == "uninstall")
+                                if (args is ["pm", "uninstall", ..])
                                 {
                                     if (args.Count != 3)
                                         throw new InvalidOperationException(
@@ -1695,10 +1696,18 @@ public class AdbService
 
             progress?.Report(0);
 
-            var progressHandler = new PackageManager.ProgressHandler((_, args) =>
+            var progressHandler = new EventHandler<InstallProgressEventArgs>((_, args) =>
             {
-                // Round to int
-                var progressValue = (int) Math.Round(args);
+                var progressValue = args.State switch
+                {
+                    PackageInstallProgressState.Uploading => (int) Math.Round(args.UploadProgress * 0.9),
+                    PackageInstallProgressState.CreateSession => 92,
+                    PackageInstallProgressState.WriteSession => 94,
+                    PackageInstallProgressState.Installing => 96,
+                    PackageInstallProgressState.PostInstall => 98,
+                    PackageInstallProgressState.Finished => 100,
+                    _ => throw new AdbServiceException("Unknown progress state")
+                };
                 progress?.Report(progressValue);
             });
             PackageManager.InstallProgressChanged += progressHandler;
