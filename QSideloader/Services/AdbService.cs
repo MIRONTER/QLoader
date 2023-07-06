@@ -239,7 +239,9 @@ public class AdbService
             }
 
             _deviceList.RemoveAll(d => removedDevices.Any(x => x.Serial == d.Serial));
-            _deviceListChangeSubject.OnNext(deviceList);
+            
+            // Run in a task to workaround thread deadlock
+            Task.Run(() => _deviceListChangeSubject.OnNext(deviceList));
         }
         finally
         {
