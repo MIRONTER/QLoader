@@ -804,7 +804,7 @@
         <value>Не удалось выгрузить</value>
     </data>
     <data name="EnableTaskAutoDismiss" xml:space="preserve">
-        <value>Включить авто очистку задач</value>
+        <value>Очищать выполненные задачи автоматически</value>
     </data>
     <data name="EnableTaskAutoDismissTooltip" xml:space="preserve">
         <value>Автоматически убирать задачи после успешного выполнения</value>
