@@ -917,6 +917,9 @@ public class AdbService
 
         public void Initialize()
         {
+            // Check if the device is running Android 12 and KeyMapper is installed
+            // This combination causes serious issues with the OS, so try to uninstall KeyMapper automatically
+            CheckKeyMapper();
             Task.Run(OnPackageListChanged);
         }
 
@@ -1991,6 +1994,26 @@ public class AdbService
                 throw new ArgumentException("Package name cannot be null or empty", nameof(packageName));
             if (!Regex.IsMatch(packageName, packageNamePattern))
                 throw new ArgumentException("Package name is not valid", nameof(packageName));
+        }
+        
+        private void CheckKeyMapper()
+        {
+            try
+            {
+                if (RunShellCommand("getprop ro.build.version.release") != "12")
+                    return;
+                // PackageManager might be in a weird state, so just try to uninstall and catch 
+                UninstallPackageInternal("io.github.sds100.keymapper.debug", true);
+                Log.Information("Uninstalled KeyMapper");
+            }
+            catch (PackageNotFoundException)
+            {
+                // ignored
+            }
+            catch (Exception e)
+            {
+                Log.Warning(e, "Error uninstalling KeyMapper");
+            }
         }
     }
 }
