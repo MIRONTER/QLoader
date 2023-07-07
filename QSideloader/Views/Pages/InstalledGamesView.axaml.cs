@@ -77,6 +77,7 @@ public class InstalledGamesView : ReactiveUserControl<InstalledGamesViewModel>
             }
     }
 
+    // ReSharper disable UnusedParameter.Local
     private void Visual_OnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
     {
         // Subscribe to main window key down event
@@ -96,6 +97,7 @@ public class InstalledGamesView : ReactiveUserControl<InstalledGamesViewModel>
         if (mainWindow is null) return;
         mainWindow.KeyDown -= MainWindow_OnKeyDown;
     }
+    // ReSharper restore UnusedParameter.Local
 
     private void InstalledGamesDataGrid_OnEnterKeyDown(object? sender, RoutedEventArgs e)
     {

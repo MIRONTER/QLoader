@@ -1,24 +1,15 @@
 using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
 using Avalonia.Markup.Xaml;
-using QSideloader.Services;
 using QSideloader.Utilities;
 using QSideloader.ViewModels;
 using QSideloader.Views;
-using Serilog;
-using Serilog.Context;
-using Serilog.Core;
-using Serilog.Exceptions;
-using Serilog.Formatting.Compact;
 
 namespace QSideloader;
 

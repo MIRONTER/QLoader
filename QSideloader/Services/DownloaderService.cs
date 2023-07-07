@@ -34,7 +34,6 @@ namespace QSideloader.Services;
 /// </summary>
 public class DownloaderService
 {
-    private const string StaticFilesUrl = "https://qloader.5698452.xyz/files/";
     private static readonly SemaphoreSlim MirrorListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim GameListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim DownloadSemaphoreSlim = new(1, 1);

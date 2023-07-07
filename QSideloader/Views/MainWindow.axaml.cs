@@ -94,7 +94,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         var windowHeight = ClientSize.Height;
         var taskListBox = this.Get<ListBox>("TaskListBox");
-        taskListBox.MaxHeight = (int) windowHeight / 3 / 60 * 60;
+        taskListBox.MaxHeight = (int) windowHeight / (double) 3 / 60 * 60;
         //Log.Debug("Recalculated TaskListBox height to {Height}", taskListBox.MaxHeight);
     }
 

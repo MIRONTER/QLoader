@@ -11,7 +11,6 @@ using QSideloader.Controls;
 using QSideloader.Models;
 using QSideloader.Utilities;
 using QSideloader.ViewModels;
-using Serilog;
 
 namespace QSideloader.Views.Pages;
 
@@ -106,6 +105,7 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
         }
     }
 
+    // ReSharper disable UnusedParameter.Local
     private void Visual_OnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
     {
         // Subscribe to main window key down event
@@ -125,6 +125,7 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
         if (mainWindow is null) return;
         mainWindow.KeyDown -= MainWindow_OnKeyDown;
     }
+    // ReSharper restore UnusedParameter.Local
 
     private void AvailableGamesDataGrid_OnEnterKeyDown(object? sender, RoutedEventArgs e)
     {

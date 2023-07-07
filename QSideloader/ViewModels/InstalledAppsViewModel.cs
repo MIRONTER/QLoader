@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
@@ -19,7 +18,6 @@ using QSideloader.Models;
 using QSideloader.Properties;
 using QSideloader.Services;
 using QSideloader.Utilities;
-using QSideloader.Views;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Serilog;
