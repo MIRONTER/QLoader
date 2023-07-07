@@ -235,6 +235,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
                 game.IsInstalled = false;
             return;
         }
+
         while (_adbService.Device.IsRefreshingInstalledGames)
             Thread.Sleep(100);
         if (_adbService.Device is null)
@@ -243,9 +244,9 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
                 game.IsInstalled = false;
             return;
         }
+
         var installedPackages = _adbService.Device.InstalledPackages.ToList();
         foreach (var game in games.Where(game => game.PackageName is not null))
             game.IsInstalled = installedPackages.Any(p => p.packageName == game.PackageName!);
-        
     }
 }

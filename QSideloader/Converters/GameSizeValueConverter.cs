@@ -18,10 +18,7 @@ public class GameSizeValueConverter : IValueConverter
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is string size)
-        {
-            return Math.Round(ByteSize.Parse(size).MebiBytes);
-        }
+        if (value is string size) return Math.Round(ByteSize.Parse(size).MebiBytes);
 
         throw new NotSupportedException();
     }

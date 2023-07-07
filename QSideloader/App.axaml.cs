@@ -28,9 +28,9 @@ public class App : Application
     {
         // Set current directory to app's directory
         Directory.SetCurrentDirectory(AppContext.BaseDirectory);
-        
+
         Name = Program.Name;
-        
+
         // Force Russian locale
         //Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("ru");
 

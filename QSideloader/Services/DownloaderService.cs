@@ -94,6 +94,7 @@ public class DownloaderService
                 Log.Warning("FFA_config not found, skipping rclone config update");
                 return;
             }
+
             Log.Information("Updating rclone config");
             if (await TryDownloadConfigFromServer())
             {
@@ -613,7 +614,7 @@ public class DownloaderService
             try
             {
                 var popularity = await ApiClient.GetPopularity();
-                
+
                 if (popularity is not null)
                 {
                     var popularityMax1D = popularity.Max(x => x["1D"].GetInt32());
@@ -758,7 +759,6 @@ public class DownloaderService
         }
     }
 
-    
 
     public static async Task TakeDownloadLockAsync(CancellationToken ct = default)
     {

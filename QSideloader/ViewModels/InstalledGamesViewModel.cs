@@ -314,6 +314,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             _adbService.Device!.RefreshInstalledPackages();
             _adbService.Device!.RefreshInstalledGames();
         }
+
         while (_adbService.Device!.IsRefreshingInstalledGames)
         {
             Thread.Sleep(100);

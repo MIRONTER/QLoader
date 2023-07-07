@@ -126,7 +126,8 @@
                 <DataGridTextColumn Binding="{Binding ReleaseName}"
                                     Header="{x:Static p:Resources.LatestReleaseNameHeader}"
                                     Width="auto" IsReadOnly="True" />
-                <DataGridTextColumn Binding="{Binding GameSize, Converter={StaticResource GameSizeFromMBytesInt}}" Header="{x:Static p:Resources.GameSizeHeader}"
+                <DataGridTextColumn Binding="{Binding GameSize, Converter={StaticResource GameSizeFromMBytesInt}}"
+                                    Header="{x:Static p:Resources.GameSizeHeader}"
                                     Width="auto" IsReadOnly="True" />
                 <DataGridTextColumn
                     Binding="{Binding ., Converter={StaticResource UpdateStatusStringFromInstalledGame}}"

@@ -58,6 +58,7 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
                         dataGrid.Focus();
                         dataGrid.SelectedIndex = 0;
                     }
+
                     break;
                 // If Escape is pressed clear the search box
                 case Key.Escape:
@@ -86,6 +87,7 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
                         searchBox.Text = "";
                         searchBox.Focus();
                     }
+
                     break;
             }
         }

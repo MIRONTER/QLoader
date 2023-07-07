@@ -60,7 +60,7 @@
                              Text="{Binding TaskAutoDismissDelayTextBoxText}"
                              Watermark="{x:Static p:Resources.TaskAutoDismissDelay}"
                              ToolTip.Tip="{x:Static p:Resources.TaskAutoDismissDelay}" />
-                    <Button Margin="4,0,0,0" VerticalAlignment="Top" 
+                    <Button Margin="4,0,0,0" VerticalAlignment="Top"
                             IsEnabled="{Binding EnableTaskAutoDismiss}"
                             Command="{Binding SetTaskAutoDismissDelay}"
                             Content="{x:Static p:Resources.SetButton}" />

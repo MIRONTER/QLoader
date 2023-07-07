@@ -82,7 +82,8 @@
                 <DataGridTextColumn Binding="{Binding LastUpdated}" Header="{x:Static p:Resources.LastUpdatedHeader}"
                                     Width="auto"
                                     IsReadOnly="True" />
-                <DataGridTextColumn Binding="{Binding GameSize, Converter={StaticResource GameSizeFromMBytesInt}}" Header="{x:Static p:Resources.GameSizeHeader}"
+                <DataGridTextColumn Binding="{Binding GameSize, Converter={StaticResource GameSizeFromMBytesInt}}"
+                                    Header="{x:Static p:Resources.GameSizeHeader}"
                                     Width="auto" IsReadOnly="True" />
 
                 <DataGridTextColumn Binding="{Binding Popularity[1D]}"

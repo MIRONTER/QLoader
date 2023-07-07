@@ -309,14 +309,12 @@ public class SideloaderSettingsViewModel : ViewModelBase
         }
 
         if (!Directory.Exists(LastMediaPullLocation))
-        {
             if (LastMediaPullLocation != "")
             {
                 Log.Debug("Last media pull location is invalid, resetting to default");
                 LastMediaPullLocation = "";
                 saveNeeded = true;
             }
-        }
 
         if (!ConnectionTypes.Contains(PreferredConnectionType))
         {

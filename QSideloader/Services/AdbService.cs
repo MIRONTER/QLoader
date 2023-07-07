@@ -707,7 +707,7 @@ public class AdbService
         {
             var result = await _adb.AdbClient.ConnectAsync(host, 5555,
                 new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token);
-            
+
             if (result is not null && result.Contains($"connected to {host}:5555"))
             {
                 RefreshDeviceList();
@@ -881,7 +881,7 @@ public class AdbService
             HashedId = GetHashedId(TrueSerial ?? Serial);
 
             PackageManager = new PackageManager(_adb.AdbClient, this, true);
-            
+
             var bootCompleted = RunShellCommand("getprop sys.boot_completed");
             if (!bootCompleted.Contains("1"))
                 Log.Warning("Device {HashedId} has not finished booting yet", HashedId);
@@ -1041,6 +1041,7 @@ public class AdbService
                     op.Cancel();
                     return;
                 }
+
                 var error = false;
 
                 // Get battery level
@@ -1080,6 +1081,7 @@ public class AdbService
                     op.Abandon();
                     return;
                 }
+
                 op.Complete();
             }
             finally
@@ -2006,7 +2008,7 @@ public class AdbService
             if (!Regex.IsMatch(packageName, packageNamePattern))
                 throw new ArgumentException("Package name is not valid", nameof(packageName));
         }
-        
+
         private void CheckKeyMapper()
         {
             try

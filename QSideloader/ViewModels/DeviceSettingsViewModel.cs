@@ -128,9 +128,9 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         {
             var mainWindow = desktop.MainWindow;
             // Default to last used location or desktop
-            var defaultLocation = !string.IsNullOrEmpty(_sideloaderSettings.LastMediaPullLocation) ?
-                                  _sideloaderSettings.LastMediaPullLocation :
-                                  Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            var defaultLocation = !string.IsNullOrEmpty(_sideloaderSettings.LastMediaPullLocation)
+                ? _sideloaderSettings.LastMediaPullLocation
+                : Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             var selectedLocation = await new OpenFolderDialog
             {
                 Title = Resources.SelectDestinationFolder,

@@ -38,7 +38,7 @@ public static class ApiClient
         // set timeout to 10 seconds
         ApiHttpClient.Timeout = TimeSpan.FromSeconds(10);
     }
-    
+
     private static HttpClient ApiHttpClient { get; }
     public static string HttpUserAgent => ApiHttpClient.DefaultRequestHeaders.UserAgent.ToString();
 
@@ -116,7 +116,7 @@ public static class ApiClient
             op.Abandon();
         }
     }
-    
+
     /// <summary>
     ///     Gets the store info about the game.
     /// </summary>

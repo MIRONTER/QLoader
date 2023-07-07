@@ -94,11 +94,15 @@ public class MainWindowViewModel : ViewModelBase
     [Reactive] public bool IsDeviceConnected { get; private set; }
     [Reactive] public bool IsDeviceUnauthorized { get; private set; }
     public ObservableCollection<TaskView> TaskList { get; } = new();
+
     [Reactive] public int DonatableAppsCount { get; private set; }
+
     // Navigation menu width: 245 for Russian locale, 210 for others
-    public int NavigationMenuWidth => Thread.CurrentThread.CurrentUICulture.Name.Contains("ru", StringComparison.OrdinalIgnoreCase)
-        ? 245
-        : 210;
+    public int NavigationMenuWidth =>
+        Thread.CurrentThread.CurrentUICulture.Name.Contains("ru", StringComparison.OrdinalIgnoreCase)
+            ? 245
+            : 210;
+
     public IObservable<Unit> WhenGameDonated => _gameDonateSubject.AsObservable();
 
     public ReactiveCommand<Game, Unit> ShowGameDetailsCommand { get; }
@@ -111,7 +115,7 @@ public class MainWindowViewModel : ViewModelBase
         Dispatcher.UIThread.InvokeAsync(() =>
         {
             // Don't allow to add duplicate donation tasks
-            if (taskOptions is {Type: TaskType.PullAndUpload, App: { }})
+            if (taskOptions is {Type: TaskType.PullAndUpload, App: not null})
             {
                 var runningDonations = new List<TaskView>();
                 Dispatcher.UIThread.InvokeAsync(() =>
@@ -125,6 +129,7 @@ public class MainWindowViewModel : ViewModelBase
                     return;
                 }
             }
+
             var taskView = new TaskView(taskOptions);
             using (LogContext.PushProperty("TaskId", taskView.TaskId))
             {
@@ -294,7 +299,7 @@ public class MainWindowViewModel : ViewModelBase
         RefreshGameDonationBadge();
         _gameDonateSubject.OnNext(Unit.Default);
     }
-    
+
     private IObservable<Unit> DonateAllGamesImpl()
     {
         return Observable.Start(() =>

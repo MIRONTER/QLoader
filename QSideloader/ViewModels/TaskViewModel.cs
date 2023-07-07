@@ -332,16 +332,14 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 });
             }, nameof(Resources.ExtractionFailed), nameof(Resources.ExtractSuccess));
     }
-    
+
     private async Task RunPullMediaAsync()
     {
         EnsureDeviceConnected();
         Status = Resources.PullingPicturesAndVideos;
         await DoCancellableAsync(
-            async () =>
-            {
-                await Task.Run(() => { _adbDevice!.PullMedia(_path!, _cancellationTokenSource.Token); });
-            }, nameof(Resources.PullPicturesAndVideosFailed), nameof(Resources.PullPicturesAndVideosSuccess));
+            async () => { await Task.Run(() => { _adbDevice!.PullMedia(_path!, _cancellationTokenSource.Token); }); },
+            nameof(Resources.PullPicturesAndVideosFailed), nameof(Resources.PullPicturesAndVideosSuccess));
     }
 
 

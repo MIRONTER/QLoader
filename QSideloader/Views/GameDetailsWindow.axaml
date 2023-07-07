@@ -126,7 +126,7 @@
                             Background="Transparent"
                             BorderThickness="0"
                             IsReadOnly="True"
-                            TextWrapping="Wrap"  FontWeight="Light"
+                            TextWrapping="Wrap" FontWeight="Light"
                             IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                             Text="{Binding Description}" />
                     </ScrollViewer>
