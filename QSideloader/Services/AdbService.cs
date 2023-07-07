@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -68,7 +69,8 @@ public class AdbService
         _sideloaderSettings = Globals.SideloaderSettings;
         _adb = new AdbServerClient();
         if (Design.IsDesignMode) return;
-        WhenDeviceListChanged.Subscribe(_ => CheckConnectionPreference());
+        // This event may fire when DeviceSemaphoreSlim is taken, so we need to use TaskPool threads
+        WhenDeviceListChanged.ObserveOn(Scheduler.Default).Subscribe(_ => CheckConnectionPreference());
         Task.Run(async () =>
         {
             RefreshBackupList();
