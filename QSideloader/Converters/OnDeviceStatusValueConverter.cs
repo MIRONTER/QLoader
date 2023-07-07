@@ -18,13 +18,11 @@ public class OnDeviceStatusValueConverter : IValueConverter
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is string status)
-        {
-            if (status == Resources.OnDeviceHeader)
-                return true;
-            if (status == "")
-                return false;
-        }
+        if (value is not string status) throw new NotSupportedException();
+        if (status == Resources.OnDeviceHeader)
+            return true;
+        if (status == "")
+            return false;
 
         throw new NotSupportedException();
     }

@@ -10,15 +10,14 @@ public class UpdateStatusStringValueConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value == null)
-            return null;
-
-        if (value is InstalledGame game)
-            return game.IsUpdateAvailable
+        return value switch
+        {
+            null => null,
+            InstalledGame game => game.IsUpdateAvailable
                 ? string.Format(Resources.UpdateAvailable, game.InstalledVersionCode, game.AvailableVersionCode)
-                : Resources.UpToDate;
-
-        throw new NotSupportedException();
+                : Resources.UpToDate,
+            _ => throw new NotSupportedException()
+        };
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

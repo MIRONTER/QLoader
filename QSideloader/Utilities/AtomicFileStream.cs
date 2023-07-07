@@ -26,7 +26,7 @@ public class AtomicFileStream : FileStream
         return Open(path, path + ".tmp", mode, access, share, bufferSize, options);
     }
 
-    public static AtomicFileStream Open(string path, string tempPath, FileMode mode, FileAccess access,
+    private static AtomicFileStream Open(string path, string tempPath, FileMode mode, FileAccess access,
         FileShare share, int bufferSize, FileOptions options)
     {
         if (access == FileAccess.Read)
@@ -37,7 +37,7 @@ public class AtomicFileStream : FileStream
             File.Delete(tempPath);
 
         if (File.Exists(path) &&
-            (mode == FileMode.Append || mode == FileMode.Open || mode == FileMode.OpenOrCreate))
+            mode is FileMode.Append or FileMode.Open or FileMode.OpenOrCreate)
             File.Copy(path, tempPath);
 
         return new AtomicFileStream(path, tempPath, mode, access, share, bufferSize, options);

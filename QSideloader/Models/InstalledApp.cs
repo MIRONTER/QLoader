@@ -45,9 +45,9 @@ public class InstalledApp : INotifyPropertyChanged
         }
     }
 
-    public bool IsHiddenFromDonation { get; set; }
-    public bool IsKnown { get; set; }
-    public string DonationStatus { get; set; }
+    public bool IsHiddenFromDonation { get; }
+    public bool IsKnown { get; }
+    public string DonationStatus { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

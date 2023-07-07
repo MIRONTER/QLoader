@@ -62,12 +62,10 @@ public class MainWindowViewModel : ViewModelBase
             Log.Debug("Opening game details dialog for {GameName}", game.GameName);
             var gameDetails = new GameDetailsViewModel(game);
             var dialog = new GameDetailsWindow(gameDetails);
-            if (Application.Current is not null)
-            {
-                var mainWindow = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
-                    ?.MainWindow;
-                dialog.Show(mainWindow);
-            }
+            if (Application.Current is null) return;
+            var mainWindow = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+                ?.MainWindow;
+            dialog.Show(mainWindow);
         });
         ShowGameDetailsCommand.ThrownExceptions.Subscribe(ex =>
         {
@@ -98,7 +96,7 @@ public class MainWindowViewModel : ViewModelBase
     [Reactive] public int DonatableAppsCount { get; private set; }
 
     // Navigation menu width: 245 for Russian locale, 210 for others
-    public int NavigationMenuWidth =>
+    public static int NavigationMenuWidth =>
         Thread.CurrentThread.CurrentUICulture.Name.Contains("ru", StringComparison.OrdinalIgnoreCase)
             ? 245
             : 210;
@@ -140,12 +138,10 @@ public class MainWindowViewModel : ViewModelBase
             }
         }).ContinueWith(t =>
         {
-            if (t.IsFaulted)
-            {
-                var exception = t.Exception?.InnerException ?? t.Exception!;
-                Log.Error(exception, "Error adding task");
-                Globals.ShowErrorNotification(exception, Resources.ErrorAddingTask);
-            }
+            if (!t.IsFaulted) return;
+            var exception = t.Exception?.InnerException ?? t.Exception!;
+            Log.Error(exception, "Error adding task");
+            Globals.ShowErrorNotification(exception, Resources.ErrorAddingTask);
         }, TaskContinuationOptions.OnlyOnFaulted);
     }
 
@@ -401,7 +397,7 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
-    private IObservable<Unit> ShowAuthHelpDialogImpl()
+    private static IObservable<Unit> ShowAuthHelpDialogImpl()
     {
         return Observable.Start(() =>
         {
@@ -479,7 +475,7 @@ public class MainWindowViewModel : ViewModelBase
 
     private async Task ShowAdbDevicesDialogAsync()
     {
-        var text = await _adbService.GetDevicesStringAsync();
+        var text = await AdbService.GetDevicesStringAsync();
         Log.Information("adb devices output: {Output}", text);
         await Dispatcher.UIThread.InvokeAsync(() =>
         {

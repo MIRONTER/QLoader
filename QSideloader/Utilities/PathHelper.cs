@@ -11,10 +11,12 @@ public static class PathHelper
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
+            // ReSharper disable StringLiteralTypo
             AdbPath = @".\tools\windows\platform-tools\adb.exe";
             RclonePath = @".\tools\windows\rclone\FFA.exe";
             SevenZipPath = Path.Combine(@".\tools\windows", Environment.Is64BitProcess ? "x64" : "x86", "7za.exe");
             AaptPath = @".\tools\windows\platform-tools\aapt2.exe";
+            // ReSharper restore StringLiteralTypo
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {

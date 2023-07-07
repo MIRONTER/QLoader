@@ -295,11 +295,11 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                     $"{apkInfo.ApplicationLabel} v{apkInfo.VersionCode} {apkInfo.PackageName}.zip");
             await File.WriteAllTextAsync(Path.Combine(path, "HWID.txt"),
                 GeneralUtils.GetHwid(false));
-            await ZipUtil.CreateArchiveAsync(path, "donations",
+            var archivePath = await ZipUtil.CreateArchiveAsync(path, "donations",
                 archiveName, _cancellationTokenSource.Token);
             Directory.Delete(path, true);
             Status = Resources.Uploading;
-            await _downloaderService.UploadDonationAsync(Path.Combine("donations", archiveName),
+            await _downloaderService.UploadDonationAsync(archivePath,
                 _cancellationTokenSource.Token);
             Globals.MainWindowViewModel!.OnGameDonated(apkInfo.PackageName, apkInfo.VersionCode);
         }, nameof(Resources.DonationFailed), nameof(Resources.UploadSuccess));

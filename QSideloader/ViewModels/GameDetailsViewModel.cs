@@ -148,15 +148,12 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
 
     private void OnDeviceStateChanged(DeviceState state)
     {
-        switch (state)
+        IsDeviceConnected = state switch
         {
-            case DeviceState.Online:
-                IsDeviceConnected = true;
-                break;
-            case DeviceState.Offline:
-                IsDeviceConnected = false;
-                break;
-        }
+            DeviceState.Online => true,
+            DeviceState.Offline => false,
+            _ => IsDeviceConnected
+        };
     }
 
     private void PlayTrailer()

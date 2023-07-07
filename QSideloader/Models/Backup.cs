@@ -19,6 +19,7 @@ public class Backup : INotifyPropertyChanged
         var dirName = System.IO.Path.GetFileName(path);
         var dateString = Regex.Match(dirName, @"\d{8}T\d{6}").Value;
         Name = dirName.Replace(dateString + "_", "");
+        // ReSharper disable once StringLiteralTypo
         Date = DateTime.ParseExact(dateString, "yyyyMMddTHHmmss", System.Globalization.CultureInfo.InvariantCulture);
         Path = path;
         ContainsApk = Directory.GetFiles(path, "*.apk").Any();
@@ -54,6 +55,7 @@ public class Backup : INotifyPropertyChanged
 
     public override string ToString()
     {
+        // ReSharper disable once StringLiteralTypo
         return Date.ToString("yyyyMMddTHHmmss") + "_" + Name;
     }
 }

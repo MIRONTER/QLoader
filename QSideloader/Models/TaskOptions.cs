@@ -2,10 +2,10 @@
 
 public class TaskOptions
 {
-    public TaskType Type { get; set; }
-    public Game? Game { get; set; }
-    public string? Path { get; set; }
-    public InstalledApp? App { get; set; }
-    public BackupOptions? BackupOptions { get; set; }
-    public Backup? Backup { get; set; }
+    public TaskType Type { get; init; }
+    public Game? Game { get; init; }
+    public string? Path { get; init; }
+    public InstalledApp? App { get; init; }
+    public BackupOptions? BackupOptions { get; init; }
+    public Backup? Backup { get; init; }
 }

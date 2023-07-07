@@ -59,7 +59,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] public float SpaceFree { get; private set; }
     [Reactive] public float BatteryLevel { get; private set; }
     [Reactive] public bool IsDeviceConnected { get; set; }
-    [Reactive] public bool IsDeviceWireless { get; set; }
+    [Reactive] public bool IsDeviceWireless { get; private set; }
     [Reactive] public AdbService.AdbDevice? CurrentDevice { get; set; }
     [Reactive] public string? TrueSerial { get; set; }
     [Reactive] public ObservableCollection<AdbService.AdbDevice> DeviceList { get; set; } = new();

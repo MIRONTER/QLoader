@@ -19,13 +19,13 @@ public class PathsMaskingEnricher : ILogEventEnricher
             if (property.Value is ScalarValue {Value: string stringValue})
                 switch (stringValue)
                 {
-                    case { } s when downloadsPathRegex.IsMatch(s):
+                    case not null when downloadsPathRegex.IsMatch(stringValue):
                         logEvent.AddOrUpdateProperty(new LogEventProperty(property.Key,
-                            new ScalarValue(downloadsPathRegex.Replace(s, "_DownloadsLocation_", 1))));
+                            new ScalarValue(downloadsPathRegex.Replace(stringValue, "_DownloadsLocation_", 1))));
                         break;
-                    case { } s when backupsPathRegex.IsMatch(s):
+                    case not null when backupsPathRegex.IsMatch(stringValue):
                         logEvent.AddOrUpdateProperty(new LogEventProperty(property.Key,
-                            new ScalarValue(backupsPathRegex.Replace(s, "_BackupsLocation_", 1))));
+                            new ScalarValue(backupsPathRegex.Replace(stringValue, "_BackupsLocation_", 1))));
                         break;
                 }
     }

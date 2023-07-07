@@ -21,13 +21,12 @@ public class BitmapImageFileValueConverter : IValueConverter
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value == null)
-            return null;
-
-        if (value is string path && targetType.IsAssignableFrom(typeof(Bitmap)))
-            return File.Exists(path) ? new Bitmap(path) : null;
-
-        throw new NotSupportedException();
+        return value switch
+        {
+            null => null,
+            string path when targetType.IsAssignableFrom(typeof(Bitmap)) => File.Exists(path) ? new Bitmap(path) : null,
+            _ => throw new NotSupportedException()
+        };
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

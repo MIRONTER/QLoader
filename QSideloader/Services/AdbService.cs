@@ -87,7 +87,7 @@ public class AdbService
     public AdbDevice? Device { get; private set; }
 
     public IReadOnlyList<AdbDevice> DeviceList => _deviceList.AsReadOnly();
-    public IReadOnlyList<Backup> BackupList => _backupList.AsReadOnly();
+    public IEnumerable<Backup> BackupList => _backupList.AsReadOnly();
 
     public IObservable<Unit> WhenBackupListChanged => _backupListChangeSubject.AsObservable();
     public IObservable<DeviceState> WhenDeviceStateChanged => _deviceStateChangeSubject.AsObservable();
@@ -617,18 +617,16 @@ public class AdbService
             }
         }
 
-        if (oculusDeviceList.Count == 0)
-        {
-            Log.Warning("No Oculus devices found");
-            return oculusDeviceList;
-        }
+        if (oculusDeviceList.Count != 0)
+            return _sideloaderSettings.PreferredConnectionType switch
+            {
+                "USB" => oculusDeviceList.OrderBy(x => x.IsWireless).ToList(),
+                "Wireless" => oculusDeviceList.OrderByDescending(x => x.IsWireless).ToList(),
+                _ => oculusDeviceList
+            };
+        Log.Warning("No Oculus devices found");
+        return oculusDeviceList;
 
-        return _sideloaderSettings.PreferredConnectionType switch
-        {
-            "USB" => oculusDeviceList.OrderBy(x => x.IsWireless).ToList(),
-            "Wireless" => oculusDeviceList.OrderByDescending(x => x.IsWireless).ToList(),
-            _ => oculusDeviceList
-        };
     }
 
     /// <summary>
@@ -760,12 +758,11 @@ public class AdbService
     /// Gets output of <c>adb devices</c> command.
     /// </summary>
     /// <returns>Output of the command or error message.</returns>
-    public async Task<string> GetDevicesStringAsync()
+    public static async Task<string> GetDevicesStringAsync()
     {
-        var adbPath = PathHelper.AdbPath;
         try
         {
-            var commandResult = await Cli.Wrap(adbPath)
+            var commandResult = await Cli.Wrap(PathHelper.AdbPath)
                 .WithArguments("devices")
                 .ExecuteBufferedAsync();
             return commandResult.StandardOutput + commandResult.StandardError;
@@ -1772,16 +1769,11 @@ public class AdbService
                     throw new PackageNotFoundException(packageName!);
                 }
 
-                if (e.Message.Contains("DELETE_FAILED_DEVICE_POLICY_MANAGER"))
-                {
-                    Log.Information("Package {PackageName} is protected by device policy, trying to force uninstall",
-                        packageName);
-                    RunShellCommand("pm disable-user " + packageName, true);
-                    _adb.AdbClient.UninstallPackage(this, packageName!);
-                    return;
-                }
-
-                throw;
+                if (!e.Message.Contains("DELETE_FAILED_DEVICE_POLICY_MANAGER")) throw;
+                Log.Information("Package {PackageName} is protected by device policy, trying to force uninstall",
+                    packageName);
+                RunShellCommand("pm disable-user " + packageName, true);
+                _adb.AdbClient.UninstallPackage(this, packageName!);
             }
         }
 
