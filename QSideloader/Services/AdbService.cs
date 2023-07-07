@@ -31,6 +31,7 @@ using QSideloader.ViewModels;
 using Serilog;
 using Serilog.Events;
 using SerilogTimings;
+using Tmds.MDns;
 using UnixFileMode = AdvancedSharpAdbClient.UnixFileMode;
 
 namespace QSideloader.Services;
@@ -77,7 +78,8 @@ public class AdbService
             CheckDeviceConnection();
             var lastWirelessAdbHost = _sideloaderSettings.LastWirelessAdbHost;
             if (!string.IsNullOrEmpty(lastWirelessAdbHost))
-                await TryConnectWirelessAdbAsync(lastWirelessAdbHost);
+                await TryConnectWirelessAdbAsync(lastWirelessAdbHost, remember: true);
+            StartMdnsBrowser();
         }).SafeFireAndForget();
     }
 
@@ -455,6 +457,29 @@ public class AdbService
         _deviceMonitor.Start();
         Log.Debug("Started device monitor");
     }
+    
+    private void StartMdnsBrowser()
+    {
+        try
+        {
+            var serviceBrowser = new ServiceBrowser();
+            serviceBrowser.ServiceAdded += OnServiceAdded;
+            serviceBrowser.StartBrowse(new [] {"_adb-tls-connect._tcp", "_adb_secure_connect._tcp"}); 
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Failed to start mDNS browser");
+        }
+        
+        async void OnServiceAdded(object? _, ServiceAnnouncementEventArgs e)
+        {
+            var service = e.Announcement;
+            if (!service.Addresses.Any()) return;
+            var address = service.Addresses.First().ToString();
+            Log.Information("Found Wireless ADB service: {Host}:{Port}, trying to connect", address, service.Port);
+            await TryConnectWirelessAdbAsync(address, service.Port);
+        }
+    }
 
     /// <summary>
     ///     Method for handling <see cref="DeviceMonitor.DeviceChanged" /> event.
@@ -674,8 +699,7 @@ public class AdbService
             Observable.Timer(TimeSpan.FromSeconds(10)).Subscribe(_ => _forcePreferWireless = false);
             var host = device.EnableWirelessAdb();
             await Task.Delay(1000);
-            await TryConnectWirelessAdbAsync(host, true);
-            _sideloaderSettings.LastWirelessAdbHost = host;
+            await TryConnectWirelessAdbAsync(host, 5555, true, true);
         }
         catch (Exception e)
         {
@@ -688,9 +712,12 @@ public class AdbService
     ///     Tries to connect to the wireless adb host.
     /// </summary>
     /// <param name="host">Host to connect to.</param>
+    /// <param name="port">Port to connect to.</param>
+    /// <param name="remember">Whether to remember the host for auto connect (port 5555 will be used).</param>
     /// <param name="silent">Don't send log messages.</param>
-    private async Task TryConnectWirelessAdbAsync(string host, bool silent = false)
+    private async Task TryConnectWirelessAdbAsync(string host, int port = 5555, bool remember = false, bool silent = false)
     {
+        EnsureADBRunning();
         if (DeviceList.Any(x => x.Serial.Contains(host)))
         {
             if (!silent)
@@ -699,28 +726,31 @@ public class AdbService
         }
 
         if (!silent)
-            Log.Debug("Trying to connect to wireless device, host {Host}", host);
+            Log.Debug("Trying to connect to wireless device, host {Host}, port {Port}", host, port);
 
         try
         {
-            var result = await _adb.AdbClient.ConnectAsync(host, 5555,
+            var result = await _adb.AdbClient.ConnectAsync(host, port,
                 new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token);
 
-            if (result is not null && result.Contains($"connected to {host}:5555"))
+            if (result is not null && result.Contains($"connected to {host}:{port}"))
             {
                 RefreshDeviceList();
-                _sideloaderSettings.LastWirelessAdbHost = host;
+                if (remember)
+                    _sideloaderSettings.LastWirelessAdbHost = host;
                 return;
             }
         }
         catch (OperationCanceledException)
         {
-            _sideloaderSettings.LastWirelessAdbHost = "";
+            if (remember)
+                _sideloaderSettings.LastWirelessAdbHost = "";
             Log.Warning("Wireless device connection timed out");
         }
         catch
         {
-            _sideloaderSettings.LastWirelessAdbHost = "";
+            if (remember)
+                _sideloaderSettings.LastWirelessAdbHost = "";
         }
 
         if (!silent)
@@ -840,7 +870,7 @@ public class AdbService
             _downloaderService = DownloaderService.Instance;
 
             Serial = deviceData.Serial;
-            IsWireless = deviceData.Serial.Contains('.');
+            IsWireless = deviceData.Serial.Contains(':');
             try
             {
                 // corrected serial for wireless connection
@@ -1849,7 +1879,10 @@ public class AdbService
                     var privateDataHasFiles = Directory.EnumerateFiles(privateDataBackupPath, "*",
                         SearchOption.AllDirectories).Any();
                     if (!privateDataHasFiles)
+                    {
+                        Log.Debug("No files in pulled private data, deleting");
                         Directory.Delete(privateDataBackupPath, true);
+                    }
                     backupEmpty = backupEmpty && !privateDataHasFiles;
                     if (RemoteDirectoryExists(sharedDataPath))
                     {
