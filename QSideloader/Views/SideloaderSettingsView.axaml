@@ -70,12 +70,15 @@
             <TextBlock Margin="0,8,0,4" VerticalAlignment="Center" Text="{x:Static p:Resources.PopularityTimeRange}" />
             <ComboBox Items="{Binding PopularityRanges}"
                       SelectedItem="{Binding PopularityRange}" />
-
+            
             <ToggleSwitch Margin="0,8,0,0"
                           IsChecked="{Binding EnableAutoDonation}"
                           Content="{x:Static p:Resources.EnableAutoDonation}"
                           ToolTip.Tip="{x:Static p:Resources.EnableAutoDonationTooltip}" />
-
+            <ToggleSwitch Margin="0,8,0,0"
+                          IsChecked="{Binding DisableDonationNotification}"
+                          Content="{x:Static p:Resources.DisableDonationNotification}"
+                          ToolTip.Tip="{x:Static p:Resources.DisableDonationNotificationTooltip}" />
             <TextBlock Margin="0,8,0,4" Text="{x:Static p:Resources.DownloadsLocation}" />
             <StackPanel Orientation="Horizontal">
                 <TextBox MinWidth="250" Padding="10,5,10,6"

@@ -676,6 +676,24 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Disable app sharing notification.
+        /// </summary>
+        public static string DisableDonationNotification {
+            get {
+                return ResourceManager.GetString("DisableDonationNotification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Disables the inobtrusive app share notification. Please note that the notification is already disabled for 7 days or until a new app is available without enabling this setting.
+        /// </summary>
+        public static string DisableDonationNotificationTooltip {
+            get {
+                return ResourceManager.GetString("DisableDonationNotificationTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Donate.
         /// </summary>
         public static string Donate {
@@ -2094,6 +2112,15 @@ namespace QSideloader.Properties {
         public static string SelectSharingMethod {
             get {
                 return ResourceManager.GetString("SelectSharingMethod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You have new apps to share!.
+        /// </summary>
+        public static string SelectSharingMethodSubtext {
+            get {
+                return ResourceManager.GetString("SelectSharingMethodSubtext", resourceCulture);
             }
         }
         

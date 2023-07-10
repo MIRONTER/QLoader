@@ -285,7 +285,7 @@ public class MainWindowViewModel : ViewModelBase
 
     public void ShowDonationBarIfNeeded(List<InstalledApp> donatableApps)
     {
-        if (DonatableAppsCount == 0) return;
+        if (DonatableAppsCount == 0 || _sideloaderSettings.DisableDonationNotification) return;
         Dictionary<string, int> lastDonatableApps = new();
         if (DateTime.Now - _sideloaderSettings.DonationBarLastShown < TimeSpan.FromDays(7))
         {
@@ -337,21 +337,16 @@ public class MainWindowViewModel : ViewModelBase
     {
         return Observable.Start(() =>
         {
-            var appName = Program.Name;
-            var message = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? string.Format(Resources.AdbConnectionDialogTextWin, appName)
-                : string.Format(Resources.AdbConnectionDialogText, appName);
-
             Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var dialog = new ContentDialog
                 {
-                    Title = Resources.AdbConnectionDialogTitle,
+                    Title = Resources.SelectSharingMethod,
                     Content = new ScrollViewer
                     {
                         Content = new TextBlock
                         {
-                            Text = "We found games that you can donate!"
+                            Text =  Resources.SelectSharingMethodSubtext
                         }
                     },
                     CloseButtonText = Resources.CloseButton,

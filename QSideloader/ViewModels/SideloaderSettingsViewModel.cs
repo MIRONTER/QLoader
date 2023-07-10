@@ -188,6 +188,8 @@ public class SideloaderSettingsViewModel : ViewModelBase
     public bool EnableRemoteLogging { get; private set; }
 
     [Reactive] [JsonProperty] public bool EnableAutoDonation { get; private set; }
+    
+    [Reactive] [JsonProperty] public bool DisableDonationNotification { get; private set; }
 
     [NeedsRelaunch]
     [Reactive]
@@ -248,6 +250,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             {"IgnoredDonationPackages", new ObservableCollection<string>()},
             {"EnableRemoteLogging", false},
             {"EnableAutoDonation", false},
+            {"DisableDonationNotification", false},
             {"ForceEnglish", false},
             {"EnableTaskAutoDismiss", true},
             {"TaskAutoDismissDelay", 10},

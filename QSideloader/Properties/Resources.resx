@@ -835,4 +835,13 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="DonateSelectiveButton" xml:space="preserve">
         <value>Go to donations page</value>
     </data>
+    <data name="DisableDonationNotification" xml:space="preserve">
+        <value>Disable app sharing notification</value>
+    </data>
+    <data name="DisableDonationNotificationTooltip" xml:space="preserve">
+        <value>Disables the inobtrusive app share notification. Please note that the notification is already disabled for 7 days or until a new app is available without enabling this setting</value>
+    </data>
+    <data name="SelectSharingMethodSubtext" xml:space="preserve">
+        <value>You have new apps to share!</value>
+    </data>
 </root>
