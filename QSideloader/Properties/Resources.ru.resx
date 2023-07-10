@@ -818,4 +818,10 @@
     <data name="InputNotANumber" xml:space="preserve">
         <value>Введенное значение не является числом</value>
     </data>
+    <data name="DonateSelectiveButton" xml:space="preserve">
+        <value>Перейти на страницу пожертвования</value>
+    </data>
+    <data name="DonationsAvailable" xml:space="preserve">
+        <value>У вас есть новые игры или обновления которые вы можете пожертвовать</value>
+    </data>
 </root>

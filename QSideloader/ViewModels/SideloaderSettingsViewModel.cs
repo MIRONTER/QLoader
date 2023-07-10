@@ -178,6 +178,8 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [JsonProperty] public Guid InstallationId { get; private set; } = Guid.NewGuid();
     [JsonProperty] public ObservableCollection<(string packageName, int versionCode)> DonatedPackages { get; } = new();
     [JsonProperty] public ObservableCollection<string> IgnoredDonationPackages { get; private set; } = new();
+    [Reactive] [JsonProperty] public DateTime DonationBarLastShown { get; set; }
+    [Reactive] [JsonProperty] public Dictionary<string, int> LastDonatableApps { get; set; } = new();
     [Reactive] public bool IsTrailersAddonInstalled { get; set; }
 
     [NeedsRelaunch]
@@ -249,7 +251,9 @@ public class SideloaderSettingsViewModel : ViewModelBase
             {"ForceEnglish", false},
             {"EnableTaskAutoDismiss", true},
             {"TaskAutoDismissDelay", 10},
-            {"TaskAutoDismissDelayTextBoxText", "10"}
+            {"TaskAutoDismissDelayTextBoxText", "10"},
+            {"DonationBarLastShown", DateTime.MinValue},
+            {"LastDonatableApps", new Dictionary<string, int>()}
         };
 
         var props = GetType().GetProperties().Where(

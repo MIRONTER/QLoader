@@ -730,6 +730,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Go to donations page.
+        /// </summary>
+        public static string DonateSelectiveButton {
+            get {
+                return ResourceManager.GetString("DonateSelectiveButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Upload selected games.
         /// </summary>
         public static string DonateTooltip {
@@ -748,7 +757,7 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You have apps/updates that can be shared.
+        ///   Looks up a localized string similar to You have new apps or updates that can be shared.
         /// </summary>
         public static string DonationsAvailable {
             get {

@@ -96,6 +96,7 @@ public class MainWindowViewModel : ViewModelBase
     public ObservableCollection<TaskView> TaskList { get; } = new();
 
     [Reactive] public int DonatableAppsCount { get; private set; }
+    [Reactive] public bool DonationBarShown { get; private set; }
 
     // Navigation menu width: 245 for Russian locale, 210 for others
     public static int NavigationMenuWidth =>
@@ -270,9 +271,46 @@ public class MainWindowViewModel : ViewModelBase
 
     public void RefreshGameDonationBadge()
     {
-        DonatableAppsCount = _adbService.CheckDeviceConnectionSimple()
-            ? _adbService.Device!.InstalledApps.Count(app => !app.IsHiddenFromDonation)
-            : 0;
+        if (!_adbService.CheckDeviceConnectionSimple())
+        {
+            DonatableAppsCount = 0;
+            return;
+        }
+
+        var donatableApps =
+            _adbService.Device!.InstalledApps.Where(app => !app.IsHiddenFromDonation).ToList();
+        DonatableAppsCount = donatableApps.Count;
+        ShowDonationBarIfNeeded(donatableApps);
+    }
+
+    public void ShowDonationBarIfNeeded(List<InstalledApp> donatableApps)
+    {
+        if (DonatableAppsCount == 0) return;
+        Dictionary<string, int> lastDonatableApps = new();
+        if (DateTime.Now - _sideloaderSettings.DonationBarLastShown < TimeSpan.FromDays(7))
+        {
+            lastDonatableApps = _sideloaderSettings.LastDonatableApps;
+        }
+        var newDonatableApp = false;
+        foreach (var app in donatableApps)
+        {
+            if (lastDonatableApps.TryGetValue(app.PackageName, out var versionCode))
+            {
+                if (app.VersionCode > versionCode)
+                {
+                    newDonatableApp = true;
+                }
+            }
+            else
+            {
+                newDonatableApp = true;
+            }
+        }
+
+        if (!newDonatableApp) return;
+        _sideloaderSettings.DonationBarLastShown = DateTime.Now;
+        _sideloaderSettings.LastDonatableApps = donatableApps.ToDictionary(x => x.PackageName, x => x.VersionCode);
+        DonationBarShown = true;
     }
 
     public void OnGameDonated(string packageName, int versionCode)
@@ -320,10 +358,15 @@ public class MainWindowViewModel : ViewModelBase
                     PrimaryButtonText = "Donate Selective",
                     PrimaryButtonCommand = ReactiveCommand.Create(() =>
                     {
-                        Log.Information("Force connection check requested");
-                        ShowNotification(Resources.Info, Resources.RescanningDevices,
-                            NotificationType.Information, TimeSpan.FromSeconds(2));
-                        Task.Run(() => _adbService.CheckDeviceConnection());
+                        Dispatcher.UIThread.InvokeAsync(() =>
+                        {
+                            var navigationView = MainWindow.Navigation;
+                            var item = navigationView?.MenuItems
+                                .OfType<NavigationViewItem>()
+                                .First(x => (string?)x.Tag == "GameDonationView");
+                            if (navigationView != null) navigationView.SelectedItem = item;
+                            DonationBarShown = false;
+                        });
                     }),
                     SecondaryButtonText = "Donate All",
                     SecondaryButtonCommand = DonateAllGames
@@ -337,6 +380,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         return Observable.Start(() =>
         {
+            DonationBarShown = false;
             if (!_adbService.CheckDeviceConnectionSimple())
             {
                 Log.Warning("MainWindowViewModel.DonateAllGamesImpl: no device connection!");

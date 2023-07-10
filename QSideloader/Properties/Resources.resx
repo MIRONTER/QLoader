@@ -830,6 +830,9 @@ You may use {0} for downloads without connecting to a device.</value>
         <value>Select sharing method</value>
     </data>
     <data name="DonationsAvailable" xml:space="preserve">
-        <value>You have apps/updates that can be shared</value>
+        <value>You have new apps or updates that can be shared</value>
+    </data>
+    <data name="DonateSelectiveButton" xml:space="preserve">
+        <value>Go to donations page</value>
     </data>
 </root>

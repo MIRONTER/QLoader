@@ -31,6 +31,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
     private bool _isClosing;
+    public static NavigationView? Navigation;
 
     public MainWindow()
     {
@@ -56,6 +57,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
         this.GetObservable(ClientSizeProperty).Throttle(TimeSpan.FromMilliseconds(100))
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(_ => RecalculateTaskListBoxHeight());
+        Navigation = navigationView;
     }
 
     private void InitializeComponent()
@@ -78,8 +80,8 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
         }
         else
         {
-            var selectedItem = (NavigationViewItem) e.SelectedItem;
-            var selectedItemTag = (string) selectedItem.Tag!;
+            var selectedItem = (NavigationViewItem)e.SelectedItem;
+            var selectedItemTag = (string)selectedItem.Tag!;
             var pageName = "QSideloader.Views.Pages." + selectedItemTag;
             var pageType = Type.GetType(pageName);
             if (pageType is null) return;
@@ -90,20 +92,28 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
         }
     }
 
+    public void NavigateToGameDonationView()
+    {
+        var navigationView = this.Get<NavigationView>("NavigationView");
+        navigationView.SelectedItem = navigationView.MenuItems
+            .OfType<NavigationViewItem>()
+            .First(x => (string?)x.Tag == "GameDonationView");
+    }
+
     private void RecalculateTaskListBoxHeight()
     {
         var windowHeight = ClientSize.Height;
         var taskListBox = this.Get<ListBox>("TaskListBox");
-        taskListBox.MaxHeight = (int) windowHeight / (double) 3 / 60 * 60;
+        taskListBox.MaxHeight = (int)windowHeight / (double)3 / 60 * 60;
         //Log.Debug("Recalculated TaskListBox height to {Height}", taskListBox.MaxHeight);
     }
 
     private void TaskListBox_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (e.AddedItems.Count == 0) return;
-        var viewModel = (MainWindowViewModel) DataContext!;
-        var listBox = (ListBox?) sender;
-        var selectedTask = (TaskView?) e.AddedItems[0];
+        var viewModel = (MainWindowViewModel)DataContext!;
+        var listBox = (ListBox?)sender;
+        var selectedTask = (TaskView?)e.AddedItems[0];
         if (listBox is null || selectedTask is null) return;
         listBox.SelectedItem = null;
         switch (selectedTask.IsFinished)

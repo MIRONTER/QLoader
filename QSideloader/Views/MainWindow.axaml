@@ -93,15 +93,16 @@
                     </ui:InfoBar.ActionButton>
                 </ui:InfoBar>
                 <ui:InfoBar Grid.Row="0" x:Name="DonationsAvailableInfoBar"
-                            IsOpen="True"
-                            Severity="Warning"
+                            IsOpen="{Binding DonationBarShown}"
+                            Severity="Informational"
                             Margin="12"
                             VerticalAlignment="Bottom"
                             HorizontalAlignment="Center"
                             IsIconVisible="True"
                             IsClosable="True"
-                            Title="{x:Static p:Resources.DonationsAvailable}"
-                            Message="">
+                            Background="#1F1F1F"
+                            Title=""
+                            Message="{x:Static p:Resources.DonationsAvailable}">
                     <ui:InfoBar.ActionButton>
                         <Button Content="{x:Static p:Resources.SelectSharingMethod}" Command="{Binding ShowSharingDialog}" />
                     </ui:InfoBar.ActionButton>
