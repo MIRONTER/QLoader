@@ -826,4 +826,10 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="InputNotANumber" xml:space="preserve">
         <value>Input is not a valid number</value>
     </data>
+    <data name="SelectSharingMethod" xml:space="preserve">
+        <value>Select sharing method</value>
+    </data>
+    <data name="DonationsAvailable" xml:space="preserve">
+        <value>You have apps/updates that can be shared</value>
+    </data>
 </root>

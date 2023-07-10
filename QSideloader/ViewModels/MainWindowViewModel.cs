@@ -75,6 +75,7 @@ public class MainWindowViewModel : ViewModelBase
         ShowConnectionHelpDialog = ReactiveCommand.CreateFromObservable(ShowConnectionHelpDialogImpl);
         ShowAuthHelpDialog = ReactiveCommand.CreateFromObservable(ShowAuthHelpDialogImpl);
         DonateAllGames = ReactiveCommand.CreateFromObservable(DonateAllGamesImpl);
+        ShowSharingDialog = ReactiveCommand.CreateFromObservable(ShowSharingOptionsImpl);
         _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged);
         _adbService.WhenPackageListChanged.Subscribe(_ =>
         {
@@ -91,6 +92,7 @@ public class MainWindowViewModel : ViewModelBase
 
     [Reactive] public bool IsDeviceConnected { get; private set; }
     [Reactive] public bool IsDeviceUnauthorized { get; private set; }
+    
     public ObservableCollection<TaskView> TaskList { get; } = new();
 
     [Reactive] public int DonatableAppsCount { get; private set; }
@@ -107,21 +109,18 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> ShowConnectionHelpDialog { get; }
     public ReactiveCommand<Unit, Unit> ShowAuthHelpDialog { get; }
     public ReactiveCommand<Unit, Unit> DonateAllGames { get; }
+    public ReactiveCommand<Unit, Unit> ShowSharingDialog { get; }
 
     public void AddTask(TaskOptions taskOptions)
     {
         Dispatcher.UIThread.InvokeAsync(() =>
         {
             // Don't allow to add duplicate donation tasks
-            if (taskOptions is {Type: TaskType.PullAndUpload, App: not null})
+            if (taskOptions is { Type: TaskType.PullAndUpload, App: not null })
             {
-                var runningDonations = new List<TaskView>();
-                Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    runningDonations = Globals.MainWindowViewModel!.GetTaskList()
+                var runningDonations = Globals.MainWindowViewModel!.GetTaskList()
                         .Where(x => x.TaskType == TaskType.PullAndUpload && !x.IsFinished).ToList();
-                }).Wait();
-                if (runningDonations.Any(x => x.PackageName == taskOptions.App.PackageName))
+                    if (runningDonations.Any(x => x.PackageName == taskOptions.App.PackageName))
                 {
                     Log.Debug("Donation task for {PackageName} already running", taskOptions.App.PackageName);
                     return;
@@ -196,7 +195,7 @@ public class MainWindowViewModel : ViewModelBase
                 {
                     Log.Debug("Dropped folder {FileName} contains backup", fileName);
                     var backup = new Backup(fileName);
-                    AddTask(new TaskOptions {Type = TaskType.Restore, Backup = backup});
+                    AddTask(new TaskOptions { Type = TaskType.Restore, Backup = backup });
                     continue;
                 }
 
@@ -207,7 +206,7 @@ public class MainWindowViewModel : ViewModelBase
                     {
                         var game = JsonConvert.DeserializeObject<Game>(
                             File.ReadAllText(Path.Combine(fileName, "release.json")));
-                        AddTask(new TaskOptions {Type = TaskType.InstallOnly, Game = game, Path = fileName});
+                        AddTask(new TaskOptions { Type = TaskType.InstallOnly, Game = game, Path = fileName });
                         continue;
                     }
                     catch (Exception ex)
@@ -236,7 +235,7 @@ public class MainWindowViewModel : ViewModelBase
                         game = new Game(dirName, dirName);
                     }
 
-                    AddTask(new TaskOptions {Game = game, Type = TaskType.InstallOnly, Path = fileName});
+                    AddTask(new TaskOptions { Game = game, Type = TaskType.InstallOnly, Path = fileName });
                 }
                 else
                 {
@@ -261,7 +260,7 @@ public class MainWindowViewModel : ViewModelBase
                 }
 
                 var game = new Game(apkInfo.ApplicationLabel, name, apkInfo.PackageName);
-                AddTask(new TaskOptions {Game = game, Type = TaskType.InstallOnly, Path = fileName});
+                AddTask(new TaskOptions { Game = game, Type = TaskType.InstallOnly, Path = fileName });
             }
             else
             {
@@ -296,6 +295,44 @@ public class MainWindowViewModel : ViewModelBase
         _gameDonateSubject.OnNext(Unit.Default);
     }
 
+    private IObservable<Unit> ShowSharingOptionsImpl()
+    {
+        return Observable.Start(() =>
+        {
+            var appName = Program.Name;
+            var message = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? string.Format(Resources.AdbConnectionDialogTextWin, appName)
+                : string.Format(Resources.AdbConnectionDialogText, appName);
+
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var dialog = new ContentDialog
+                {
+                    Title = Resources.AdbConnectionDialogTitle,
+                    Content = new ScrollViewer
+                    {
+                        Content = new TextBlock
+                        {
+                            Text = "We found games that you can donate!"
+                        }
+                    },
+                    CloseButtonText = Resources.CloseButton,
+                    PrimaryButtonText = "Donate Selective",
+                    PrimaryButtonCommand = ReactiveCommand.Create(() =>
+                    {
+                        Log.Information("Force connection check requested");
+                        ShowNotification(Resources.Info, Resources.RescanningDevices,
+                            NotificationType.Information, TimeSpan.FromSeconds(2));
+                        Task.Run(() => _adbService.CheckDeviceConnection());
+                    }),
+                    SecondaryButtonText = "Donate All",
+                    SecondaryButtonCommand = DonateAllGames
+                };
+                dialog.ShowAsync();
+            });
+        });
+    }
+
     private IObservable<Unit> DonateAllGamesImpl()
     {
         return Observable.Start(() =>
@@ -316,7 +353,7 @@ public class MainWindowViewModel : ViewModelBase
 
             foreach (var app in eligibleApps)
             {
-                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.PullAndUpload, App = app});
+                Globals.MainWindowViewModel!.AddTask(new TaskOptions { Type = TaskType.PullAndUpload, App = app });
                 Log.Information("Queued for donation: {Name}", app.Name);
             }
         });
@@ -519,7 +556,7 @@ public class MainWindowViewModel : ViewModelBase
         if (string.IsNullOrEmpty(trailersAddonPath)) return;
 
         Log.Information("Found trailers addon zip. Starting background install");
-        var taskOptions = new TaskOptions {Type = TaskType.InstallTrailersAddon, Path = trailersAddonPath};
+        var taskOptions = new TaskOptions { Type = TaskType.InstallTrailersAddon, Path = trailersAddonPath };
         AddTask(taskOptions);
     }
 
@@ -539,7 +576,7 @@ public class MainWindowViewModel : ViewModelBase
 
             Log.Information("Adding donation tasks");
             foreach (var taskOptions in toDonate.Select(app => new TaskOptions
-                         {Type = TaskType.PullAndUpload, App = app})) AddTask(taskOptions);
+                         { Type = TaskType.PullAndUpload, App = app })) AddTask(taskOptions);
         });
     }
 }
