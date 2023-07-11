@@ -12,8 +12,8 @@
         <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
         <NeutralLanguage>en</NeutralLanguage>
         <AssemblyName>Loader</AssemblyName>
-        <AssemblyVersion>1.0.1.0</AssemblyVersion>
-        <InformationalVersion>v1.0.1</InformationalVersion>
+        <AssemblyVersion>1.0.1.99</AssemblyVersion>
+        <InformationalVersion>v1.0.2-dev</InformationalVersion>
         <IsPackable>false</IsPackable>
         <Company>skrimix</Company>
         <ApplicationManifest>app.manifest</ApplicationManifest>
