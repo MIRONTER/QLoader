@@ -144,6 +144,14 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWindow
 
     private void InitializeUpdater()
     {
+        if (Globals.Overrides.ContainsKey("DisableSelfUpdate") && 
+            bool.TryParse(Globals.Overrides["DisableSelfUpdate"], out var disableSelfUpdate) && disableSelfUpdate ||
+            Globals.Overrides["DisableSelfUpdate"] == "1")
+        {
+            Log.Warning("Updater disabled by override");
+            return;
+        }
+        
         // TODO: add windows support
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {

@@ -255,6 +255,7 @@ public static class GeneralUtils
         var overrides = new Dictionary<string, string?>
         {
             {"ConfigUpdateUrl", null},
+            {"DisableSelfUpdate", "0"}
         };
         if (!File.Exists(PathHelper.OverridesPath))
             return overrides;
