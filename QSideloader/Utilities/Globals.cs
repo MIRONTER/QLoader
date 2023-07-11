@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Avalonia.Controls.Notifications;
 using NetSparkleUpdater;
 using QSideloader.ViewModels;
@@ -10,6 +11,8 @@ public static class Globals
     public static MainWindowViewModel? MainWindowViewModel { get; set; }
 
     public static SideloaderSettingsViewModel SideloaderSettings { get; } = new();
+    
+    public static Dictionary<string, string?> Overrides { get; } = GeneralUtils.ParseOverridesFile();
 
     public static SparkleUpdater? Updater { get; set; }
 

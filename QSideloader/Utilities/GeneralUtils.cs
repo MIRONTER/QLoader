@@ -249,4 +249,38 @@ public static class GeneralUtils
         var invalidChars = Path.GetInvalidFileNameChars();
         return new string(fileName.Where(c => !invalidChars.Contains(c)).ToArray());
     }
+
+    public static Dictionary<string, string?> ParseOverridesFile()
+    {
+        var overrides = new Dictionary<string, string?>
+        {
+            {"ConfigUpdateUrl", null},
+        };
+        if (!File.Exists(PathHelper.OverridesPath))
+            return overrides;
+        var lines = File.ReadAllLines(PathHelper.OverridesPath);
+        foreach (var line in lines)
+        {
+            if (line.StartsWith("#") || string.IsNullOrWhiteSpace(line))
+                continue;
+            var split = line.Split("=");
+            if (split.Length != 2)
+            {
+                Log.Warning("Invalid line in overrides file: {Line}", line);
+                continue;
+            }
+            var key = split[0].Trim();
+            var value = string.IsNullOrWhiteSpace(split[1]) ? null : split[1].Trim();
+            if (overrides.ContainsKey(key))
+                overrides[key] = value;
+            else
+            {
+                Log.Warning("Unknown key in overrides file: {Key}", key);
+            }
+        }
+        
+        Log.Information("Loaded overrides: {Overrides}", overrides);
+
+        return overrides;
+    }
 }

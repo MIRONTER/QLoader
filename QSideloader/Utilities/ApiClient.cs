@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -45,16 +46,19 @@ public static class ApiClient
     /// <summary>
     /// Retrieves the rclone config.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>Contents and name of the retrieved file.</returns>
     /// <exception cref="ApiException"></exception>
-    public static async Task<string> GetRcloneConfig()
+    public static async Task<(string fileName, string content)> GetRcloneConfig(string? overrideUrl = null)
     {
         try
         {
-            const string configUrl = $"{StaticFilesUrl}FFA_config";
+            var configUrl = overrideUrl ?? $"{StaticFilesUrl}FFA_config";
             var response = await ApiHttpClient.GetAsync(configUrl);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync();
+            return (
+                response.Content.Headers.ContentDisposition?.FileName ??
+                Uri.UnescapeDataString(new Uri(configUrl).Segments.Last()), content);
         }
         catch (Exception e)
         {

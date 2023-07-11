@@ -88,16 +88,29 @@ public class DownloaderService
         await RcloneConfigSemaphoreSlim.WaitAsync();
         try
         {
-            if (!File.Exists(Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, "FFA_config")))
+            var overrideUrl = Globals.Overrides.TryGetValue("ConfigUpdateUrl", out var @override) ? @override : null;
+            var usingOverride = !string.IsNullOrEmpty(overrideUrl);
+            if (!File.Exists(Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, "FFA_config")) &&
+                string.IsNullOrWhiteSpace(overrideUrl))
             {
                 Log.Warning("FFA_config not found, skipping rclone config update");
                 return;
             }
 
             Log.Information("Updating rclone config");
-            if (await TryDownloadConfigFromServer())
+            if (usingOverride)
+            {
+                Log.Information("Using override config url: {OverrideUrl}", overrideUrl);
+            }
+            if (await TryDownloadConfigFromServer(overrideUrl))
             {
                 Log.Information("Rclone config updated from server");
+                return;
+            }
+
+            if (usingOverride)
+            {
+                Log.Warning("Failed to update rclone config from override url");
                 return;
             }
 
@@ -124,13 +137,13 @@ public class DownloaderService
             RcloneConfigSemaphoreSlim.Release();
         }
 
-        async Task<bool> TryDownloadConfigFromServer()
+        async Task<bool> TryDownloadConfigFromServer(string? overrideConfigUrl = null)
         {
             try
             {
-                var oldConfigPath = Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, "FFA_config");
-                var newConfigPath = Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, "FFA_config_new");
-                var config = await ApiClient.GetRcloneConfig();
+                var (fileName, config) = await ApiClient.GetRcloneConfig(overrideConfigUrl);
+                var oldConfigPath = Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, fileName);
+                var newConfigPath = Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, fileName + "_new");
                 await File.WriteAllTextAsync(newConfigPath, config);
                 File.Move(newConfigPath, oldConfigPath, true);
                 return true;
