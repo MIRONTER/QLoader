@@ -43,6 +43,7 @@ public class MainWindowViewModel : ViewModelBase
     // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
     private readonly AdbService _adbService;
     private readonly DownloaderService _downloaderService;
+    private readonly IMainWindow _mainWindow;
 
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
     // ReSharper restore PrivateFieldCanBeConvertedToLocalVariable
@@ -50,10 +51,11 @@ public class MainWindowViewModel : ViewModelBase
     private readonly Subject<Unit> _gameDonateSubject = new();
     private readonly IManagedNotificationManager _notificationManager;
 
-    public MainWindowViewModel(IManagedNotificationManager notificationManager)
+    public MainWindowViewModel(IMainWindow mainWindow, IManagedNotificationManager notificationManager)
     {
         _adbService = AdbService.Instance;
         _downloaderService = DownloaderService.Instance;
+        _mainWindow = mainWindow;
         _sideloaderSettings = Globals.SideloaderSettings;
         _notificationManager = notificationManager;
         ShowGameDetailsCommand = ReactiveCommand.Create<Game>(game =>
@@ -63,9 +65,9 @@ public class MainWindowViewModel : ViewModelBase
             var gameDetails = new GameDetailsViewModel(game);
             var dialog = new GameDetailsWindow(gameDetails);
             if (Application.Current is null) return;
-            var mainWindow = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+            var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
                 ?.MainWindow;
-            dialog.Show(mainWindow);
+            dialog.Show(window);
         });
         ShowGameDetailsCommand.ThrownExceptions.Subscribe(ex =>
         {
@@ -355,11 +357,7 @@ public class MainWindowViewModel : ViewModelBase
                     {
                         Dispatcher.UIThread.InvokeAsync(() =>
                         {
-                            var navigationView = MainWindow.Navigation;
-                            var item = navigationView?.MenuItems
-                                .OfType<NavigationViewItem>()
-                                .First(x => (string?)x.Tag == "GameDonationView");
-                            if (navigationView != null) navigationView.SelectedItem = item;
+                            _mainWindow.NavigateToGameDonationView();
                             DonationBarShown = false;
                         });
                     }),

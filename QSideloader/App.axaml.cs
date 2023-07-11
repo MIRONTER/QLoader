@@ -41,13 +41,14 @@ public class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.ShutdownMode = ShutdownMode.OnMainWindowClose;
-            desktop.MainWindow = new MainWindow();
+            var mainWindow = new MainWindow();
+            desktop.MainWindow = mainWindow;
             var notificationManager = new WindowNotificationManager(desktop.MainWindow)
             {
                 Position = NotificationPosition.TopRight,
                 MaxItems = 3
             };
-            Globals.MainWindowViewModel = new MainWindowViewModel(notificationManager);
+            Globals.MainWindowViewModel = new MainWindowViewModel(mainWindow, notificationManager);
             desktop.MainWindow.DataContext = Globals.MainWindowViewModel;
         }
 

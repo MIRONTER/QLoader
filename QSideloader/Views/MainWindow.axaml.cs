@@ -27,11 +27,10 @@ using Serilog;
 
 namespace QSideloader.Views;
 
-public class MainWindow : ReactiveWindow<MainWindowViewModel>
+public class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWindow
 {
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
     private bool _isClosing;
-    public static NavigationView? Navigation;
 
     public MainWindow()
     {
@@ -52,12 +51,15 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>
         AddHandler(DragDrop.DragEnterEvent, DragEnter);
         AddHandler(DragDrop.DragLeaveEvent, DragLeave);
         AddHandler(DragDrop.DropEvent, Drop);
+        
+        // Navigate to the first page
         var navigationView = this.Get<NavigationView>("NavigationView");
         navigationView.SelectedItem = navigationView.MenuItems.OfType<NavigationViewItem>().First();
+        
+        // Recalculate task list height when windows size changes
         this.GetObservable(ClientSizeProperty).Throttle(TimeSpan.FromMilliseconds(100))
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(_ => RecalculateTaskListBoxHeight());
-        Navigation = navigationView;
     }
 
     private void InitializeComponent()
