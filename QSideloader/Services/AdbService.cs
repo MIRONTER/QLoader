@@ -1175,16 +1175,18 @@ public class AdbService
         public void RefreshInstalledApps()
         {
             using var op = Operation.At(LogEventLevel.Debug).Begin("Refreshing installed apps on {Device}", this);
-            bool metadataAvailable;
-            try
+            var metadataAvailable = false;
+            var donationsAvailable = false;
+
+            Task.Run(async () =>
             {
-                _downloaderService.EnsureMetadataAvailableAsync().GetAwaiter().GetResult();
-                metadataAvailable = true;
-            }
-            catch
+                await _downloaderService.EnsureMetadataAvailableAsync();
+                donationsAvailable = await _downloaderService.GetDonationsAvailable();
+            }).ContinueWith(t =>
             {
-                metadataAvailable = false;
-            }
+                metadataAvailable = t.IsCompletedSuccessfully;
+            }).Wait();
+
 
             Log.Debug("Refreshing list of installed apps on {Device}", this);
             var installedGames = InstalledGames.ToList();
@@ -1195,6 +1197,7 @@ public class AdbService
                     let versionName = package.versionInfo?.VersionName ?? "N/A"
                     let versionCode = package.versionInfo?.VersionCode ?? -1
                     let name = installedGames.FirstOrDefault(g => g.PackageName == packageName)?.GameName ?? packageName
+                    let donationsUnavailable = !donationsAvailable
                     let isBlacklisted = _downloaderService.DonationBlacklistedPackages.Contains(packageName)
                     let isNew = _downloaderService.AvailableGames!.All(g => g.PackageName != packageName)
                     let isIgnored = _sideloaderSettings.IgnoredDonationPackages.Any(i => i == packageName)
@@ -1202,8 +1205,9 @@ public class AdbService
                         i.packageName == packageName && i.versionCode >= versionCode)
                     let isNewVersion = _downloaderService.AvailableGames!.Where(g => g.PackageName == packageName)
                         .All(g => versionCode > g.VersionCode)
-                    let isHiddenFromDonation = isBlacklisted || isIgnored || isDonated || !(isNew || isNewVersion)
+                    let isHiddenFromDonation = donationsUnavailable || isBlacklisted || isIgnored || isDonated || !(isNew || isNewVersion)
                     let donationStatus = !isHiddenFromDonation ? isNew ? Resources.NewApp : Resources.NewVersion :
+                        donationsUnavailable ? Resources.DonationsUnavailable :
                         isDonated ? Resources.Donated :
                         isIgnored ? Resources.Ignored :
                         isBlacklisted ? Resources.Blacklisted : Resources.UpToDate

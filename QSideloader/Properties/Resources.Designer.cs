@@ -1653,12 +1653,9 @@ namespace QSideloader.Properties {
             }
         }
         
-        /// <summary>
-        ///   Looks up a localized string similar to Version Name.
-        /// </summary>
-        public static string VersionNameHeader {
+        public static string DonationsUnavailable {
             get {
-                return ResourceManager.GetString("VersionNameHeader", resourceCulture);
+                return ResourceManager.GetString("DonationsUnavailable", resourceCulture);
             }
         }
     }

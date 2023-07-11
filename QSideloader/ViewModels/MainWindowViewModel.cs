@@ -78,6 +78,7 @@ public class MainWindowViewModel : ViewModelBase
         ShowAuthHelpDialog = ReactiveCommand.CreateFromObservable(ShowAuthHelpDialogImpl);
         DonateAllGames = ReactiveCommand.CreateFromObservable(DonateAllGamesImpl);
         ShowSharingDialog = ReactiveCommand.CreateFromObservable(ShowSharingOptionsImpl);
+        Task.Run(async () => { DonationsAvailable = await _downloaderService.GetDonationsAvailable(); });
         _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged);
         _adbService.WhenPackageListChanged.Subscribe(_ =>
         {
@@ -99,6 +100,7 @@ public class MainWindowViewModel : ViewModelBase
 
     [Reactive] public int DonatableAppsCount { get; private set; }
     [Reactive] public bool DonationBarShown { get; private set; }
+    [Reactive] public bool DonationsAvailable { get; private set; }
 
     // Navigation menu width: 245 for Russian locale, 210 for others
     public static int NavigationMenuWidth =>
@@ -273,9 +275,10 @@ public class MainWindowViewModel : ViewModelBase
 
     public void RefreshGameDonationBadge()
     {
-        if (!_adbService.CheckDeviceConnectionSimple())
+        if (!_adbService.CheckDeviceConnectionSimple() || !DonationsAvailable)
         {
             DonatableAppsCount = 0;
+            DonationBarShown = false;
             return;
         }
 
@@ -285,9 +288,10 @@ public class MainWindowViewModel : ViewModelBase
         ShowDonationBarIfNeeded(donatableApps);
     }
 
-    public void ShowDonationBarIfNeeded(List<InstalledApp> donatableApps)
+    private void ShowDonationBarIfNeeded(List<InstalledApp> donatableApps)
     {
-        if (DonatableAppsCount == 0 || _sideloaderSettings.DisableDonationNotification) return;
+        if (DonatableAppsCount == 0 || _sideloaderSettings.DisableDonationNotification ||
+            _sideloaderSettings.EnableAutoDonation || !DonationsAvailable) return;
         Dictionary<string, int> lastDonatableApps = new();
         if (DateTime.Now - _sideloaderSettings.DonationBarLastShown < TimeSpan.FromDays(7))
         {

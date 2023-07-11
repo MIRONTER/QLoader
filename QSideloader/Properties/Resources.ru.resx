@@ -836,4 +836,7 @@
     <data name="SelectSharingMethodSubtext" xml:space="preserve">
         <value>У вас есть новые приложения, которыми вы можете поделиться!</value>
     </data>
+    <data name="DonationsUnavailable" xml:space="preserve">
+        <value>Пожертвования недоступны</value>
+    </data>
 </root>

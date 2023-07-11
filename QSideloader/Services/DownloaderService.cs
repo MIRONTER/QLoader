@@ -41,6 +41,7 @@ public class DownloaderService
     private static readonly SemaphoreSlim TrailersAddonSemaphoreSlim = new(1, 1);
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
     private List<string> _mirrorList = new();
+    private bool? _donationsAvailable;
 
     static DownloaderService()
     {
@@ -229,6 +230,14 @@ public class DownloaderService
         var matches = Regex.Matches(result.StandardOutput, mirrorPattern);
         foreach (Match match in matches) mirrorList.Add(match.Groups[1].ToString());
         return mirrorList;
+    }
+
+    public async Task<bool> GetDonationsAvailable()
+    {
+        if (_donationsAvailable is not null) return _donationsAvailable.Value;
+        var result = await ExecuteRcloneCommandAsync("listremotes");
+        _donationsAvailable = result.StandardOutput.Contains("FFA-DD:");
+        return _donationsAvailable.Value;
     }
 
     /// <summary>
