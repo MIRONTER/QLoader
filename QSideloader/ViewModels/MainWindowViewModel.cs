@@ -350,7 +350,7 @@ public class MainWindowViewModel : ViewModelBase
                         }
                     },
                     CloseButtonText = Resources.CloseButton,
-                    PrimaryButtonText = "Donate Selective",
+                    PrimaryButtonText = Resources.DonateSelectiveButton,
                     PrimaryButtonCommand = ReactiveCommand.Create(() =>
                     {
                         Dispatcher.UIThread.InvokeAsync(() =>
@@ -363,7 +363,7 @@ public class MainWindowViewModel : ViewModelBase
                             DonationBarShown = false;
                         });
                     }),
-                    SecondaryButtonText = "Donate All",
+                    SecondaryButtonText = Resources.DonateAllButton,
                     SecondaryButtonCommand = DonateAllGames
                 };
                 dialog.ShowAsync();
@@ -392,7 +392,7 @@ public class MainWindowViewModel : ViewModelBase
 
             foreach (var app in eligibleApps)
             {
-                Globals.MainWindowViewModel!.AddTask(new TaskOptions { Type = TaskType.PullAndUpload, App = app });
+                AddTask(new TaskOptions { Type = TaskType.PullAndUpload, App = app });
                 Log.Information("Queued for donation: {Name}", app.Name);
             }
         });

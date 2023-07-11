@@ -824,4 +824,16 @@
     <data name="DonationsAvailable" xml:space="preserve">
         <value>У вас есть новые игры или обновления которые вы можете пожертвовать</value>
     </data>
+    <data name="DisableDonationNotification" xml:space="preserve">
+        <value>Отключить уведомления о пожертвовании игр</value>
+    </data>
+    <data name="DisableDonationNotificationTooltip" xml:space="preserve">
+        <value>Отключает ненавязчивое уведомление о возможности поделиться приложениями. Обратите внимание, что и без включения этой настройки уведомление уже автоматически отключается на 7 дней или до тех пор, пока не будет доступно новое приложение</value>
+    </data>
+    <data name="SelectSharingMethod" xml:space="preserve">
+        <value>Опции</value>
+    </data>
+    <data name="SelectSharingMethodSubtext" xml:space="preserve">
+        <value>У вас есть новые приложения, которыми вы можете поделиться!</value>
+    </data>
 </root>
