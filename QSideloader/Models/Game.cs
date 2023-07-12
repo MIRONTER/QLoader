@@ -6,13 +6,13 @@ using System.Runtime.CompilerServices;
 using FileHelpers;
 using Newtonsoft.Json;
 
-// ReSharper disable MemberCanBePrivate.Global
-
 namespace QSideloader.Models;
 
 [DelimitedRecord(";")]
 [IgnoreFirst]
 [SuppressMessage("ReSharper", "PropertyCanBeMadeInitOnly.Global")]
+[SuppressMessage("ReSharper", "MemberCanBeProtected.Global")]
+[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 public class Game : INotifyPropertyChanged
 {
     [FieldHidden] [JsonIgnore] private bool _isInstalled;
@@ -44,13 +44,13 @@ public class Game : INotifyPropertyChanged
         PackageName = packageName;
     }
 
-    [FieldTrim(TrimMode.Right)] public string? GameName { get; protected set; }
+    [FieldTrim(TrimMode.Right)] public string? GameName { get; set; }
     public string? ReleaseName { get; set; }
-    public string? PackageName { get; protected set; }
+    public string? PackageName { get; set; }
     public int VersionCode { get; set; }
 
     [FieldConverter(ConverterKind.Date, "yyyy-MM-dd HH:mm UTC", "en")]
-    public DateTime LastUpdated { get; protected set; }
+    public DateTime LastUpdated { get; set; }
 
     public int GameSize { get; set; }
 
