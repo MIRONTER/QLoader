@@ -2057,5 +2057,13 @@ public class AdbService
                 Log.Warning(e, "Error uninstalling KeyMapper");
             }
         }
+
+        public void FixDateTime()
+        {
+            var timeSinceEpoch = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            Log.Information("Setting date and time on device to {TimeSinceEpoch}", timeSinceEpoch);
+            if (RunShellCommand($"service call alarm 2 i64 {timeSinceEpoch}", true) != "Result: Parcel(00000000 00000001   '........')")
+                Log.Warning("Unexpected result when setting time");
+        }
     }
 }

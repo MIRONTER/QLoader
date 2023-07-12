@@ -99,6 +99,12 @@ public class SideloaderSettingsViewModel : ViewModelBase
             Log.Error(ex, "Error cleaning up leftover APKs");
             Globals.ShowErrorNotification(ex, Resources.ErrorCleaningUpLeftoverApks);
         });
+        FixDateTime = ReactiveCommand.CreateFromObservable(FixDateTimeImpl);
+        FixDateTime.ThrownExceptions.Subscribe(ex =>
+        {
+            Log.Error(ex, "Error fixing date and time");
+            Globals.ShowErrorNotification(ex, Resources.ErrorFixingDateTime);
+        });
         InitDefaults();
         LoadSettings();
         ValidateSettings();
@@ -224,6 +230,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> ResetAdbKeys { get; }
     public ReactiveCommand<Unit, Unit> ForceCleanupPackage { get; }
     public ReactiveCommand<Unit, Unit> CleanLeftoverApks { get; }
+    public ReactiveCommand<Unit, Unit> FixDateTime { get; }
 
     private Timer AutoSaveDelayTimer { get; } = new() {AutoReset = false, Interval = 500};
 
@@ -739,6 +746,26 @@ public class SideloaderSettingsViewModel : ViewModelBase
                 adbService.Device!.RunShellCommand("rm -v /data/local/tmp/*.apk", true);
                 Globals.ShowNotification(Resources.Info, Resources.LeftoverApksCleanupCompleted,
                     NotificationType.Information,
+                    TimeSpan.FromSeconds(2));
+            }
+            else
+            {
+                Globals.ShowNotification(Resources.Error, Resources.NoDeviceConnection, NotificationType.Error,
+                    TimeSpan.FromSeconds(2));
+            }
+        });
+    }
+
+    private IObservable<Unit> FixDateTimeImpl()
+    {
+        return Observable.Start(() =>
+        {
+            Log.Information("Date and time fix requested");
+            var adbService = AdbService.Instance;
+            if (adbService.CheckDeviceConnection())
+            {
+                adbService.Device!.FixDateTime();
+                Globals.ShowNotification(Resources.Info, Resources.DateTimeSet, NotificationType.Information,
                     TimeSpan.FromSeconds(2));
             }
             else

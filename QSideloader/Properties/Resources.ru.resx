@@ -839,4 +839,13 @@
     <data name="DonationsUnavailable" xml:space="preserve">
         <value>Пожертвования недоступны</value>
     </data>
+    <data name="ErrorFixingDateTime" xml:space="preserve">
+        <value>Ошибка исправления даты и времени</value>
+    </data>
+    <data name="DateTimeSet" xml:space="preserve">
+        <value>Дата и время установлены</value>
+    </data>
+    <data name="FixDateTime" xml:space="preserve">
+        <value>Исправить дату и время</value>
+    </data>
 </root>

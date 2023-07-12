@@ -149,6 +149,8 @@
                                 Content="{x:Static p:Resources.ForceCleanupPackage}" />
                         <Button Margin="8,0,0,0" Command="{Binding CleanLeftoverApks}"
                                 Content="{x:Static p:Resources.CleanLeftoverApks}" />
+                        <Button Margin="8,0,0,0" Command="{Binding FixDateTime}"
+                                Content="{x:Static p:Resources.FixDateTime}" />
                     </StackPanel>
                 </StackPanel>
             </Expander>
