@@ -49,7 +49,7 @@
             <Button x:Name="RefreshButton"
                     ToolTip.Tip="{x:Static p:Resources.RefreshBackupsTooltip}"
                     Command="{Binding Refresh}"
-                    Content="{x:Static p:Resources.RefreshButton}">
+                    Content="{x:Static p:Resources.RefreshListButton}">
                 <Button.CommandParameter>
                     <system:Boolean>True</system:Boolean>
                 </Button.CommandParameter>

@@ -47,7 +47,7 @@
             </Button>
             <Button x:Name="RefreshButton"
                     Command="{Binding Refresh}" ToolTip.Tip="{x:Static p:Resources.RefreshInstalledAppsTooltip}"
-                    Content="{x:Static p:Resources.RefreshButton}">
+                    Content="{x:Static p:Resources.RefreshListButton}">
                 <Button.CommandParameter>
                     <system:Boolean>True</system:Boolean>
                 </Button.CommandParameter>

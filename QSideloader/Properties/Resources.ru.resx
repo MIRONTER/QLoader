@@ -79,8 +79,8 @@
     <data name="Popularity7DHeader" xml:space="preserve">
         <value>Популярность (7 дней)</value>
     </data>
-    <data name="RefreshButton" xml:space="preserve">
-        <value>Обновить</value>
+    <data name="RefreshListButton" xml:space="preserve">
+        <value>Обновить списко</value>
     </data>
     <data name="RefreshAvailableGamesTooltip" xml:space="preserve">
         <value>Перезагрузить список игр</value>

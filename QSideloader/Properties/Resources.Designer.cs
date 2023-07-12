@@ -1909,15 +1909,6 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Refresh.
-        /// </summary>
-        public static string RefreshButton {
-            get {
-                return ResourceManager.GetString("RefreshButton", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Rescan installed apps.
         /// </summary>
         public static string RefreshInstalledAppsTooltip {
@@ -1932,6 +1923,15 @@ namespace QSideloader.Properties {
         public static string RefreshInstalledGamesTooltip {
             get {
                 return ResourceManager.GetString("RefreshInstalledGamesTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Refresh.
+        /// </summary>
+        public static string RefreshListButton {
+            get {
+                return ResourceManager.GetString("RefreshListButton", resourceCulture);
             }
         }
         

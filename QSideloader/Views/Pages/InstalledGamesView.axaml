@@ -88,7 +88,7 @@
             <Button x:Name="RefreshButton"
                     Command="{Binding Refresh}" IsEnabled="{Binding !IsBusy}"
                     ToolTip.Tip="{x:Static p:Resources.RefreshInstalledGamesTooltip}"
-                    Content="{x:Static p:Resources.RefreshButton}">
+                    Content="{x:Static p:Resources.RefreshListButton}">
                 <Button.CommandParameter>
                     <system:Boolean>True</system:Boolean>
                 </Button.CommandParameter>

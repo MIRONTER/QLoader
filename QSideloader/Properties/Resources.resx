@@ -42,7 +42,7 @@ Are you sure you want to continue?</value>
     <data name="DeleteBackupsConfirmationButton" xml:space="preserve">
         <value>Yes, delete</value>
     </data>
-    <data name="RefreshButton" xml:space="preserve">
+    <data name="RefreshListButton" xml:space="preserve">
         <value>Refresh</value>
     </data>
     <data name="DateHeader" xml:space="preserve">
