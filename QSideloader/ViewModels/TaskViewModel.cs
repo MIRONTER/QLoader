@@ -207,8 +207,9 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     {
         var speedMBytes = Math.Round(stats.bytesPerSecond / 1000000, 2);
         var progressPercent = Math.Floor((double) stats.downloadedBytes / stats.totalBytes * 100);
+        var progressPercentString = progressPercent <= 100 ? $"{progressPercent}%" : "??%";
 
-        ProgressStatus = $"{progressPercent}%, {speedMBytes}MB/s";
+        ProgressStatus = $"{progressPercentString}, {speedMBytes}MB/s";
     }
 
     private async Task RunDownloadAndInstallAsync()
