@@ -904,7 +904,8 @@ public class DownloaderService
                     {
                         progress?.Report((args.BytesPerSecondSpeed, args.ReceivedBytesSize, args.TotalBytesToReceive));
                     }, TimeSpan.FromMilliseconds(100));
-            await downloader.DownloadFileTaskAsync(trailersAddonUrl, trailersAddonPath, ct);
+            await downloader.DownloadFileTaskAsync(trailersAddonUrl, trailersAddonPath + ".tmp", ct);
+            File.Move(trailersAddonPath + ".tmp", trailersAddonPath, true);
             ct.ThrowIfCancellationRequested();
 
             op.Complete();
@@ -914,8 +915,8 @@ public class DownloaderService
         {
             if (e is OperationCanceledException)
             {
-                if (File.Exists(trailersAddonPath))
-                    File.Delete(trailersAddonPath);
+                if (File.Exists(trailersAddonPath + ".tmp"))
+                    File.Delete(trailersAddonPath + ".tmp");
                 op.Cancel();
                 throw;
             }
