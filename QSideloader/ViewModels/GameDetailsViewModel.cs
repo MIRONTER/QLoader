@@ -192,7 +192,7 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
     {
         try
         {
-            var game = await ApiClient.GetGameStoreInfo(Game.PackageName);
+            var game = await ApiClient.GetGameStoreInfoAsync(Game.PackageName);
             if (game is null) return;
             if (!string.IsNullOrEmpty(game.DisplayName))
                 DisplayName = game.DisplayName;

@@ -48,7 +48,7 @@ public static class ApiClient
     /// </summary>
     /// <returns>Contents and name of the retrieved file.</returns>
     /// <exception cref="ApiException"></exception>
-    public static async Task<(string fileName, string content)> GetRcloneConfig(string? overrideUrl = null)
+    public static async Task<(string fileName, string content)> GetRcloneConfigAsync(string? overrideUrl = null)
     {
         try
         {
@@ -66,7 +66,7 @@ public static class ApiClient
         }
     }
 
-    public static async Task<List<Dictionary<string, JsonElement>>?> GetDeadMirrors()
+    public static async Task<List<Dictionary<string, JsonElement>>?> GetDeadMirrorsAsync()
     {
         return await ApiHttpClient.GetFromJsonAsync<List<Dictionary<string, JsonElement>>>("mirrors?status=DOWN");
     }
@@ -75,7 +75,7 @@ public static class ApiClient
     /// Retrieves the popularity stats.
     /// </summary>
     /// <returns></returns>
-    public static async Task<List<Dictionary<string, JsonElement>>?> GetPopularity()
+    public static async Task<List<Dictionary<string, JsonElement>>?> GetPopularityAsync()
     {
         // ReSharper disable once ConvertToUsingDeclaration
         using (var _ = Operation.Time("Requesting popularity from API"))
@@ -89,7 +89,7 @@ public static class ApiClient
     /// Retrieves the donation blacklist.
     /// </summary>
     /// <returns></returns>
-    public static async Task<string> GetDonationBlacklist()
+    public static async Task<string> GetDonationBlacklistAsync()
     {
         const string configUrl = $"{StaticFilesUrl}blacklist.txt";
         var response = await ApiHttpClient.GetAsync(configUrl);
@@ -101,7 +101,7 @@ public static class ApiClient
     ///     Reports the download of the provided package name.
     /// </summary>
     /// <param name="packageName">Package name of the downloaded game.</param>
-    public static async Task ReportGameDownload(string packageName)
+    public static async Task ReportGameDownloadAsync(string packageName)
     {
         using var op = Operation.Begin("Reporting game {PackageName} download to API", packageName);
         try
@@ -127,7 +127,7 @@ public static class ApiClient
     /// <param name="packageName">Package name to search info for.</param>
     /// <returns><see cref="OculusGame" /> containing the info, or <c>null</c> if no info was found.</returns>
     /// <exception cref="HttpRequestException">Thrown if API request was unsuccessful.</exception>
-    public static async Task<OculusGame?> GetGameStoreInfo(string? packageName)
+    public static async Task<OculusGame?> GetGameStoreInfoAsync(string? packageName)
     {
         if (packageName is null)
             return null;

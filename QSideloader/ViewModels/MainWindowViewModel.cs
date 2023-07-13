@@ -255,7 +255,7 @@ public class MainWindowViewModel : ViewModelBase
                 ApkInfo apkInfo;
                 try
                 {
-                    apkInfo = GeneralUtils.GetApkInfoAsync(fileName).GetAwaiter().GetResult();
+                    apkInfo = GeneralUtils.GetApkInfoAsync(fileName).ConfigureAwait(false).GetAwaiter().GetResult();
                 }
                 catch (Exception ex)
                 {

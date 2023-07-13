@@ -331,7 +331,7 @@ public class AdbService
                         Cli.Wrap(adbPath)
                             .WithArguments("kill-server")
                             .ExecuteBufferedAsync()
-                            .GetAwaiter().GetResult();
+                            .ConfigureAwait(false).GetAwaiter().GetResult();
                     }
                     catch (CommandExecutionException)
                     {
@@ -341,7 +341,7 @@ public class AdbService
                 Cli.Wrap(adbPath)
                     .WithArguments("start-server")
                     .ExecuteBufferedAsync()
-                    .GetAwaiter().GetResult();
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
             }
             catch (Exception e)
             {
@@ -1143,7 +1143,7 @@ public class AdbService
                 }
 
                 Log.Information("Refreshing list of installed games on {Device}", this);
-                _downloaderService.EnsureMetadataAvailableAsync().GetAwaiter().GetResult();
+                _downloaderService.EnsureMetadataAvailableAsync().ConfigureAwait(false).GetAwaiter().GetResult();
                 var query = from package in InstalledPackages.ToList()
                     where package.versionInfo is not null
                     // We can't determine which particular release is installed, so we list all releases with appropriate package name
@@ -1523,7 +1523,7 @@ public class AdbService
                     {
                         observer.OnNext((Resources.IncompatibleUpdateReinstalling, null));
                         Log.Information("Incompatible update, reinstalling. Reason: {Message}", e.Message);
-                        var apkInfo = GeneralUtils.GetApkInfoAsync(apkPath).GetAwaiter().GetResult();
+                        var apkInfo = GeneralUtils.GetApkInfoAsync(apkPath).ConfigureAwait(false).GetAwaiter().GetResult();
                         var backup = CreateBackup(apkInfo.PackageName, new BackupOptions {NameAppend = "reinstall"},
                             ct);
                         UninstallPackageInternal(apkInfo.PackageName);

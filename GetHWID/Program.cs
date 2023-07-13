@@ -33,7 +33,7 @@ static string GetHwid()
     {
         var ioregOutput = Cli.Wrap("ioreg")
             .WithArguments("-rd1 -c IOPlatformExpertDevice")
-            .ExecuteBufferedAsync().GetAwaiter().GetResult();
+            .ExecuteBufferedAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         var match = Regex.Match(ioregOutput.StandardOutput, "IOPlatformUUID\" = \"(.*?)\"");
         if (match.Success)
             hwid = match.Groups[1].Value;

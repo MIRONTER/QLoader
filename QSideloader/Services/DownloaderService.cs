@@ -142,7 +142,7 @@ public class DownloaderService
         {
             try
             {
-                var (fileName, config) = await ApiClient.GetRcloneConfig(overrideConfigUrl);
+                var (fileName, config) = await ApiClient.GetRcloneConfigAsync(overrideConfigUrl);
                 var oldConfigPath = Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, fileName);
                 var newConfigPath = Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, fileName + "_new");
                 await File.WriteAllTextAsync(newConfigPath, config);
@@ -245,7 +245,7 @@ public class DownloaderService
     /// </summary>
     private void ExcludeDeadMirrors()
     {
-        var list = ApiClient.GetDeadMirrors().GetAwaiter().GetResult();
+        var list = Task.Run(async () => await ApiClient.GetDeadMirrorsAsync()).Result;
         if (list is null) return;
         var count = 0;
         foreach (var mirrorName in list.Select(mirror => mirror["mirror_name"].GetString())
@@ -634,7 +634,7 @@ public class DownloaderService
         {
             try
             {
-                var popularity = await ApiClient.GetPopularity();
+                var popularity = await ApiClient.GetPopularityAsync();
 
                 if (popularity is not null)
                 {
@@ -674,7 +674,7 @@ public class DownloaderService
         {
             try
             {
-                var blacklist = await ApiClient.GetDonationBlacklist();
+                var blacklist = await ApiClient.GetDonationBlacklistAsync();
                 await File.WriteAllTextAsync(Path.Combine("metadata", "blacklist_new.txt"), blacklist);
                 File.Move(Path.Combine("metadata", "blacklist_new.txt"), Path.Combine("metadata", "blacklist.txt"),
                     true);
@@ -747,7 +747,7 @@ public class DownloaderService
                             $"Didn't find directory with downloaded files on path \"{dstPath}\"");
                     var json = JsonConvert.SerializeObject(game, Formatting.Indented);
                     await File.WriteAllTextAsync(Path.Combine(dstPath, "release.json"), json, ct);
-                    Task.Run(() => ApiClient.ReportGameDownload(game.PackageName!), ct).SafeFireAndForget();
+                    Task.Run(() => ApiClient.ReportGameDownloadAsync(game.PackageName!), ct).SafeFireAndForget();
                     break;
                 }
                 catch (DownloadQuotaExceededException e)
