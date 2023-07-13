@@ -284,4 +284,15 @@ public static class GeneralUtils
 
         return overrides;
     }
+    
+    public static string GetIanaTimeZoneId(TimeZoneInfo tzi)
+    {
+        if (tzi.HasIanaId)
+            return tzi.Id;  // no conversion necessary
+
+        if (TimeZoneInfo.TryConvertWindowsIdToIanaId(tzi.Id, out var ianaId))
+            return ianaId;  // use the converted ID
+
+        throw new TimeZoneNotFoundException($"No IANA time zone found for \"{tzi.Id}\".");
+    }
 }

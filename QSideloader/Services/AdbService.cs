@@ -2058,12 +2058,35 @@ public class AdbService
             }
         }
 
-        public void FixDateTime()
+        public bool TryFixDateTime()
         {
+            // Set time
             var timeSinceEpoch = DateTimeOffset.Now.ToUnixTimeMilliseconds();
             Log.Information("Setting date and time on device to {TimeSinceEpoch}", timeSinceEpoch);
             if (RunShellCommand($"service call alarm 2 i64 {timeSinceEpoch}", true) != "Result: Parcel(00000000 00000001   '........')")
                 Log.Warning("Unexpected result when setting time");
+            // Verify time
+            var time = long.Parse(RunShellCommand("date +%s%N | cut -b1-13", true));
+            var timeDiff = Math.Abs(time - timeSinceEpoch);
+            if (timeDiff > 1000)
+            {
+                Log.Error("Time verification failed (diff: {TimeDiff} > 1000ms)", timeDiff);
+                return false;
+            }
+            
+            // Set timezone
+            var tzId = GeneralUtils.GetIanaTimeZoneId(TimeZoneInfo.Local);
+            Log.Information("Setting timezone on device to {TzId}", tzId);
+            if (RunShellCommand($"service call alarm 3 s16 {tzId}", true) != "Result: Parcel(00000000    '....')")
+                Log.Warning("Unexpected result when setting timezone");
+            // Verify timezone
+            if (RunShellCommand("getprop persist.sys.timezone", true) != tzId)
+            {
+                Log.Error("Timezone verification failed");
+                return false;
+            }
+            
+            return true;
         }
     }
 }

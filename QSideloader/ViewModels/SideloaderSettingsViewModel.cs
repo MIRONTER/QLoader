@@ -764,7 +764,8 @@ public class SideloaderSettingsViewModel : ViewModelBase
             var adbService = AdbService.Instance;
             if (adbService.CheckDeviceConnection())
             {
-                adbService.Device!.FixDateTime();
+                if (!adbService.Device!.TryFixDateTime())
+                    throw new Exception("Failed to set date and time on device");
                 Globals.ShowNotification(Resources.Info, Resources.DateTimeSet, NotificationType.Information,
                     TimeSpan.FromSeconds(2));
             }
