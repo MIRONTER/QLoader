@@ -35,7 +35,10 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private string? _path;
     private readonly BackupOptions? _backupOptions;
 
-    // Dummy constructor for XAML, do not use
+    /// <summary>
+    /// Dummy constructor for XAML, do not use
+    /// </summary>
+    [Obsolete("Only for XAML", true)]
     public TaskViewModel()
     {
         _adbService = AdbService.Instance;

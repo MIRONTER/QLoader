@@ -22,7 +22,10 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
     private static LibVLC? _libVlc;
     private readonly AdbService _adbService;
 
-    // Dummy constructor for XAML, do not use
+    /// <summary>
+    /// Dummy constructor for XAML, do not use
+    /// </summary>
+    [Obsolete("Only for XAML", true)]
     public GameDetailsViewModel()
     {
         Activator = new ViewModelActivator();

@@ -139,11 +139,6 @@
                                     <StackPanel />
                                 </ItemsPanelTemplate>
                             </ListBox.ItemsPanel>
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <views:TaskView Margin="0,4,4,4" />
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
                         </ListBox>
                     </StackPanel>
                 </Border>

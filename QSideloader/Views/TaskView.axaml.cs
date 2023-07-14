@@ -9,7 +9,6 @@ namespace QSideloader.Views;
 
 public partial class TaskView : ReactiveUserControl<TaskViewModel>
 {
-    // Dummy constructor for XAML
     public TaskView()
     {
         InitializeComponent();
