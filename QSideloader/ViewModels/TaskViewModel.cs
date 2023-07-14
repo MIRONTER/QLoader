@@ -32,7 +32,6 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private readonly InstalledApp? _app;
     private readonly Backup? _backup;
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
-    private readonly TaskType _taskType;
     private string? _path;
     private readonly BackupOptions? _backupOptions;
 
@@ -59,7 +58,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         _downloaderService = DownloaderService.Instance;
         _sideloaderSettings = Globals.SideloaderSettings;
         TaskId = new TaskId();
-        _taskType = taskOptions.Type;
+        TaskType = taskOptions.Type;
         Func<Task> action;
         Activator = new ViewModelActivator();
         switch (taskOptions.Type)
@@ -156,7 +155,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         });
         RunTask.ThrownExceptions.Subscribe(ex =>
         {
-            Log.Error(ex, "Task {TaskId} {TaskType} {TaskName} failed", TaskId, _taskType, TaskName);
+            Log.Error(ex, "Task {TaskId} {TaskType} {TaskName} failed", TaskId, TaskType, TaskName);
             if (!IsFinished)
                 OnFinished($"{Resources.TaskFailed}: {ex.Message}", false, ex);
         });
@@ -165,14 +164,22 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     public ReactiveCommand<Unit, Unit> RunTask { get; }
 
     public TaskId TaskId { get; }
+    public TaskType TaskType { get; }
+
     public string TaskName { get; }
     public bool IsFinished { get; private set; }
     public string? GameName { get; }
+    public string? PackageName => _app?.PackageName ?? _game?.PackageName;
     [Reactive] public string Status { get; private set; } = "Status";
     [Reactive] public string ProgressStatus { get; private set; } = "";
     [Reactive] public string Hint { get; private set; } = "";
 
     public ViewModelActivator Activator { get; }
+
+    public void Run()
+    {
+        RunTask.Execute().Subscribe();
+    }
 
     private void RefreshDownloadStats((float downloadSpeedBytes, double downloadedBytes)? stats)
     {
@@ -372,8 +379,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             Status = Resources.CalculatingSize;
             _gameSizeBytes = await _downloaderService.GetGameSizeBytesAsync(_game!, _cancellationTokenSource.Token);
             Status = Resources.Downloading;
-            downloadStatsSubscription = _downloaderService
-                .PollStats(TimeSpan.FromMilliseconds(100), ThreadPoolScheduler.Instance)
+            downloadStatsSubscription = DownloaderService.PollStats(TimeSpan.FromMilliseconds(100), ThreadPoolScheduler.Instance)
                 .SubscribeOn(RxApp.TaskpoolScheduler)
                 .Subscribe(RefreshDownloadStats);
             var gamePath = await _downloaderService.DownloadGameAsync(_game!, _cancellationTokenSource.Token);
@@ -531,7 +537,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         Status = Resources.ResourceManager.GetString(statusResourceNameOrString) ?? statusResourceNameOrString;
         ProgressStatus = "";
         Log.Information("Task {TaskId} {TaskType} {TaskName} finished. Result: {Status}. Is success: {IsSuccess}",
-            TaskId, _taskType, TaskName,
+            TaskId, TaskType, TaskName,
             Resources.ResourceManager.GetString(statusResourceNameOrString, CultureInfo.InvariantCulture)
             ?? statusResourceNameOrString, isSuccess);
         Globals.MainWindowViewModel!.OnTaskFinished(isSuccess, TaskId);
@@ -553,7 +559,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     {
         if (_cancellationTokenSource.IsCancellationRequested || IsFinished) return;
         _cancellationTokenSource.Cancel();
-        Log.Information("Requested cancellation of task {TaskType} {TaskName}", _taskType, TaskName);
+        Log.Information("Requested cancellation of task {TaskType} {TaskName}", TaskType, TaskName);
     }
 
     /// <summary>

@@ -5,7 +5,8 @@
              xmlns:viewModels="clr-namespace:QSideloader.ViewModels"
              xmlns:p="clr-namespace:QSideloader.Properties"
              mc:Ignorable="d" d:DesignWidth="570" d:DesignHeight="128"
-             x:Class="QSideloader.Views.DeviceSettingsView">
+             x:Class="QSideloader.Views.DeviceSettingsView"
+             x:DataType="viewModels:DeviceSettingsViewModel">
     <Design.DataContext>
         <viewModels:DeviceSettingsViewModel />
     </Design.DataContext>
@@ -31,25 +32,25 @@
                         <ComboBox x:Name="RefreshRateBox"
                                   Margin="0,0,0,0" PlaceholderText="Refresh rate"
                                   MinWidth="119"
-                                  Items="{Binding RefreshRates}"
+                                  ItemsSource="{Binding RefreshRates}"
                                   SelectedItem="{Binding SelectedRefreshRate, Mode=TwoWay}"
                                   ToolTip.Tip="Refresh rate" />
                         <ComboBox x:Name="GpuLevelBox"
                                   Margin="8,0,0,0" PlaceholderText="GPU level"
                                   MinWidth="120"
-                                  Items="{Binding GpuLevels, Mode=TwoWay}"
+                                  ItemsSource="{Binding GpuLevels, Mode=TwoWay}"
                                   SelectedItem="{Binding SelectedGpuLevel}"
                                   ToolTip.Tip="GPU level" />
                         <ComboBox x:Name="CpuLevelBox"
                                   Margin="8,0,0,0" PlaceholderText="CPU level"
                                   MinWidth="119"
-                                  Items="{Binding CpuLevels, Mode=TwoWay}"
+                                  ItemsSource="{Binding CpuLevels, Mode=TwoWay}"
                                   SelectedItem="{Binding SelectedCpuLevel}"
                                   ToolTip.Tip="CPU level" />
                         <ComboBox x:Name="TextureSizeBox"
                                   Margin="8,0,0,0" PlaceholderText="Default texture size"
                                   MinWidth="120"
-                                  Items="{Binding TextureSizes, Mode=TwoWay}"
+                                  ItemsSource="{Binding TextureSizes, Mode=TwoWay}"
                                   SelectedItem="{Binding SelectedTextureSize}"
                                   ToolTip.Tip="Default texture size" />
                     </StackPanel>

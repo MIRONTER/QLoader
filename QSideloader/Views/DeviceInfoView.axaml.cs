@@ -1,20 +1,14 @@
-﻿using Avalonia.Markup.Xaml;
-using Avalonia.ReactiveUI;
+﻿using Avalonia.ReactiveUI;
 using QSideloader.ViewModels;
 
 namespace QSideloader.Views;
 
-public class DeviceInfoView : ReactiveUserControl<DeviceInfoViewModel>
+public partial class DeviceInfoView : ReactiveUserControl<DeviceInfoViewModel>
 {
     public DeviceInfoView()
     {
+        InitializeComponent();
         ViewModel = new DeviceInfoViewModel();
         DataContext = ViewModel;
-        InitializeComponent();
-    }
-
-    private void InitializeComponent()
-    {
-        AvaloniaXamlLoader.Load(this);
     }
 }

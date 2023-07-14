@@ -3,13 +3,12 @@ using System.Diagnostics.CodeAnalysis;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
-using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
 using QSideloader.ViewModels;
 
 namespace QSideloader.Views;
 
-public class GameDetailsWindow : ReactiveWindow<GameDetailsViewModel>
+public partial class GameDetailsWindow : ReactiveWindow<GameDetailsViewModel>
 {
     public GameDetailsWindow()
     {
@@ -21,16 +20,11 @@ public class GameDetailsWindow : ReactiveWindow<GameDetailsViewModel>
 
     public GameDetailsWindow(GameDetailsViewModel viewModel)
     {
-        DataContext = viewModel;
         InitializeComponent();
+        DataContext = viewModel;
 #if DEBUG
         this.AttachDevTools();
 #endif
-    }
-
-    private void InitializeComponent()
-    {
-        AvaloniaXamlLoader.Load(this);
     }
 
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]

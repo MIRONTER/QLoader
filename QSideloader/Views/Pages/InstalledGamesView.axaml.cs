@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
 using FluentAvalonia.UI.Controls;
 using QSideloader.Controls;
@@ -15,21 +15,17 @@ using Serilog;
 
 namespace QSideloader.Views.Pages;
 
-public class InstalledGamesView : ReactiveUserControl<InstalledGamesViewModel>
+public partial class InstalledGamesView : ReactiveUserControl<InstalledGamesViewModel>
 {
     public InstalledGamesView()
     {
+        InitializeComponent();
         ViewModel = new InstalledGamesViewModel();
         DataContext = ViewModel;
-        InitializeComponent();
     }
 
-    private void InitializeComponent()
-    {
-        AvaloniaXamlLoader.Load(this);
-    }
-
-    private void InstalledGamesDataGrid_OnDoubleTapped(object? sender, RoutedEventArgs e)
+    [SuppressMessage("ReSharper", "SuggestBaseTypeForParameter")]
+    private void InstalledGamesDataGrid_OnDoubleTapped(object? sender, TappedEventArgs e)
     {
         var dataGrid = (DataGrid?) sender;
         if (dataGrid is null || e.Source is FontIcon) return;
@@ -115,7 +111,7 @@ public class InstalledGamesView : ReactiveUserControl<InstalledGamesViewModel>
     {
         var dataGrid = (DataGrid?) sender;
         if (dataGrid is null || e.InitialPressMouseButton != MouseButton.Middle) return;
-        var source = e.Source as IControl;
+        var source = e.Source as Control;
         if (source?.DataContext is not Game selectedGame) return;
         Globals.MainWindowViewModel!.ShowGameDetailsCommand.Execute(selectedGame).Subscribe(_ => { }, _ => { });
         e.Handled = true;

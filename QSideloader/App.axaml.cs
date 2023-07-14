@@ -1,15 +1,17 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Controls.Notifications;
 using Avalonia.Markup.Xaml;
 using QSideloader.Utilities;
 using QSideloader.ViewModels;
 using QSideloader.Views;
+using ReactiveUI;
+using Splat;
 
 namespace QSideloader;
 
@@ -32,6 +34,8 @@ public class App : Application
                 Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("en");
             LoggerHelper.InitializeLogging(sideloaderSettings);
         }
+        
+        Locator.CurrentMutable.RegisterViewsForViewModels(Assembly.GetCallingAssembly());
 
         AvaloniaXamlLoader.Load(this);
     }
@@ -43,13 +47,8 @@ public class App : Application
             desktop.ShutdownMode = ShutdownMode.OnMainWindowClose;
             var mainWindow = new MainWindow();
             desktop.MainWindow = mainWindow;
-            var notificationManager = new WindowNotificationManager(desktop.MainWindow)
-            {
-                Position = NotificationPosition.TopRight,
-                MaxItems = 3
-            };
-            Globals.MainWindowViewModel = new MainWindowViewModel(mainWindow, notificationManager);
-            desktop.MainWindow.DataContext = Globals.MainWindowViewModel;
+            desktop.MainWindow.DataContext = new MainWindowViewModel(mainWindow);
+            Globals.MainWindowViewModel = (MainWindowViewModel)desktop.MainWindow.DataContext;
         }
 
         base.OnFrameworkInitializationCompleted();

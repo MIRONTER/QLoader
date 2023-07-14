@@ -109,8 +109,7 @@ public static class GeneralUtils
         }
 
         var bytes = Encoding.UTF8.GetBytes(hwid!);
-        var sha256 = SHA256.Create();
-        var hash = sha256.ComputeHash(bytes);
+        var hash = SHA256.HashData(bytes);
 
         return BitConverter.ToString(hash).Replace("-", "");
     }
@@ -130,7 +129,7 @@ public static class GeneralUtils
 
         foreach (var o in searcher.Get())
         {
-            var queryObj = (ManagementObject) o;
+            var queryObj = (ManagementObject)o;
             sb.Append(queryObj["NumberOfCores"]);
             sb.Append(queryObj["ProcessorId"]);
             sb.Append(queryObj["Name"]);
@@ -142,7 +141,7 @@ public static class GeneralUtils
 
         foreach (var o in searcher.Get())
         {
-            var queryObj = (ManagementObject) o;
+            var queryObj = (ManagementObject)o;
             sb.Append(queryObj["Manufacturer"]);
             sb.Append(queryObj["Name"]);
             sb.Append(queryObj["Version"]);
@@ -153,14 +152,13 @@ public static class GeneralUtils
 
         foreach (var o in searcher.Get())
         {
-            var queryObj = (ManagementObject) o;
+            var queryObj = (ManagementObject)o;
             sb.Append(queryObj["Product"]);
         }
 
         var bytes = Encoding.ASCII.GetBytes(sb.ToString());
-        var sha = SHA256.Create();
 
-        var hash = sha.ComputeHash(bytes);
+        var hash = SHA256.HashData(bytes);
 
         return BitConverter.ToString(hash).Replace("-", "");
     }

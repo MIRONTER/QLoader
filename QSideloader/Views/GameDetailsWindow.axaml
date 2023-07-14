@@ -22,7 +22,8 @@
         SizeToContent="Manual"
         KeyUp="OnKeyUp"
         Closed="Window_OnClosed"
-        Opened="Window_OnOpened">
+        Opened="Window_OnOpened"
+        x:DataType="viewModels:GameDetailsViewModel">
     <Design.DataContext>
         <viewModels:GameDetailsViewModel />
     </Design.DataContext>
@@ -61,7 +62,7 @@
                                HorizontalAlignment="Stretch"
                                IsVisible="{Binding ShowTrailerPlayer}" />
                 <Image Grid.Row="2" Grid.Column="0"
-                       Source="{Binding ThumbnailPath, Converter={StaticResource VariableImageFromFiles}}"
+                       Source="{Binding ThumbnailPath, Mode=OneWay, Converter={StaticResource VariableImageFromFiles}}"
                        MaxWidth="505"
                        MaxHeight="300"
                        VerticalAlignment="Top"
@@ -92,7 +93,7 @@
                         </TextBlock.Text>
                     </TextBlock>
                     <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="3" Margin="1,6,0,0" FontWeight="Light"
-                               IsVisible="{Binding StoreRating, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                               IsVisible="{Binding StoreRating, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                         <TextBlock.Text>
                             <MultiBinding StringFormat="{}{0}: {1}">
                                 <Binding Source="{x:Static p:Resources.StoreRating}" />
@@ -105,7 +106,7 @@
                                HorizontalAlignment="Left"
                                Width="400"
                                TextWrapping="Wrap"
-                               IsVisible="{Binding Game.Note, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                               IsVisible="{Binding Game.Note, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                         <TextBlock.Text>
                             <MultiBinding StringFormat="{}{0}: {1}">
                                 <Binding Source="{x:Static p:Resources.Note}" />
@@ -115,7 +116,7 @@
                     </TextBlock>
                     <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="5" FontWeight="Light"
                                Margin="0,6,0,0"
-                               IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                               IsVisible="{Binding Description, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                Text="{x:Static p:Resources.DescriptionColon}" />
                     <ScrollViewer Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="6" FontWeight="Light"
                                   HorizontalAlignment="Left"
@@ -127,7 +128,7 @@
                             BorderThickness="0"
                             IsReadOnly="True"
                             TextWrapping="Wrap" FontWeight="Light"
-                            IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                            IsVisible="{Binding Description, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                             Text="{Binding Description}" />
                     </ScrollViewer>
                 </Grid>

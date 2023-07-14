@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Globalization;
 using System.Reflection;
-using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
@@ -42,10 +41,7 @@ public class BitmapAssetValueConverter : IValueConverter
                     uri = new Uri($"avares://{assemblyName}{rawUri}");
                 }
 
-                var assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
-                var asset = assets!.Open(uri);
-
-                return new Bitmap(asset);
+                return new Bitmap(AssetLoader.Open(uri));
             }
             default:
                 throw new NotSupportedException();

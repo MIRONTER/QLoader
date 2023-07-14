@@ -105,7 +105,7 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
     }
 
     public Game Game { get; }
-    [Reactive] public string? ThumbnailPath { get; set; } = Path.Combine("Resources", "NoThumbnailImage.png");
+    public string? ThumbnailPath { get; } = Path.Combine("Resources", "NoThumbnailImage.png");
     public ReactiveCommand<Unit, Unit> DownloadAndInstall { get; }
     public ReactiveCommand<Unit, Unit> DownloadOnly { get; }
     [Reactive] public MediaPlayer? MediaPlayer { get; set; }

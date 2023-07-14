@@ -143,17 +143,17 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [NeedsRelaunch]
     [Reactive]
     [JsonProperty]
-    public bool CheckUpdatesAutomatically { get; private set; }
+    public bool CheckUpdatesAutomatically { get; set; }
 
     public string[] ConnectionTypes { get; } = {"USB", "Wireless"};
-    [Reactive] [JsonProperty] public string? PreferredConnectionType { get; private set; }
-    [Reactive] public string DownloadsLocationTextBoxText { get; private set; } = "";
+    [Reactive] [JsonProperty] public string? PreferredConnectionType { get; set; }
+    [Reactive] public string DownloadsLocationTextBoxText { get; set; } = "";
     [JsonProperty] public string DownloadsLocation { get; private set; } = "";
-    [Reactive] public string BackupsLocationTextBoxText { get; private set; } = "";
+    [Reactive] public string BackupsLocationTextBoxText { get; set; } = "";
     [JsonProperty] public string BackupsLocation { get; private set; } = "";
     [JsonProperty] public string LastMediaPullLocation { get; set; } = "";
-    [Reactive] public string DownloaderBandwidthLimitTextBoxText { get; private set; } = "";
-    [JsonProperty] public string DownloaderBandwidthLimit { get; private set; } = "";
+    [Reactive] public string DownloaderBandwidthLimitTextBoxText { get; set; } = "";
+    [JsonProperty] public string DownloaderBandwidthLimit { get; set; } = "";
     [Reactive] [JsonProperty] public DownloadsPruningPolicy DownloadsPruningPolicy { get; set; }
 
     public List<DownloadsPruningPolicy> AllDownloadsPruningPolicies { get; } =
@@ -162,7 +162,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [NeedsRelaunch]
     [Reactive]
     [JsonProperty]
-    public bool EnableDebugConsole { get; private set; }
+    public bool EnableDebugConsole { get; set; }
 
     [Reactive] [JsonProperty] public string LastWirelessAdbHost { get; set; } = "";
 
@@ -180,10 +180,10 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [Reactive] public string? SelectedMirror { get; set; }
     public bool IsSwitchingMirror => _isSwitchingMirror.Value;
     public string[] PopularityRanges { get; } = {"30 days", "7 days", "1 day", "None"};
-    [Reactive] [JsonProperty] public string? PopularityRange { get; private set; }
+    [Reactive] [JsonProperty] public string? PopularityRange { get; set; }
     [JsonProperty] public Guid InstallationId { get; private set; } = Guid.NewGuid();
     [JsonProperty] public ObservableCollection<(string packageName, int versionCode)> DonatedPackages { get; } = new();
-    [JsonProperty] public ObservableCollection<string> IgnoredDonationPackages { get; private set; } = new();
+    [JsonProperty] public ObservableCollection<string> IgnoredDonationPackages { get; set; } = new();
     [Reactive] [JsonProperty] public DateTime DonationBarLastShown { get; set; }
     [Reactive] [JsonProperty] public Dictionary<string, int> LastDonatableApps { get; set; } = new();
     [Reactive] public bool IsTrailersAddonInstalled { get; set; }
@@ -191,28 +191,28 @@ public class SideloaderSettingsViewModel : ViewModelBase
     [NeedsRelaunch]
     [Reactive]
     [JsonProperty]
-    public bool EnableRemoteLogging { get; private set; }
+    public bool EnableRemoteLogging { get; set; }
 
-    [Reactive] [JsonProperty] public bool EnableAutoDonation { get; private set; }
+    [Reactive] [JsonProperty] public bool EnableAutoDonation { get; set; }
     
-    [Reactive] [JsonProperty] public bool DisableDonationNotification { get; private set; }
+    [Reactive] [JsonProperty] public bool DisableDonationNotification { get; set; }
 
     [NeedsRelaunch]
     [Reactive]
     [JsonProperty]
-    public bool ForceEnglish { get; private set; }
+    public bool ForceEnglish { get; set; }
 
-    [Reactive] [JsonProperty] public bool EnableTaskAutoDismiss { get; private set; }
-    [Reactive] public string TaskAutoDismissDelayTextBoxText { get; private set; } = "";
+    [Reactive] [JsonProperty] public bool EnableTaskAutoDismiss { get; set; }
+    [Reactive] public string TaskAutoDismissDelayTextBoxText { get; set; } = "";
 
     /// <summary>
     /// Task auto dismiss delay in seconds
     /// </summary>
     [JsonProperty]
-    public int TaskAutoDismissDelay { get; private set; } = 10;
+    public int TaskAutoDismissDelay { get; set; } = 10;
 
     private ReactiveCommand<bool, Unit> SaveSettings { get; }
-    private ReactiveCommand<Unit, Unit> RestoreDefaults { get; }
+    public ReactiveCommand<Unit, Unit> RestoreDefaults { get; }
     public ReactiveCommand<Unit, Unit> BrowseDownloadsDirectory { get; }
     public ReactiveCommand<Unit, Unit> SetDownloadLocation { get; }
     public ReactiveCommand<Unit, Unit> BrowseBackupsDirectory { get; }
@@ -617,7 +617,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     {
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var mainWindow = desktop.MainWindow;
+            var mainWindow = desktop.MainWindow!;
             var result = await new OpenFolderDialog
             {
                 Title = Resources.SelectDownloadsFolder,
@@ -635,7 +635,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     {
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var mainWindow = desktop.MainWindow;
+            var mainWindow = desktop.MainWindow!;
             var result = await new OpenFolderDialog
             {
                 Title = Resources.SelectBackupsFolder,
@@ -651,7 +651,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
 
     private async Task CopyInstallationIdImpl()
     {
-        await Application.Current!.Clipboard!.SetTextAsync(InstallationId.ToString());
+        await ClipboardHelper.SetTextAsync(InstallationId.ToString());
         Globals.ShowNotification(Resources.Info, Resources.InstallationIdCopied, NotificationType.Success,
             TimeSpan.FromSeconds(2));
     }

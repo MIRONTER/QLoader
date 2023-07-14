@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
 using FluentAvalonia.UI.Controls;
 using QSideloader.Controls;
@@ -14,21 +14,17 @@ using QSideloader.ViewModels;
 
 namespace QSideloader.Views.Pages;
 
-public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
+public partial class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
 {
     public AvailableGamesView()
     {
+        InitializeComponent();
         ViewModel = new AvailableGamesViewModel();
         DataContext = ViewModel;
-        InitializeComponent();
     }
 
-    private void InitializeComponent()
-    {
-        AvaloniaXamlLoader.Load(this);
-    }
-
-    private void AvailableGamesDataGrid_OnDoubleTapped(object? sender, RoutedEventArgs e)
+    [SuppressMessage("ReSharper", "SuggestBaseTypeForParameter")]
+    private void AvailableGamesDataGrid_OnDoubleTapped(object? sender, TappedEventArgs e)
     {
         var dataGrid = (DataGrid?) sender;
         if (dataGrid is null || e.Source is FontIcon) return;
@@ -99,7 +95,7 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
                 // Highlight the text
                 searchBox.Focus();
                 searchBox.SelectionStart = 0;
-                searchBox.SelectionEnd = searchBox.Text.Length;
+                searchBox.SelectionEnd = searchBox.Text?.Length ?? 0;
                 e.Handled = true;
             }
         }
@@ -146,7 +142,7 @@ public class AvailableGamesView : ReactiveUserControl<AvailableGamesViewModel>
     {
         var dataGrid = (DataGrid?) sender;
         if (dataGrid is null || e.InitialPressMouseButton != MouseButton.Middle) return;
-        var source = e.Source as IControl;
+        var source = e.Source as Control;
         if (source?.DataContext is not Game selectedGame) return;
         Globals.MainWindowViewModel!.ShowGameDetailsCommand.Execute(selectedGame).Subscribe(_ => { }, _ => { });
         e.Handled = true;

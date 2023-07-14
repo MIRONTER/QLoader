@@ -49,15 +49,13 @@ public class MainWindowViewModel : ViewModelBase
     // ReSharper restore PrivateFieldCanBeConvertedToLocalVariable
 
     private readonly Subject<Unit> _gameDonateSubject = new();
-    private readonly IManagedNotificationManager _notificationManager;
 
-    public MainWindowViewModel(IMainWindow mainWindow, IManagedNotificationManager notificationManager)
+    public MainWindowViewModel(IMainWindow mainWindow)
     {
         _adbService = AdbService.Instance;
         _downloaderService = DownloaderService.Instance;
         _mainWindow = mainWindow;
         _sideloaderSettings = Globals.SideloaderSettings;
-        _notificationManager = notificationManager;
         ShowGameDetailsCommand = ReactiveCommand.Create<Game>(game =>
         {
             if (_downloaderService.AvailableGames is null) return;
@@ -66,7 +64,7 @@ public class MainWindowViewModel : ViewModelBase
             var dialog = new GameDetailsWindow(gameDetails);
             if (Application.Current is null) return;
             var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
-                ?.MainWindow;
+                ?.MainWindow!;
             dialog.Show(window);
         });
         ShowGameDetailsCommand.ThrownExceptions.Subscribe(ex =>
@@ -93,10 +91,11 @@ public class MainWindowViewModel : ViewModelBase
         IsDeviceConnected = _adbService.CheckDeviceConnection();
     }
 
+    public INotificationManager? NotificationManager { get; set; }
     [Reactive] public bool IsDeviceConnected { get; private set; }
     [Reactive] public bool IsDeviceUnauthorized { get; private set; }
     
-    public ObservableCollection<TaskView> TaskList { get; } = new();
+    public ObservableCollection<TaskViewModel> TaskList { get; } = new();
 
     [Reactive] public int DonatableAppsCount { get; private set; }
     [Reactive] public bool DonationBarShown { get; private set; }
@@ -113,7 +112,7 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Game, Unit> ShowGameDetailsCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowConnectionHelpDialog { get; }
     public ReactiveCommand<Unit, Unit> ShowAuthHelpDialog { get; }
-    public ReactiveCommand<Unit, Unit> DonateAllGames { get; }
+    private ReactiveCommand<Unit, Unit> DonateAllGames { get; }
     public ReactiveCommand<Unit, Unit> ShowSharingDialog { get; }
 
     public void AddTask(TaskOptions taskOptions)
@@ -132,15 +131,15 @@ public class MainWindowViewModel : ViewModelBase
                 }
             }
 
-            var taskView = new TaskView(taskOptions);
-            using (LogContext.PushProperty("TaskId", taskView.TaskId))
+            var task = new TaskViewModel(taskOptions);
+            using (LogContext.PushProperty("TaskId", task.TaskId))
             {
-                Log.Information("Adding task {TaskId} {TaskType} {TaskName}", taskView.TaskId, taskOptions.Type,
-                    taskView.TaskName);
-                TaskList.Add(taskView);
-                taskView.Run();
+                Log.Information("Adding task {TaskId} {TaskType} {TaskName}", task.TaskId, taskOptions.Type,
+                    task.TaskName);
+                TaskList.Add(task);
+                task.Run();
             }
-        }).ContinueWith(t =>
+        }).GetTask().ContinueWith(t =>
         {
             if (!t.IsFaulted) return;
             var exception = t.Exception?.InnerException ?? t.Exception!;
@@ -149,7 +148,7 @@ public class MainWindowViewModel : ViewModelBase
         }, TaskContinuationOptions.OnlyOnFaulted);
     }
 
-    public IEnumerable<TaskView> GetTaskList()
+    public IEnumerable<TaskViewModel> GetTaskList()
     {
         return TaskList.ToList();
     }
@@ -404,7 +403,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         Dispatcher.UIThread.InvokeAsync(() =>
         {
-            _notificationManager.Show(
+            NotificationManager?.Show(
                 new Avalonia.Controls.Notifications.Notification(title, message, type, expiration));
         });
     }
@@ -424,7 +423,7 @@ public class MainWindowViewModel : ViewModelBase
         message += "\n" + Resources.ClickToSeeDetails;
         Dispatcher.UIThread.InvokeAsync(() =>
         {
-            _notificationManager.Show(new Avalonia.Controls.Notifications.Notification(Resources.Error, message,
+            NotificationManager?.Show(new Avalonia.Controls.Notifications.Notification(Resources.Error, message,
                 type, expiration, () =>
                 {
                     var dialog = new ContentDialog
@@ -446,7 +445,7 @@ public class MainWindowViewModel : ViewModelBase
                         SecondaryButtonText = Resources.CopyToClipboardButton,
                         SecondaryButtonCommand = ReactiveCommand.Create(async () =>
                         {
-                            await Application.Current!.Clipboard!.SetTextAsync(text);
+                            await ClipboardHelper.SetTextAsync(text);
                             ShowNotification(Resources.CopiedToClipboardHeader, Resources.ExceptionCopiedToClipboard,
                                 NotificationType.Success);
                         })
@@ -461,7 +460,7 @@ public class MainWindowViewModel : ViewModelBase
         try
         {
             var link = await GeneralUtils.CreatePasteAsync(text);
-            await Application.Current!.Clipboard!.SetTextAsync(link);
+            await ClipboardHelper.SetTextAsync(link);
             Log.Information("Copied link to clipboard: {Link}", link);
             ShowNotification(Resources.CopiedToClipboardHeader,
                 Resources.LinkCopiedToClipboard,
@@ -575,7 +574,7 @@ public class MainWindowViewModel : ViewModelBase
                 PrimaryButtonText = Resources.CopyToClipboardButton,
                 PrimaryButtonCommand = ReactiveCommand.Create(async () =>
                 {
-                    await Application.Current!.Clipboard!.SetTextAsync(text);
+                    await ClipboardHelper.SetTextAsync(text);
                     ShowNotification(Resources.CopiedToClipboardHeader, Resources.AdbDevicesCopiedToClipboard,
                         NotificationType.Success);
                 }),

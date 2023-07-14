@@ -9,7 +9,9 @@
              xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
              xmlns:p="clr-namespace:QSideloader.Properties"
-             x:Class="QSideloader.Views.Pages.OtherAppsView">
+             xmlns:models="clr-namespace:QSideloader.Models"
+             x:Class="QSideloader.Views.Pages.OtherAppsView"
+             x:DataType="vm:InstalledAppsViewModel">
     <Design.DataContext>
         <vm:InstalledAppsViewModel />
     </Design.DataContext>
@@ -54,15 +56,15 @@
             </Button>
         </StackPanel>
         <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
-        <DataGrid Grid.Row="1" x:Name="InstalledGamesDataGrid"
-                  Items="{Binding InstalledApps}"
+        <DataGrid Grid.Row="1" x:Name="InstalledGamesDataGrid" x:DataType="models:InstalledApp"
+                  ItemsSource="{Binding (vm:InstalledAppsViewModel).InstalledApps}"
                   AutoGenerateColumns="False" CanUserResizeColumns="True">
             <DataGrid.Columns>
                 <DataGridTemplateColumn Width="52"
                                         IsReadOnly="False"
                                         CanUserResize="False">
                     <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate x:DataType="x:Boolean">
+                        <DataTemplate x:DataType="models:InstalledApp">
                             <CheckBox IsChecked="{Binding IsSelected}" Margin="16,0,0,0" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

@@ -797,7 +797,7 @@ public class DownloaderService
     /// <param name="interval">Interval between polls.</param>
     /// <param name="scheduler">Scheduler to run polling on.</param>
     /// <returns>IObservable that provides the stats.</returns>
-    public IObservable<(float downloadSpeedBytes, double downloadedBytes)?> PollStats(TimeSpan interval,
+    public static IObservable<(float downloadSpeedBytes, double downloadedBytes)?> PollStats(TimeSpan interval,
         IScheduler scheduler)
     {
         return Observable.Create<(float downloadSpeedBytes, double downloadedBytes)?>(observer =>

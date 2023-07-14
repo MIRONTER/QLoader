@@ -83,7 +83,7 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
         });
     }
 
-    private ReactiveCommand<bool, Unit> Refresh { get; }
+    public ReactiveCommand<bool, Unit> Refresh { get; }
     public ReactiveCommand<Unit, Unit> Donate { get; }
     public ReactiveCommand<Unit, Unit> DonateAll { get; }
     public ReactiveCommand<Unit, Unit> Ignore { get; }
@@ -274,7 +274,7 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var mainWindow = desktop.MainWindow;
+            var mainWindow = desktop.MainWindow!;
             var result = await new OpenFolderDialog
             {
                 Title = Resources.SelectDestinationFolder,

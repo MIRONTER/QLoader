@@ -4,7 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:views="clr-namespace:QSideloader.Views"
              mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="700"
-             x:Class="QSideloader.Views.Pages.SettingsView">
+             x:Class="QSideloader.Views.Pages.SettingsView"
+             x:DataType="views:SideloaderSettingsView">
     <ScrollViewer>
         <StackPanel Orientation="Vertical" IsEnabled="True">
             <views:DeviceSettingsView Margin="8" />

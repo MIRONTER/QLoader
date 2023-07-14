@@ -126,7 +126,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
     {
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var mainWindow = desktop.MainWindow;
+            var mainWindow = desktop.MainWindow!;
             // Default to last used location or desktop
             var defaultLocation = !string.IsNullOrEmpty(_sideloaderSettings.LastMediaPullLocation)
                 ? _sideloaderSettings.LastMediaPullLocation

@@ -2,13 +2,12 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Styling;
 
 namespace QSideloader.Controls;
 
-public class CustomDataGrid : DataGrid, IStyleable
+public class CustomDataGrid : DataGrid
 {
-    Type IStyleable.StyleKey => typeof(DataGrid);
+    protected override Type StyleKeyOverride => typeof(DataGrid);
 
     public event EventHandler<RoutedEventArgs> EnterKeyDown
     {

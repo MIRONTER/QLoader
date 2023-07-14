@@ -8,10 +8,12 @@
              xmlns:p="clr-namespace:QSideloader.Properties"
              xmlns:converters="clr-namespace:QSideloader.Converters"
              xmlns:controls="clr-namespace:QSideloader.Controls"
+             xmlns:models="clr-namespace:QSideloader.Models"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="450"
              x:Class="QSideloader.Views.Pages.AvailableGamesView"
              AttachedToVisualTree="Visual_OnAttachedToVisualTree"
-             DetachedFromVisualTree="Visual_OnDetachedFromVisualTree">
+             DetachedFromVisualTree="Visual_OnDetachedFromVisualTree"
+             x:DataType="vm:AvailableGamesViewModel">
     <UserControl.Resources>
         <converters:OnDeviceStatusValueConverter x:Key="OnDeviceStatusFromBool" />
         <converters:GameSizeValueConverter x:Key="GameSizeFromMBytesInt" />
@@ -56,8 +58,8 @@
             </Button>
         </StackPanel>
         <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
-        <controls:CustomDataGrid Grid.Row="1" x:Name="AvailableGamesDataGrid"
-                                 Items="{Binding AvailableGames}"
+        <controls:CustomDataGrid Grid.Row="1" x:Name="AvailableGamesDataGrid" x:DataType="models:Game"
+                                 ItemsSource="{Binding (vm:AvailableGamesViewModel).AvailableGames}"
                                  AutoGenerateColumns="False" CanUserResizeColumns="True"
                                  DoubleTapped="AvailableGamesDataGrid_OnDoubleTapped"
                                  PointerReleased="AvailableGamesDataGrid_OnPointerReleased"
@@ -66,9 +68,9 @@
                 <DataGridTemplateColumn Width="52"
                                         IsReadOnly="False"
                                         CanUserResize="False"
-                                        IsVisible="{Binding MultiSelectEnabled}">
+                                        IsVisible="{Binding (vm:AvailableGamesViewModel).MultiSelectEnabled}">
                     <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate x:DataType="x:Boolean">
+                        <DataTemplate x:DataType="models:Game">
                             <CheckBox IsChecked="{Binding IsSelected}" Margin="16,0,0,0" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
@@ -82,23 +84,23 @@
                 <DataGridTextColumn Binding="{Binding LastUpdated}" Header="{x:Static p:Resources.LastUpdatedHeader}"
                                     Width="auto"
                                     IsReadOnly="True" />
-                <DataGridTextColumn Binding="{Binding GameSize, Converter={StaticResource GameSizeFromMBytesInt}}"
+                <DataGridTextColumn Binding="{Binding GameSize, Mode=OneWay, Converter={StaticResource GameSizeFromMBytesInt}}"
                                     Header="{x:Static p:Resources.GameSizeHeader}"
                                     Width="auto" IsReadOnly="True" />
 
                 <DataGridTextColumn Binding="{Binding Popularity[1D]}"
                                     Header="{x:Static p:Resources.Popularity1DHeader}" Width="auto" IsReadOnly="True"
-                                    IsVisible="{Binding ShowPopularity1Day}" />
+                                    IsVisible="{Binding (vm:AvailableGamesViewModel).ShowPopularity1Day}" />
                 <DataGridTextColumn Binding="{Binding Popularity[7D]}"
                                     Header="{x:Static p:Resources.Popularity7DHeader}" Width="auto" IsReadOnly="True"
-                                    IsVisible="{Binding ShowPopularity7Days}" />
+                                    IsVisible="{Binding (vm:AvailableGamesViewModel).ShowPopularity7Days}" />
                 <DataGridTextColumn Binding="{Binding Popularity[30D]}"
                                     Header="{x:Static p:Resources.Popularity30DHeader}" Width="auto" IsReadOnly="True"
-                                    IsVisible="{Binding ShowPopularity30Days}" />
+                                    IsVisible="{Binding (vm:AvailableGamesViewModel).ShowPopularity30Days}" />
 
-                <DataGridTextColumn Binding="{Binding IsInstalled, Converter={StaticResource OnDeviceStatusFromBool}}"
+                <DataGridTextColumn Binding="{Binding (models:Game).IsInstalled, Mode=OneWay, Converter={StaticResource OnDeviceStatusFromBool}}"
                                     Header="{x:Static p:Resources.OnDeviceHeader}" Width="auto" IsReadOnly="True"
-                                    IsVisible="{Binding IsDeviceConnected}" />
+                                    IsVisible="{Binding (vm:AvailableGamesViewModel).IsDeviceConnected}" />
             </DataGrid.Columns>
             <DataGrid.Resources>
                 <!-- ReSharper disable Xaml.RedundantResource -->
