@@ -856,4 +856,10 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="FixDateTime" xml:space="preserve">
         <value>Fix date&amp;time</value>
     </data>
+    <data name="SelectGameFolder" xml:space="preserve">
+        <value>Select game folder</value>
+    </data>
+    <data name="SelectApkFile" xml:space="preserve">
+        <value>Select APK file</value>
+    </data>
 </root>
