@@ -7,9 +7,9 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AdvancedSharpAdbClient;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using QSideloader.Models;
 using QSideloader.Properties;
@@ -128,21 +128,29 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
         {
             var mainWindow = desktop.MainWindow!;
             // Default to last used location or desktop
-            var defaultLocation = !string.IsNullOrEmpty(_sideloaderSettings.LastMediaPullLocation)
-                ? _sideloaderSettings.LastMediaPullLocation
-                : Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            var selectedLocation = await new OpenFolderDialog
+            var defaultLocation = await mainWindow.StorageProvider.TryGetFolderFromPathAsync(
+                !string.IsNullOrEmpty(_sideloaderSettings.LastMediaPullLocation)
+                    ? _sideloaderSettings.LastMediaPullLocation
+                    : Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
+            var selectedLocations = await mainWindow.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
                 Title = Resources.SelectDestinationFolder,
-                Directory = defaultLocation
-            }.ShowAsync(mainWindow);
-            if (selectedLocation is not null)
+                SuggestedStartLocation = defaultLocation,
+                AllowMultiple = false
+            });
+            if (selectedLocations.Count > 0)
             {
-                _sideloaderSettings.LastMediaPullLocation = selectedLocation;
+                var path = selectedLocations[0].TryGetLocalPath();
+                if (!Directory.Exists(path))
+                {
+                    Log.Error("Selected path for media pull does not exist: {Path}", path);
+                    return;
+                }
+                _sideloaderSettings.LastMediaPullLocation = path;
                 Globals.MainWindowViewModel!.AddTask(new TaskOptions
                 {
                     Type = TaskType.PullMedia,
-                    Path = selectedLocation + Path.DirectorySeparatorChar + "OculusMedia"
+                    Path = path + Path.DirectorySeparatorChar + "OculusMedia",
                 });
             }
             else

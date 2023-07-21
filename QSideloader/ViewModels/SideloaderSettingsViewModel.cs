@@ -15,9 +15,9 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Newtonsoft.Json;
 using QSideloader.Models;
@@ -618,14 +618,22 @@ public class SideloaderSettingsViewModel : ViewModelBase
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var mainWindow = desktop.MainWindow!;
-            var result = await new OpenFolderDialog
+            var startLocation = await mainWindow.StorageProvider.TryGetFolderFromPathAsync(DownloadsLocation);
+            var result = await mainWindow.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
                 Title = Resources.SelectDownloadsFolder,
-                Directory = DownloadsLocation
-            }.ShowAsync(mainWindow);
-            if (result is not null)
+                SuggestedStartLocation = startLocation
+            });
+            if (result.Count > 0)
             {
-                DownloadsLocationTextBoxText = result;
+                var path = result[0].TryGetLocalPath();
+                if (!Directory.Exists(path))
+                {
+                    Log.Error("Selected downloads location does not exist: {Path}", path);
+                    return;
+                }
+
+                DownloadsLocationTextBoxText = path;
                 SetDownloadLocation.Execute().Subscribe();
             }
         }
@@ -636,14 +644,22 @@ public class SideloaderSettingsViewModel : ViewModelBase
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var mainWindow = desktop.MainWindow!;
-            var result = await new OpenFolderDialog
+            var startLocation = await mainWindow.StorageProvider.TryGetFolderFromPathAsync(BackupsLocation);
+            var result = await mainWindow.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
                 Title = Resources.SelectBackupsFolder,
-                Directory = BackupsLocation
-            }.ShowAsync(mainWindow);
-            if (result is not null)
+                SuggestedStartLocation = startLocation
+            });
+            if (result.Count > 0)
             {
-                BackupsLocationTextBoxText = result;
+                var path = result[0].TryGetLocalPath();
+                if (!Directory.Exists(path))
+                {
+                    Log.Error("Selected backups location does not exist: {Path}", path);
+                    return;
+                }
+
+                BackupsLocation = path;
                 SetBackupsLocation.Execute().Subscribe();
             }
         }

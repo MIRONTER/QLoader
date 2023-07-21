@@ -162,7 +162,7 @@ public class MainWindowViewModel : ViewModelBase
             {
                 var task = TaskList.FirstOrDefault(t => Equals(t.TaskId, taskId));
                 if (task is null) return;
-                Log.Information("Auto-dismissing completed task {TaskId} {TaskType} {TaskName}", task.TaskId,
+                Log.Debug("Auto-dismissing completed task {TaskId} {TaskType} {TaskName}", task.TaskId,
                     task.TaskType, task.TaskName);
                 TaskList.Remove(task);
             })
@@ -190,7 +190,7 @@ public class MainWindowViewModel : ViewModelBase
         Task.Run(RefreshGameDonationBadge).SafeFireAndForget();
     }
 
-    public void HandleDroppedFiles(IEnumerable<string> fileNames)
+    public async Task HandleDroppedItemsAsync(IEnumerable<string> fileNames)
     {
         foreach (var fileName in fileNames)
             if (Directory.Exists(fileName))
@@ -209,7 +209,7 @@ public class MainWindowViewModel : ViewModelBase
                     try
                     {
                         var game = JsonConvert.DeserializeObject<Game>(
-                            File.ReadAllText(Path.Combine(fileName, "release.json")));
+                            await File.ReadAllTextAsync(Path.Combine(fileName, "release.json")));
                         AddTask(new TaskOptions { Type = TaskType.InstallOnly, Game = game, Path = fileName });
                         continue;
                     }
@@ -254,7 +254,7 @@ public class MainWindowViewModel : ViewModelBase
                 ApkInfo apkInfo;
                 try
                 {
-                    apkInfo = GeneralUtils.GetApkInfoAsync(fileName).ConfigureAwait(false).GetAwaiter().GetResult();
+                    apkInfo = await GeneralUtils.GetApkInfoAsync(fileName);
                 }
                 catch (Exception ex)
                 {
