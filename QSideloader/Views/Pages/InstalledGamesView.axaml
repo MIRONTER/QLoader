@@ -10,10 +10,12 @@
              xmlns:p="clr-namespace:QSideloader.Properties"
              xmlns:converters="clr-namespace:QSideloader.Converters"
              xmlns:controls="clr-namespace:QSideloader.Controls"
+             xmlns:models="clr-namespace:QSideloader.Models"
              mc:Ignorable="d" d:DesignWidth="1130" d:DesignHeight="450"
              x:Class="QSideloader.Views.Pages.InstalledGamesView"
              AttachedToVisualTree="Visual_OnAttachedToVisualTree"
-             DetachedFromVisualTree="Visual_OnDetachedFromVisualTree">
+             DetachedFromVisualTree="Visual_OnDetachedFromVisualTree"
+             x:DataType="vm:InstalledGamesViewModel">
     <UserControl.Resources>
         <converters:UpdateStatusStringValueConverter x:Key="UpdateStatusStringFromInstalledGame" />
         <converters:GameSizeValueConverter x:Key="GameSizeFromMBytesInt" />
@@ -95,8 +97,8 @@
             </Button>
         </StackPanel>
         <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
-        <controls:CustomDataGrid Grid.Row="1" x:Name="InstalledGamesDataGrid"
-                                 Items="{Binding InstalledGames}"
+        <controls:CustomDataGrid Grid.Row="1" x:Name="InstalledGamesDataGrid" x:DataType="models:InstalledGame"
+                                 ItemsSource="{Binding (vm:InstalledGamesViewModel).InstalledGames}"
                                  AutoGenerateColumns="False" CanUserResizeColumns="True"
                                  DoubleTapped="InstalledGamesDataGrid_OnDoubleTapped"
                                  PointerReleased="InstalledGamesDataGrid_OnPointerReleased"
@@ -105,9 +107,9 @@
                 <DataGridTemplateColumn Width="52"
                                         IsReadOnly="False"
                                         CanUserResize="False"
-                                        IsVisible="{Binding MultiSelectEnabled}">
+                                        IsVisible="{Binding (vm:InstalledGamesViewModel).MultiSelectEnabled}">
                     <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate x:DataType="x:Boolean">
+                        <DataTemplate x:DataType="models:InstalledGame">
                             <CheckBox IsChecked="{Binding IsSelected}" Margin="16,0,0,0" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
@@ -126,11 +128,11 @@
                 <DataGridTextColumn Binding="{Binding ReleaseName}"
                                     Header="{x:Static p:Resources.LatestReleaseNameHeader}"
                                     Width="auto" IsReadOnly="True" />
-                <DataGridTextColumn Binding="{Binding GameSize, Converter={StaticResource GameSizeFromMBytesInt}}"
+                <DataGridTextColumn Binding="{Binding GameSize, Mode=OneWay, Converter={StaticResource GameSizeFromMBytesInt}}"
                                     Header="{x:Static p:Resources.GameSizeHeader}"
                                     Width="auto" IsReadOnly="True" />
                 <DataGridTextColumn
-                    Binding="{Binding ., Converter={StaticResource UpdateStatusStringFromInstalledGame}}"
+                    Binding="{Binding ., Mode=OneWay, Converter={StaticResource UpdateStatusStringFromInstalledGame}}"
                     Header="{x:Static p:Resources.UpdateStatusHeader}"
                     Width="auto" IsReadOnly="True" SortMemberPath="IsUpdateAvailable" />
             </DataGrid.Columns>

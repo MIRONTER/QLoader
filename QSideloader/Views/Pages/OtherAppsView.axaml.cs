@@ -1,20 +1,14 @@
-﻿using Avalonia.Markup.Xaml;
-using Avalonia.ReactiveUI;
+﻿using Avalonia.ReactiveUI;
 using QSideloader.ViewModels;
 
 namespace QSideloader.Views.Pages;
 
-public class OtherAppsView : ReactiveUserControl<InstalledAppsViewModel>
+public partial class OtherAppsView : ReactiveUserControl<InstalledAppsViewModel>
 {
     public OtherAppsView()
     {
+        InitializeComponent();
         ViewModel = new InstalledAppsViewModel(false);
         DataContext = ViewModel;
-        InitializeComponent();
-    }
-
-    private void InitializeComponent()
-    {
-        AvaloniaXamlLoader.Load(this);
     }
 }

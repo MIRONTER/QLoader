@@ -848,4 +848,10 @@
     <data name="FixDateTime" xml:space="preserve">
         <value>Исправить дату и время</value>
     </data>
+    <data name="SelectGameFolder" xml:space="preserve">
+        <value>Выберите папку игры</value>
+    </data>
+    <data name="SelectApkFile" xml:space="preserve">
+        <value>Выберите APK файл</value>
+    </data>
 </root>

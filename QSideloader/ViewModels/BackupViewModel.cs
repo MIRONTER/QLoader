@@ -51,7 +51,7 @@ public class BackupViewModel : ViewModelBase, IActivatableViewModel
         });
     }
 
-    private ReactiveCommand<bool, Unit> Refresh { get; }
+    public ReactiveCommand<bool, Unit> Refresh { get; }
     public ReactiveCommand<Unit, Unit> Restore { get; }
     public ReactiveCommand<Unit, Unit> Delete { get; }
     public ReadOnlyObservableCollection<Backup> Backups => _backups;

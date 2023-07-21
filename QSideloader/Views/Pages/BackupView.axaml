@@ -7,8 +7,10 @@
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
              xmlns:p="clr-namespace:QSideloader.Properties"
              xmlns:converters="clr-namespace:QSideloader.Converters"
+             xmlns:models="clr-namespace:QSideloader.Models"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="QSideloader.Views.Pages.BackupView">
+             x:Class="QSideloader.Views.Pages.BackupView"
+             x:DataType="vm:BackupViewModel">
     <UserControl.Resources>
         <converters:BackupContentsStringValueConverter x:Key="BackupContentsStringFromBackup" />
     </UserControl.Resources>
@@ -55,14 +57,14 @@
                 </Button.CommandParameter>
             </Button>
         </StackPanel>
-        <DataGrid x:Name="BackupsGrid" Grid.Row="1" Items="{Binding Backups}">
+        <DataGrid x:Name="BackupsGrid" x:DataType="models:Backup" Grid.Row="1" ItemsSource="{Binding (vm:BackupViewModel).Backups}">
             <DataGrid.Columns>
                 <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
                 <DataGridTemplateColumn Width="52"
                                         IsReadOnly="False"
                                         CanUserResize="False">
                     <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate x:DataType="x:Boolean">
+                        <DataTemplate>
                             <CheckBox IsChecked="{Binding IsSelected}" Margin="16,0,0,0" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
@@ -70,7 +72,7 @@
                 <DataGridTextColumn Header="{x:Static p:Resources.DateHeader}" Binding="{Binding Date}" />
                 <DataGridTextColumn Header="{x:Static p:Resources.BackupNameHeader}" Binding="{Binding Name}" />
                 <DataGridTextColumn Header="{x:Static p:Resources.ContentsHeader}"
-                                    Binding="{Binding ., Converter={StaticResource BackupContentsStringFromBackup}}" />
+                                    Binding="{Binding ., Mode=OneWay, Converter={StaticResource BackupContentsStringFromBackup}}" />
                 <!-- ReSharper restore Xaml.BindingWithContextNotResolved -->
             </DataGrid.Columns>
             <DataGrid.Resources>

@@ -12,10 +12,13 @@
         MinHeight="600"
         MinWidth="860"
         WindowStartupLocation="CenterScreen"
+        Loaded="Window_OnLoaded"
         Opened="Window_OnOpened"
         Closing="Window_OnClosing"
-        Background="Transparent"
-        DragDrop.AllowDrop="True">
+        KeyDown="Window_OnKeyDown"
+        Background="#272727"
+        DragDrop.AllowDrop="True"
+        x:DataType="vm:MainWindowViewModel">
     <!--TransparencyLevelHint="AcrylicBlur"
         TransparencyBackgroundFallback="Black"-->
 
@@ -32,11 +35,11 @@
             SelectionChanged="NavigationView_OnSelectionChanged"
             IsSettingsVisible="True">
             <ui:NavigationView.MenuItems>
-                <ui:NavigationViewItem Icon="AllApps" Content="{x:Static p:Resources.InstalledGamesHeader}"
+                <ui:NavigationViewItem IconSource="AllApps" Content="{x:Static p:Resources.InstalledGamesHeader}"
                                        Tag="InstalledGamesView" />
-                <ui:NavigationViewItem Icon="Cloud" Content="{x:Static p:Resources.AvailableGamesHeader}"
+                <ui:NavigationViewItem IconSource="Cloud" Content="{x:Static p:Resources.AvailableGamesHeader}"
                                        Tag="AvailableGamesView" />
-                <ui:NavigationViewItem Icon="Upload" Content="{x:Static p:Resources.DonateGamesHeader}"
+                <ui:NavigationViewItem IconSource="Upload" Content="{x:Static p:Resources.DonateGamesHeader}"
                                        IsVisible="{Binding DonationsAvailable}"
                                        Tag="GameDonationView">
                     <ui:NavigationViewItem.InfoBadge>
@@ -44,11 +47,11 @@
                     </ui:NavigationViewItem.InfoBadge>
                 </ui:NavigationViewItem>
                 <ui:NavigationViewItem Content="{x:Static p:Resources.OtherAppsHeader}" Tag="OtherAppsView">
-                    <ui:NavigationViewItem.Icon>
-                        <ui:FontIcon FontFamily="avares://FluentAvalonia/Fonts#Symbols" Glyph="&#xE74C;" />
-                    </ui:NavigationViewItem.Icon>
+                    <ui:NavigationViewItem.IconSource>
+                        <ui:FontIconSource FontFamily="avares://FluentAvalonia/Fonts#Symbols" Glyph="&#xE74C;" />
+                    </ui:NavigationViewItem.IconSource>
                 </ui:NavigationViewItem>
-                <ui:NavigationViewItem Icon="Save" Content="{x:Static p:Resources.RestoreBackupsHeader}"
+                <ui:NavigationViewItem IconSource="Save" Content="{x:Static p:Resources.RestoreBackupsHeader}"
                                        Tag="BackupView" />
             </ui:NavigationView.MenuItems>
             <Grid RowDefinitions="*,Auto">
@@ -64,7 +67,7 @@
                             Title="{x:Static p:Resources.NoDeviceConnection}"
                             Message="">
                     <ui:InfoBar.IsOpen>
-                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                        <MultiBinding Mode="OneWay" Converter="{x:Static BoolConverters.And}">
                             <Binding Path="!IsDeviceConnected" />
                             <Binding Path="!IsDeviceUnauthorized" />
                         </MultiBinding>
@@ -84,7 +87,7 @@
                             Title="{x:Static p:Resources.AdbUnauthorized}"
                             Message="">
                     <ui:InfoBar.IsOpen>
-                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                        <MultiBinding Mode="OneWay" Converter="{x:Static BoolConverters.And}">
                             <Binding Path="!IsDeviceConnected" />
                             <Binding Path="IsDeviceUnauthorized" />
                         </MultiBinding>
@@ -109,7 +112,7 @@
                     </ui:InfoBar.ActionButton>
                 </ui:InfoBar>
                 <Border Grid.Row="0" Grid.RowSpan="2"
-                        Width="302"
+                        Width="320"
                         VerticalAlignment="Bottom"
                         HorizontalAlignment="Right"
                         CornerRadius="6"
@@ -120,7 +123,7 @@
                         <TextBlock HorizontalAlignment="Left" Margin="4,0" Text="{x:Static p:Resources.TasksHeader}" />
                         <!--<ListView x:Name="TaskListView" 
                                   MaxHeight="180"
-                                  Items="{Binding TaskList}"
+                                  ItemsSource="{Binding TaskList}"
                                   ItemClick="TaskListView_OnItemClick">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
@@ -130,14 +133,13 @@
                         </ListView>-->
                         <ListBox x:Name="TaskListBox"
                                  MaxHeight="180"
-                                 VirtualizationMode="None"
-                                 Items="{Binding TaskList}"
+                                 ItemsSource="{Binding TaskList}"
                                  SelectionChanged="TaskListBox_OnSelectionChanged">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <views:TaskView Margin="0,4" />
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel />
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
                         </ListBox>
                     </StackPanel>
                 </Border>

@@ -3,11 +3,12 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:QSideloader.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="310" d:DesignHeight="60"
+             mc:Ignorable="d" d:DesignWidth="320" d:DesignHeight="60"
              x:Class="QSideloader.Views.TaskView"
-             Width="302" Height="56"
-             PointerEnter="TaskView_OnPointerEnter"
-             PointerLeave="TaskView_OnPointerLeave">
+             Width="320" Height="56" Margin="0,4,4,4" Padding="4,0"
+             PointerEntered="TaskView_OnPointerEntered"
+             PointerExited="TaskView_OnPointerExited" 
+             x:DataType="viewModels:TaskViewModel">
     <Design.DataContext>
         <viewModels:TaskViewModel />
     </Design.DataContext>

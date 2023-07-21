@@ -585,8 +585,7 @@ public class AdbService
     {
         var hwid = GeneralUtils.GetHwid(false);
         var saltedSerial = hwid + deviceSerial;
-        using var sha256Hash = SHA256.Create();
-        var hashedId = Convert.ToHexString(sha256Hash.ComputeHash(Encoding.ASCII.GetBytes(saltedSerial)))[..16];
+        var hashedId = Convert.ToHexString(SHA256.HashData(Encoding.ASCII.GetBytes(saltedSerial)))[..16];
         return hashedId;
     }
 

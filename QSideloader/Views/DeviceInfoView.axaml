@@ -6,7 +6,8 @@
              xmlns:controls="clr-namespace:QSideloader.Controls"
              xmlns:p="clr-namespace:QSideloader.Properties"
              mc:Ignorable="d" d:DesignWidth="1130" d:DesignHeight="134"
-             x:Class="QSideloader.Views.DeviceInfoView">
+             x:Class="QSideloader.Views.DeviceInfoView"
+             x:DataType="vm:DeviceInfoViewModel">
     <Design.DataContext>
         <vm:DeviceInfoViewModel />
     </Design.DataContext>
@@ -103,7 +104,7 @@
                       MinWidth="170"
                       PlaceholderText="{x:Static p:Resources.DeviceList}"
                       IsEnabled="{Binding IsDeviceSwitchEnabled}"
-                      Items="{Binding DeviceList}"
+                      ItemsSource="{Binding DeviceList}"
                       SelectedItem="{Binding CurrentDevice}">
                 <ToolTip.Tip>
                     <MultiBinding StringFormat="{}{0}&#x0a;{1}: {2}">

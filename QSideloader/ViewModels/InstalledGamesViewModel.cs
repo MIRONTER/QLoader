@@ -14,7 +14,6 @@ using QSideloader.Models;
 using QSideloader.Properties;
 using QSideloader.Services;
 using QSideloader.Utilities;
-using QSideloader.Views;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Serilog;
@@ -130,7 +129,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             }
 
             Log.Information("Running auto-update");
-            var runningInstalls = new List<TaskView>();
+            var runningInstalls = new List<TaskViewModel>();
             Dispatcher.UIThread.InvokeAsync(() =>
             {
                 runningInstalls = Globals.MainWindowViewModel!.GetTaskList()

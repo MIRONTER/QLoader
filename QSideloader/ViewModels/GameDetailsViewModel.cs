@@ -22,7 +22,10 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
     private static LibVLC? _libVlc;
     private readonly AdbService _adbService;
 
-    // Dummy constructor for XAML, do not use
+    /// <summary>
+    /// Dummy constructor for XAML, do not use
+    /// </summary>
+    [Obsolete("Only for XAML", true)]
     public GameDetailsViewModel()
     {
         Activator = new ViewModelActivator();
@@ -105,7 +108,7 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
     }
 
     public Game Game { get; }
-    [Reactive] public string? ThumbnailPath { get; set; } = Path.Combine("Resources", "NoThumbnailImage.png");
+    public string? ThumbnailPath { get; } = Path.Combine("Resources", "NoThumbnailImage.png");
     public ReactiveCommand<Unit, Unit> DownloadAndInstall { get; }
     public ReactiveCommand<Unit, Unit> DownloadOnly { get; }
     [Reactive] public MediaPlayer? MediaPlayer { get; set; }

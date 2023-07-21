@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace QSideloader.Utilities;
 
-public class AtomicFileStream : FileStream
+public partial class AtomicFileStream : FileStream
 {
     private readonly string _path;
     private readonly string _tempPath;
@@ -47,7 +47,7 @@ public class AtomicFileStream : FileStream
     {
         base.Close();
 
-        var success = NativeMethods.MoveFileEx(_tempPath, _path,
+        var success = NativeMethods.MoveFileExW(_tempPath, _path,
             MoveFileFlags.ReplaceExisting | MoveFileFlags.WriteThrough);
         if (!success)
             Marshal.ThrowExceptionForHR(Marshal.GetLastWin32Error());
@@ -66,12 +66,13 @@ public class AtomicFileStream : FileStream
         FailIfNotTrackable = 32
     }
 
-    private static class NativeMethods
+    private static partial class NativeMethods
     {
-        [DllImport("Kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern bool MoveFileEx(
-            [In] string lpExistingFileName,
-            [In] string lpNewFileName,
-            [In] MoveFileFlags dwFlags);
+        [LibraryImport("Kernel32.dll", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static partial bool MoveFileExW(
+            string lpExistingFileName,
+            string lpNewFileName,
+            MoveFileFlags dwFlags);
     }
 }

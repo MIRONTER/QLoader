@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -8,10 +7,12 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Notifications;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
+using Avalonia.Platform.Storage;
 using Avalonia.ReactiveUI;
+using Avalonia.Styling;
 using FluentAvalonia.Styling;
 using FluentAvalonia.UI.Controls;
 using NetSparkleUpdater;
@@ -27,7 +28,7 @@ using Serilog;
 
 namespace QSideloader.Views;
 
-public class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWindow
+public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWindow
 {
     private readonly SideloaderSettingsViewModel _sideloaderSettings;
     private bool _isClosing;
@@ -40,12 +41,18 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWindow
 #endif
         Title = Program.Name;
         _sideloaderSettings = Globals.SideloaderSettings;
-        var thm = AvaloniaLocator.Current.GetService<FluentAvaloniaTheme>();
+        if (Application.Current != null)
+        {
+            Application.Current.RequestedThemeVariant = ThemeVariant.Dark;
+        }
+
+        var thm = Application.Current?.Styles.OfType<FluentAvaloniaTheme>().FirstOrDefault();
         if (thm is not null)
         {
+            thm.PreferSystemTheme = false;
+            thm.PreferUserAccentColor = true;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                thm.ForceWin32WindowToTheme(this);
-            thm.RequestedTheme = FluentAvaloniaTheme.DarkModeString;
+                thm.ForceWin32WindowToTheme(this, ThemeVariant.Dark);
         }
 
         AddHandler(DragDrop.DragEnterEvent, DragEnter);
@@ -61,11 +68,8 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWindow
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(_ => RecalculateTaskListBoxHeight());
     }
-
-    private void InitializeComponent()
-    {
-        AvaloniaXamlLoader.Load(this);
-    }
+    
+    public INotificationManager? NotificationManager { get; private set; }
 
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private void NavigationView_OnSelectionChanged(object? sender, NavigationViewSelectionChangedEventArgs e)
@@ -115,7 +119,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWindow
         if (e.AddedItems.Count == 0) return;
         var viewModel = (MainWindowViewModel)DataContext!;
         var listBox = (ListBox?)sender;
-        var selectedTask = (TaskView?)e.AddedItems[0];
+        var selectedTask = (TaskViewModel?)e.AddedItems[0];
         if (listBox is null || selectedTask is null) return;
         listBox.SelectedItem = null;
         switch (selectedTask.IsFinished)
@@ -144,8 +148,8 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWindow
 
     private void InitializeUpdater()
     {
-        if (Globals.Overrides.ContainsKey("DisableSelfUpdate") && 
-            bool.TryParse(Globals.Overrides["DisableSelfUpdate"], out var disableSelfUpdate) && disableSelfUpdate ||
+        if (Globals.Overrides.TryGetValue("DisableSelfUpdate", out var value) && 
+            bool.TryParse(value, out var disableSelfUpdate) && disableSelfUpdate ||
             Globals.Overrides["DisableSelfUpdate"] == "1")
         {
             Log.Warning("Updater disabled by override");
@@ -209,7 +213,8 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWindow
         }
     }*/
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
-    private async void Window_OnClosing(object? sender, CancelEventArgs e)
+    [SuppressMessage("ReSharper", "SuggestBaseTypeForParameter")]
+    private async void Window_OnClosing(object? sender, WindowClosingEventArgs e)
     {
         if (_isClosing || ViewModel!.TaskList.Count == 0 || ViewModel.TaskList.All(x => x.IsFinished))
         {
@@ -237,7 +242,7 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWindow
 
     private void DragEnter(object? sender, DragEventArgs e)
     {
-        e.DragEffects = e.Data.Contains(DataFormats.FileNames) ? DragDropEffects.Copy : DragDropEffects.None;
+        e.DragEffects = e.Data.Contains(DataFormats.Files) ? DragDropEffects.Copy : DragDropEffects.None;
         var dragDropPanel = this.Get<Grid>("DragDropPanel");
         dragDropPanel.IsVisible = true;
         e.Handled = true;
@@ -254,18 +259,18 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWindow
     {
         Log.Debug("DragDrop.Drop event");
         var dragDropPanel = this.Get<Grid>("DragDropPanel");
-        if (e.Data.Contains(DataFormats.FileNames))
+        if (e.Data.Contains(DataFormats.Files))
         {
-            var fileNames = e.Data.GetFileNames()?.ToList();
-            if (fileNames is null)
+            var files = e.Data.GetFiles()?.ToList();
+            if (files is null)
             {
                 Log.Warning("e.Data.GetFileNames() returned null");
                 return;
             }
+            var fileNames = files.Select(x => x.Path.LocalPath).ToList();
 
-            Log.Debug("Dropped folders/files: {Files}", fileNames);
-            var viewModel = ViewModel!;
-            await Task.Run(() => viewModel.HandleDroppedFiles(fileNames));
+            Log.Debug("Dropped folders/files: {FilesNames}", fileNames);
+            await ViewModel!.HandleDroppedItemsAsync(fileNames);
         }
         else
         {
@@ -274,5 +279,53 @@ public class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWindow
 
         dragDropPanel.IsVisible = false;
         e.Handled = true;
+    }
+
+    private void Window_OnLoaded(object? sender, RoutedEventArgs e)
+    {
+        NotificationManager = new WindowNotificationManager(GetTopLevel(this))
+        {
+            Position = NotificationPosition.TopRight,
+            MaxItems = 3
+        };
+        if (ViewModel is null) return;
+        ViewModel.NotificationManager = NotificationManager;
+    }
+
+    private async void Window_OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        var openFile = e.Key == Key.F2;
+        var openFolder = e.Key == Key.F3;
+        if (!openFile && !openFolder) return;
+        e.Handled = true;
+        if (openFile)
+        {
+            var result = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = Properties.Resources.SelectApkFile,
+                AllowMultiple = true,
+                FileTypeFilter = new FilePickerFileType[] { new("APK file") { Patterns = new []{ "*.apk" } } }
+            });
+            if (result.Count == 0) return;
+            var paths = from file in result
+                let localPath = file.TryGetLocalPath()
+                where File.Exists(localPath)
+                select localPath;
+            await ViewModel!.HandleDroppedItemsAsync(paths);
+        }
+        else if (openFolder)
+        {
+            var result = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = Properties.Resources.SelectGameFolder,
+                AllowMultiple = true
+            });
+            if (result.Count == 0) return;
+            var paths = from folder in result
+                let localPath = folder.TryGetLocalPath()
+                where Directory.Exists(localPath)
+                select localPath;
+            await ViewModel!.HandleDroppedItemsAsync(paths);
+        }
     }
 }

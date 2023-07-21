@@ -5,9 +5,11 @@
              xmlns:viewModels="clr-namespace:QSideloader.ViewModels"
              xmlns:p="clr-namespace:QSideloader.Properties"
              xmlns:converters="clr-namespace:QSideloader.Converters"
+             xmlns:controls="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia.ProgressRing"
              mc:Ignorable="d" d:DesignWidth="850" d:DesignHeight="950"
              x:Class="QSideloader.Views.SideloaderSettingsView"
-             AttachedToVisualTree="Visual_OnAttachedToVisualTree">
+             AttachedToVisualTree="Visual_OnAttachedToVisualTree"
+             x:DataType="viewModels:SideloaderSettingsViewModel">
     <UserControl.Resources>
         <converters:DownloadPruningPolicyValueConverter x:Key="DownloadPruningPolicyStringFromEnum" />
     </UserControl.Resources>
@@ -34,14 +36,14 @@
             </StackPanel>
 
             <TextBlock VerticalAlignment="Center" Text="{x:Static p:Resources.PreferredConnectionType}" />
-            <ComboBox Margin="0,4,0,0" Items="{Binding ConnectionTypes}"
+            <ComboBox Margin="0,4,0,0" ItemsSource="{Binding ConnectionTypes}"
                       SelectedItem="{Binding PreferredConnectionType}" />
 
             <TextBlock Margin="0,8,0,4" VerticalAlignment="Center" Text="{x:Static p:Resources.SelectedMirror}" />
             <StackPanel Orientation="Horizontal">
-                <ComboBox IsEnabled="{Binding !IsSwitchingMirror}" Items="{Binding MirrorList}"
+                <ComboBox IsEnabled="{Binding !IsSwitchingMirror}" ItemsSource="{Binding MirrorList}"
                           SelectedItem="{Binding SelectedMirror}" />
-                <ProgressRing Margin="10,0,0,0" IsEnabled="{Binding IsSwitchingMirror}"
+                <controls:ProgressRing Margin="10,0,0,0" IsEnabled="{Binding IsSwitchingMirror}"
                               IsVisible="{Binding IsSwitchingMirror}" IsIndeterminate="True" Width="30" Height="30" />
                 <Button Margin="10,0,0,0" IsEnabled="{Binding !IsSwitchingMirror}"
                         Command="{Binding ReloadMirrorList}" Content="{x:Static p:Resources.ReloadListButton}" />
@@ -68,7 +70,7 @@
             </StackPanel>
 
             <TextBlock Margin="0,8,0,4" VerticalAlignment="Center" Text="{x:Static p:Resources.PopularityTimeRange}" />
-            <ComboBox Items="{Binding PopularityRanges}"
+            <ComboBox ItemsSource="{Binding PopularityRanges}"
                       SelectedItem="{Binding PopularityRange}" />
             
             <ToggleSwitch Margin="0,8,0,0"
@@ -109,10 +111,10 @@
             </StackPanel>
 
             <TextBlock Margin="0,8,0,4" VerticalAlignment="Center" Text="{x:Static p:Resources.DownloadsPruningPolicy}" />
-            <ComboBox Items="{Binding AllDownloadsPruningPolicies}" SelectedItem="{Binding DownloadsPruningPolicy}">
+            <ComboBox ItemsSource="{Binding AllDownloadsPruningPolicies}" SelectedItem="{Binding DownloadsPruningPolicy}">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding Converter={StaticResource DownloadPruningPolicyStringFromEnum}}" />
+                        <TextBlock Text="{Binding Converter={StaticResource DownloadPruningPolicyStringFromEnum}, Mode=OneWay}" />
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>

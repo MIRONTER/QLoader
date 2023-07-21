@@ -6,8 +6,10 @@
              xmlns:views="clr-namespace:QSideloader.Views"
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
              xmlns:p="clr-namespace:QSideloader.Properties"
+             xmlns:models="clr-namespace:QSideloader.Models"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="QSideloader.Views.Pages.GameDonationView">
+             x:Class="QSideloader.Views.Pages.GameDonationView"
+             x:DataType="vm:InstalledAppsViewModel">
     <Design.DataContext>
         <vm:InstalledAppsViewModel />
     </Design.DataContext>
@@ -37,15 +39,15 @@
             </Button>
         </StackPanel>
         <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
-        <DataGrid Grid.Row="1" x:Name="InstalledGamesDataGrid"
-                  Items="{Binding InstalledApps}"
+        <DataGrid Grid.Row="1" x:Name="InstalledAppsDataGrid" x:DataType="models:InstalledApp"
+                  ItemsSource="{Binding (vm:InstalledAppsViewModel).InstalledApps}"
                   AutoGenerateColumns="False" CanUserResizeColumns="True">
             <DataGrid.Columns>
                 <DataGridTemplateColumn Width="52"
                                         IsReadOnly="False"
                                         CanUserResize="False">
                     <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate x:DataType="x:Boolean">
+                        <DataTemplate x:DataType="models:InstalledApp">
                             <CheckBox IsChecked="{Binding IsSelectedDonation}" Margin="16,0,0,0" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

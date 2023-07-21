@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -8,12 +9,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using AdvancedSharpAdbClient;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using DynamicData;
-using Microsoft.VisualBasic.FileIO;
 using QSideloader.Models;
 using QSideloader.Properties;
 using QSideloader.Services;
@@ -83,7 +83,7 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
         });
     }
 
-    private ReactiveCommand<bool, Unit> Refresh { get; }
+    public ReactiveCommand<bool, Unit> Refresh { get; }
     public ReactiveCommand<Unit, Unit> Donate { get; }
     public ReactiveCommand<Unit, Unit> DonateAll { get; }
     public ReactiveCommand<Unit, Unit> Ignore { get; }
@@ -274,19 +274,29 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
 
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var mainWindow = desktop.MainWindow;
-            var result = await new OpenFolderDialog
+            var mainWindow = desktop.MainWindow!;
+            var result = await mainWindow.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
                 Title = Resources.SelectDestinationFolder,
-                Directory = SpecialDirectories.Desktop
-            }.ShowAsync(mainWindow);
-            if (result is null) return;
-
-            foreach (var app in selectedApps)
+                SuggestedStartLocation =
+                    await mainWindow.StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Desktop),
+                AllowMultiple = false
+            });
+            if (result.Count > 0)
             {
-                app.IsSelected = false;
-                Globals.MainWindowViewModel!.AddTask(
-                    new TaskOptions {Type = TaskType.Extract, App = app, Path = result});
+                foreach (var app in selectedApps)
+                {
+                    var path = result[0].TryGetLocalPath();
+                    if (!Directory.Exists(path))
+                    {
+                        Log.Error("Selected path for app extraction does not exist: {Path}", path);
+                        return;
+                    }
+
+                    app.IsSelected = false;
+                    Globals.MainWindowViewModel!.AddTask(
+                        new TaskOptions {Type = TaskType.Extract, App = app, Path = path});
+                }
             }
         }
     }

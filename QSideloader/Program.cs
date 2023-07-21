@@ -30,9 +30,24 @@ internal static class Program
             .LogToTrace()
             .UseReactiveUI()
             //.UseSkia()
-            .With(new Win32PlatformOptions {UseWindowsUIComposition = true, AllowEglInitialization = _useGpuRendering})
-            .With(new X11PlatformOptions {UseGpu = _useGpuRendering})
-            .With(new AvaloniaNativePlatformOptions {UseGpu = _useGpuRendering});
+            .With(new Win32PlatformOptions
+            {
+                RenderingMode = _useGpuRendering
+                    ? new[] {Win32RenderingMode.AngleEgl, Win32RenderingMode.Software}
+                    : new[] {Win32RenderingMode.Software}
+            })
+            .With(new X11PlatformOptions
+            {
+                RenderingMode = _useGpuRendering
+                    ? new[] {X11RenderingMode.Glx, X11RenderingMode.Software}
+                    : new[] {X11RenderingMode.Software}
+            })
+            .With(new AvaloniaNativePlatformOptions
+            {
+                RenderingMode = _useGpuRendering
+                    ? new[] {AvaloniaNativeRenderingMode.OpenGl, AvaloniaNativeRenderingMode.Software}
+                    : new[] {AvaloniaNativeRenderingMode.Software}
+            });
 
         return builder;
     }
