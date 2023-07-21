@@ -10,6 +10,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using Avalonia.ReactiveUI;
 using Avalonia.Styling;
 using FluentAvalonia.Styling;
@@ -269,8 +270,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
             var fileNames = files.Select(x => x.Path.LocalPath).ToList();
 
             Log.Debug("Dropped folders/files: {FilesNames}", fileNames);
-            var viewModel = ViewModel!;
-            await Task.Run(() => viewModel.HandleDroppedFiles(fileNames));
+            await ViewModel!.HandleDroppedItemsAsync(fileNames);
         }
         else
         {
@@ -290,5 +290,42 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
         };
         if (ViewModel is null) return;
         ViewModel.NotificationManager = NotificationManager;
+    }
+
+    private async void Window_OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        var openFile = e.Key == Key.F2;
+        var openFolder = e.Key == Key.F3;
+        if (!openFile && !openFolder) return;
+        e.Handled = true;
+        if (openFile)
+        {
+            var result = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = Properties.Resources.SelectApkFile,
+                AllowMultiple = true,
+                FileTypeFilter = new FilePickerFileType[] { new("APK file") { Patterns = new []{ "*.apk" } } }
+            });
+            if (result.Count == 0) return;
+            var paths = from file in result
+                let localPath = file.TryGetLocalPath()
+                where File.Exists(localPath)
+                select localPath;
+            await ViewModel!.HandleDroppedItemsAsync(paths);
+        }
+        else if (openFolder)
+        {
+            var result = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = Properties.Resources.SelectGameFolder,
+                AllowMultiple = true
+            });
+            if (result.Count == 0) return;
+            var paths = from folder in result
+                let localPath = folder.TryGetLocalPath()
+                where Directory.Exists(localPath)
+                select localPath;
+            await ViewModel!.HandleDroppedItemsAsync(paths);
+        }
     }
 }

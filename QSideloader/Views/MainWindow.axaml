@@ -15,6 +15,7 @@
         Loaded="Window_OnLoaded"
         Opened="Window_OnOpened"
         Closing="Window_OnClosing"
+        KeyDown="Window_OnKeyDown"
         Background="#272727"
         DragDrop.AllowDrop="True"
         x:DataType="vm:MainWindowViewModel">
