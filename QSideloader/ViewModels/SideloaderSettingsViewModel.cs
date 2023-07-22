@@ -19,7 +19,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
 using Avalonia.Platform.Storage;
-using Avalonia.Threading;
 using QSideloader.Models;
 using QSideloader.Properties;
 using QSideloader.Services;
@@ -551,13 +550,14 @@ public class SideloaderSettingsViewModel : ViewModelBase
     {
         return Observable.Start(() =>
         {
-            if (Globals.Updater is null)
+            throw new NotImplementedException();
+            /*if (Globals.Updater is null)
             {
                 Log.Error("Requested to check for updates, but updater is not initialized");
                 throw new InvalidOperationException("Updater is not initialized");
-            }
+            }*/
 
-            Dispatcher.UIThread.InvokeAsync(() => Globals.Updater.CheckForUpdatesAtUserRequest());
+            //Dispatcher.UIThread.InvokeAsync(() => Globals.Updater.CheckForUpdatesAtUserRequest());
         });
     }
 

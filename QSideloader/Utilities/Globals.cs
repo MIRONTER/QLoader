@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Avalonia.Controls.Notifications;
-using NetSparkleUpdater;
 using QSideloader.ViewModels;
 
 namespace QSideloader.Utilities;
@@ -16,7 +15,7 @@ public static class Globals
     
     public static Dictionary<string, string?> Overrides { get; } = GeneralUtils.ParseOverridesFile();
 
-    public static SparkleUpdater? Updater { get; set; }
+    //public static SparkleUpdater? Updater { get; set; }
 
     public static void ShowNotification(string title, string message, NotificationType type,
         TimeSpan? expiration = null)

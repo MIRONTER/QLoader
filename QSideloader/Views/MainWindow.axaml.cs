@@ -15,12 +15,6 @@ using Avalonia.ReactiveUI;
 using Avalonia.Styling;
 using FluentAvalonia.Styling;
 using FluentAvalonia.UI.Controls;
-using NetSparkleUpdater;
-using NetSparkleUpdater.AssemblyAccessors;
-using NetSparkleUpdater.Configurations;
-using NetSparkleUpdater.Enums;
-using NetSparkleUpdater.SignatureVerifiers;
-using NetSparkleUpdater.UI.Avalonia;
 using QSideloader.Utilities;
 using QSideloader.ViewModels;
 using ReactiveUI;
@@ -30,7 +24,6 @@ namespace QSideloader.Views;
 
 public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWindow
 {
-    private readonly SettingsData _sideloaderSettings;
     private bool _isClosing;
 
     public MainWindow()
@@ -40,7 +33,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
         this.AttachDevTools();
 #endif
         Title = Program.Name;
-        _sideloaderSettings = Globals.SideloaderSettings;
         if (Application.Current != null)
         {
             Application.Current.RequestedThemeVariant = ThemeVariant.Dark;
@@ -180,19 +172,10 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
         Log.Information("Initializing updater");
         try
         {
-            Globals.Updater = new SparkleUpdater(appcastUrl, new Ed25519Checker(SecurityMode.Unsafe))
-            {
-                Configuration = new JSONConfiguration(new AssemblyReflectionAccessor(null), "updater_config.json"),
-                UIFactory = new UIFactory(Icon),
-                RelaunchAfterUpdate = true,
-                CustomInstallerArguments = "",
-                //LogWriter = new LogWriter(true), // uncomment to enable logging to console
-                ShowsUIOnMainThread = true,
-                RestartExecutablePath = Directory.GetCurrentDirectory(),
-                RelaunchAfterUpdateCommandPrefix = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "" : "./"
-            };
-            if (_sideloaderSettings.CheckUpdatesAutomatically)
-                Globals.Updater.StartLoop(true);
+            throw new NotImplementedException();
+            //Globals.Updater = 
+            //if (_sideloaderSettings.CheckUpdatesAutomatically)
+            //    Globals.Updater.StartLoop(true);
         }
         catch (Exception ex)
         {
@@ -281,6 +264,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
         e.Handled = true;
     }
 
+    // ReSharper disable UnusedParameter.Local
     private void Window_OnLoaded(object? sender, RoutedEventArgs e)
     {
         NotificationManager = new WindowNotificationManager(GetTopLevel(this))
