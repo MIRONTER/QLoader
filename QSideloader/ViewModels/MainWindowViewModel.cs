@@ -9,6 +9,7 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +25,6 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using FluentAvalonia.UI.Controls;
-using Newtonsoft.Json;
 using QSideloader.Converters;
 using QSideloader.Models;
 using QSideloader.Properties;
@@ -45,7 +45,7 @@ public class MainWindowViewModel : ViewModelBase
     private readonly DownloaderService _downloaderService;
     private readonly IMainWindow _mainWindow;
 
-    private readonly SideloaderSettingsViewModel _sideloaderSettings;
+    private readonly SettingsData _sideloaderSettings;
     // ReSharper restore PrivateFieldCanBeConvertedToLocalVariable
 
     private readonly Subject<Unit> _gameDonateSubject = new();
@@ -156,8 +156,7 @@ public class MainWindowViewModel : ViewModelBase
     public void OnTaskFinished(bool isSuccess, TaskId taskId)
     {
         if (!isSuccess || !_sideloaderSettings.EnableTaskAutoDismiss) return;
-        if (!int.TryParse(_sideloaderSettings.TaskAutoDismissDelayTextBoxText, out var delaySec)) delaySec = 10;
-        Task.Delay(delaySec * 1000).ContinueWith(_ =>
+        Task.Delay(_sideloaderSettings.TaskAutoDismissDelay * 1000).ContinueWith(_ =>
             Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var task = TaskList.FirstOrDefault(t => Equals(t.TaskId, taskId));
@@ -208,8 +207,9 @@ public class MainWindowViewModel : ViewModelBase
                     Log.Debug("Dropped folder {FileName} contains release.json", fileName);
                     try
                     {
-                        var game = JsonConvert.DeserializeObject<Game>(
-                            await File.ReadAllTextAsync(Path.Combine(fileName, "release.json")));
+                        var game = JsonSerializer.Deserialize(
+                            await File.ReadAllTextAsync(Path.Combine(fileName,
+                                "release.json")), JsonSourceGenerationContext.Default.Game);
                         AddTask(new TaskOptions { Type = TaskType.InstallOnly, Game = game, Path = fileName });
                         continue;
                     }

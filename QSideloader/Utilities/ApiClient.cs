@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using QSideloader.Exceptions;
 using QSideloader.Models;
 using Serilog;
@@ -108,7 +107,7 @@ public static class ApiClient
         {
             var dict = new Dictionary<string, string>
                 {{"hwid", GeneralUtils.GetHwid(true)}, {"package_name", packageName}};
-            var json = JsonConvert.SerializeObject(dict, Formatting.None);
+            var json = JsonSerializer.Serialize(dict, JsonSourceGenerationContext.Default.DictionaryStringString);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await ApiHttpClient.PostAsync("reportdownload", content);
             response.EnsureSuccessStatusCode();
@@ -149,7 +148,7 @@ public static class ApiClient
             return null;
         }
 
-        var game = JsonConvert.DeserializeObject<OculusGame>(responseContent);
+        var game = JsonSerializer.Deserialize(responseContent, JsonSourceGenerationContext.Default.OculusGame);
         op.Complete();
         return game;
     }

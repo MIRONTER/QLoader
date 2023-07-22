@@ -30,7 +30,7 @@ namespace QSideloader.Views;
 
 public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWindow
 {
-    private readonly SideloaderSettingsViewModel _sideloaderSettings;
+    private readonly SettingsData _sideloaderSettings;
     private bool _isClosing;
 
     public MainWindow()
@@ -304,7 +304,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
             {
                 Title = Properties.Resources.SelectApkFile,
                 AllowMultiple = true,
-                FileTypeFilter = new FilePickerFileType[] { new("APK file") { Patterns = new []{ "*.apk" } } }
+                FileTypeFilter = new FilePickerFileType[] { new("APK files") { Patterns = new []{ "*.apk" } } }
             });
             if (result.Count == 0) return;
             var paths = from file in result

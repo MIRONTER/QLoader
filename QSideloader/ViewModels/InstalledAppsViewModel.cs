@@ -28,7 +28,7 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
 {
     private static readonly SemaphoreSlim RefreshSemaphoreSlim = new(1, 1);
     private readonly AdbService _adbService;
-    private readonly SideloaderSettingsViewModel _sideloaderSettings;
+    private readonly SettingsData _sideloaderSettings;
     private readonly ReadOnlyObservableCollection<InstalledApp> _installedApps;
     private readonly SourceCache<InstalledApp, string> _installedAppsSourceCache = new(x => x.Name);
     private readonly ObservableAsPropertyHelper<bool> _isBusy;

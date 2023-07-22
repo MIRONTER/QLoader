@@ -15,7 +15,7 @@ namespace QSideloader.Utilities;
 
 public static partial class LoggerHelper
 {
-    public static void InitializeLogging(SideloaderSettingsViewModel sideloaderSettings)
+    public static void InitializeLogging(SettingsData sideloaderSettings)
     {
         const string humanReadableLogPath = "debug_log.txt";
         const string clefLogPath = "debug_log.clef";

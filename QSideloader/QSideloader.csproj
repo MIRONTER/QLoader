@@ -33,7 +33,6 @@
         <NeededArchitectureSpecificTools Condition="($(RuntimeIdentifier.Contains('linux')) And $(RuntimeIdentifier.Contains('arm64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\linux\arm64\**\*" />
     </ItemGroup>
     <ItemGroup>
-        <Folder Include="Models\" />
         <AvaloniaResource Include="Assets\**" />
         <None Remove=".gitignore" />
         <Content Include="@(Tools)" Exclude="@(ArchitectureSpecificTools)">
@@ -87,7 +86,6 @@
         <PackageReference Include="HyperText.Avalonia" Version="11.0.0-rc1" />
         <PackageReference Include="NetSparkleUpdater.SparkleUpdater" Version="9.9.21" />
         <PackageReference Include="NetSparkleUpdater.UI.Avalonia" Version="9.9.10" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
         <PackageReference Include="ReactiveUI.Fody" Version="19.4.1" />
         <PackageReference Include="ReactiveUI.Validation" Version="3.1.7" />
         <PackageReference Include="Serilog" Version="3.0.1" />

@@ -25,7 +25,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
     private readonly DownloaderService _downloaderService;
 
     // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
-    private readonly SideloaderSettingsViewModel _sideloaderSettings;
+    private readonly SettingsData _sideloaderSettings;
     private readonly ReadOnlyObservableCollection<Game> _availableGames;
     private readonly SourceCache<Game, string> _availableGamesSourceCache = new(x => x.ReleaseName!);
     private readonly ObservableAsPropertyHelper<bool> _isBusy;

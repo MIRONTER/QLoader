@@ -29,15 +29,15 @@
                         Content="{x:Static p:Resources.RestoreDefaultsButton}" />
             </Grid>
             <StackPanel x:Name="UpdaterPanel" Orientation="Horizontal" IsEnabled="{Binding IsUpdaterAvailable}">
-                <ToggleSwitch IsChecked="{Binding CheckUpdatesAutomatically, Mode=TwoWay}"
+                <ToggleSwitch IsChecked="{Binding Settings.CheckUpdatesAutomatically, Mode=TwoWay}"
                               Content="{x:Static p:Resources.CheckUpdatesAutomatically}" />
                 <Button VerticalAlignment="Bottom" MinWidth="100" Margin="20,0,0,8" Command="{Binding CheckUpdates}"
                         Content="{x:Static p:Resources.CheckUpdatesNowButton}" />
             </StackPanel>
 
             <TextBlock VerticalAlignment="Center" Text="{x:Static p:Resources.PreferredConnectionType}" />
-            <ComboBox Margin="0,4,0,0" ItemsSource="{Binding ConnectionTypes}"
-                      SelectedItem="{Binding PreferredConnectionType}" />
+            <ComboBox Margin="0,4,0,0" ItemsSource="{Binding Settings.ConnectionTypes}"
+                      SelectedItem="{Binding Settings.PreferredConnectionType}" />
 
             <TextBlock Margin="0,8,0,4" VerticalAlignment="Center" Text="{x:Static p:Resources.SelectedMirror}" />
             <StackPanel Orientation="Horizontal">
@@ -52,33 +52,33 @@
             <StackPanel Orientation="Horizontal">
                 <ToggleSwitch Margin="0,8,0,0"
                               VerticalAlignment="Top"
-                              IsChecked="{Binding EnableTaskAutoDismiss}"
+                              IsChecked="{Binding Settings.EnableTaskAutoDismiss}"
                               Content="{x:Static p:Resources.EnableTaskAutoDismiss}"
                               ToolTip.Tip="{x:Static p:Resources.EnableTaskAutoDismissTooltip}" />
                 <StackPanel Orientation="Horizontal" Margin="0,34,0,0">
                     <TextBox MinWidth="50" Padding="10,5,10,6" Margin="4,0,0,0"
                              VerticalAlignment="Top"
-                             IsEnabled="{Binding EnableTaskAutoDismiss}"
+                             IsEnabled="{Binding Settings.EnableTaskAutoDismiss}"
                              Text="{Binding TaskAutoDismissDelayTextBoxText}"
                              Watermark="{x:Static p:Resources.TaskAutoDismissDelay}"
                              ToolTip.Tip="{x:Static p:Resources.TaskAutoDismissDelay}" />
                     <Button Margin="4,0,0,0" VerticalAlignment="Top"
-                            IsEnabled="{Binding EnableTaskAutoDismiss}"
+                            IsEnabled="{Binding Settings.EnableTaskAutoDismiss}"
                             Command="{Binding SetTaskAutoDismissDelay}"
                             Content="{x:Static p:Resources.SetButton}" />
                 </StackPanel>
             </StackPanel>
 
             <TextBlock Margin="0,8,0,4" VerticalAlignment="Center" Text="{x:Static p:Resources.PopularityTimeRange}" />
-            <ComboBox ItemsSource="{Binding PopularityRanges}"
-                      SelectedItem="{Binding PopularityRange}" />
+            <ComboBox ItemsSource="{Binding Settings.PopularityRanges}"
+                      SelectedItem="{Binding Settings.PopularityRange}" />
             
             <ToggleSwitch Margin="0,8,0,0"
-                          IsChecked="{Binding EnableAutoDonation}"
+                          IsChecked="{Binding Settings.EnableAutoDonation}"
                           Content="{x:Static p:Resources.EnableAutoDonation}"
                           ToolTip.Tip="{x:Static p:Resources.EnableAutoDonationTooltip}" />
             <ToggleSwitch Margin="0,8,0,0"
-                          IsChecked="{Binding DisableDonationNotification}"
+                          IsChecked="{Binding Settings.DisableDonationNotification}"
                           Content="{x:Static p:Resources.DisableDonationNotification}"
                           ToolTip.Tip="{x:Static p:Resources.DisableDonationNotificationTooltip}" />
             <TextBlock Margin="0,8,0,4" Text="{x:Static p:Resources.DownloadsLocation}" />
@@ -120,17 +120,17 @@
             </ComboBox>
 
             <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
-                <ToggleSwitch IsChecked="{Binding EnableRemoteLogging}"
+                <ToggleSwitch IsChecked="{Binding Settings.EnableRemoteLogging}"
                               Content="{x:Static p:Resources.EnableRemoteLogging}"
                               ToolTip.Tip="{x:Static p:Resources.EnableRemoteLoggingTooltip}" />
                 <Button Margin="4,20,0,0" Command="{Binding CopyInstallationId}"
                         Content="{x:Static p:Resources.CopyInstallationIdButton}" />
             </StackPanel>
 
-            <ToggleSwitch IsChecked="{Binding ForceEnglish}"
+            <ToggleSwitch IsChecked="{Binding Settings.ForceEnglish}"
                           Content="Force English display language" />
 
-            <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding EnableDebugConsole}"
+            <ToggleSwitch Margin="0,8,0,0" IsChecked="{Binding Settings.EnableDebugConsole}"
                           IsVisible="{Binding IsConsoleToggleable}"
                           Content="{x:Static p:Resources.ShowDebugConsole}" />
 

@@ -25,7 +25,7 @@ namespace QSideloader.ViewModels;
 public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
 {
     private readonly AdbService _adbService;
-    private readonly SideloaderSettingsViewModel _sideloaderSettings;
+    private readonly SettingsData _sideloaderSettings;
 
     public DeviceSettingsViewModel()
     {

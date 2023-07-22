@@ -35,7 +35,7 @@ public class App : Application
             LoggerHelper.InitializeLogging(sideloaderSettings);
         }
         
-        Locator.CurrentMutable.RegisterViewsForViewModels(Assembly.GetCallingAssembly());
+        Locator.CurrentMutable.RegisterViewsForViewModels(Assembly.GetExecutingAssembly());
 
         AvaloniaXamlLoader.Load(this);
     }

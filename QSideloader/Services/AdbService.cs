@@ -51,7 +51,7 @@ public class AdbService
     private readonly Subject<DeviceState> _deviceStateChangeSubject = new();
     private readonly Subject<List<AdbDevice>> _deviceListChangeSubject = new();
     private readonly Subject<Unit> _packageListChangeSubject = new();
-    private readonly SideloaderSettingsViewModel _sideloaderSettings;
+    private readonly SettingsData _sideloaderSettings;
     private readonly List<AdbDevice> _deviceList = new();
     private readonly List<Backup> _backupList = new();
     private List<DeviceData> _unauthorizedDeviceList = new();
@@ -855,7 +855,7 @@ public class AdbService
         private readonly SemaphoreSlim _packagesSemaphoreSlim = new(1, 1);
         private readonly AdbServerClient _adb;
         private readonly AdbService _adbService;
-        private readonly SideloaderSettingsViewModel _sideloaderSettings;
+        private readonly SettingsData _sideloaderSettings;
         private readonly DownloaderService _downloaderService;
 
         /// <summary>

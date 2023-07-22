@@ -8,7 +8,7 @@ namespace QSideloader.Utilities;
 
 public class PathsMaskingEnricher : ILogEventEnricher
 {
-    private static SideloaderSettingsViewModel? _sideloaderSettings;
+    private static SettingsData? _sideloaderSettings;
 
     public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
     {

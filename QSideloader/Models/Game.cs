@@ -3,16 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 using FileHelpers;
-using Newtonsoft.Json;
 
 namespace QSideloader.Models;
 
 [DelimitedRecord(";")]
 [IgnoreFirst]
-[SuppressMessage("ReSharper", "PropertyCanBeMadeInitOnly.Global")]
-[SuppressMessage("ReSharper", "MemberCanBeProtected.Global")]
-[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 public class Game : INotifyPropertyChanged
 {
     [FieldHidden] [JsonIgnore] private bool _isInstalled;
@@ -82,7 +79,6 @@ public class Game : INotifyPropertyChanged
 
     [FieldHidden]
     [JsonIgnore]
-    // ReSharper disable once CollectionNeverQueried.Global
     public Dictionary<string, int?> Popularity { get; } = new() {{"1D", null}, {"7D", null}, {"30D", null}};
 
     public event PropertyChangedEventHandler? PropertyChanged;

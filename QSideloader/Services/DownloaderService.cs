@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +18,6 @@ using CliWrap.Buffered;
 using CliWrap.Exceptions;
 using Downloader;
 using FileHelpers;
-using Newtonsoft.Json;
 using QSideloader.Exceptions;
 using QSideloader.Models;
 using QSideloader.Properties;
@@ -39,7 +39,7 @@ public class DownloaderService
     private static readonly SemaphoreSlim DownloadSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim RcloneConfigSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim TrailersAddonSemaphoreSlim = new(1, 1);
-    private readonly SideloaderSettingsViewModel _sideloaderSettings;
+    private readonly SettingsData _sideloaderSettings;
     private List<string> _mirrorList = new();
     private bool? _donationsAvailable;
 
@@ -745,7 +745,11 @@ public class DownloaderService
                     if (!Directory.Exists(dstPath))
                         throw new DirectoryNotFoundException(
                             $"Didn't find directory with downloaded files on path \"{dstPath}\"");
-                    var json = JsonConvert.SerializeObject(game, Formatting.Indented);
+                    var json = JsonSerializer.Serialize(game, new JsonSerializerOptions
+                    {
+                        TypeInfoResolver = JsonSourceGenerationContext.Default,
+                        WriteIndented = true
+                    });
                     await File.WriteAllTextAsync(Path.Combine(dstPath, "release.json"), json, ct);
                     Task.Run(() => ApiClient.ReportGameDownloadAsync(game.PackageName!), ct).SafeFireAndForget();
                     break;
@@ -797,10 +801,10 @@ public class DownloaderService
     /// <param name="interval">Interval between polls.</param>
     /// <param name="scheduler">Scheduler to run polling on.</param>
     /// <returns>IObservable that provides the stats.</returns>
-    public static IObservable<(float downloadSpeedBytes, double downloadedBytes)?> PollStats(TimeSpan interval,
+    public static IObservable<(double downloadSpeedBytes, double downloadedBytes)?> PollStats(TimeSpan interval,
         IScheduler scheduler)
     {
-        return Observable.Create<(float downloadSpeedBytes, double downloadedBytes)?>(observer =>
+        return Observable.Create<(double downloadSpeedBytes, double downloadedBytes)?>(observer =>
         {
             return scheduler.ScheduleAsync(async (ctrl, ct) =>
             {
@@ -818,16 +822,17 @@ public class DownloaderService
     ///     Gets the download stats from rclone.
     /// </summary>
     /// <returns></returns>
-    private static async Task<(float downloadSpeedBytes, double downloadedBytes)?> GetRcloneDownloadStats()
+    private static async Task<(double downloadSpeedBytes, double downloadedBytes)?> GetRcloneDownloadStats()
     {
         try
         {
             var response = await HttpClient.PostAsync($"http://127.0.0.1:{RcloneStatsPort}/core/stats", null);
             var responseContent = await response.Content.ReadAsStringAsync();
-            var results = JsonConvert.DeserializeObject<dynamic>(responseContent);
-            if (results is null || results["transferring"] is null) return null;
-            float downloadSpeedBytes = results.speed.ToObject<float>();
-            double downloadedBytes = results.bytes.ToObject<double>();
+            var results =
+                JsonSerializer.Deserialize(responseContent, JsonSourceGenerationContext.Default.DictionaryStringObject);
+            if (results is null || !results.ContainsKey("transferring")) return null;
+            if (!((JsonElement)results["speed"]).TryGetDouble(out var downloadSpeedBytes)) return null;
+            if (!((JsonElement)results["bytes"]).TryGetDouble(out var downloadedBytes)) return null;
             return (downloadSpeedBytes, downloadedBytes);
         }
         catch
@@ -1010,7 +1015,7 @@ public class DownloaderService
             await EnsureMirrorSelectedAsync();
             var remotePath = $"{MirrorName}:Quest Games/{game.ReleaseName}";
             var sizeJson = await RcloneGetRemoteSizeJson(remotePath, ct);
-            var dict = JsonConvert.DeserializeObject<Dictionary<string, long>>(sizeJson);
+            var dict = JsonSerializer.Deserialize(sizeJson, JsonSourceGenerationContext.Default.DictionaryStringInt64);
             if (dict is null)
                 return null;
             if (!dict.TryGetValue("bytes", out var sizeBytes)) return null;

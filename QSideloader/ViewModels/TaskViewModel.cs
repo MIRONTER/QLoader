@@ -31,7 +31,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private long? _gameSizeBytes;
     private readonly InstalledApp? _app;
     private readonly Backup? _backup;
-    private readonly SideloaderSettingsViewModel _sideloaderSettings;
+    private readonly SettingsData _sideloaderSettings;
     private string? _path;
     private readonly BackupOptions? _backupOptions;
 
@@ -184,7 +184,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         RunTask.Execute().Subscribe();
     }
 
-    private void RefreshDownloadStats((float downloadSpeedBytes, double downloadedBytes)? stats)
+    private void RefreshDownloadStats((double downloadSpeedBytes, double downloadedBytes)? stats)
     {
         if (stats is null)
         {
@@ -197,7 +197,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
         if (_gameSizeBytes is not null)
         {
-            speedMBytes = Math.Round((double) stats.Value.downloadSpeedBytes / 1000000, 2);
+            speedMBytes = Math.Round(stats.Value.downloadSpeedBytes / 1000000, 2);
             progressPercent = Math.Floor(stats.Value.downloadedBytes / (double) _gameSizeBytes * 100);
             if (progressPercent <= 100)
             {
@@ -206,7 +206,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             }
         }
 
-        speedMBytes = Math.Round((double) stats.Value.downloadSpeedBytes / 1000000, 2);
+        speedMBytes = Math.Round(stats.Value.downloadSpeedBytes / 1000000, 2);
         var downloadedMBytes = Math.Round(stats.Value.downloadedBytes / 1000000, 2);
         progressPercent = Math.Min(Math.Floor(downloadedMBytes / _game!.GameSize * 97), 100);
 
@@ -388,7 +388,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 .Subscribe(RefreshDownloadStats);
             var gamePath = await _downloaderService.DownloadGameAsync(_game!, _cancellationTokenSource.Token);
             downloadStatsSubscription.Dispose();
-            if (_game?.ReleaseName is not null)
+            if (_game?.ReleaseName is not null && TaskType != TaskType.DownloadOnly)
                 _downloaderService.PruneDownloadedVersions(_game.ReleaseName);
             return gamePath;
         }

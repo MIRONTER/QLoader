@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reactive;
@@ -11,15 +9,17 @@ using System.Reactive.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
-using Newtonsoft.Json;
 using QSideloader.Models;
 using QSideloader.Properties;
 using QSideloader.Services;
@@ -32,18 +32,251 @@ using Timer = System.Timers.Timer;
 
 namespace QSideloader.ViewModels;
 
-[JsonObject(MemberSerialization.OptIn)]
+
+[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+[SuppressMessage("ReSharper", "PropertyCanBeMadeInitOnly.Global")]
+public class SettingsData : ReactiveObject
+{
+    private static readonly SemaphoreSlim SettingsFileSemaphoreSlim = new(1, 1);
+    [JsonIgnore] private static readonly string DefaultDownloadsLocation = PathHelper.DefaultDownloadsPath;
+    [JsonIgnore] private static readonly string DefaultBackupsLocation = PathHelper.DefaultBackupsPath;
+    private bool _checkUpdatesAutomatically = true;
+    private bool _enableDebugConsole;
+    private bool _forceEnglish;
+
+
+    // All properties and accessors must be public for JSON serialization
+    public static byte ConfigVersion => 1;
+
+    [Reactive]
+    public bool CheckUpdatesAutomatically
+    {
+        get => _checkUpdatesAutomatically;
+        set
+        {
+            _checkUpdatesAutomatically = value;
+            ShowRelaunchNotification();
+        }
+    }
+    [JsonIgnore] public static string[] ConnectionTypes { get; } = {"USB", "Wireless"};
+    [Reactive] public string? PreferredConnectionType { get; set; } = ConnectionTypes[0];
+    [Reactive] public string DownloadsLocation { get; set; } = DefaultDownloadsLocation;
+    [Reactive] public string BackupsLocation { get; set; } = DefaultBackupsLocation;
+    [Reactive] public string LastMediaPullLocation { get; set; } = "";
+    [Reactive] public string DownloaderBandwidthLimit { get; set; } = "";
+
+    [Reactive]
+    public DownloadsPruningPolicy DownloadsPruningPolicy { get; set; } = DownloadsPruningPolicy.DeleteAfterInstall;
+
+    [Reactive]
+    public bool EnableDebugConsole
+    {
+        get => _enableDebugConsole;
+        set
+        {
+            _enableDebugConsole = value;
+            ShowRelaunchNotification();
+        }
+    }
+    [Reactive] public string LastWirelessAdbHost { get; set; } = "";
+    [JsonIgnore] public static string[] PopularityRanges { get; } = {"30 days", "7 days", "1 day", "None"};
+    [Reactive] public string? PopularityRange { get; set; } = PopularityRanges[0];
+    public Guid InstallationId { get; set; } = Guid.NewGuid();
+    public ObservableCollection<(string packageName, int versionCode)> DonatedPackages { get; set; } = new();
+    public ObservableCollection<string> IgnoredDonationPackages { get; } = new();
+    [Reactive] public DateTime DonationBarLastShown { get; set; } = DateTime.MinValue;
+    [Reactive] public Dictionary<string, int> LastDonatableApps { get; set; } = new();
+    [Reactive] public bool EnableRemoteLogging { get; set; }
+    [Reactive] public bool EnableAutoDonation { get; set; }
+    [Reactive] public bool DisableDonationNotification { get; set; }
+
+    [Reactive]
+    public bool ForceEnglish
+    {
+        get => _forceEnglish;
+        set
+        {
+            ShowRelaunchNotification();
+            _forceEnglish = value;
+            
+        }
+    }
+    [Reactive] public bool EnableTaskAutoDismiss { get; set; } = true;
+    /// <summary>
+    /// Task auto dismiss delay in seconds
+    /// </summary>
+    [Reactive] public int TaskAutoDismissDelay { get; set; } = 10;
+    
+    private Timer AutoSaveDelayTimer { get; } = new() {AutoReset = false, Interval = 500, Enabled = true};
+
+    public SettingsData()
+    {
+        PropertyChanged += AutoSave;
+        DonatedPackages.CollectionChanged += AutoSave;
+        IgnoredDonationPackages.CollectionChanged += AutoSave;
+        AutoSaveDelayTimer.Elapsed += (_, _) =>
+        {
+            Validate(false);
+            Save();
+        };
+    }
+
+    private static SettingsData FromJson(string json)
+    {
+        return JsonSerializer.Deserialize(json, JsonSourceGenerationContext.Default.SettingsData)!;
+    }
+
+    public static SettingsData FromFileOrDefaults(string filePath)
+    {
+        if (File.Exists(filePath))
+        {
+            try
+            {
+                var json = File.ReadAllText(filePath);
+                return FromJson(json);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Failed to load settings, resetting to defaults");
+                return new SettingsData();
+            }
+        }
+
+        Log.Information("No settings file, loading defaults");
+        return new SettingsData();
+    }
+
+    public static SettingsData RestoreDefaults(SettingsData settings)
+    {
+        return new SettingsData
+        {
+            InstallationId = settings.InstallationId,
+            DonatedPackages = settings.DonatedPackages
+        };
+    }
+
+    public void Validate(bool save = true)
+    {
+        var saveNeeded = false;
+        if (!Directory.Exists(DownloadsLocation))
+        {
+            if (DownloadsLocation == DefaultDownloadsLocation)
+            {
+                Directory.CreateDirectory(DefaultDownloadsLocation);
+            }
+            else
+            {
+                Log.Debug("Downloads location is invalid, resetting to default");
+                Directory.CreateDirectory(DefaultDownloadsLocation);
+                DownloadsLocation = DefaultDownloadsLocation;
+                saveNeeded = true;
+            }
+        }
+
+        if (!Directory.Exists(BackupsLocation))
+        {
+            if (BackupsLocation == DefaultBackupsLocation)
+            {
+                Directory.CreateDirectory(DefaultBackupsLocation);
+            }
+            else
+            {
+                Log.Debug("Backups location is invalid, resetting to default");
+                Directory.CreateDirectory(DefaultBackupsLocation);
+                BackupsLocation = DefaultBackupsLocation;
+                saveNeeded = true;
+            }
+        }
+
+        if (!Directory.Exists(LastMediaPullLocation))
+            if (LastMediaPullLocation != "")
+            {
+                Log.Debug("Last media pull location is invalid, resetting to default");
+                LastMediaPullLocation = "";
+                saveNeeded = true;
+            }
+
+        if (!ConnectionTypes.Contains(PreferredConnectionType))
+        {
+            Log.Debug("Preferred connection type is invalid, resetting to default");
+            PreferredConnectionType = ConnectionTypes[0];
+            saveNeeded = true;
+        }
+
+        if (!PopularityRanges.Contains(PopularityRange))
+        {
+            Log.Debug("Popularity range is invalid, resetting to default");
+            PopularityRange = PopularityRanges[0];
+            saveNeeded = true;
+        }
+
+        if (save && saveNeeded)
+            Save();
+    }
+
+    public void Save(bool silent = false)
+    {
+        if (Design.IsDesignMode) return;
+        SettingsFileSemaphoreSlim.Wait();
+        try
+        {
+            var json = JsonSerializer.Serialize(this, new JsonSerializerOptions()
+            {
+                TypeInfoResolver = JsonSourceGenerationContext.Default,
+                WriteIndented = true
+            });
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                using FileStream stream = AtomicFileStream.Open(PathHelper.SettingsPath, FileMode.Create,
+                    FileAccess.Write, FileShare.Read, 4096, FileOptions.None);
+                stream.Write(Encoding.UTF8.GetBytes(json));
+            }
+            else
+            {
+                var tmpPath = PathHelper.SettingsPath + ".tmp";
+                File.WriteAllText(tmpPath, json);
+                File.Move(tmpPath, PathHelper.SettingsPath, true);
+                File.Delete(tmpPath);
+            }
+
+            if (!silent)
+                Log.Debug("Settings saved");
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Failed to save settings");
+            Globals.ShowErrorNotification(e, Resources.FailedToSaveSettings);
+            throw;
+        }
+        finally
+        {
+            SettingsFileSemaphoreSlim.Release();
+        }
+    }
+    
+    private static void ShowRelaunchNotification()
+    {
+        Globals.ShowNotification(Resources.Settings, Resources.ApplicationRestartNeededForSetting,
+            NotificationType.Information, TimeSpan.FromSeconds(2));
+    }
+    
+    private void AutoSave(object? sender, EventArgs e)
+    {
+        AutoSaveDelayTimer.Stop();
+        AutoSaveDelayTimer.Start();
+    }
+}
+
 public class SideloaderSettingsViewModel : ViewModelBase
 {
-    private readonly string _defaultDownloadsLocation = PathHelper.DefaultDownloadsPath;
-    private readonly string _defaultBackupsLocation = PathHelper.DefaultBackupsPath;
     private static readonly SemaphoreSlim MirrorSelectionRefreshSemaphoreSlim = new(1, 1);
-    private static readonly SemaphoreSlim SettingsFileSemaphoreSlim = new(1, 1);
     private readonly ObservableAsPropertyHelper<bool> _isSwitchingMirror;
 
     public SideloaderSettingsViewModel()
     {
-        SaveSettings = ReactiveCommand.CreateFromObservable<bool, Unit>(SaveSettingsImpl);
+        Settings = SettingsData.FromFileOrDefaults(PathHelper.SettingsPath);
+        Settings.Validate();
+        SyncTextBoxes();
         BrowseDownloadsDirectory = ReactiveCommand.CreateFromTask(BrowseDownloadsDirectoryImpl);
         SetDownloadLocation = ReactiveCommand.CreateFromObservable(SetDownloadLocationImpl, this.IsValid());
         BrowseBackupsDirectory = ReactiveCommand.CreateFromTask(BrowseBackupsDirectoryImpl);
@@ -105,12 +338,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             Log.Error(ex, "Error fixing date and time");
             Globals.ShowErrorNotification(ex, Resources.ErrorFixingDateTime);
         });
-        InitDefaults();
-        LoadSettings();
-        ValidateSettings();
-        PropertyChanged += AutoSave;
-        DonatedPackages.CollectionChanged += OnCollectionChanged;
-        IgnoredDonationPackages.CollectionChanged += OnCollectionChanged;
+
         this.ValidationRule(viewModel => viewModel.DownloadsLocationTextBoxText,
             Directory.Exists,
             "Invalid path");
@@ -124,11 +352,6 @@ public class SideloaderSettingsViewModel : ViewModelBase
         this.ValidationRule(viewModel => viewModel.TaskAutoDismissDelayTextBoxText,
             x => string.IsNullOrEmpty(x) || int.TryParse(x, out _),
             "Invalid format. Allowed format: Number in seconds (e.g. 10)");
-        AutoSaveDelayTimer.Elapsed += (_, _) =>
-        {
-            ValidateSettings(false);
-            SaveSettings.Execute().Subscribe();
-        };
         this.WhenAnyValue(x => x.SelectedMirror).Where(s => s is not null)
             .DistinctUntilChanged()
             .Subscribe(_ =>
@@ -138,33 +361,22 @@ public class SideloaderSettingsViewModel : ViewModelBase
             });
     }
 
-    [JsonProperty] private byte ConfigVersion { get; } = 1;
+    [Reactive] public SettingsData Settings { get; private set; }
 
-    [NeedsRelaunch]
-    [Reactive]
-    [JsonProperty]
-    public bool CheckUpdatesAutomatically { get; set; }
-
-    public string[] ConnectionTypes { get; } = {"USB", "Wireless"};
-    [Reactive] [JsonProperty] public string? PreferredConnectionType { get; set; }
     [Reactive] public string DownloadsLocationTextBoxText { get; set; } = "";
-    [JsonProperty] public string DownloadsLocation { get; private set; } = "";
+
     [Reactive] public string BackupsLocationTextBoxText { get; set; } = "";
-    [JsonProperty] public string BackupsLocation { get; private set; } = "";
-    [JsonProperty] public string LastMediaPullLocation { get; set; } = "";
+
     [Reactive] public string DownloaderBandwidthLimitTextBoxText { get; set; } = "";
-    [JsonProperty] public string DownloaderBandwidthLimit { get; set; } = "";
-    [Reactive] [JsonProperty] public DownloadsPruningPolicy DownloadsPruningPolicy { get; set; }
+
+    public DownloadsPruningPolicy DownloadsPruningPolicy
+    {
+        get => Settings.DownloadsPruningPolicy;
+        set => Settings.DownloadsPruningPolicy = value;
+    }
 
     public List<DownloadsPruningPolicy> AllDownloadsPruningPolicies { get; } =
         Enum.GetValues(typeof(DownloadsPruningPolicy)).Cast<DownloadsPruningPolicy>().ToList();
-
-    [NeedsRelaunch]
-    [Reactive]
-    [JsonProperty]
-    public bool EnableDebugConsole { get; set; }
-
-    [Reactive] [JsonProperty] public string LastWirelessAdbHost { get; set; } = "";
 
     public string VersionString { get; } = Assembly.GetExecutingAssembly()
         .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "";
@@ -174,44 +386,17 @@ public class SideloaderSettingsViewModel : ViewModelBase
 #else
     public bool IsConsoleToggleable { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 #endif*/
-    public bool IsConsoleToggleable { get; } = true;
+    public bool IsConsoleToggleable => true;
     public bool IsUpdaterAvailable { get; } = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
     [Reactive] public List<string> MirrorList { get; private set; } = new();
     [Reactive] public string? SelectedMirror { get; set; }
     public bool IsSwitchingMirror => _isSwitchingMirror.Value;
-    public string[] PopularityRanges { get; } = {"30 days", "7 days", "1 day", "None"};
-    [Reactive] [JsonProperty] public string? PopularityRange { get; set; }
-    [JsonProperty] public Guid InstallationId { get; private set; } = Guid.NewGuid();
-    [JsonProperty] public ObservableCollection<(string packageName, int versionCode)> DonatedPackages { get; } = new();
-    [JsonProperty] public ObservableCollection<string> IgnoredDonationPackages { get; set; } = new();
-    [Reactive] [JsonProperty] public DateTime DonationBarLastShown { get; set; }
-    [Reactive] [JsonProperty] public Dictionary<string, int> LastDonatableApps { get; set; } = new();
-    [Reactive] public bool IsTrailersAddonInstalled { get; set; }
 
-    [NeedsRelaunch]
-    [Reactive]
-    [JsonProperty]
-    public bool EnableRemoteLogging { get; set; }
 
-    [Reactive] [JsonProperty] public bool EnableAutoDonation { get; set; }
-    
-    [Reactive] [JsonProperty] public bool DisableDonationNotification { get; set; }
+    [Reactive] public bool IsTrailersAddonInstalled { get; private set; }
 
-    [NeedsRelaunch]
-    [Reactive]
-    [JsonProperty]
-    public bool ForceEnglish { get; set; }
-
-    [Reactive] [JsonProperty] public bool EnableTaskAutoDismiss { get; set; }
     [Reactive] public string TaskAutoDismissDelayTextBoxText { get; set; } = "";
 
-    /// <summary>
-    /// Task auto dismiss delay in seconds
-    /// </summary>
-    [JsonProperty]
-    public int TaskAutoDismissDelay { get; set; } = 10;
-
-    private ReactiveCommand<bool, Unit> SaveSettings { get; }
     public ReactiveCommand<Unit, Unit> RestoreDefaults { get; }
     public ReactiveCommand<Unit, Unit> BrowseDownloadsDirectory { get; }
     public ReactiveCommand<Unit, Unit> SetDownloadLocation { get; }
@@ -220,7 +405,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> SetDownloaderBandwidthLimit { get; }
     public ReactiveCommand<Unit, Unit> SetTaskAutoDismissDelay { get; }
     public ReactiveCommand<Unit, Unit> CheckUpdates { get; }
-    public ReactiveCommand<Unit, Unit> SwitchMirror { get; }
+    private ReactiveCommand<Unit, Unit> SwitchMirror { get; }
     public ReactiveCommand<Unit, Unit> ReloadMirrorList { get; }
     public ReactiveCommand<Unit, Unit> InstallTrailersAddon { get; }
     public ReactiveCommand<Unit, Unit> CopyInstallationId { get; }
@@ -231,188 +416,13 @@ public class SideloaderSettingsViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> ForceCleanupPackage { get; }
     public ReactiveCommand<Unit, Unit> CleanLeftoverApks { get; }
     public ReactiveCommand<Unit, Unit> FixDateTime { get; }
-
-    private Timer AutoSaveDelayTimer { get; } = new() {AutoReset = false, Interval = 500};
-
-    private void InitDefaults()
+    
+    private void SyncTextBoxes()
     {
-        // List of default values for settings, null means that the setting should not be reset to default
-        var defaultValues = new Dictionary<string, dynamic?>
-        {
-            {"CheckUpdatesAutomatically", true},
-            {"PreferredConnectionType", ConnectionTypes[0]},
-            {"DownloadsLocation", _defaultDownloadsLocation},
-            {"DownloadsLocationTextBoxText", _defaultDownloadsLocation},
-            {"BackupsLocation", _defaultBackupsLocation},
-            {"BackupsLocationTextBoxText", _defaultBackupsLocation},
-            {"LastMediaPullLocation", ""},
-            {"DownloaderBandwidthLimit", ""},
-            {"DownloaderBandwidthLimitTextBoxText", ""},
-            {"DownloadsPruningPolicy", DownloadsPruningPolicy.DeleteAfterInstall},
-            {"LastWirelessAdbHost", ""},
-            {"EnableDebugConsole", false},
-            {"PopularityRange", PopularityRanges[0]},
-            {"InstallationId", null},
-            {"DonatedPackages", null},
-            {"IgnoredDonationPackages", new ObservableCollection<string>()},
-            {"EnableRemoteLogging", false},
-            {"EnableAutoDonation", false},
-            {"DisableDonationNotification", false},
-            {"ForceEnglish", false},
-            {"EnableTaskAutoDismiss", true},
-            {"TaskAutoDismissDelay", 10},
-            {"TaskAutoDismissDelayTextBoxText", "10"},
-            {"DonationBarLastShown", DateTime.MinValue},
-            {"LastDonatableApps", new Dictionary<string, int>()}
-        };
-
-        var props = GetType().GetProperties().Where(
-            prop => Attribute.IsDefined(prop, typeof(JsonPropertyAttribute))).ToList();
-        foreach (var prop in props)
-        {
-            if (!defaultValues.ContainsKey(prop.Name))
-                throw new InvalidOperationException($"Missing default value for {prop.Name} setting");
-
-            var defaultValue = defaultValues[prop.Name];
-            if (defaultValue == null) continue;
-            if (typeof(IList).IsAssignableFrom(prop.PropertyType))
-            {
-                var collection = (IList) prop.GetValue(this)!;
-                collection.Clear();
-                foreach (var item in (IEnumerable) defaultValue) collection.Add(item);
-            }
-            else
-            {
-                prop.SetValue(this, defaultValue);
-            }
-        }
-    }
-
-    private void ValidateSettings(bool save = true)
-    {
-        var saveNeeded = false;
-        if (!Directory.Exists(DownloadsLocation))
-        {
-            if (DownloadsLocation == _defaultDownloadsLocation)
-            {
-                Directory.CreateDirectory(_defaultDownloadsLocation);
-            }
-            else
-            {
-                Log.Debug("Downloads location is invalid, resetting to default");
-                Directory.CreateDirectory(_defaultDownloadsLocation);
-                DownloadsLocation = _defaultDownloadsLocation;
-                saveNeeded = true;
-            }
-        }
-
-        if (!Directory.Exists(BackupsLocation))
-        {
-            if (BackupsLocation == _defaultBackupsLocation)
-            {
-                Directory.CreateDirectory(_defaultBackupsLocation);
-                BackupsLocationTextBoxText = BackupsLocation;
-            }
-            else
-            {
-                Log.Debug("Backups location is invalid, resetting to default");
-                Directory.CreateDirectory(_defaultBackupsLocation);
-                BackupsLocation = _defaultBackupsLocation;
-                saveNeeded = true;
-            }
-        }
-
-        if (!Directory.Exists(LastMediaPullLocation))
-            if (LastMediaPullLocation != "")
-            {
-                Log.Debug("Last media pull location is invalid, resetting to default");
-                LastMediaPullLocation = "";
-                saveNeeded = true;
-            }
-
-        if (!ConnectionTypes.Contains(PreferredConnectionType))
-        {
-            Log.Debug("Preferred connection type is invalid, resetting to default");
-            PreferredConnectionType = ConnectionTypes[0];
-            saveNeeded = true;
-        }
-
-        if (!PopularityRanges.Contains(PopularityRange))
-        {
-            Log.Debug("Popularity range is invalid, resetting to default");
-            PopularityRange = PopularityRanges[0];
-            saveNeeded = true;
-        }
-
-        DownloadsLocationTextBoxText = DownloadsLocation;
-        BackupsLocationTextBoxText = BackupsLocation;
-        DownloaderBandwidthLimitTextBoxText = DownloaderBandwidthLimit;
-        TaskAutoDismissDelayTextBoxText = TaskAutoDismissDelay.ToString();
-        if (save && saveNeeded)
-            SaveSettings.Execute().Subscribe();
-    }
-
-    private void LoadSettings()
-    {
-        if (File.Exists(PathHelper.SettingsPath))
-        {
-            try
-            {
-                var json = File.ReadAllText(PathHelper.SettingsPath);
-                JsonConvert.PopulateObject(json, this);
-                SaveSettings.Execute(true).Subscribe();
-                Log.Information("Loaded settings");
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, "Failed to load settings, resetting to defaults");
-                InitDefaults();
-                SaveSettings.Execute().Subscribe();
-            }
-        }
-        else
-        {
-            Log.Information("No settings file, loading defaults");
-            SaveSettings.Execute().Subscribe();
-        }
-    }
-
-    private IObservable<Unit> SaveSettingsImpl(bool silent = false)
-    {
-        return Observable.Start(() =>
-        {
-            SettingsFileSemaphoreSlim.Wait();
-            try
-            {
-                var json = JsonConvert.SerializeObject(this, Formatting.Indented);
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    using FileStream stream = AtomicFileStream.Open(PathHelper.SettingsPath, FileMode.Create,
-                        FileAccess.Write, FileShare.Read, 4096, FileOptions.None);
-                    stream.Write(Encoding.UTF8.GetBytes(json));
-                }
-                else
-                {
-                    var tmpPath = PathHelper.SettingsPath + ".tmp";
-                    File.WriteAllText(tmpPath, json);
-                    File.Move(tmpPath, PathHelper.SettingsPath, true);
-                    File.Delete(tmpPath);
-                }
-
-                if (!silent)
-                    Log.Debug("Settings saved");
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, "Failed to save settings");
-                Globals.ShowErrorNotification(e, Resources.FailedToSaveSettings);
-                throw;
-            }
-            finally
-            {
-                SettingsFileSemaphoreSlim.Release();
-            }
-        });
+        DownloadsLocationTextBoxText = Settings.DownloadsLocation;
+        BackupsLocationTextBoxText = Settings.BackupsLocation;
+        DownloaderBandwidthLimitTextBoxText = Settings.DownloaderBandwidthLimit;
+        TaskAutoDismissDelayTextBoxText = Settings.TaskAutoDismissDelay.ToString();
     }
 
     private IObservable<Unit> RestoreDefaultsImpl()
@@ -420,9 +430,9 @@ public class SideloaderSettingsViewModel : ViewModelBase
         return Observable.Start(() =>
         {
             Log.Information("Restoring default settings");
-            InitDefaults();
-            AutoSaveDelayTimer.Stop();
-            AutoSaveDelayTimer.Start();
+            Settings = SettingsData.RestoreDefaults(Settings);
+            Settings.Save();
+            SyncTextBoxes();
             Globals.ShowNotification(Resources.Info, Resources.RestoredDefaultSettings, NotificationType.Success,
                 TimeSpan.FromSeconds(3));
         });
@@ -435,19 +445,18 @@ public class SideloaderSettingsViewModel : ViewModelBase
             if (DownloadsLocationTextBoxText.EndsWith(Path.DirectorySeparatorChar))
                 DownloadsLocationTextBoxText = DownloadsLocationTextBoxText[..^1];
             if (!Directory.Exists(DownloadsLocationTextBoxText) ||
-                DownloadsLocationTextBoxText == DownloadsLocation) return;
+                DownloadsLocationTextBoxText == Settings.DownloadsLocation) return;
             if (!GeneralUtils.IsDirectoryWritable(DownloadsLocationTextBoxText))
             {
                 var location = DownloadsLocationTextBoxText;
-                DownloadsLocationTextBoxText = DownloadsLocation;
-                Log.Warning("New downloads location {Location} is not setting, not changing", location);
+                DownloadsLocationTextBoxText = Settings.DownloadsLocation;
+                Log.Warning("New downloads location {Location} is not writable, not setting", location);
                 Globals.ShowNotification(Resources.Error, Resources.LocationNotWritable,
                     NotificationType.Error, TimeSpan.FromSeconds(5));
                 return;
             }
 
-            DownloadsLocation = DownloadsLocationTextBoxText;
-            SaveSettings.Execute().Subscribe();
+            Settings.DownloadsLocation = DownloadsLocationTextBoxText;
             Log.Debug("Set new downloads location: {Location}",
                 DownloadsLocationTextBoxText);
             Globals.ShowNotification(Resources.Info, Resources.DownloadsLocationSet, NotificationType.Success,
@@ -462,19 +471,18 @@ public class SideloaderSettingsViewModel : ViewModelBase
             if (BackupsLocationTextBoxText.EndsWith(Path.DirectorySeparatorChar))
                 BackupsLocationTextBoxText = BackupsLocationTextBoxText[..^1];
             if (!Directory.Exists(BackupsLocationTextBoxText) ||
-                BackupsLocationTextBoxText == BackupsLocation) return;
+                BackupsLocationTextBoxText == Settings.BackupsLocation) return;
             if (!GeneralUtils.IsDirectoryWritable(BackupsLocationTextBoxText))
             {
                 var location = BackupsLocationTextBoxText;
-                BackupsLocationTextBoxText = BackupsLocation;
+                BackupsLocationTextBoxText = Settings.BackupsLocation;
                 Log.Warning("New backups location {Location} is not writable, not setting", location);
                 Globals.ShowNotification(Resources.Error, Resources.LocationNotWritable,
                     NotificationType.Error, TimeSpan.FromSeconds(5));
                 return;
             }
 
-            BackupsLocation = BackupsLocationTextBoxText;
-            SaveSettings.Execute().Subscribe();
+            Settings.BackupsLocation = BackupsLocationTextBoxText;
             Log.Debug("Set new backups location: {Location}",
                 BackupsLocationTextBoxText);
             Globals.ShowNotification(Resources.Info, Resources.BackupsLocationSet, NotificationType.Success,
@@ -486,13 +494,12 @@ public class SideloaderSettingsViewModel : ViewModelBase
     {
         return Observable.Start(() =>
         {
-            if (DownloaderBandwidthLimitTextBoxText == DownloaderBandwidthLimit ||
+            if (DownloaderBandwidthLimitTextBoxText == Settings.DownloaderBandwidthLimit ||
                 (!string.IsNullOrEmpty(DownloaderBandwidthLimitTextBoxText) &&
                  !int.TryParse(
                      Regex.Match(DownloaderBandwidthLimitTextBoxText, @"^(\d+)[BKMGTP]{0,1}$").Groups[1].ToString(),
                      out _))) return;
-            DownloaderBandwidthLimit = DownloaderBandwidthLimitTextBoxText;
-            SaveSettings.Execute().Subscribe();
+            Settings.DownloaderBandwidthLimit = DownloaderBandwidthLimitTextBoxText;
             if (!string.IsNullOrEmpty(DownloaderBandwidthLimitTextBoxText))
             {
                 Log.Debug("Set new downloader bandwidth limit: {Limit}",
@@ -526,8 +533,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
                     TaskAutoDismissDelayTextBoxText = "0";
                 }
 
-                TaskAutoDismissDelay = delay;
-                SaveSettings.Execute().Subscribe();
+                Settings.TaskAutoDismissDelay = delay;
                 Log.Debug("Set new task auto dismiss delay");
                 Globals.ShowNotification(Resources.Info, Resources.TaskAutoDismissDelaySet,
                     NotificationType.Success, TimeSpan.FromSeconds(2));
@@ -618,7 +624,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var mainWindow = desktop.MainWindow!;
-            var startLocation = await mainWindow.StorageProvider.TryGetFolderFromPathAsync(DownloadsLocation);
+            var startLocation = await mainWindow.StorageProvider.TryGetFolderFromPathAsync(Settings.DownloadsLocation);
             var result = await mainWindow.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
                 Title = Resources.SelectDownloadsFolder,
@@ -644,7 +650,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var mainWindow = desktop.MainWindow!;
-            var startLocation = await mainWindow.StorageProvider.TryGetFolderFromPathAsync(BackupsLocation);
+            var startLocation = await mainWindow.StorageProvider.TryGetFolderFromPathAsync(Settings.BackupsLocation);
             var result = await mainWindow.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
                 Title = Resources.SelectBackupsFolder,
@@ -659,7 +665,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
                     return;
                 }
 
-                BackupsLocation = path;
+                BackupsLocationTextBoxText = path;
                 SetBackupsLocation.Execute().Subscribe();
             }
         }
@@ -667,7 +673,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
 
     private async Task CopyInstallationIdImpl()
     {
-        await ClipboardHelper.SetTextAsync(InstallationId.ToString());
+        await ClipboardHelper.SetTextAsync(Settings.InstallationId.ToString());
         Globals.ShowNotification(Resources.Info, Resources.InstallationIdCopied, NotificationType.Success,
             TimeSpan.FromSeconds(2));
     }
@@ -791,28 +797,6 @@ public class SideloaderSettingsViewModel : ViewModelBase
                     TimeSpan.FromSeconds(2));
             }
         });
-    }
-
-    private static void ShowRelaunchNotification(string propertyName)
-    {
-        Globals.ShowNotification(Resources.Settings, Resources.ApplicationRestartNeededForSetting,
-            NotificationType.Information, TimeSpan.FromSeconds(2));
-    }
-
-    private void AutoSave(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName is null) return;
-        var property = typeof(SideloaderSettingsViewModel).GetProperty(e.PropertyName);
-        if (property is null || !Attribute.IsDefined(property, typeof(JsonPropertyAttribute))) return;
-        if (Attribute.IsDefined(property, typeof(NeedsRelaunchAttribute))) ShowRelaunchNotification(e.PropertyName);
-        AutoSaveDelayTimer.Stop();
-        AutoSaveDelayTimer.Start();
-    }
-
-    private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        AutoSaveDelayTimer.Stop();
-        AutoSaveDelayTimer.Start();
     }
 }
 
