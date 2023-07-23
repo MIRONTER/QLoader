@@ -911,6 +911,9 @@ public class AdbService
             var bootCompleted = RunShellCommand("getprop sys.boot_completed");
             if (!bootCompleted.Contains("1"))
                 Log.Warning("Device {HashedId} has not finished booting yet", HashedId);
+            
+            if (IsWireless)
+                ApplyWirelessFix();
         }
 
         private PackageManager PackageManager { get; }
@@ -1818,6 +1821,16 @@ public class AdbService
         {
             const int port = 5555;
             const string ipAddressPattern = @"src ([\d]{1,3}.[\d]{1,3}.[\d]{1,3}.[\d]{1,3})";
+            ApplyWirelessFix();
+            var ipRouteOutput = RunShellCommand("ip route");
+            var ipAddress = Regex.Match(ipRouteOutput, ipAddressPattern).Groups[1].ToString();
+            _adb.AdbClient.TcpIp(this, port);
+            return ipAddress;
+        }
+
+        private void ApplyWirelessFix()
+        {
+            using var op = Operation.Time("Applying wireless fix to {Device}", this);
             RunShellCommand(
                 "settings put global wifi_wakeup_available 1 " +
                 "&& settings put global wifi_wakeup_enabled 1 " +
@@ -1825,10 +1838,6 @@ public class AdbService
                 "&& settings put global wifi_suspend_optimizations_enabled 0 " +
                 "&& settings put global wifi_watchdog_poor_network_test_enabled 0 " +
                 "&& svc wifi enable");
-            var ipRouteOutput = RunShellCommand("ip route");
-            var ipAddress = Regex.Match(ipRouteOutput, ipAddressPattern).Groups[1].ToString();
-            _adb.AdbClient.TcpIp(this, port);
-            return ipAddress;
         }
 
         /// <summary>
