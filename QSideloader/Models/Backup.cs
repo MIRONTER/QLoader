@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace QSideloader.Models;
 
-public class Backup : INotifyPropertyChanged
+public partial class Backup : INotifyPropertyChanged
 {
     private bool _isSelected;
 
@@ -17,7 +17,7 @@ public class Backup : INotifyPropertyChanged
         if (!File.Exists(System.IO.Path.Combine(path, ".backup")))
             throw new ArgumentException($"Backup {path} is not valid");
         var dirName = System.IO.Path.GetFileName(path);
-        var dateString = Regex.Match(dirName, @"\d{8}T\d{6}").Value;
+        var dateString = DateStringRegex().Match(dirName).Value;
         Name = dirName.Replace(dateString + "_", "");
         // ReSharper disable once StringLiteralTypo
         Date = DateTime.ParseExact(dateString, "yyyyMMddTHHmmss", System.Globalization.CultureInfo.InvariantCulture);
@@ -58,4 +58,7 @@ public class Backup : INotifyPropertyChanged
         // ReSharper disable once StringLiteralTypo
         return Date.ToString("yyyyMMddTHHmmss") + "_" + Name;
     }
+
+    [GeneratedRegex("\\d{8}T\\d{6}")]
+    private static partial Regex DateStringRegex();
 }

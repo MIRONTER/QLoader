@@ -34,7 +34,7 @@ static string GetHwid()
         var ioregOutput = Cli.Wrap("ioreg")
             .WithArguments("-rd1 -c IOPlatformExpertDevice")
             .ExecuteBufferedAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-        var match = Regex.Match(ioregOutput.StandardOutput, "IOPlatformUUID\" = \"(.*?)\"");
+        var match = IoPlatformUuidRegex().Match(ioregOutput.StandardOutput);
         if (match.Success)
             hwid = match.Groups[1].Value;
     }
@@ -42,8 +42,7 @@ static string GetHwid()
     if (hwid is null) throw new InvalidOperationException("Failed to get HWID");
 
     var bytes = Encoding.UTF8.GetBytes(hwid);
-    var sha256 = SHA256.Create();
-    var hash = sha256.ComputeHash(bytes);
+    var hash = SHA256.HashData(bytes);
 
     return BitConverter.ToString(hash).Replace("-", "");
 }
@@ -59,7 +58,7 @@ static string GetHwidCompat()
 
     foreach (var o in searcher.Get())
     {
-        var queryObj = (ManagementObject) o;
+        var queryObj = (ManagementObject)o;
         sb.Append(queryObj["NumberOfCores"]);
         sb.Append(queryObj["ProcessorId"]);
         sb.Append(queryObj["Name"]);
@@ -71,7 +70,7 @@ static string GetHwidCompat()
 
     foreach (var o in searcher.Get())
     {
-        var queryObj = (ManagementObject) o;
+        var queryObj = (ManagementObject)o;
         sb.Append(queryObj["Manufacturer"]);
         sb.Append(queryObj["Name"]);
         sb.Append(queryObj["Version"]);
@@ -82,14 +81,20 @@ static string GetHwidCompat()
 
     foreach (var o in searcher.Get())
     {
-        var queryObj = (ManagementObject) o;
+        var queryObj = (ManagementObject)o;
         sb.Append(queryObj["Product"]);
     }
 
     var bytes = Encoding.ASCII.GetBytes(sb.ToString());
-    var sha = SHA256.Create();
 
-    var hash = sha.ComputeHash(bytes);
+    var hash = SHA256.HashData(bytes);
 
     return BitConverter.ToString(hash).Replace("-", "");
+}
+
+// ReSharper disable once UnusedType.Global
+internal partial class Program
+{
+    [GeneratedRegex("IOPlatformUUID\" = \"(.*?)\"")]
+    private static partial Regex IoPlatformUuidRegex();
 }

@@ -124,6 +124,7 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
     public void Dispose()
     {
         DisposeMediaPlayer();
+        GC.SuppressFinalize(this);
     }
 
     private IObservable<Unit> DownloadAndInstallImpl()

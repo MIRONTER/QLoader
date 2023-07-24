@@ -220,7 +220,7 @@ public class SettingsData : ReactiveObject
         SettingsFileSemaphoreSlim.Wait();
         try
         {
-            var json = JsonSerializer.Serialize(this, new JsonSerializerOptions()
+            var json = JsonSerializer.Serialize(this, new JsonSerializerOptions
             {
                 TypeInfoResolver = JsonSerializerContext.Default,
                 WriteIndented = true
@@ -267,7 +267,7 @@ public class SettingsData : ReactiveObject
     }
 }
 
-public class SideloaderSettingsViewModel : ViewModelBase
+public partial class SideloaderSettingsViewModel : ViewModelBase
 {
     private static readonly SemaphoreSlim MirrorSelectionRefreshSemaphoreSlim = new(1, 1);
     private readonly ObservableAsPropertyHelper<bool> _isSwitchingMirror;
@@ -347,7 +347,7 @@ public class SideloaderSettingsViewModel : ViewModelBase
             "Invalid path");
         this.ValidationRule(viewModel => viewModel.DownloaderBandwidthLimitTextBoxText,
             x => string.IsNullOrEmpty(x) ||
-                 int.TryParse(Regex.Match(x, @"^(\d+)[BKMGTP]{0,1}$").Groups[1].ToString(), out _),
+                 int.TryParse(BandwidthRegex().Match(x).Groups[1].ToString(), out _),
             "Invalid format. Allowed format: Number in KiB/s, or number with suffix B|K|M|G|T|P (e.g. 1000 or 10M)");
         this.ValidationRule(viewModel => viewModel.TaskAutoDismissDelayTextBoxText,
             x => string.IsNullOrEmpty(x) || int.TryParse(x, out _),
@@ -495,10 +495,10 @@ public class SideloaderSettingsViewModel : ViewModelBase
         return Observable.Start(() =>
         {
             if (DownloaderBandwidthLimitTextBoxText == Settings.DownloaderBandwidthLimit ||
-                (!string.IsNullOrEmpty(DownloaderBandwidthLimitTextBoxText) &&
+                !string.IsNullOrEmpty(DownloaderBandwidthLimitTextBoxText) &&
                  !int.TryParse(
-                     Regex.Match(DownloaderBandwidthLimitTextBoxText, @"^(\d+)[BKMGTP]{0,1}$").Groups[1].ToString(),
-                     out _))) return;
+                     BandwidthRegex().Match(DownloaderBandwidthLimitTextBoxText).Groups[1].ToString(),
+                     out _)) return;
             Settings.DownloaderBandwidthLimit = DownloaderBandwidthLimitTextBoxText;
             if (!string.IsNullOrEmpty(DownloaderBandwidthLimitTextBoxText))
             {
@@ -799,6 +799,9 @@ public class SideloaderSettingsViewModel : ViewModelBase
             }
         });
     }
+
+    [GeneratedRegex("^(\\d+)[BKMGTP]{0,1}$")]
+    private static partial Regex BandwidthRegex();
 }
 
 public enum DownloadsPruningPolicy

@@ -32,7 +32,7 @@ namespace QSideloader.Services;
 /// <summary>
 ///     Service for all download/upload operations.
 /// </summary>
-public class DownloaderService
+public partial class DownloaderService
 {
     private static readonly SemaphoreSlim MirrorListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim GameListSemaphoreSlim = new(1, 1);
@@ -222,12 +222,10 @@ public class DownloaderService
     /// <returns><see cref="List{T}" /> of mirrors.</returns>
     private static async Task<List<string>> GetMirrorListAsync()
     {
-        // regex pattern to parse mirror names from rclone output
-        const string mirrorPattern = @"(FFA-\d+):";
         List<string> mirrorList = new();
 
         var result = await ExecuteRcloneCommandAsync("listremotes");
-        var matches = Regex.Matches(result.StandardOutput, mirrorPattern);
+        var matches = RcloneMirrorRegex().Matches(result.StandardOutput);
         foreach (Match match in matches) mirrorList.Add(match.Groups[1].ToString());
         return mirrorList;
     }
@@ -541,7 +539,7 @@ public class DownloaderService
     /// <param name="refresh">Should force a refresh even if data is already loaded.</param>
     public async Task EnsureMetadataAvailableAsync(bool refresh = false)
     {
-        var skip = (AvailableGames is not null && AvailableGames.Count > 0 && !refresh) || Design.IsDesignMode;
+        var skip = AvailableGames is not null && AvailableGames.Count > 0 && !refresh || Design.IsDesignMode;
 
         await GameListSemaphoreSlim.WaitAsync();
         if (skip)
@@ -854,7 +852,7 @@ public class DownloaderService
             throw new FileNotFoundException("Archive not found", path);
         using var op = Operation.At(LogEventLevel.Information, LogEventLevel.Error).Begin("Uploading donation");
         var archiveName = Path.GetFileName(path);
-        if (!Regex.IsMatch(archiveName, @"^.+ v\d+ .+\.zip$"))
+        if (!DonationArchiveRegex().IsMatch(archiveName))
             throw new ArgumentException("Invalid archive name", nameof(path));
         Log.Information("Uploading donation {ArchiveName}", archiveName);
         var md5Sum = GeneralUtils.GetMd5FileChecksum(path).ToLower();
@@ -947,11 +945,10 @@ public class DownloaderService
     /// <seealso cref="SideloaderSettingsViewModel.DownloadsPruningPolicy"/>
     public void PruneDownloadedVersions(string releaseName)
     {
-        var regex = new Regex(@"(.+) v\d+\+.+");
         var pruningPolicy = _sideloaderSettings.DownloadsPruningPolicy;
         if (pruningPolicy is DownloadsPruningPolicy.KeepAll or DownloadsPruningPolicy.DeleteAfterInstall)
             return;
-        var match = regex.Match(releaseName);
+        var match = StandardReleaseNameRegex().Match(releaseName);
         if (!match.Success)
         {
             Log.Debug("Release name {ReleaseName} is non-standard, skipping pruning", releaseName);
@@ -972,7 +969,7 @@ public class DownloaderService
                      .OrderByDescending(Path.GetFileName))
         {
             var directoryName = Path.GetFileName(directory);
-            match = regex.Match(directoryName);
+            match = StandardReleaseNameRegex().Match(directoryName);
             if (!match.Success || match.Groups[1].Value != gameName || directoryName == releaseName)
                 continue;
             count++;
@@ -1042,4 +1039,14 @@ public class DownloaderService
             throw new DownloaderServiceException("Error executing rclone size", e);
         }
     }
+
+    /// <summary>
+    /// Regex pattern to parse mirror names from rclone output.
+    /// </summary>
+    [GeneratedRegex("(FFA-\\d+):")]
+    private static partial Regex RcloneMirrorRegex();
+    [GeneratedRegex("^.+ v\\d+ .+\\.zip$")]
+    private static partial Regex DonationArchiveRegex();
+    [GeneratedRegex("(.+) v\\d+\\+.+")]
+    private static partial Regex StandardReleaseNameRegex();
 }

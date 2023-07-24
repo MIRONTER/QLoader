@@ -60,8 +60,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(_ => RecalculateTaskListBoxHeight());
     }
-    
-    public INotificationManager? NotificationManager { get; private set; }
+
+    private INotificationManager? NotificationManager { get; set; }
 
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private void NavigationView_OnSelectionChanged(object? sender, NavigationViewSelectionChangedEventArgs e)

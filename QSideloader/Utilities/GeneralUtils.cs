@@ -19,7 +19,7 @@ using SerilogTimings;
 
 namespace QSideloader.Utilities;
 
-public static class GeneralUtils
+public static partial class GeneralUtils
 {
     private static HttpClient HttpClient { get; }
 
@@ -51,10 +51,10 @@ public static class GeneralUtils
 
         var apkInfo = new ApkInfo
         {
-            ApplicationLabel = Regex.Match(aaptOutput.StandardOutput, "application-label:'(.*?)'").Groups[1].Value,
-            PackageName = Regex.Match(aaptOutput.StandardOutput, "package: name='(.*?)'").Groups[1].Value,
-            VersionCode = int.Parse(Regex.Match(aaptOutput.StandardOutput, "versionCode='(.*?)'").Groups[1].Value),
-            VersionName = Regex.Match(aaptOutput.StandardOutput, "versionName='(.*?)'").Groups[1].Value
+            ApplicationLabel = ApplicationLabelRegex().Match(aaptOutput.StandardOutput).Groups[1].Value,
+            PackageName = PackageNameRegex().Match(aaptOutput.StandardOutput).Groups[1].Value,
+            VersionCode = int.Parse(VersionCodeRegex().Match(aaptOutput.StandardOutput).Groups[1].Value),
+            VersionName = VersionNameRegex().Match(aaptOutput.StandardOutput).Groups[1].Value
         };
         return apkInfo;
     }
@@ -94,7 +94,7 @@ public static class GeneralUtils
                 var ioregOutput = Cli.Wrap("ioreg")
                     .WithArguments("-rd1 -c IOPlatformExpertDevice")
                     .ExecuteBufferedAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-                var match = Regex.Match(ioregOutput.StandardOutput, "IOPlatformUUID\" = \"(.*?)\"");
+                var match = IoPlatformUuidRegex().Match(ioregOutput.StandardOutput);
                 if (match.Success)
                     hwid = match.Groups[1].Value;
                 else
@@ -293,4 +293,15 @@ public static class GeneralUtils
 
         throw new TimeZoneNotFoundException($"No IANA time zone found for \"{tzi.Id}\".");
     }
+
+    [GeneratedRegex("application-label:'(.*?)'")]
+    private static partial Regex ApplicationLabelRegex();
+    [GeneratedRegex("package: name='(.*?)'")]
+    private static partial Regex PackageNameRegex();
+    [GeneratedRegex("versionCode='(.*?)'")]
+    private static partial Regex VersionCodeRegex();
+    [GeneratedRegex("versionName='(.*?)'")]
+    private static partial Regex VersionNameRegex();
+    [GeneratedRegex("IOPlatformUUID\" = \"(.*?)\"")]
+    private static partial Regex IoPlatformUuidRegex();
 }

@@ -22,7 +22,7 @@ using Serilog;
 
 namespace QSideloader.ViewModels;
 
-public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
+public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
 {
     private readonly AdbService _adbService;
     private readonly SettingsData _sideloaderSettings;
@@ -150,7 +150,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
                 Globals.MainWindowViewModel!.AddTask(new TaskOptions
                 {
                     Type = TaskType.PullMedia,
-                    Path = path + Path.DirectorySeparatorChar + "OculusMedia",
+                    Path = path + Path.DirectorySeparatorChar + "OculusMedia"
                 });
             }
             else
@@ -399,10 +399,7 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
 
     private static bool IsValidUsername(string username)
     {
-        // Regex for checking username against Oculus username requirements:
-        // https://support.oculus.com/articles/accounts/account-settings-and-management/change-oculus-username/
-        const string usernameCheckPattern = @"^(?![-_])(?!.*--)(?!.*__)[\w-]{2,20}$";
-        return Regex.IsMatch(username, usernameCheckPattern);
+        return UsernameCheckRegex().IsMatch(username);
     }
 
     private IObservable<Unit> MountStorageImpl()
@@ -440,4 +437,11 @@ public class DeviceSettingsViewModel : ViewModelBase, IActivatableViewModel
             Log.Information("Launched hidden settings");
         });
     }
+
+    /// <summary>
+    /// Regex for checking username against Oculus username requirements:
+    /// https://support.oculus.com/articles/accounts/account-settings-and-management/change-oculus-username/
+    /// </summary>
+    [GeneratedRegex("^(?![-_])(?!.*--)(?!.*__)[\\w-]{2,20}$")]
+    private static partial Regex UsernameCheckRegex();
 }

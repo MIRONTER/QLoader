@@ -24,6 +24,7 @@
                     Spacing="12" Margin="8"
                     HorizontalAlignment="Right">
             <Button x:Name="RestoreButton"
+                    IsEnabled="{Binding IsDeviceConnected}"
                     ToolTip.Tip="{x:Static p:Resources.RestoreSelectedBackupsTooltip}" Command="{Binding Restore}"
                     Content="{x:Static p:Resources.RestoreSelectedButton}" />
             <Button x:Name="DeleteButton"

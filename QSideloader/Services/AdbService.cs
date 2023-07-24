@@ -39,7 +39,7 @@ namespace QSideloader.Services;
 /// <summary>
 ///     Service for all ADB operations.
 /// </summary>
-public class AdbService
+public partial class AdbService
 {
     private static readonly SemaphoreSlim DeviceSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim DeviceListSemaphoreSlim = new(1, 1);
@@ -849,7 +849,7 @@ public class AdbService
     /// <summary>
     ///     Adb device class for device-specific operations.
     /// </summary>
-    public class AdbDevice : DeviceData
+    public partial class AdbDevice : DeviceData
     {
         private readonly SemaphoreSlim _deviceInfoSemaphoreSlim = new(1, 1);
         private readonly SemaphoreSlim _packagesSemaphoreSlim = new(1, 1);
@@ -909,7 +909,7 @@ public class AdbService
             PackageManager = new PackageManager(_adb.AdbClient, this, true);
 
             var bootCompleted = RunShellCommand("getprop sys.boot_completed");
-            if (!bootCompleted.Contains("1"))
+            if (!bootCompleted.Contains('1'))
                 Log.Warning("Device {HashedId} has not finished booting yet", HashedId);
             
             if (IsWireless)
@@ -1077,7 +1077,7 @@ public class AdbService
                 try
                 {
                     dumpsysOutput = RunShellCommand("dumpsys battery | grep level");
-                    BatteryLevel = int.Parse(Regex.Match(dumpsysOutput, @"[0-9]{1,3}").ToString());
+                    BatteryLevel = int.Parse(BatteryLevelRegex().Match(dumpsysOutput).ToString());
                 }
                 catch (Exception e)
                 {
@@ -1092,7 +1092,7 @@ public class AdbService
                 {
                     dfOutput = RunShellCommand("df /data");
                     var dfOutputSplit = dfOutput.Split(new[] {"\r\n", "\r", "\n"}, StringSplitOptions.None);
-                    var line = Regex.Split(dfOutputSplit[1], @"\s{1,}");
+                    var line = SpaceUsedFreeRegex().Split(dfOutputSplit[1]);
                     SpaceUsed = (float) Math.Round(float.Parse(line[2]) * 1024 / 1000000000, 2);
                     SpaceFree = (float) Math.Round(float.Parse(line[3]) * 1024 / 1000000000, 2);
                 }
@@ -1561,8 +1561,6 @@ public class AdbService
                 if (!File.Exists(scriptPath))
                     throw new FileNotFoundException("Install script not found", scriptPath);
                 var scriptName = Path.GetFileName(scriptPath);
-                // Regex pattern to split command into list of arguments
-                const string argsPattern = @"[\""].+?[\""]|[^ ]+";
                 var gamePath = Path.GetDirectoryName(scriptPath)!;
                 var scriptCommands = File.ReadAllLines(scriptPath);
                 foreach (var archivePath in Directory.GetFiles(gamePath, "*.7z", SearchOption.TopDirectoryOnly))
@@ -1574,7 +1572,7 @@ public class AdbService
                     // Remove redirections
                     var command = rawCommand.Split('>').First().Trim();
                     Log.Information("{ScriptName}: Running command: \"{Command}\"", scriptName, command);
-                    var args = Regex.Matches(command, argsPattern)
+                    var args = CommandArgsRegex().Matches(command)
                         .Select(x => x.Value.Trim('"'))
                         .ToList();
                     if (args[0] == "adb")
@@ -1821,10 +1819,9 @@ public class AdbService
         public string EnableWirelessAdb()
         {
             const int port = 5555;
-            const string ipAddressPattern = @"src ([\d]{1,3}.[\d]{1,3}.[\d]{1,3}.[\d]{1,3})";
             ApplyWirelessFix();
             var ipRouteOutput = RunShellCommand("ip route");
-            var ipAddress = Regex.Match(ipRouteOutput, ipAddressPattern).Groups[1].ToString();
+            var ipAddress = IpAddressRegex().Match(ipRouteOutput).Groups[1].ToString();
             _adb.AdbClient.TcpIp(this, port);
             return ipAddress;
         }
@@ -1841,7 +1838,7 @@ public class AdbService
                 "&& settings put global wifi_suspend_optimizations_enabled 0 " +
                 "&& settings put global wifi_watchdog_poor_network_test_enabled 0 " +
                 "&& svc wifi enable");
-            Log.Debug("Applied wireless fix to {Device}", this);;
+            Log.Debug("Applied wireless fix to {Device}", this);
         }
 
         /// <summary>
@@ -1868,8 +1865,7 @@ public class AdbService
             var sharedDataBackupPath = Path.Combine(backupPath, "data");
             var privateDataBackupPath = Path.Combine(backupPath, "data_private");
             var obbBackupPath = Path.Combine(backupPath, "obb");
-            const string apkPathPattern = @"package:(\S+)";
-            var apkPath = Regex.Match(RunShellCommand($"pm path {packageName}"), apkPathPattern).Groups[1]
+            var apkPath = ApkPathRegex().Match(RunShellCommand($"pm path {packageName}")).Groups[1]
                 .ToString();
             Directory.CreateDirectory(backupPath);
             File.Create(Path.Combine(backupPath, ".backup")).Dispose();
@@ -2025,7 +2021,7 @@ public class AdbService
             if (Directory.Exists(path))
                 Directory.Delete(path, true);
             Directory.CreateDirectory(path);
-            var apkPath = Regex.Match(RunShellCommand($"pm path {packageName}"), @"package:(\S+)").Groups[1]
+            var apkPath = ApkPathRegex().Match(RunShellCommand($"pm path {packageName}")).Groups[1]
                 .ToString();
             var localApkPath = Path.Combine(path, Path.GetFileName(apkPath));
             var obbPath = $"/sdcard/Android/obb/{packageName}/";
@@ -2043,10 +2039,9 @@ public class AdbService
         /// <exception cref="ArgumentException">Thrown if provided package name is not valid.</exception>
         private static void EnsureValidPackageName(string? packageName)
         {
-            const string packageNamePattern = @"^([A-Za-z]{1}[A-Za-z\d_]*\.)+[A-Za-z][A-Za-z\d_]*$";
             if (string.IsNullOrEmpty(packageName))
                 throw new ArgumentException("Package name cannot be null or empty", nameof(packageName));
-            if (!Regex.IsMatch(packageName, packageNamePattern))
+            if (!PackageNameRegex().IsMatch(packageName))
                 throw new ArgumentException("Package name is not valid", nameof(packageName));
         }
 
@@ -2100,5 +2095,21 @@ public class AdbService
             
             return true;
         }
+
+        [GeneratedRegex("src ([\\d]{1,3}.[\\d]{1,3}.[\\d]{1,3}.[\\d]{1,3})")]
+        private static partial Regex IpAddressRegex();
+        [GeneratedRegex("[0-9]{1,3}")]
+        private static partial Regex BatteryLevelRegex();
+        [GeneratedRegex("\\s{1,}")]
+        private static partial Regex SpaceUsedFreeRegex();
+        [GeneratedRegex("^([A-Za-z]{1}[A-Za-z\\d_]*\\.)+[A-Za-z][A-Za-z\\d_]*$")]
+        private static partial Regex PackageNameRegex();
+        /// <summary>
+        /// Regex pattern to split command into list of arguments.
+        /// </summary>
+        [GeneratedRegex("[\\\"].+?[\\\"]|[^ ]+")]
+        private static partial Regex CommandArgsRegex();
+        [GeneratedRegex("package:(\\S+)")]
+        private static partial Regex ApkPathRegex();
     }
 }

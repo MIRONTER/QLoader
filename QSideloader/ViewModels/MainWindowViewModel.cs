@@ -38,7 +38,7 @@ using Serilog.Context;
 
 namespace QSideloader.ViewModels;
 
-public class MainWindowViewModel : ViewModelBase
+public partial class MainWindowViewModel : ViewModelBase
 {
     // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
     private readonly AdbService _adbService;
@@ -228,7 +228,7 @@ public class MainWindowViewModel : ViewModelBase
                     var dirNames = Directory.EnumerateDirectories(fileName, "*.*", SearchOption.TopDirectoryOnly)
                         .Select(Path.GetFileName);
                     var obbDirName = dirNames.Where(d => d is not null).FirstOrDefault(d =>
-                        Regex.IsMatch(d!, @"^([A-Za-z]{1}[A-Za-z\d_]*\.)+[A-Za-z][A-Za-z\d_]*$"));
+                        PackageNameRegex().IsMatch(d!));
                     if (obbDirName is not null)
                     {
                         Log.Debug("Found OBB directory {ObbDirName}", obbDirName);
@@ -413,7 +413,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         expiration ??= TimeSpan.Zero;
         // Remove invalid characters to avoid cutting off when copying to clipboard
-        var filteredException = Regex.Replace(e.ToString(), @"[^\w\d\s\p{P}]", "");
+        var filteredException = CleanStringRegex().Replace(e.ToString(), "");
         var appVersionString = Assembly.GetExecutingAssembly()
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "N/A";
         var osName = GeneralUtils.GetOsName();
@@ -619,4 +619,9 @@ public class MainWindowViewModel : ViewModelBase
                          { Type = TaskType.PullAndUpload, App = app })) AddTask(taskOptions);
         });
     }
+
+    [GeneratedRegex("^([A-Za-z]{1}[A-Za-z\\d_]*\\.)+[A-Za-z][A-Za-z\\d_]*$")]
+    private static partial Regex PackageNameRegex();
+    [GeneratedRegex("[^\\w\\d\\s\\p{P}]")]
+    private static partial Regex CleanStringRegex();
 }
