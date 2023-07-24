@@ -48,7 +48,6 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         _game = new Game("GameName", "ReleaseName", 1337, "NoteText");
         TaskId = new TaskId();
         TaskName = "TaskName";
-        GameName = "GameName";
         ProgressStatus = "ProgressStatus";
         RunTask = ReactiveCommand.Create(() => { Hint = "Click to cancel"; });
         Activator = new ViewModelActivator();
@@ -164,14 +163,13 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         });
     }
 
-    public ReactiveCommand<Unit, Unit> RunTask { get; }
+    private ReactiveCommand<Unit, Unit> RunTask { get; }
 
     public TaskId TaskId { get; }
     public TaskType TaskType { get; }
 
     public string TaskName { get; }
     public bool IsFinished { get; private set; }
-    public string? GameName { get; }
     public string? PackageName => _app?.PackageName ?? _game?.PackageName;
     [Reactive] public string Status { get; private set; } = "Status";
     [Reactive] public string ProgressStatus { get; private set; } = "";
@@ -208,16 +206,17 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
         speedMBytes = Math.Round(stats.Value.downloadSpeedBytes / 1000000, 2);
         var downloadedMBytes = Math.Round(stats.Value.downloadedBytes / 1000000, 2);
-        progressPercent = Math.Min(Math.Floor(downloadedMBytes / _game!.GameSize * 97), 100);
+        progressPercent = Math.Floor(downloadedMBytes / _game!.GameSize * 97);
+        var progressPercentString = progressPercent <= 100 ? $"{progressPercent}%" : "--%";
 
-        ProgressStatus = $"{progressPercent}%, {speedMBytes}MB/s";
+        ProgressStatus = $"{progressPercentString}, {speedMBytes}MB/s";
     }
 
     private void RefreshDownloadStats((double bytesPerSecond, long downloadedBytes, long totalBytes) stats)
     {
         var speedMBytes = Math.Round(stats.bytesPerSecond / 1000000, 2);
         var progressPercent = Math.Floor((double) stats.downloadedBytes / stats.totalBytes * 100);
-        var progressPercentString = progressPercent <= 100 ? $"{progressPercent}%" : "??%";
+        var progressPercentString = progressPercent <= 100 ? $"{progressPercent}%" : "--%";
 
         ProgressStatus = $"{progressPercentString}, {speedMBytes}MB/s";
     }

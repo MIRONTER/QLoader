@@ -1580,23 +1580,23 @@ public class AdbService
                     if (args[0] == "adb")
                     {
                         var adbCommand = args[1];
-                        args.RemoveRange(0, 2);
+                        var adbArgs = args.Skip(2).ToList();
                         switch (adbCommand)
                         {
                             case "install":
                             {
-                                var reinstall = args.Contains("-r");
-                                var grantRuntimePermissions = args.Contains("-g");
-                                var apkPath = Path.Combine(gamePath, args.First(x => x.EndsWith(".apk")));
+                                var reinstall = adbArgs.Contains("-r");
+                                var grantRuntimePermissions = adbArgs.Contains("-g");
+                                var apkPath = Path.Combine(gamePath, adbArgs.First(x => x.EndsWith(".apk")));
                                 InstallPackage(apkPath, reinstall, grantRuntimePermissions, null, ct);
                                 break;
                             }
                             case "uninstall":
                             {
-                                if (args.Count > 1)
+                                if (adbArgs.Count > 1)
                                     throw new InvalidOperationException(
-                                        $"Wrong number of arguments in adb uninstall command: expected 1, got {args.Count}");
-                                var packageName = args.First();
+                                        $"Wrong number of arguments in adb uninstall command: expected 1, got {adbArgs.Count}");
+                                var packageName = adbArgs.First();
                                 CreateBackup(packageName, new BackupOptions(), ct);
                                 try
                                 {
@@ -1610,11 +1610,11 @@ public class AdbService
                             }
                             case "push":
                             {
-                                if (args.Count != 2)
+                                if (adbArgs.Count != 2)
                                     throw new InvalidOperationException(
-                                        $"Wrong number of arguments in adb push command: expected 2, got {args.Count}");
-                                var source = Path.Combine(gamePath, args[0]);
-                                var destination = args[1];
+                                        $"Wrong number of arguments in adb push command: expected 2, got {adbArgs.Count}");
+                                var source = Path.Combine(gamePath, adbArgs[0]);
+                                var destination = adbArgs[1];
                                 if (Directory.Exists(source))
                                     PushDirectory(source, destination, ct: ct);
                                 else if (File.Exists(source))
@@ -1625,11 +1625,11 @@ public class AdbService
                             }
                             case "pull":
                             {
-                                if (args.Count != 2)
+                                if (adbArgs.Count != 2)
                                     throw new InvalidOperationException(
-                                        $"Wrong number of arguments in adb pull command: expected 2, got {args.Count}");
-                                var source = args[0];
-                                var destination = Path.Combine(gamePath, args[1]);
+                                        $"Wrong number of arguments in adb pull command: expected 2, got {adbArgs.Count}");
+                                var source = adbArgs[0];
+                                var destination = Path.Combine(gamePath, adbArgs[1]);
                                 if (RemoteDirectoryExists(source))
                                     PullDirectory(source, destination, ct: ct);
                                 else if (RemoteFileExists(source))
@@ -1640,13 +1640,13 @@ public class AdbService
                             }
                             case "shell":
                             {
-                                args = args.Select(x => x.Contains(' ') ? $"\"{x}\"" : x).ToList();
-                                if (args is ["pm", "uninstall", ..])
+                                adbArgs = adbArgs.Select(x => x.Contains(' ') ? $"\"{x}\"" : x).ToList();
+                                if (adbArgs is ["pm", "uninstall", ..])
                                 {
-                                    if (args.Count != 3)
+                                    if (adbArgs.Count != 3)
                                         throw new InvalidOperationException(
-                                            $"Wrong number of arguments in adb shell pm uninstall command: expected 3, got {args.Count}");
-                                    var packageName = args[2];
+                                            $"Wrong number of arguments in adb shell pm uninstall command: expected 3, got {adbArgs.Count}");
+                                    var packageName = adbArgs[2];
                                     CreateBackup(packageName, new BackupOptions(), ct);
                                     try
                                     {
@@ -1659,7 +1659,7 @@ public class AdbService
                                     break;
                                 }
 
-                                var shellCommand = string.Join(" ", args);
+                                var shellCommand = string.Join(" ", adbArgs);
                                 RunShellCommand(shellCommand, true);
                                 break;
                             }
@@ -1739,12 +1739,12 @@ public class AdbService
                 var progressValue = args.State switch
                 {
                     PackageInstallProgressState.Uploading => (int) Math.Round(args.UploadProgress * 0.9),
-                    PackageInstallProgressState.CreateSession => 92,
-                    PackageInstallProgressState.WriteSession => 94,
-                    PackageInstallProgressState.Installing => 96,
-                    PackageInstallProgressState.PostInstall => 98,
+                    PackageInstallProgressState.CreateSession => 91,
+                    PackageInstallProgressState.WriteSession => 92,
+                    PackageInstallProgressState.Installing => 95,
+                    PackageInstallProgressState.PostInstall => 99,
                     PackageInstallProgressState.Finished => 100,
-                    _ => throw new AdbServiceException("Unknown progress state")
+                    _ => throw new AdbServiceException("Unknown package install progress state")
                 };
                 progress?.Report(progressValue);
             });
@@ -1799,7 +1799,7 @@ public class AdbService
             catch (PackageInstallationException e)
             {
                 if (e.Message.Contains("DELETE_FAILED_INTERNAL_ERROR") && string.IsNullOrWhiteSpace(
-                        RunShellCommand($"pm list packages -3 | grep -w ^package:{Regex.Escape(packageName!)}$")))
+                        RunShellCommand($"pm list packages | grep -w ^package:{Regex.Escape(packageName!)}$")))
                 {
                     if (!silent)
                         Log.Warning("Package {PackageName} is not installed", packageName);
@@ -1815,7 +1815,7 @@ public class AdbService
         }
 
         /// <summary>
-        ///     Prepares device wifi settings and enable Wireless ADB.
+        ///     Enables Wireless ADB using tcpip mode.
         /// </summary>
         /// <returns>Host IP address.</returns>
         public string EnableWirelessAdb()
@@ -1829,9 +1829,11 @@ public class AdbService
             return ipAddress;
         }
 
+        /// <summary>
+        ///     Applies settings fixes to make wireless ADB more stable.
+        /// </summary>
         private void ApplyWirelessFix()
         {
-            using var op = Operation.Time("Applying wireless fix to {Device}", this);
             RunShellCommand(
                 "settings put global wifi_wakeup_available 1 " +
                 "&& settings put global wifi_wakeup_enabled 1 " +
@@ -1839,6 +1841,7 @@ public class AdbService
                 "&& settings put global wifi_suspend_optimizations_enabled 0 " +
                 "&& settings put global wifi_watchdog_poor_network_test_enabled 0 " +
                 "&& svc wifi enable");
+            Log.Debug("Applied wireless fix to {Device}", this);;
         }
 
         /// <summary>
