@@ -1571,7 +1571,8 @@ public class AdbService
                 {
                     ct.ThrowIfCancellationRequested();
                     if (string.IsNullOrWhiteSpace(rawCommand) || rawCommand.StartsWith("#")) continue;
-                    var command = rawCommand.Replace(" > NUL 2>&1", "");
+                    // Remove redirections
+                    var command = rawCommand.Split('>').First().Trim();
                     Log.Information("{ScriptName}: Running command: \"{Command}\"", scriptName, command);
                     var args = Regex.Matches(command, argsPattern)
                         .Select(x => x.Value.Trim('"'))
