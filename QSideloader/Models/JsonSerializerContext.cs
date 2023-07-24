@@ -14,6 +14,6 @@ namespace QSideloader.Models;
 [JsonSerializable(typeof(double))]
 [JsonSerializable(typeof(bool))]
 [JsonSerializable(typeof(string))]
-public partial class JsonSourceGenerationContext : JsonSerializerContext
+public partial class JsonSerializerContext : System.Text.Json.Serialization.JsonSerializerContext
 {
 }

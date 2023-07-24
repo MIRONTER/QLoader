@@ -27,6 +27,7 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using ReactiveUI.Validation.Extensions;
 using Serilog;
+using JsonSerializerContext = QSideloader.Models.JsonSerializerContext;
 using Timer = System.Timers.Timer;
 
 namespace QSideloader.ViewModels;
@@ -122,7 +123,7 @@ public class SettingsData : ReactiveObject
 
     private static SettingsData FromJson(string json)
     {
-        return JsonSerializer.Deserialize(json, JsonSourceGenerationContext.Default.SettingsData)!;
+        return JsonSerializer.Deserialize(json, JsonSerializerContext.Default.SettingsData)!;
     }
 
     public static SettingsData FromFileOrDefaults(string filePath)
@@ -221,7 +222,7 @@ public class SettingsData : ReactiveObject
         {
             var json = JsonSerializer.Serialize(this, new JsonSerializerOptions()
             {
-                TypeInfoResolver = JsonSourceGenerationContext.Default,
+                TypeInfoResolver = JsonSerializerContext.Default,
                 WriteIndented = true
             });
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

@@ -107,7 +107,7 @@ public static class ApiClient
         {
             var dict = new Dictionary<string, string>
                 {{"hwid", GeneralUtils.GetHwid(true)}, {"package_name", packageName}};
-            var json = JsonSerializer.Serialize(dict, JsonSourceGenerationContext.Default.DictionaryStringString);
+            var json = JsonSerializer.Serialize(dict, JsonSerializerContext.Default.DictionaryStringString);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await ApiHttpClient.PostAsync("reportdownload", content);
             response.EnsureSuccessStatusCode();
@@ -148,7 +148,7 @@ public static class ApiClient
             return null;
         }
 
-        var game = JsonSerializer.Deserialize(responseContent, JsonSourceGenerationContext.Default.OculusGame);
+        var game = JsonSerializer.Deserialize(responseContent, JsonSerializerContext.Default.OculusGame);
         op.Complete();
         return game;
     }

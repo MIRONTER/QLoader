@@ -209,7 +209,7 @@ public class MainWindowViewModel : ViewModelBase
                     {
                         var game = JsonSerializer.Deserialize(
                             await File.ReadAllTextAsync(Path.Combine(fileName,
-                                "release.json")), JsonSourceGenerationContext.Default.Game);
+                                "release.json")), JsonSerializerContext.Default.Game);
                         AddTask(new TaskOptions { Type = TaskType.InstallOnly, Game = game, Path = fileName });
                         continue;
                     }
