@@ -399,7 +399,7 @@ public partial class DownloaderService
         _mirrorList = mirrorList.Where(x => !ExcludedMirrorList.Contains(x)).ToList();
         Log.Debug("Loaded mirrors: {MirrorList}", _mirrorList);
         if (mirrorList.Count == 0)
-            throw new DownloaderServiceException("Failed to load mirror list");
+            throw new DownloaderServiceException("Mirror list is empty");
         if (_mirrorList.Count == 0)
         {
             Globals.ShowNotification(Resources.Error, Resources.NoMirrorsAvailable, NotificationType.Error,
