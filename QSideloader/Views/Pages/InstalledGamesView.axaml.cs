@@ -40,7 +40,7 @@ public partial class InstalledGamesView : ReactiveUserControl<InstalledGamesView
     private void MainWindow_OnKeyDown(object? sender, KeyEventArgs e)
     {
         //Log.Debug("Key pressed: {Key}, modifiers: {Modifiers}", e.Key, e.KeyModifiers);
-        var dataGrid = this.Get<DataGrid>("InstalledGamesDataGrid");
+        var dataGrid = InstalledGamesDataGrid;
         var selectedGame = (Game?) dataGrid.SelectedItem;
         if (e.KeyModifiers != KeyModifiers.None) return;
         switch (e.Key)

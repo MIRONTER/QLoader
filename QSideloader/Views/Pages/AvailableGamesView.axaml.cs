@@ -39,7 +39,7 @@ public partial class AvailableGamesView : ReactiveUserControl<AvailableGamesView
     private void MainWindow_OnKeyDown(object? sender, KeyEventArgs e)
     {
         //Log.Debug("Key pressed: {Key}, modifiers: {Modifiers}", e.Key, e.KeyModifiers);
-        var dataGrid = this.Get<DataGrid>("AvailableGamesDataGrid");
+        var dataGrid = AvailableGamesDataGrid;
         var selectedGame = (Game?) dataGrid.SelectedItem;
         if (e.KeyModifiers == KeyModifiers.None)
         {
@@ -57,7 +57,7 @@ public partial class AvailableGamesView : ReactiveUserControl<AvailableGamesView
                     break;
                 // If Escape is pressed clear the search box
                 case Key.Escape:
-                    this.Get<TextBox>("SearchBox").Text = "";
+                    SearchBox.Text = "";
                     break;
                 // If Space is pressed, toggle the selected game's selected state
                 case Key.Space:
@@ -76,11 +76,10 @@ public partial class AvailableGamesView : ReactiveUserControl<AvailableGamesView
                     break;
                 // If user starts typing, focus the search box
                 case >= Key.D0 and <= Key.Z:
-                    var searchBox = this.Get<TextBox>("SearchBox");
-                    if (!searchBox.IsFocused)
+                    if (!SearchBox.IsFocused)
                     {
-                        searchBox.Text = "";
-                        searchBox.Focus();
+                        SearchBox.Text = "";
+                        SearchBox.Focus();
                     }
 
                     break;
@@ -91,11 +90,10 @@ public partial class AvailableGamesView : ReactiveUserControl<AvailableGamesView
             // If Ctrl+F is pressed, focus the search box
             if (e is {KeyModifiers: KeyModifiers.Control, Key: Key.F})
             {
-                var searchBox = this.Get<TextBox>("SearchBox");
                 // Highlight the text
-                searchBox.Focus();
-                searchBox.SelectionStart = 0;
-                searchBox.SelectionEnd = searchBox.Text?.Length ?? 0;
+                SearchBox.Focus();
+                SearchBox.SelectionStart = 0;
+                SearchBox.SelectionEnd = SearchBox.Text?.Length ?? 0;
                 e.Handled = true;
             }
         }

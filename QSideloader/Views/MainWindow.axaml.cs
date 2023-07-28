@@ -55,8 +55,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
         ContentFrame.NavigationFailed += ContentFrame_OnNavigationFailed;
         
         // Navigate to the first page
-        var navigationView = this.Get<NavigationView>("NavigationView");
-        navigationView.SelectedItem = navigationView.MenuItems.OfType<NavigationViewItem>().First();
+        NavigationView.SelectedItem = NavigationView.MenuItems.OfType<NavigationViewItem>().First();
         
         // Recalculate task list height when windows size changes
         this.GetObservable(ClientSizeProperty).Throttle(TimeSpan.FromMilliseconds(100))
@@ -75,9 +74,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
             var pageType = Type.GetType(pageName);
             if (pageType is null) return;
             Log.Debug("Navigating to {View}", "SettingsView");
-            var contentFrame = this.Get<Frame>("ContentFrame");
-            contentFrame.BackStack.Clear();
-            contentFrame.Navigate(pageType);
+            ContentFrame.BackStack.Clear();
+            ContentFrame.Navigate(pageType);
         }
         else
         {
@@ -87,9 +85,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
             var pageType = Type.GetType(pageName);
             if (pageType is null) return;
             Log.Debug("Navigating to {View}", selectedItemTag);
-            var contentFrame = this.Get<Frame>("ContentFrame");
-            contentFrame.BackStack.Clear();
-            contentFrame.Navigate(pageType);
+            ContentFrame.BackStack.Clear();
+            ContentFrame.Navigate(pageType);
         }
     }
 
@@ -100,8 +97,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
 
     public void NavigateToGameDonationView()
     {
-        var navigationView = this.Get<NavigationView>("NavigationView");
-        navigationView.SelectedItem = navigationView.MenuItems
+        NavigationView.SelectedItem = NavigationView.MenuItems
             .OfType<NavigationViewItem>()
             .First(x => (string?)x.Tag == "GameDonationView");
     }
@@ -109,8 +105,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
     private void RecalculateTaskListBoxHeight()
     {
         var windowHeight = ClientSize.Height;
-        var taskListBox = this.Get<ListBox>("TaskListBox");
-        taskListBox.MaxHeight = (int)windowHeight / (double)3 / 60 * 60;
+        TaskListBox.MaxHeight = (int)windowHeight / (double)3 / 60 * 60;
         //Log.Debug("Recalculated TaskListBox height to {Height}", taskListBox.MaxHeight);
     }
 
@@ -139,7 +134,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
     private void Window_OnOpened(object? sender, EventArgs e)
     {
         // Couldn't set this in styles, so this will have to do
-        this.Get<NavigationView>("NavigationView").SettingsItem.Content = Properties.Resources.Settings;
+        NavigationView.SettingsItem.Content = Properties.Resources.Settings;
 
         if (Design.IsDesignMode) return;
         InitializeUpdater();
@@ -234,22 +229,19 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
     private void DragEnter(object? sender, DragEventArgs e)
     {
         e.DragEffects = e.Data.Contains(DataFormats.Files) ? DragDropEffects.Copy : DragDropEffects.None;
-        var dragDropPanel = this.Get<Grid>("DragDropPanel");
-        dragDropPanel.IsVisible = true;
+        DragDropPanel.IsVisible = true;
         e.Handled = true;
     }
 
     private void DragLeave(object? sender, RoutedEventArgs e)
     {
-        var dragDropPanel = this.Get<Grid>("DragDropPanel");
-        dragDropPanel.IsVisible = false;
+        DragDropPanel.IsVisible = false;
         e.Handled = true;
     }
 
     private async void Drop(object? sender, DragEventArgs e)
     {
         Log.Debug("DragDrop.Drop event");
-        var dragDropPanel = this.Get<Grid>("DragDropPanel");
         if (e.Data.Contains(DataFormats.Files))
         {
             var files = e.Data.GetFiles()?.ToList();
@@ -268,7 +260,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
             Log.Warning("Drop data does not contain file names");
         }
 
-        dragDropPanel.IsVisible = false;
+        DragDropPanel.IsVisible = false;
         e.Handled = true;
     }
 
