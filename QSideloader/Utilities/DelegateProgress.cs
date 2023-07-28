@@ -9,7 +9,7 @@ internal class DelegateProgress<T> : IProgress<T>
 
     public DelegateProgress(Action<T> report)
     {
-        _report = report ?? throw new ArgumentNullException(nameof(report));
+        _report = report;
     }
 
     public void Report(T value)

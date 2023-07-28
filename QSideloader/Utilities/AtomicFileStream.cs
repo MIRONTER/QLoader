@@ -16,8 +16,8 @@ public partial class AtomicFileStream : FileStream
         int bufferSize, FileOptions options)
         : base(tempPath, mode, access, share, bufferSize, options)
     {
-        _path = path ?? throw new ArgumentNullException(nameof(path));
-        _tempPath = tempPath ?? throw new ArgumentNullException(nameof(tempPath));
+        _path = path;
+        _tempPath = tempPath;
     }
 
     public static AtomicFileStream Open(string path, FileMode mode, FileAccess access, FileShare share,
