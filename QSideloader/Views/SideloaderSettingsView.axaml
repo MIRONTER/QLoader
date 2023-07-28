@@ -28,7 +28,9 @@
                 <Button Grid.Column="2" HorizontalAlignment="Right" Command="{Binding RestoreDefaults}"
                         Content="{x:Static p:Resources.RestoreDefaultsButton}" />
             </Grid>
-            <StackPanel x:Name="UpdaterPanel" Orientation="Horizontal" IsEnabled="{Binding IsUpdaterAvailable}">
+            <StackPanel x:Name="UpdaterPanel" Orientation="Horizontal" 
+                        IsEnabled="{Binding IsUpdaterAvailable}"
+                        IsVisible="{Binding IsUpdaterAvailable}">
                 <ToggleSwitch IsChecked="{Binding Settings.CheckUpdatesAutomatically, Mode=TwoWay}"
                               Content="{x:Static p:Resources.CheckUpdatesAutomatically}" />
                 <Button VerticalAlignment="Bottom" MinWidth="100" Margin="20,0,0,8" Command="{Binding CheckUpdates}"

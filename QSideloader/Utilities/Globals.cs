@@ -15,7 +15,7 @@ public static class Globals
     
     public static Dictionary<string, string?> Overrides { get; } = GeneralUtils.ParseOverridesFile();
 
-    //public static SparkleUpdater? Updater { get; set; }
+    public static object? Updater { get; set; }
 
     public static void ShowNotification(string title, string message, NotificationType type,
         TimeSpan? expiration = null)

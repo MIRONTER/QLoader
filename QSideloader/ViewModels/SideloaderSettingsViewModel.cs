@@ -387,7 +387,7 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
     public bool IsConsoleToggleable { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 #endif*/
     public bool IsConsoleToggleable => true;
-    public bool IsUpdaterAvailable { get; } = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+    public bool IsUpdaterAvailable { get; } = Globals.Updater is not null;
     [Reactive] public List<string> MirrorList { get; private set; } = new();
     [Reactive] public string? SelectedMirror { get; set; }
     public bool IsSwitchingMirror => _isSwitchingMirror.Value;
