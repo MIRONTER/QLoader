@@ -15,6 +15,7 @@ using Avalonia.ReactiveUI;
 using Avalonia.Styling;
 using FluentAvalonia.Styling;
 using FluentAvalonia.UI.Controls;
+using FluentAvalonia.UI.Navigation;
 using QSideloader.Utilities;
 using QSideloader.ViewModels;
 using ReactiveUI;
@@ -50,6 +51,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
         AddHandler(DragDrop.DragEnterEvent, DragEnter);
         AddHandler(DragDrop.DragLeaveEvent, DragLeave);
         AddHandler(DragDrop.DropEvent, Drop);
+
+        ContentFrame.NavigationFailed += ContentFrame_OnNavigationFailed;
         
         // Navigate to the first page
         var navigationView = this.Get<NavigationView>("NavigationView");
@@ -88,6 +91,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
             contentFrame.BackStack.Clear();
             contentFrame.Navigate(pageType);
         }
+    }
+
+    private static void ContentFrame_OnNavigationFailed(object? sender, NavigationFailedEventArgs e)
+    {
+        Log.Error(e.Exception, "Failed to navigate to {View}", e.SourcePageType);
     }
 
     public void NavigateToGameDonationView()
