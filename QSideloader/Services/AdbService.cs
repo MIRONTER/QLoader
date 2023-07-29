@@ -2098,18 +2098,22 @@ public partial class AdbService
 
         [GeneratedRegex("src ([\\d]{1,3}.[\\d]{1,3}.[\\d]{1,3}.[\\d]{1,3})")]
         private static partial Regex IpAddressRegex();
+        
         [GeneratedRegex("[0-9]{1,3}")]
         private static partial Regex BatteryLevelRegex();
+        
         [GeneratedRegex("\\s{1,}")]
         private static partial Regex SpaceUsedFreeRegex();
-        [GeneratedRegex("^([A-Za-z]{1}[A-Za-z\\d_]*\\.)+[A-Za-z][A-Za-z\\d_]*$")]
-        private static partial Regex PackageNameRegex();
+        
         /// <summary>
         /// Regex pattern to split command into list of arguments.
         /// </summary>
         [GeneratedRegex("[\\\"].+?[\\\"]|[^ ]+")]
         private static partial Regex CommandArgsRegex();
+        
         [GeneratedRegex("package:(\\S+)")]
         private static partial Regex ApkPathRegex();
     }
+    [GeneratedRegex("^(?:[A-Za-z]{1}[\\w]*\\.)+[A-Za-z][\\w]*$")]
+    public static partial Regex PackageNameRegex();
 }

@@ -399,7 +399,7 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
 
     private static bool IsValidUsername(string username)
     {
-        return UsernameCheckRegex().IsMatch(username);
+        return UsernameRegex().IsMatch(username);
     }
 
     private IObservable<Unit> MountStorageImpl()
@@ -440,8 +440,8 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
 
     /// <summary>
     /// Regex for checking username against Oculus username requirements:
-    /// https://support.oculus.com/articles/accounts/account-settings-and-management/change-oculus-username/
+    /// https://www.meta.com/en-gb/help/quest/articles/accounts/account-settings-and-management/manage-oculus-account/
     /// </summary>
     [GeneratedRegex("^(?![-_])(?!.*--)(?!.*__)[\\w-]{2,20}$")]
-    private static partial Regex UsernameCheckRegex();
+    private static partial Regex UsernameRegex();
 }

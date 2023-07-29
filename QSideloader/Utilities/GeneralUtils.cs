@@ -296,12 +296,16 @@ public static partial class GeneralUtils
 
     [GeneratedRegex("application-label:'(.*?)'")]
     private static partial Regex ApplicationLabelRegex();
+    
     [GeneratedRegex("package: name='(.*?)'")]
     private static partial Regex PackageNameRegex();
+    
     [GeneratedRegex("versionCode='(.*?)'")]
     private static partial Regex VersionCodeRegex();
+    
     [GeneratedRegex("versionName='(.*?)'")]
     private static partial Regex VersionNameRegex();
+    
     [GeneratedRegex("IOPlatformUUID\" = \"(.*?)\"")]
     private static partial Regex IoPlatformUuidRegex();
 }

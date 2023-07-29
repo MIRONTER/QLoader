@@ -228,7 +228,7 @@ public partial class MainWindowViewModel : ViewModelBase
                     var dirNames = Directory.EnumerateDirectories(fileName, "*.*", SearchOption.TopDirectoryOnly)
                         .Select(Path.GetFileName);
                     var obbDirName = dirNames.Where(d => d is not null).FirstOrDefault(d =>
-                        PackageNameRegex().IsMatch(d!));
+                        AdbService.PackageNameRegex().IsMatch(d!));
                     if (obbDirName is not null)
                     {
                         Log.Debug("Found OBB directory {ObbDirName}", obbDirName);
@@ -619,9 +619,7 @@ public partial class MainWindowViewModel : ViewModelBase
                          { Type = TaskType.PullAndUpload, App = app })) AddTask(taskOptions);
         });
     }
-
-    [GeneratedRegex("^([A-Za-z]{1}[A-Za-z\\d_]*\\.)+[A-Za-z][A-Za-z\\d_]*$")]
-    private static partial Regex PackageNameRegex();
+    
     [GeneratedRegex("[^\\w\\d\\s\\p{P}]")]
     private static partial Regex CleanStringRegex();
 }

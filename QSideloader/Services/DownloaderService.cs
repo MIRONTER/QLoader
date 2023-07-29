@@ -1045,8 +1045,10 @@ public partial class DownloaderService
     /// </summary>
     [GeneratedRegex("(FFA-\\d+):")]
     private static partial Regex RcloneMirrorRegex();
+    
     [GeneratedRegex("^.+ v\\d+ .+\\.zip$")]
     private static partial Regex DonationArchiveRegex();
+    
     [GeneratedRegex("(.+) v\\d+\\+.+")]
     private static partial Regex StandardReleaseNameRegex();
 }
