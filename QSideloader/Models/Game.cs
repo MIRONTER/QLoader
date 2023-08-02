@@ -14,7 +14,7 @@ public class Game : INotifyPropertyChanged
     [FieldHidden] [JsonIgnore] private bool _isInstalled;
     [FieldHidden] [JsonIgnore] private bool _isSelected;
 
-    protected Game()
+    public Game()
     {
     }
 
