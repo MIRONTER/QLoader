@@ -80,7 +80,7 @@
         <value>Популярность (7 дней)</value>
     </data>
     <data name="RefreshListButton" xml:space="preserve">
-        <value>Обновить списко</value>
+        <value>Обновить список</value>
     </data>
     <data name="RefreshAvailableGamesTooltip" xml:space="preserve">
         <value>Перезагрузить список игр</value>
