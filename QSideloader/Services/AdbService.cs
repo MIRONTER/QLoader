@@ -1414,7 +1414,10 @@ public partial class AdbService
                     Log.Information("Sideloading game {GameName}", game.GameName);
 
                     if (game.PackageName is not null)
+                    {
+                        EnsureValidPackageName(game.PackageName);
                         reinstall = InstalledPackages.Any(x => x.packageName == game.PackageName);
+                    }
 
                     if (File.Exists(gamePath))
                     {
