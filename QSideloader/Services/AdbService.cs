@@ -1472,6 +1472,7 @@ public partial class AdbService
                 }
                 catch (Exception e)
                 {
+                    Exception? cleanupException = null;
                     if (!reinstall && game.PackageName is not null)
                     {
                         var type = e is OperationCanceledException
@@ -1487,7 +1488,7 @@ public partial class AdbService
                         catch (Exception ex)
                         {
                             Log.Error(ex, "Failed to clean up install");
-                            throw new AdbServiceException("Failed to clean up install", ex);
+                            cleanupException = ex;
                         }
                     }
 
@@ -1500,7 +1501,9 @@ public partial class AdbService
 
                     op.SetException(e);
                     op.Abandon();
-                    observer.OnError(new AdbServiceException("Failed to sideload game", e));
+                    observer.OnError(cleanupException is not null
+                    ? new AggregateException(new AdbServiceException("Failed to sideload game", e), cleanupException)
+                    : new AdbServiceException("Failed to sideload game", e));
                 }
 
                 return Disposable.Empty;
