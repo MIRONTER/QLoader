@@ -7,7 +7,6 @@
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
              xmlns:p="clr-namespace:QSideloader.Properties"
              xmlns:converters="clr-namespace:QSideloader.Converters"
-             xmlns:controls="clr-namespace:QSideloader.Controls"
              xmlns:models="clr-namespace:QSideloader.Models"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="450"
              x:Class="QSideloader.Views.Pages.AvailableGamesView"
@@ -17,6 +16,8 @@
     <UserControl.Resources>
         <converters:OnDeviceStatusValueConverter x:Key="OnDeviceStatusFromBool" />
         <converters:GameSizeValueConverter x:Key="GameSizeFromMBytesInt" />
+        <converters:BitmapImageFileValueConverter x:Key="VariableImageFromFiles" />
+        <system:String x:Key="NoThumbnail">C:\Users\skrimix\RiderProjects\QLoader\QSideloader\Resources\NoThumbnailImage.png</system:String>
     </UserControl.Resources>
     <Design.DataContext>
         <vm:AvailableGamesViewModel />
@@ -58,7 +59,7 @@
             </Button>
         </StackPanel>
         <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
-        <controls:CustomDataGrid Grid.Row="1" x:Name="AvailableGamesDataGrid" x:DataType="models:Game"
+        <!--<controls:CustomDataGrid Grid.Row="1" x:Name="AvailableGamesDataGrid" x:DataType="models:Game"
                                  ItemsSource="{Binding (vm:AvailableGamesViewModel).AvailableGames}"
                                  AutoGenerateColumns="False" CanUserResizeColumns="True"
                                  DoubleTapped="AvailableGamesDataGrid_OnDoubleTapped"
@@ -103,12 +104,59 @@
                                     IsVisible="{Binding (vm:AvailableGamesViewModel).IsDeviceConnected}" />
             </DataGrid.Columns>
             <DataGrid.Resources>
-                <!-- ReSharper disable Xaml.RedundantResource -->
+                ~1~ ReSharper disable Xaml.RedundantResource @1@
                 <SolidColorBrush x:Key="DataGridCellFocusVisualPrimaryBrush">Transparent</SolidColorBrush>
                 <SolidColorBrush x:Key="DataGridCellFocusVisualSecondaryBrush">Transparent</SolidColorBrush>
-                <!-- ReSharper restore Xaml.RedundantResource -->
+                ~1~ ReSharper restore Xaml.RedundantResource @1@
             </DataGrid.Resources>
-        </controls:CustomDataGrid>
+        </controls:CustomDataGrid>-->
+        <ScrollViewer Grid.Row="1" Padding="8">
+            <ItemsRepeater x:DataType="models:Game"
+                           ItemsSource="{Binding (vm:AvailableGamesViewModel).AvailableGames}">
+                <ItemsRepeater.Layout>
+                    <UniformGridLayout MinItemWidth="400" MinItemHeight="300"
+                                       MinRowSpacing="12" MinColumnSpacing="12"/>
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="models:Game">
+                        <Border BorderBrush="#454545"
+                                BorderThickness="2"
+                                Background="#353535"
+                                CornerRadius="6"
+                                Padding="8"
+                                Margin="0">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8" ClipToBounds="True">
+                                    <CheckBox MaxHeight="27" MaxWidth="20" Height="27" Width="20" Margin="0,-4,0,0" VerticalAlignment="Top" IsChecked="{Binding IsSelected}" Padding="0" />
+                                    <TextBlock HorizontalAlignment="Center" Margin="0,2,8,8"
+                                               FontWeight="Bold" Text="{Binding ReleaseName}">
+                                        <ToolTip.Tip>
+                                            <TextBlock Text="{Binding ReleaseName}" FontWeight="Normal" />
+                                        </ToolTip.Tip>
+                                    </TextBlock>
+                                </StackPanel>
+                                <Image Stretch="Uniform"
+                                       VerticalAlignment="Top"
+                                       HorizontalAlignment="Center"
+                                       MaxHeight="170">
+                                    <Image.Source>
+                                        <Binding Source="{StaticResource NoThumbnail}" 
+                                                 Converter="{StaticResource VariableImageFromFiles}" />
+                                    </Image.Source>
+                                </Image>
+                                <StackPanel Margin="0,12" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+                                    <Button>Install</Button>
+                                    <Button>Download</Button>
+                                    <Button>Info</Button>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+        </ScrollViewer>
+        
+
         <views:LoadingProgressRingView Grid.Row="0" Grid.RowSpan="2"
                                        IsVisible="{Binding IsBusy}" />
     </Grid>
