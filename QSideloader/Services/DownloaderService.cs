@@ -69,7 +69,7 @@ public partial class DownloaderService
     public List<string> DonationBlacklistedPackages { get; private set; } = new();
     public string MirrorName { get; private set; } = "";
 
-    private List<string> ExcludedMirrorList { get; set; } = new();
+    private List<(string mirrorName, string? message, Exception? error)> ExcludedMirrorList { get; set; } = new();
     public IEnumerable<string> MirrorList => _mirrorList.AsReadOnly();
     public static int RcloneStatsPort => 48040;
 
@@ -117,16 +117,18 @@ public partial class DownloaderService
 
             await EnsureMirrorSelectedAsync();
             var localMirrorList = _mirrorList.ToList();
+            var excludedMirrorList = new List<(string mirrorName, string? message, Exception? error)>();
             while (true)
             {
-                if (await TryDownloadConfigAsync())
+                var result = await TryDownloadConfigAsync();
+                if (result.success)
                 {
                     Log.Information("Rclone config updated from {MirrorName}", MirrorName);
                     await ReloadMirrorListAsync(true);
                     return;
                 }
 
-                SwitchMirror(localMirrorList);
+                SwitchMirror(localMirrorList, excludedMirrorList, result.error);
             }
         }
         catch (Exception e)
@@ -156,7 +158,7 @@ public partial class DownloaderService
             }
         }
 
-        async Task<bool> TryDownloadConfigAsync()
+        async Task<(bool success, Exception? error)> TryDownloadConfigAsync()
         {
             try
             {
@@ -165,20 +167,20 @@ public partial class DownloaderService
                 await RcloneTransferInternalAsync($"{MirrorName}:Quest Games/.meta/FFA", newConfigPath,
                     "copyto");
                 File.Move(newConfigPath, oldConfigPath, true);
-                return true;
+                return (true, null);
             }
-            catch (DownloadQuotaExceededException)
+            catch (DownloadQuotaExceededException e)
             {
                 Log.Debug("Quota exceeded on rclone config on mirror {MirrorName}",
                     MirrorName);
+                return (false, e);
             }
             catch (RcloneOperationException e)
             {
                 Log.Warning(e, "Error downloading rclone config from mirror {MirrorName} (is mirror down?)",
                     MirrorName);
+                return (false, e);
             }
-
-            return false;
         }
     }
 
@@ -247,9 +249,9 @@ public partial class DownloaderService
         if (list is null) return;
         var count = 0;
         foreach (var mirrorName in list.Select(mirror => mirror["mirror_name"].GetString())
-                     .Where(mirrorName => mirrorName is not null && !ExcludedMirrorList.Contains(mirrorName)))
+                     .Where(mirrorName => mirrorName is not null && ExcludedMirrorList.All(x => x.mirrorName != mirrorName)))
         {
-            ExcludedMirrorList.Add(mirrorName!);
+            ExcludedMirrorList.Add((mirrorName!, "Dead mirror", null));
             count++;
         }
 
@@ -268,7 +270,7 @@ public partial class DownloaderService
         IsMirrorListInitialized = false;
         _mirrorList = new List<string>();
         if (!keepExcluded)
-            ExcludedMirrorList = new List<string>();
+            ExcludedMirrorList = new List<(string mirrorName, string? message, Exception? error)>();
         await EnsureMirrorListInitializedAsync();
         if (_mirrorList.Contains(MirrorName)) return;
         Log.Information("Mirror {MirrorName} not found in new mirror list", MirrorName);
@@ -280,7 +282,7 @@ public partial class DownloaderService
     ///     Excludes current mirror (if set) and switches to random mirror.
     /// </summary>
     /// <exception cref="DownloaderServiceException">Thrown if mirror list is exhausted.</exception>
-    private void SwitchMirror()
+    private void SwitchMirror(Exception? currentException = null)
     {
         if (!string.IsNullOrEmpty(MirrorName))
         {
@@ -288,7 +290,7 @@ public partial class DownloaderService
             try
             {
                 Log.Information("Excluding mirror {MirrorName} for this session", MirrorName);
-                ExcludedMirrorList.Add(MirrorName);
+                ExcludedMirrorList.Add((MirrorName, null, currentException));
                 _mirrorList.Remove(MirrorName);
                 MirrorName = "";
             }
@@ -299,7 +301,7 @@ public partial class DownloaderService
         }
 
         if (_mirrorList.Count == 0)
-            throw new NoMirrorsAvailableException(true, ExcludedMirrorList.Count);
+            throw new NoMirrorsAvailableException(true, ExcludedMirrorList);
         var random = new Random();
         MirrorName = _mirrorList[random.Next(_mirrorList.Count)];
         Log.Information("Selected mirror: {MirrorName}", MirrorName);
@@ -342,19 +344,27 @@ public partial class DownloaderService
     /// <summary>
     ///     Excludes current mirror (if set) from the given mirror list and switches to random mirror from the list.
     /// </summary>
-    /// <param name="mirrorList">List of mirrors to use.</param>
+    /// <param name="mirrorList">List of mirrors used in the current operation.</param>
+    /// <param name="excludedMirrorList">List excluded mirrors.</param>
+    /// <param name="currentException">Exception that occured on the current mirror.</param>
     /// <exception cref="DownloaderServiceException">Thrown if given mirror list is exhausted.</exception>
-    private void SwitchMirror(IList<string> mirrorList)
+    private void SwitchMirror(IList<string> mirrorList, 
+        ICollection<(string mirrorName, string? message, Exception? error)>? excludedMirrorList = null, 
+        Exception? currentException = null)
     {
         if (!string.IsNullOrEmpty(MirrorName) && mirrorList.Contains(MirrorName))
         {
             Log.Information("Excluding mirror {MirrorName} for this download", MirrorName);
             mirrorList.Remove(MirrorName);
+            excludedMirrorList?.Add((MirrorName, null, currentException));
             MirrorName = "";
         }
 
         if (mirrorList.Count == 0)
-            throw new NoMirrorsAvailableException(false, ExcludedMirrorList.Count);
+            throw new NoMirrorsAvailableException(false,
+                ExcludedMirrorList
+                    .Concat(excludedMirrorList ?? new List<(string mirrorName, string? message, Exception? error)>())
+                    .ToList());
         var random = new Random();
         MirrorName = mirrorList[random.Next(mirrorList.Count)];
         Log.Information("Selected mirror: {MirrorName}", MirrorName);
@@ -396,7 +406,7 @@ public partial class DownloaderService
         }
 
         var mirrorList = await GetMirrorListAsync();
-        _mirrorList = mirrorList.Where(x => !ExcludedMirrorList.Contains(x)).ToList();
+        _mirrorList = mirrorList.Where(x => ExcludedMirrorList.All(m => m.mirrorName != x)).ToList();
         Log.Debug("Loaded mirrors: {MirrorList}", _mirrorList);
         if (mirrorList.Count == 0)
             throw new DownloaderServiceException("Mirror list is empty");
@@ -404,7 +414,7 @@ public partial class DownloaderService
         {
             Globals.ShowNotification(Resources.Error, Resources.NoMirrorsAvailable, NotificationType.Error,
                 TimeSpan.Zero);
-            throw new NoMirrorsAvailableException(true, ExcludedMirrorList.Count);
+            throw new NoMirrorsAvailableException(true, ExcludedMirrorList);
         }
 
         IsMirrorListInitialized = true;
@@ -562,7 +572,8 @@ public partial class DownloaderService
             Log.Information("Downloading game list");
             while (true)
             {
-                if (await TryDownloadGameListAsync())
+                var result = await TryDownloadGameListAsync();
+                if (result.success)
                     try
                     {
                         AvailableGames = csvEngine.ReadFile(Path.Combine("metadata", "FFA.txt")).ToList();
@@ -580,8 +591,10 @@ public partial class DownloaderService
                     {
                         Log.Warning(e, "Failed to read game list from mirror {MirrorName}", MirrorName);
                     }
-
-                SwitchMirror();
+                else
+                {
+                    SwitchMirror(result.error);
+                }
             }
 
             await TryLoadPopularityAsync();
@@ -599,33 +612,34 @@ public partial class DownloaderService
             GameListSemaphoreSlim.Release();
         }
 
-        async Task<bool> TryDownloadGameListAsync()
+        async Task<(bool success, Exception? error)> TryDownloadGameListAsync()
         {
             // Trying different list files seems useless, just wasting time
             //List<string> gameListNames = new(){"FFA.txt", "FFA2.txt", "FFA3.txt", "FFA4.txt"};
             List<string> gameListNames = new() {"FFA.txt"};
+            var errors = new List<Exception>();
             foreach (var gameListName in gameListNames)
                 try
                 {
                     await RcloneTransferAsync($"Quest Games/{gameListName}", "./metadata/FFA_new.txt", "copyto");
                     File.Move("./metadata/FFA_new.txt", "./metadata/FFA.txt", true);
-                    return true;
+                    return (true, null);
                 }
-                catch (DownloadQuotaExceededException)
+                catch (DownloadQuotaExceededException e)
                 {
                     Log.Debug("Quota exceeded on game list {GameList} on mirror {MirrorName}",
                         gameListName, MirrorName);
+                    errors.Add(new DownloadQuotaExceededException(MirrorName, gameListName, e));
                 }
                 catch (RcloneOperationException e)
                 {
                     Log.Warning(e,
                         "Error downloading list {GameList} from mirror {MirrorName} (is mirror down?)",
                         gameListName, MirrorName);
-                    return false;
+                    return (false, e);
                 }
 
-            //Log.Warning("Quota exceeded on all game lists on mirror {MirrorName}", MirrorName);
-            return false;
+            return (false, new AggregateException(errors));
         }
 
         async Task TryLoadPopularityAsync()
@@ -732,6 +746,7 @@ public partial class DownloaderService
         {
             Log.Information("Downloading release {ReleaseName}", game.ReleaseName);
             var localMirrorList = _mirrorList.ToList();
+            var excludedMirrorList = new List<(string mirrorName, string? message, Exception? error)>();
             while (true)
             {
                 try
