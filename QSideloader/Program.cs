@@ -7,7 +7,7 @@ namespace QSideloader;
 
 internal static class Program
 {
-    private static bool _useGpuRendering;
+    private static bool _disableGpuRendering;
 
     public static string Name => "QLoader";
 
@@ -17,7 +17,7 @@ internal static class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        _useGpuRendering = !args.Contains("--disable-gpu");
+        _disableGpuRendering = args.Contains("--disable-gpu");
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
     }
@@ -25,29 +25,24 @@ internal static class Program
     // Avalonia configuration, don't remove; also used by visual designer.
     private static AppBuilder BuildAvaloniaApp()
     {
+        var win32Options = new Win32PlatformOptions();
+        var x11Options = new X11PlatformOptions();
+        var avaloniaNativeOptions = new AvaloniaNativePlatformOptions();
+        if (_disableGpuRendering)
+        {
+            win32Options.RenderingMode = new[] {Win32RenderingMode.Software};
+            x11Options.RenderingMode = new[] {X11RenderingMode.Software};
+            avaloniaNativeOptions.RenderingMode = new[] {AvaloniaNativeRenderingMode.Software};
+        }
+        
         var builder = AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .LogToTrace()
             .UseReactiveUI()
             //.UseSkia()
-            .With(new Win32PlatformOptions
-            {
-                RenderingMode = _useGpuRendering
-                    ? new[] {Win32RenderingMode.AngleEgl, Win32RenderingMode.Software}
-                    : new[] {Win32RenderingMode.Software}
-            })
-            .With(new X11PlatformOptions
-            {
-                RenderingMode = _useGpuRendering
-                    ? new[] {X11RenderingMode.Glx, X11RenderingMode.Software}
-                    : new[] {X11RenderingMode.Software}
-            })
-            .With(new AvaloniaNativePlatformOptions
-            {
-                RenderingMode = _useGpuRendering
-                    ? new[] {AvaloniaNativeRenderingMode.OpenGl, AvaloniaNativeRenderingMode.Software}
-                    : new[] {AvaloniaNativeRenderingMode.Software}
-            });
+            .With(win32Options)
+            .With(x11Options)
+            .With(avaloniaNativeOptions);
 
         return builder;
     }
