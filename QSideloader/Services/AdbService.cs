@@ -952,6 +952,7 @@ public partial class AdbService
             // Check if the device is running Android 12 and KeyMapper is installed
             // This combination causes serious issues with the OS, so try to uninstall KeyMapper automatically
             CheckKeyMapper();
+            CleanLeftoverApks();
             Task.Run(OnPackageListChanged);
         }
 
@@ -2101,6 +2102,12 @@ public partial class AdbService
             
             return true;
         }
+
+        public void CleanLeftoverApks()
+        {
+            Log.Debug("Cleaning leftover APKs");
+            RunShellCommand("rm -v /data/local/tmp/*.apk", true);
+        } 
 
         [GeneratedRegex("src ([\\d]{1,3}.[\\d]{1,3}.[\\d]{1,3}.[\\d]{1,3})")]
         private static partial Regex IpAddressRegex();

@@ -766,7 +766,7 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
             var adbService = AdbService.Instance;
             if (adbService.CheckDeviceConnection())
             {
-                adbService.Device!.RunShellCommand("rm -v /data/local/tmp/*.apk", true);
+                adbService.Device!.CleanLeftoverApks();
                 Globals.ShowNotification(Resources.Info, Resources.LeftoverApksCleanupCompleted,
                     NotificationType.Information,
                     TimeSpan.FromSeconds(2));
