@@ -86,7 +86,7 @@
                                         IsVisible="{Binding ShowOculusStoreLink}" />
                     <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Margin="1,4,0,0" FontWeight="Light">
                         <TextBlock.Text>
-                            <MultiBinding StringFormat="{}{0}: {1} MB}">
+                            <MultiBinding StringFormat="{}{0}: {1} MB">
                                 <Binding Source="{x:Static p:Resources.DownloadSize}" />
                                 <Binding Path="Game.GameSize" />
                             </MultiBinding>
