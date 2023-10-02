@@ -35,8 +35,8 @@ public static class ApiClient
             : "Unknown";
         ApiHttpClient.DefaultRequestHeaders.UserAgent.Add(
             new ProductInfoHeaderValue(appName, appVersionString));
-        // set timeout to 10 seconds
-        ApiHttpClient.Timeout = TimeSpan.FromSeconds(10);
+        // set timeout for requests
+        ApiHttpClient.Timeout = TimeSpan.FromSeconds(5);
     }
 
     private static HttpClient ApiHttpClient { get; }
