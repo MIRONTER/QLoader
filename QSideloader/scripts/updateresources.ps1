@@ -3,7 +3,7 @@ $mypath = $MyInvocation.MyCommand.Path
 $mypath = Split-Path $mypath -Parent
 Set-Location $mypath
 
-$mirrornumber = ( Get-Random -Minimum 1 -Maximum 20 ).ToString('00')
+$mirrornumber = ( Get-Random -Minimum 97 -Maximum 99 ).ToString('00')
 
 Write-Output "Using mirror FFA-$mirrornumber"
 
