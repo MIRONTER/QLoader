@@ -72,6 +72,8 @@ public partial class DownloaderService
     private List<(string mirrorName, string? message, Exception? error)> ExcludedMirrorList { get; set; } = new();
     public IEnumerable<string> MirrorList => _mirrorList.AsReadOnly();
     public static int RcloneStatsPort => 48040;
+    private static string RcloneConnectionTimeout => "5s";
+    private static string RcloneIoIdleTimeout => "30s";
 
     private static bool CanSwitchMirror => RcloneConfigSemaphoreSlim.CurrentCount > 0 &&
                                            MirrorListSemaphoreSlim.CurrentCount > 0 &&
@@ -465,7 +467,8 @@ public partial class DownloaderService
                 : "";
 
             await ExecuteRcloneCommandAsync(
-                $"{operation} --retries {retries} {bwLimit} \"{source}\" \"{destination}\" {additionalArgs}",
+                $"{operation} --contimeout {RcloneConnectionTimeout} --timeout {RcloneIoIdleTimeout} " +
+                $"--retries {retries} {bwLimit} \"{source}\" \"{destination}\" {additionalArgs}",
                 ct);
             op.Complete();
         }
@@ -583,6 +586,8 @@ public partial class DownloaderService
                             emptyRetries++;
                             continue;
                         }
+
+                        Parallel.ForEach(AvailableGames, game => game.LoadThumbnail());
 
                         Log.Information("Loaded {Count} games", AvailableGames.Count);
                         break;
