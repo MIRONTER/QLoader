@@ -34,10 +34,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
         this.AttachDevTools();
 #endif
         Title = Program.Name;
-        if (Application.Current != null)
-        {
-            Application.Current.RequestedThemeVariant = ThemeVariant.Dark;
-        }
 
         var thm = Application.Current?.Styles.OfType<FluentAvaloniaTheme>().FirstOrDefault();
         if (thm is not null)
