@@ -8,6 +8,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AdvancedSharpAdbClient;
+using QSideloader.Models;
 using QSideloader.Services;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -157,8 +158,8 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         SpaceFree = device.SpaceFree;
         BatteryLevel = device.BatteryLevel;
         FriendlyName = device.FriendlyName;
-        IsQuest1 = device.Product is "monterey" or "vr_monterey";
-        IsQuest2 = device.Product == "hollywood";
+        IsQuest1 = device.ProductType == OculusProductType.Quest1;
+        IsQuest2 = device.ProductType == OculusProductType.Quest2;
     }
 
     private void OnDeviceListChanged(IReadOnlyList<AdbService.AdbDevice> deviceList)

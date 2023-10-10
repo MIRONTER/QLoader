@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -59,7 +60,7 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
     public ReactiveCommand<Unit, Unit> PullMedia { get; set; }
 
     [Reactive] public bool IsDeviceConnected { get; private set; }
-    [Reactive] public string[] RefreshRates { get; private set; } = Array.Empty<string>();
+    [Reactive] public ObservableCollection<string> RefreshRates { get; private set; } = new();
     [Reactive] public string? SelectedRefreshRate { get; set; }
     private string? CurrentRefreshRate { get; set; }
     public string[] GpuLevels { get; } = {"Auto (recommended)", "0", "1", "2", "3", "4"};
@@ -90,13 +91,11 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
         {
             case DeviceState.Online:
                 IsDeviceConnected = true;
-                RefreshRates = _adbService.Device!.Product switch
+                RefreshRates = new ObservableCollection<string> {"Auto (recommended)"};
+                foreach (var refreshRate in _adbService.Device!.SupportedRefreshRates)
                 {
-                    "hollywood" => new[] {"Auto (recommended)", "72", "90", "120"},
-                    "monterey" => new[] {"Auto (recommended)", "60", "72"},
-                    "seacliff" => new[] {"Auto (recommended)", "72", "90"},
-                    _ => RefreshRates
-                };
+                    RefreshRates.Add(refreshRate.ToString());
+                }
                 try
                 {
                     LoadCurrentSettings();

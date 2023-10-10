@@ -608,7 +608,7 @@ public partial class AdbService
         foreach (var device in deviceList)
         {
             var hashedDeviceId = GetHashedId(device.Serial);
-            if (IsOculusQuest(device))
+            if (OculusProductsInfo.IsKnownProduct(device.Product))
             {
                 try
                 {
@@ -757,16 +757,6 @@ public partial class AdbService
     }
 
     /// <summary>
-    ///     Checks if device is an Oculus Quest device.
-    /// </summary>
-    /// <param name="device">Device to check.</param>
-    /// <returns></returns>
-    private static bool IsOculusQuest(DeviceData device)
-    {
-        return device.Product is "hollywood" or "monterey" or "vr_monterey" or "seacliff";
-    }
-
-    /// <summary>
     ///     Takes the package operation lock.
     /// </summary>
     /// <param name="ct">Cancellation token.</param>
@@ -896,13 +886,11 @@ public partial class AdbService
             TransportId = deviceData.TransportId;
             Message = deviceData.Message;
 
-            FriendlyName = deviceData.Product switch
-            {
-                "monterey" or "vr_monterey" => "Quest 1",
-                "hollywood" => "Quest 2",
-                "seacliff" => "Quest Pro",
-                _ => "Unknown?"
-            };
+            var modelProps = OculusProductsInfo.GetProductInfo(deviceData.Product);
+            FriendlyName = modelProps.Name;
+            ProductType = modelProps.Type;
+            SupportedRefreshRates = modelProps.SupportedRefreshRates;
+            
 
             HashedId = GetHashedId(TrueSerial ?? Serial);
 
@@ -925,6 +913,8 @@ public partial class AdbService
         public List<InstalledApp> InstalledApps { get; private set; } = new();
         public bool IsRefreshingInstalledGames => _packagesSemaphoreSlim.CurrentCount == 0;
         public string FriendlyName { get; }
+        public OculusProductType ProductType { get; }
+        public IEnumerable<int> SupportedRefreshRates { get; private set; }
 
         /// <summary>
         /// Stores hashed id derived from serial.
