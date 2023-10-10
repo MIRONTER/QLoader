@@ -1734,10 +1734,10 @@ public partial class AdbService
                 var progressValue = args.State switch
                 {
                     PackageInstallProgressState.Uploading => (int) Math.Round(args.UploadProgress * 0.9),
-                    PackageInstallProgressState.CreateSession => 91,
-                    PackageInstallProgressState.WriteSession => 92,
-                    PackageInstallProgressState.Installing => 95,
-                    PackageInstallProgressState.PostInstall => 99,
+                    PackageInstallProgressState.CreateSession => 90,
+                    PackageInstallProgressState.WriteSession => 90,
+                    PackageInstallProgressState.Installing => 90,
+                    PackageInstallProgressState.PostInstall => 95,
                     PackageInstallProgressState.Finished => 100,
                     _ => throw new AdbServiceException("Unknown package install progress state")
                 };
