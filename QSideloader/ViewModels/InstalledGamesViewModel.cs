@@ -111,7 +111,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
-                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadAndInstall, Game = game});
+                game.Install();
                 Log.Information("Queued for update: {ReleaseName}", game.ReleaseName);
             }
         });
@@ -177,7 +177,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
-                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadAndInstall, Game = game});
+                game.Install();
                 Log.Information("Queued for update: {ReleaseName}", game.ReleaseName);
             }
         });
@@ -194,7 +194,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
                 return;
             }
 
-            Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadAndInstall, Game = game});
+            game.Install();
             Log.Information("Queued for update: {ReleaseName}", game.ReleaseName);
         });
     }
@@ -225,14 +225,10 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             {
                 game.IsSelected = false;
                 if (skipBackup)
-                    Globals.MainWindowViewModel!.AddTask(new TaskOptions
-                        {Type = TaskType.Uninstall, Game = game});
+                    game.Uninstall();
                 else
-                    Globals.MainWindowViewModel!.AddTask(new TaskOptions
-                    {
-                        Type = TaskType.BackupAndUninstall, Game = game,
-                        BackupOptions = new BackupOptions {BackupData = true, BackupApk = false, BackupObb = false}
-                    });
+                    game.BackupAndUninstall(new BackupOptions
+                        {BackupData = true, BackupApk = false, BackupObb = false});
             }
         });
     }
@@ -266,8 +262,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
                     BackupObb = ManualBackupAppFiles,
                     BackupData = ManualBackupData
                 };
-                Globals.MainWindowViewModel!.AddTask(new TaskOptions
-                    {Type = TaskType.Backup, Game = game, BackupOptions = backupOptions});
+                game.Backup(backupOptions);
             }
         });
     }

@@ -94,7 +94,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
     public ReactiveCommand<Game, Unit> DownloadSingle { get; }
     public ReadOnlyObservableCollection<Game> AvailableGames => _availableGames;
     public bool IsBusy => _isBusy.Value;
-    [Reactive] public bool MultiSelectEnabled { get; set; } = true;
+    //[Reactive] public bool MultiSelectEnabled { get; set; } = true;
     [Reactive] public string SearchText { get; set; } = "";
     [Reactive] public bool IsDeviceConnected { get; set; }
     [Reactive] public bool ShowPopularity1Day { get; set; }
@@ -117,15 +117,6 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            if (IsBusy)
-                return;
-            if (!_adbService.CheckDeviceConnectionSimple())
-            {
-                Log.Warning("AvailableGamesViewModel.InstallImpl: no device connection!");
-                IsDeviceConnected = false;
-                return;
-            }
-
             var selectedGames = _availableGamesSourceCache.Items.Where(game => game.IsSelected).ToList();
             if (selectedGames.Count == 0)
             {
@@ -138,7 +129,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
-                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadAndInstall, Game = game});
+                game.Install();
             }
         });
     }
@@ -147,8 +138,6 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.Start(() =>
         {
-            if (IsBusy)
-                return;
             if (!_adbService.CheckDeviceConnectionSimple())
             {
                 Log.Warning("AvailableGamesViewModel.InstallImpl: no device connection!");
@@ -156,7 +145,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
                 return;
             }
 
-            Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadAndInstall, Game = game});
+            game.Install();
         });
     }
 
@@ -178,7 +167,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             foreach (var game in selectedGames)
             {
                 game.IsSelected = false;
-                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadOnly, Game = game});
+                game.Download();
             }
         });
     }
@@ -189,7 +178,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         {
             if (IsBusy)
                 return;
-            Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadOnly, Game = game});
+            game.Download();
         });
     }
 

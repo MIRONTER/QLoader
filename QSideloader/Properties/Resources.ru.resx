@@ -44,7 +44,7 @@
         <value>Удалить выбранные</value>
     </data>
     <data name="DownloadAndInstallSelectedButton" xml:space="preserve">
-        <value>Загрузить и установить выбранные</value>
+        <value>Установить выбранные</value>
     </data>
     <data name="DownloadAndInstallSelectedGamesTooltip" xml:space="preserve">
         <value>Загрузить и установить выбранные игры</value>
@@ -333,7 +333,7 @@
         <value>Описание:</value>
     </data>
     <data name="DownloadAndInstallButton" xml:space="preserve">
-        <value>Загрузить и установить</value>
+        <value>Установить</value>
     </data>
     <data name="DownloadButton" xml:space="preserve">
         <value>Загрузить</value>
@@ -853,5 +853,11 @@
     </data>
     <data name="SelectApkFile" xml:space="preserve">
         <value>Выберите APK файл</value>
+    </data>
+    <data name="InstallButton" xml:space="preserve">
+        <value>Установить</value>
+    </data>
+    <data name="Size" xml:space="preserve">
+        <value>Размер</value>
     </data>
 </root>

@@ -33,7 +33,7 @@ public partial class InstalledGamesView : ReactiveUserControl<InstalledGamesView
         if (selectedGame is null) return;
         // TODO: let user set action in settings?
         //Globals.MainWindowViewModel!.QueueForInstall(selectedGame);
-        Globals.MainWindowViewModel!.ShowGameDetailsCommand.Execute(selectedGame).Subscribe(_ => { }, _ => { });
+        Globals.MainWindowViewModel!.ShowGameDetails.Execute(selectedGame).Subscribe(_ => { }, _ => { });
         e.Handled = true;
     }
 
@@ -63,7 +63,7 @@ public partial class InstalledGamesView : ReactiveUserControl<InstalledGamesView
             // If Alt is pressed, show game details for the selected game
             case Key.LeftAlt or Key.RightAlt:
                 if (selectedGame is null) return;
-                Globals.MainWindowViewModel!.ShowGameDetailsCommand.Execute(selectedGame)
+                Globals.MainWindowViewModel!.ShowGameDetails.Execute(selectedGame)
                     .Subscribe(_ => { }, _ => { });
                 break;
             // If F5 is pressed, refresh the list
@@ -113,7 +113,7 @@ public partial class InstalledGamesView : ReactiveUserControl<InstalledGamesView
         if (dataGrid is null || e.InitialPressMouseButton != MouseButton.Middle) return;
         var source = e.Source as Control;
         if (source?.DataContext is not Game selectedGame) return;
-        Globals.MainWindowViewModel!.ShowGameDetailsCommand.Execute(selectedGame).Subscribe(_ => { }, _ => { });
+        Globals.MainWindowViewModel!.ShowGameDetails.Execute(selectedGame).Subscribe(_ => { }, _ => { });
         e.Handled = true;
     }
 }

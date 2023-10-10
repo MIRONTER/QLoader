@@ -6,7 +6,7 @@
         xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
         xmlns:controls="clr-namespace:HyperText.Avalonia.Controls;assembly=HyperText.Avalonia"
         xmlns:p="clr-namespace:QSideloader.Properties"
-        xmlns:converters="clr-namespace:QSideloader.Converters"
+        xmlns:utilities="clr-namespace:QSideloader.Utilities"
         mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="400"
         x:Class="QSideloader.Views.GameDetailsWindow"
         Title="Game Details"
@@ -27,10 +27,6 @@
     <Design.DataContext>
         <viewModels:GameDetailsViewModel />
     </Design.DataContext>
-
-    <Window.Resources>
-        <converters:BitmapImageFileValueConverter x:Key="VariableImageFromFiles" />
-    </Window.Resources>
 
     <Panel>
         <ExperimentalAcrylicBorder IsHitTestVisible="False">
@@ -62,7 +58,7 @@
                                HorizontalAlignment="Stretch"
                                IsVisible="{Binding ShowTrailerPlayer}" />
                 <Image Grid.Row="2" Grid.Column="0"
-                       Source="{Binding ThumbnailPath, Mode=OneWay, Converter={StaticResource VariableImageFromFiles}}"
+                       utilities:AsyncImageLoader.Source="{Binding Game.ThumbnailPath}"
                        MaxWidth="505"
                        MaxHeight="300"
                        VerticalAlignment="Top"
@@ -72,11 +68,11 @@
                       RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*"
                       Margin="24,0,0,0">
                     <Button Margin="0,0,0,6" Grid.Row="0" Grid.Column="0"
-                            Command="{Binding DownloadAndInstall}"
+                            Command="{Binding Game.Install}"
                             IsEnabled="{Binding IsDeviceConnected}"
                             Content="{x:Static p:Resources.DownloadAndInstallButton}" />
                     <Button Grid.Row="0" Grid.Column="1" Margin="12,0,0,6"
-                            Command="{Binding DownloadOnly}"
+                            Command="{Binding Game.Download}"
                             Content="{x:Static p:Resources.DownloadButton}" />
                     <controls:Hyperlink Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" Alias="Oculus Store"
                                         Url="{Binding OculusStoreUrl}"

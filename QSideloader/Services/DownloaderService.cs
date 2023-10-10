@@ -587,8 +587,6 @@ public partial class DownloaderService
                             continue;
                         }
 
-                        Parallel.ForEach(AvailableGames, game => game.LoadThumbnail());
-
                         Log.Information("Loaded {Count} games", AvailableGames.Count);
                         break;
                     }

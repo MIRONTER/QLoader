@@ -64,7 +64,7 @@ Are you sure you want to continue?</value>
         <value>Download and install selected games</value>
     </data>
     <data name="DownloadAndInstallSelectedButton" xml:space="preserve">
-        <value>Download &amp; Install Selected</value>
+        <value>Install Selected</value>
     </data>
     <data name="DownloadSelectedButton" xml:space="preserve">
         <value>Download Selected</value>
@@ -338,7 +338,7 @@ Are you sure you want to continue?</value>
         <value>Set</value>
     </data>
     <data name="DownloadAndInstallButton" xml:space="preserve">
-        <value>Download &amp; Install</value>
+        <value>Install</value>
     </data>
     <data name="OculusStoreLinkTooltip" xml:space="preserve">
         <value>If you like the game, buy it to support the developers</value>
@@ -861,5 +861,11 @@ You may use {0} for downloads without connecting to a device.</value>
     </data>
     <data name="SelectApkFile" xml:space="preserve">
         <value>Select APK file</value>
+    </data>
+    <data name="InstallButton" xml:space="preserve">
+        <value>Install</value>
+    </data>
+    <data name="Size" xml:space="preserve">
+        <value>Size</value>
     </data>
 </root>

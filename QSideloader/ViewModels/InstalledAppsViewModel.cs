@@ -138,7 +138,7 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
             foreach (var app in selectedApps)
             {
                 app.IsSelectedDonation = false;
-                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.PullAndUpload, App = app});
+                app.PullAndUpload();
                 Log.Information("Queued for donation: {ReleaseName}", app.Name);
             }
         });
@@ -168,7 +168,7 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
             foreach (var app in eligibleApps)
             {
                 app.IsSelectedDonation = false;
-                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.PullAndUpload, App = app});
+                app.PullAndUpload();
                 Log.Information("Queued for donation: {Name}", app.Name);
             }
         });
@@ -249,7 +249,7 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
             foreach (var app in selectedApps)
             {
                 app.IsSelected = false;
-                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.Uninstall, App = app});
+                app.Uninstall();
             }
         });
     }
@@ -294,8 +294,7 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
                     }
 
                     app.IsSelected = false;
-                    Globals.MainWindowViewModel!.AddTask(
-                        new TaskOptions {Type = TaskType.Extract, App = app, Path = path});
+                    app.Extract(path);
                 }
             }
         }

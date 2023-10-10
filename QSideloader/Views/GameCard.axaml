@@ -1,0 +1,77 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="clr-namespace:QSideloader.Models"
+             xmlns:controls="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
+             xmlns:p="clr-namespace:QSideloader.Properties"
+             xmlns:vm="clr-namespace:QSideloader.ViewModels"
+             xmlns:dd="clr-namespace:QSideloader.Utilities"
+             xmlns:converters="clr-namespace:QSideloader.Converters"
+             xmlns:utilities="clr-namespace:QSideloader.Utilities"
+             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="250"
+             x:Class="QSideloader.Views.GameCard" x:DataType="models:Game"
+             d:DataContext="{x:Static dd:DesignData.GameData}">
+    <UserControl.Resources>
+        <converters:GameSizeValueConverter x:Key="GameSizeFromMBytesInt" />
+    </UserControl.Resources>
+    <Border BorderBrush="#454545"
+            BorderThickness="2"
+            Background="#353535"
+            CornerRadius="6"
+            Padding="8"
+            Margin="0">
+        <Grid RowDefinitions="Auto,Auto,Auto,*">
+            <StackPanel Orientation="Horizontal" Spacing="8" ClipToBounds="True">
+                <CheckBox MaxHeight="27" MaxWidth="20" Height="27" Width="20" Margin="0,-4,0,0" VerticalAlignment="Top"
+                          IsChecked="{Binding IsSelected}" Padding="0" />
+                <TextBlock HorizontalAlignment="Center" Margin="0,2,8,8"
+                           FontWeight="Bold" Text="{Binding ReleaseName}">
+                    <ToolTip.Tip>
+                        <TextBlock Text="{Binding ReleaseName}" FontWeight="Normal" />
+                    </ToolTip.Tip>
+                </TextBlock>
+            </StackPanel>
+            <!--<Image Grid.Row="1" Stretch="UniformToFill"
+                   VerticalAlignment="Top"
+                   HorizontalAlignment="Center"
+                   MaxHeight="130"
+                   MaxWidth="223"
+                   Source="{Binding Thumbnail, Mode=OneWay}">
+            </Image>-->
+            <Image Grid.Row="1" Stretch="UniformToFill"
+                   VerticalAlignment="Top"
+                   HorizontalAlignment="Center"
+                   Height="130"
+                   Width="223"
+                   utilities:AsyncImageLoader.Source="{Binding ThumbnailPath}">
+            </Image>
+            <TextBlock Grid.Row="2" Margin="28,4,0,0" FontWeight="Light"
+                       Text="{Binding GameSize, Mode=OneWay, Converter={StaticResource GameSizeFromMBytesInt}}"
+                       ToolTip.Tip="{x:Static p:Resources.DownloadSize}" />
+            <TextBlock Grid.Row="2" Margin="0,4,28,0" Text="Installed"
+                       IsVisible="{Binding IsInstalled, Mode=OneWay}"
+                       Foreground="#C0C0C0" FontWeight="Light" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+            <StackPanel Grid.Row="3" Margin="0,8,0,0" Orientation="Horizontal" HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        Spacing="8">
+                <Button x:Name="GameCardInstallButton"
+                        Command="{Binding Install}"
+                        IsEnabled="{Binding $parent[UserControl].((vm:AvailableGamesViewModel)DataContext).IsDeviceConnected, FallbackValue=False}"
+                        Content="{x:Static p:Resources.InstallButton}" />
+                <Button x:Name="GameCardDownloadButton"
+                        Command="{Binding Download}"
+                        Content="{x:Static p:Resources.DownloadButton}" />
+                <!--<Button Command="{Binding ShowDetailsWindow}">Info</Button>-->
+                <Button x:Name="GameCardInfoButton"
+                        Height="32"
+                        Command="{Binding ShowDetailsWindow}" Padding="6">
+                    <Button.Content>
+                        <controls:FontIcon FontFamily="avares://FluentAvalonia/Fonts#Symbols" Glyph="&#xE946;"
+                                           FontSize="20" />
+                    </Button.Content>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

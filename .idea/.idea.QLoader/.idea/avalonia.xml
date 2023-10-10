@@ -9,6 +9,8 @@
         <entry key="QSideloader/Controls/LoadingProgressRing.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/DeviceInfoView.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/DeviceSettingsView.axaml" value="QSideloader/QSideloader.csproj" />
+        <entry key="QSideloader/Views/GameCard.axaml" value="QSideloader/QSideloader.csproj" />
+        <entry key="QSideloader/Views/GameCardView.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/GameDetailsWindow.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/LoadingProgressRingView.axaml" value="QSideloader/QSideloader.csproj" />
         <entry key="QSideloader/Views/MainWindow.axaml" value="QSideloader/QSideloader.csproj" />

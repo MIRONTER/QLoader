@@ -99,7 +99,7 @@ public class BackupViewModel : ViewModelBase, IActivatableViewModel
             foreach (var backup in selectedBackups)
             {
                 backup.IsSelected = false;
-                Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.Restore, Backup = backup});
+                backup.Restore();
                 Log.Information("Queued for restore: {BackupName}", backup);
             }
         });

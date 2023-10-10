@@ -44,8 +44,6 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
             Log.Warning("Failed to initialize LibVLC");
         }
 
-        DownloadAndInstall = ReactiveCommand.CreateFromObservable(DownloadAndInstallImpl);
-        DownloadOnly = ReactiveCommand.CreateFromObservable(DownloadOnlyImpl);
     }
 
     public GameDetailsViewModel(Game game)
@@ -54,8 +52,6 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
         _adbService = AdbService.Instance;
         Game = game;
         DisplayName = game.GameName ?? "GameName";
-        DownloadAndInstall = ReactiveCommand.CreateFromObservable(DownloadAndInstallImpl);
-        DownloadOnly = ReactiveCommand.CreateFromObservable(DownloadOnlyImpl);
 
         // Initialize LibVLC only if trailers are installed
         if (Directory.Exists(PathHelper.TrailersPath))
@@ -72,45 +68,18 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
                     TimeSpan.FromSeconds(5));
             }
 
-        var jpgPath = Path.Combine(PathHelper.ThumbnailsPath, $"{Game.PackageName}.jpg");
-        var pngPath = Path.Combine(PathHelper.ThumbnailsPath, $"{Game.PackageName}.png");
-        if (File.Exists(jpgPath))
-            ThumbnailPath = jpgPath;
-        else if (File.Exists(pngPath))
-            ThumbnailPath = pngPath;
-        else
-            // Try finding a thumbnail using case-insensitive enumeration
-            try
-            {
-                ThumbnailPath = PathHelper.GetActualCaseForFileName(jpgPath);
-            }
-            catch (Exception e) when (e is FileNotFoundException or DirectoryNotFoundException)
-            {
-                try
-                {
-                    ThumbnailPath = PathHelper.GetActualCaseForFileName(pngPath);
-                }
-                catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
-                {
-                    Log.Warning("No thumbnail found for {PackageName}", Game.PackageName);
-                }
-            }
-
         Task.Run(TryLoadStoreInfo);
 
         this.WhenActivated(disposables =>
         {
             _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged).DisposeWith(disposables);
             IsDeviceConnected = _adbService.CheckDeviceConnectionSimple();
-            Observable.Timer(TimeSpan.FromSeconds(2)).Subscribe(_ => PlayTrailer());
-            Disposable.Create(DisposeMediaPlayer).DisposeWith(disposables);
+            Observable.Timer(TimeSpan.FromSeconds(2)).Subscribe(_ => PlayTrailer()).DisposeWith(disposables);
+            this.DisposeWith(disposables);
         });
     }
 
     public Game Game { get; }
-    public string? ThumbnailPath { get; } = Path.Combine("Resources", "NoThumbnailImage.png");
-    public ReactiveCommand<Unit, Unit> DownloadAndInstall { get; }
-    public ReactiveCommand<Unit, Unit> DownloadOnly { get; }
     [Reactive] public MediaPlayer? MediaPlayer { get; set; }
     [Reactive] public bool ShowTrailerPlayer { get; set; }
     [Reactive] public bool IsDeviceConnected { get; set; }
@@ -125,29 +94,6 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
     {
         DisposeMediaPlayer();
         GC.SuppressFinalize(this);
-    }
-
-    private IObservable<Unit> DownloadAndInstallImpl()
-    {
-        return Observable.Start(() =>
-        {
-            if (!_adbService.CheckDeviceConnectionSimple())
-            {
-                Log.Warning("GameDetailsViewModel.DownloadAndInstallImpl: no device connection!");
-                IsDeviceConnected = false;
-                return;
-            }
-
-            Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadAndInstall, Game = Game});
-        });
-    }
-
-    private IObservable<Unit> DownloadOnlyImpl()
-    {
-        return Observable.Start(() =>
-        {
-            Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadOnly, Game = Game});
-        });
     }
 
     private void OnDeviceStateChanged(DeviceState state)

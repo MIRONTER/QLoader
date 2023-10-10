@@ -1,9 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
+using System.Reactive;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
+using Avalonia.Media.Imaging;
 using FileHelpers;
+using QSideloader.Utilities;
+using ReactiveUI;
+using Serilog;
 
 namespace QSideloader.Models;
 
@@ -13,6 +19,7 @@ public class Game : INotifyPropertyChanged
 {
     [FieldHidden] [JsonIgnore] private bool _isInstalled;
     [FieldHidden] [JsonIgnore] private bool _isSelected;
+    [FieldHidden] [JsonIgnore] private string? _thumbnailPath;
 
     public Game()
     {
@@ -74,6 +81,43 @@ public class Game : INotifyPropertyChanged
         }
     }
 
+    [FieldHidden]
+    [JsonIgnore]
+    public string ThumbnailPath
+    {
+        get
+        {
+            //_thumbnailPath = Path.Combine("Resources", "NoThumbnailImage.png");
+            if (_thumbnailPath is not null) return _thumbnailPath;
+            var jpgPath = Path.Combine(PathHelper.ThumbnailsPath, $"{PackageName}.jpg");
+            var pngPath = Path.Combine(PathHelper.ThumbnailsPath, $"{PackageName}.png");
+            if (File.Exists(jpgPath))
+                _thumbnailPath = jpgPath;
+            else if (File.Exists(pngPath))
+                _thumbnailPath = pngPath;
+            else
+                // Try finding a thumbnail using case-insensitive enumeration
+                try
+                {
+                    _thumbnailPath = PathHelper.GetActualCaseForFileName(jpgPath);
+                }
+                catch (Exception e) when (e is FileNotFoundException or DirectoryNotFoundException)
+                {
+                    try
+                    {
+                        _thumbnailPath = PathHelper.GetActualCaseForFileName(pngPath);
+                    }
+                    catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
+                    {
+                        //Log.Debug("No thumbnail found for {PackageName}", PackageName);
+                        _thumbnailPath = Path.Combine("Resources", "NoThumbnailImage.png");
+                    }
+                }
+
+            return _thumbnailPath;
+        }
+    }
+
     [FieldHidden] [JsonIgnore] public string? Note { get; set; }
 
     [FieldHidden]
@@ -90,5 +134,45 @@ public class Game : INotifyPropertyChanged
     private void OnPropertyChanged([CallerMemberName] string? name = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
+
+    public void Download()
+    {
+        Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadOnly, Game = this});
+    }
+    
+    public void Install()
+    {
+        Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadAndInstall, Game = this});
+    }
+    
+    public void InstallFromPath(string path)
+    {
+        Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.InstallOnly, Game = this, Path = path});
+    }
+    
+    public void ShowDetailsWindow()
+    {
+        Globals.MainWindowViewModel!.ShowGameDetails.Execute(this).Subscribe(_ => { }, _ => { });
+    }
+    
+    public void Uninstall()
+    {
+        Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.Uninstall, Game = this});
+    }
+    
+    public void BackupAndUninstall(BackupOptions backupOptions)
+    {
+        Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.BackupAndUninstall, Game = this, BackupOptions = backupOptions});
+    }
+    
+    public void Backup(BackupOptions backupOptions)
+    {
+        Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.Backup, Game = this, BackupOptions = backupOptions});
+    }
+
+    public static Game FromTestData()
+    {
+        return new Game("Test", "Test v1337", 1337, null) {IsInstalled = true};
     }
 }

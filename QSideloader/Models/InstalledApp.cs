@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using QSideloader.Utilities;
 
 namespace QSideloader.Models;
 
@@ -54,5 +55,20 @@ public class InstalledApp : INotifyPropertyChanged
     private void OnPropertyChanged([CallerMemberName] string? name = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
+
+    public void PullAndUpload()
+    {
+        Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.PullAndUpload, App = this});
+    }
+    
+    public void Uninstall()
+    {
+        Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.Uninstall, App = this});
+    }
+    
+    public void Extract(string path)
+    {
+        Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.Extract, App = this, Path = path});
     }
 }

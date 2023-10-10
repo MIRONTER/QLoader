@@ -56,7 +56,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _downloaderService = DownloaderService.Instance;
         _mainWindow = mainWindow;
         _sideloaderSettings = Globals.SideloaderSettings;
-        ShowGameDetailsCommand = ReactiveCommand.Create<Game>(game =>
+        ShowGameDetails = ReactiveCommand.Create<Game>(game =>
         {
             if (_downloaderService.AvailableGames is null) return;
             Log.Debug("Opening game details dialog for {GameName}", game.GameName);
@@ -67,7 +67,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 ?.MainWindow!;
             dialog.Show(window);
         });
-        ShowGameDetailsCommand.ThrownExceptions.Subscribe(ex =>
+        ShowGameDetails.ThrownExceptions.Subscribe(ex =>
         {
             Log.Error(ex, "Error while opening game details dialog");
             ShowErrorNotification(ex, Resources.ErrorGameDetailsDialog);
@@ -109,7 +109,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public IObservable<Unit> WhenGameDonated => _gameDonateSubject.AsObservable();
 
-    public ReactiveCommand<Game, Unit> ShowGameDetailsCommand { get; }
+    public ReactiveCommand<Game, Unit> ShowGameDetails { get; }
     public ReactiveCommand<Unit, Unit> ShowConnectionHelpDialog { get; }
     public ReactiveCommand<Unit, Unit> ShowAuthHelpDialog { get; }
     private ReactiveCommand<Unit, Unit> DonateAllGames { get; }
@@ -198,7 +198,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 {
                     Log.Debug("Dropped folder {FileName} contains backup", fileName);
                     var backup = new Backup(fileName);
-                    AddTask(new TaskOptions { Type = TaskType.Restore, Backup = backup });
+                    backup.Restore();
                     continue;
                 }
 
@@ -210,7 +210,7 @@ public partial class MainWindowViewModel : ViewModelBase
                         var game = JsonSerializer.Deserialize(
                             await File.ReadAllTextAsync(Path.Combine(fileName,
                                 "release.json")), JsonSerializerContext.Default.Game);
-                        AddTask(new TaskOptions { Type = TaskType.InstallOnly, Game = game, Path = fileName });
+                        game!.InstallFromPath(fileName);
                         continue;
                     }
                     catch (Exception ex)
@@ -239,7 +239,7 @@ public partial class MainWindowViewModel : ViewModelBase
                         game = new Game(dirName, dirName);
                     }
 
-                    AddTask(new TaskOptions { Game = game, Type = TaskType.InstallOnly, Path = fileName });
+                    game.InstallFromPath(fileName);
                 }
                 else
                 {
@@ -264,7 +264,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 }
 
                 var game = new Game(apkInfo.ApplicationLabel, name, apkInfo.PackageName);
-                AddTask(new TaskOptions { Game = game, Type = TaskType.InstallOnly, Path = fileName });
+                game.InstallFromPath(fileName);
             }
             else
             {
@@ -393,7 +393,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             foreach (var app in eligibleApps)
             {
-                AddTask(new TaskOptions { Type = TaskType.PullAndUpload, App = app });
+                app.PullAndUpload();
                 Log.Information("Queued for donation: {Name}", app.Name);
             }
         });
@@ -615,8 +615,10 @@ public partial class MainWindowViewModel : ViewModelBase
             if (!toDonate.Any()) return;
 
             Log.Information("Adding donation tasks");
-            foreach (var taskOptions in toDonate.Select(app => new TaskOptions
-                         { Type = TaskType.PullAndUpload, App = app })) AddTask(taskOptions);
+            foreach (var app in toDonate)
+            {
+                app.PullAndUpload();
+            }
         });
     }
     
