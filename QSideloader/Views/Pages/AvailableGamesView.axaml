@@ -100,7 +100,7 @@
 
                 <DataGridTextColumn Binding="{Binding (models:Game).IsInstalled, Mode=OneWay, Converter={StaticResource OnDeviceStatusFromBool}}"
                                     Header="{x:Static p:Resources.OnDeviceHeader}" Width="auto" IsReadOnly="True"
-                                    IsVisible="{Binding (vm:AvailableGamesViewModel).IsDeviceConnected}" />
+                                    IsVisible="{Binding (vm:AvailableGamesViewModel).IsDeviceConnected}" SortMemberPath="IsInstalled" />
             </DataGrid.Columns>
             <DataGrid.Resources>
                 <!-- ReSharper disable Xaml.RedundantResource -->
