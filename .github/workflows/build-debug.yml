@@ -46,8 +46,8 @@ jobs:
       run: |
         $RUN_NUMBER = $env:RUN_NUMBER
         Write-Output "Packing win-x64"
-        New-Item -ItemType Directory -Path builds_ci\$RUN_NUMBER\ -Force
-        Compress-Archive -Path win-x64\* -DestinationPath builds_ci\$RUN_NUMBER\win-x64.zip
+        New-Item -ItemType Directory -Path builds_ci\run-$RUN_NUMBER\ -Force
+        Compress-Archive -Path win-x64\* -DestinationPath builds_ci\run-$RUN_NUMBER\win-x64.zip
     
     - name: Upload artifact
       run: rclone copy -v builds_ci/ drive:qloader_files/builds_ci/
