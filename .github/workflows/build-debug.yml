@@ -63,7 +63,7 @@ jobs:
         rclone_config: ${{ secrets.RCLONE_CONFIG }}
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 7.0.x
 
@@ -106,7 +106,7 @@ jobs:
         rclone_config: ${{ secrets.RCLONE_CONFIG }}
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 7.0.x
 
