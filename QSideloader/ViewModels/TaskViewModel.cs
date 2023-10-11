@@ -300,6 +300,10 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             });
             Status = Resources.PreparingToUpload;
             var apkInfo = await GeneralUtils.GetApkInfoAsync(Path.Combine(path, _app!.PackageName + ".apk"));
+            if (string.IsNullOrEmpty(apkInfo.PackageName))
+                throw new InvalidOperationException("Failed to get package name from APK");
+            if (string.IsNullOrEmpty(apkInfo.ApplicationLabel))
+                throw new InvalidOperationException("Application label is empty");
             var archiveName =
                 GeneralUtils.SanitizeFileName(
                     $"{apkInfo.ApplicationLabel} v{apkInfo.VersionCode} {apkInfo.PackageName}.zip");

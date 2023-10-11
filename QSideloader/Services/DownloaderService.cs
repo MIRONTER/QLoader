@@ -871,7 +871,7 @@ public partial class DownloaderService
         using var op = Operation.At(LogEventLevel.Information, LogEventLevel.Error).Begin("Uploading donation");
         var archiveName = Path.GetFileName(path);
         if (!DonationArchiveRegex().IsMatch(archiveName))
-            throw new ArgumentException("Invalid archive name", nameof(path));
+            throw new ArgumentException($"Invalid archive name: {archiveName}", nameof(path));
         Log.Information("Uploading donation {ArchiveName}", archiveName);
         var md5Sum = GeneralUtils.GetMd5FileChecksum(path).ToLower();
         await File.WriteAllTextAsync(path + ".md5sum", md5Sum, ct);
