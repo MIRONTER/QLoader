@@ -90,13 +90,13 @@
 
                 <DataGridTextColumn Binding="{Binding Popularity[1D]}"
                                     Header="{x:Static p:Resources.Popularity1DHeader}" Width="auto" IsReadOnly="True"
-                                    IsVisible="{Binding (vm:AvailableGamesViewModel).ShowPopularity1Day}" />
+                                    IsVisible="{Binding (vm:AvailableGamesViewModel).ShowPopularity1Day}" SortMemberPath="Popularity[1D]" />
                 <DataGridTextColumn Binding="{Binding Popularity[7D]}"
                                     Header="{x:Static p:Resources.Popularity7DHeader}" Width="auto" IsReadOnly="True"
-                                    IsVisible="{Binding (vm:AvailableGamesViewModel).ShowPopularity7Days}" />
+                                    IsVisible="{Binding (vm:AvailableGamesViewModel).ShowPopularity7Days}" SortMemberPath="Popularity[7D]" />
                 <DataGridTextColumn Binding="{Binding Popularity[30D]}"
                                     Header="{x:Static p:Resources.Popularity30DHeader}" Width="auto" IsReadOnly="True"
-                                    IsVisible="{Binding (vm:AvailableGamesViewModel).ShowPopularity30Days}" />
+                                    IsVisible="{Binding (vm:AvailableGamesViewModel).ShowPopularity30Days}" SortMemberPath="Popularity[30D]" />
 
                 <DataGridTextColumn Binding="{Binding (models:Game).IsInstalled, Mode=OneWay, Converter={StaticResource OnDeviceStatusFromBool}}"
                                     Header="{x:Static p:Resources.OnDeviceHeader}" Width="auto" IsReadOnly="True"
