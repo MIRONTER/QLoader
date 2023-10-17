@@ -264,7 +264,7 @@ public partial class DownloaderService
     /// <summary>
     ///     Resets and reloads the mirror list.
     /// </summary>
-    /// <param name="keepExcluded">Should not reset excluded mirrors list</param>
+    /// <param name="keepExcluded">Keep excluded mirrors list</param>
     public async Task ReloadMirrorListAsync(bool keepExcluded = false)
     {
         // Reinitialize the mirror list with the new config and reselect mirror, if needed
@@ -275,7 +275,7 @@ public partial class DownloaderService
             ExcludedMirrorList = new List<(string mirrorName, string? message, Exception? error)>();
         await EnsureMirrorListInitializedAsync();
         if (_mirrorList.Contains(MirrorName)) return;
-        Log.Information("Mirror {MirrorName} not found in new mirror list", MirrorName);
+        Log.Information("Current mirror {MirrorName} not found in new mirror list", MirrorName);
         MirrorName = "";
         await EnsureMirrorSelectedAsync();
     }
