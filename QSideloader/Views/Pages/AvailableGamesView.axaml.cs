@@ -39,7 +39,6 @@ public partial class AvailableGamesView : ReactiveUserControl<AvailableGamesView
     private void MainWindow_OnKeyDown(object? sender, KeyEventArgs e)
     {
         //Log.Debug("Key pressed: {Key}, modifiers: {Modifiers}", e.Key, e.KeyModifiers);
-        /*
         var dataGrid = AvailableGamesDataGrid;
         var selectedGame = (Game?) dataGrid.SelectedItem;
         if (e.KeyModifiers == KeyModifiers.None)
@@ -97,7 +96,7 @@ public partial class AvailableGamesView : ReactiveUserControl<AvailableGamesView
                 SearchBox.SelectionEnd = SearchBox.Text?.Length ?? 0;
                 e.Handled = true;
             }
-        }*/
+        }
     }
 
     // ReSharper disable UnusedParameter.Local
