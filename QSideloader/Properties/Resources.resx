@@ -868,4 +868,7 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="Size" xml:space="preserve">
         <value>Size</value>
     </data>
+    <data name="OsVersionTooOld" xml:space="preserve">
+        <value>OS version too old</value>
+    </data>
 </root>

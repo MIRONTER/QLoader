@@ -860,4 +860,7 @@
     <data name="Size" xml:space="preserve">
         <value>Размер</value>
     </data>
+    <data name="OsVersionTooOld" xml:space="preserve">
+        <value>Слишком старая версия ОС</value>
+    </data>
 </root>

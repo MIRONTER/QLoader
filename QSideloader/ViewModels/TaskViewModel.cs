@@ -8,6 +8,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AdvancedSharpAdbClient;
+using AdvancedSharpAdbClient.DeviceCommands;
 using Avalonia.Controls.Notifications;
 using QSideloader.Models;
 using QSideloader.Properties;
@@ -434,6 +435,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                     AdbService.ReleasePackageOperationLock();
                     if (e is OperationCanceledException)
                         OnFinished(nameof(Resources.Cancelled));
+                    else if (e.InnerException is PackageInstallationException && e.InnerException.Message.Contains("INSTALL_FAILED_OLDER_SDK"))
+                        OnFinished(nameof(Resources.OsVersionTooOld), false, e);
                     else
                         OnFinished(nameof(Resources.InstallFailed), false, e);
                 },
@@ -574,7 +577,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     /// </summary>
     /// <param name="simpleCheck">Use simple connection check.</param>
     /// <exception cref="InvalidOperationException">Thrown if device is not connected.</exception>
-    /// <remarks>First call with <c>simpleCheck=true</c> ties the task to current device.</remarks>
+    /// <remarks>First call with <c>simpleCheck=false</c> ties the task to current device.</remarks>
     private void EnsureDeviceConnected(bool simpleCheck = false)
     {
         if (!_ensuredDeviceConnected)
