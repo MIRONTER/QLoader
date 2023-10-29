@@ -427,34 +427,34 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="TaskFailed" xml:space="preserve">
         <value>Task failed</value>
     </data>
-    <data name="DownloadFailed" xml:space="preserve">
+    <data name="TaskResultDownloadFailed" xml:space="preserve">
         <value>Download failed</value>
     </data>
-    <data name="InstallFailed" xml:space="preserve">
+    <data name="TaskResultInstallFailed" xml:space="preserve">
         <value>Install failed</value>
     </data>
-    <data name="DownloadSuccess" xml:space="preserve">
+    <data name="TaskResultDownloadSuccess" xml:space="preserve">
         <value>Downloaded</value>
     </data>
-    <data name="InstallSuccess" xml:space="preserve">
+    <data name="TaskResultInstallSuccess" xml:space="preserve">
         <value>Installed</value>
     </data>
-    <data name="UninstallFailed" xml:space="preserve">
+    <data name="TaskResultUninstallFailed" xml:space="preserve">
         <value>Uninstall failed</value>
     </data>
-    <data name="UninstallSuccess" xml:space="preserve">
+    <data name="TaskResultUninstallSuccess" xml:space="preserve">
         <value>Uninstalled</value>
     </data>
-    <data name="BackupFailed" xml:space="preserve">
+    <data name="TaskResultBackupFailed" xml:space="preserve">
         <value>Backup failed</value>
     </data>
-    <data name="BackupSuccess" xml:space="preserve">
+    <data name="TaskResultBackupSuccess" xml:space="preserve">
         <value>Backup created</value>
     </data>
-    <data name="RestoreFailed" xml:space="preserve">
+    <data name="TaskResultRestoreFailed" xml:space="preserve">
         <value>Restore failed</value>
     </data>
-    <data name="RestoreSuccess" xml:space="preserve">
+    <data name="TaskResultRestoreSuccess" xml:space="preserve">
         <value>Backup restored</value>
     </data>
     <data name="PullingFromDevice" xml:space="preserve">
@@ -466,16 +466,16 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="Uploading" xml:space="preserve">
         <value>Uploading</value>
     </data>
-    <data name="DonationFailed" xml:space="preserve">
+    <data name="TaskResultDonationFailed" xml:space="preserve">
         <value>Donation failed</value>
     </data>
     <data name="Cancelled" xml:space="preserve">
         <value>Cancelled</value>
     </data>
-    <data name="UploadSuccess" xml:space="preserve">
+    <data name="TaskResultUploadSuccess" xml:space="preserve">
         <value>Uploaded</value>
     </data>
-    <data name="AlreadyInstalled" xml:space="preserve">
+    <data name="TaskResultAlreadyInstalled" xml:space="preserve">
         <value>Already installed</value>
     </data>
     <data name="DownloadQueued" xml:space="preserve">
@@ -496,7 +496,7 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="DeletingDownloadedFiles" xml:space="preserve">
         <value>Deleting downloaded files</value>
     </data>
-    <data name="FailedToDeleteDownloadedFiles" xml:space="preserve">
+    <data name="TaskResultFailedToDeleteDownloadedFiles" xml:space="preserve">
         <value>Failed to delete downloaded files</value>
     </data>
     <data name="UninstallQueued" xml:space="preserve">
@@ -517,7 +517,7 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="TaskNameFailed" xml:space="preserve">
         <value>Task {0} failed</value>
     </data>
-    <data name="FailedNoDeviceConnection" xml:space="preserve">
+    <data name="TaskResultNoDeviceConnection" xml:space="preserve">
         <value>Failed: no device connection</value>
     </data>
     <data name="RestoreQueued" xml:space="preserve">
@@ -703,10 +703,10 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="Extract" xml:space="preserve">
         <value>Extract</value>
     </data>
-    <data name="ExtractSuccess" xml:space="preserve">
+    <data name="TaskResultExtractSuccess" xml:space="preserve">
         <value>Extracted</value>
     </data>
-    <data name="ExtractionFailed" xml:space="preserve">
+    <data name="TaskResultExtractFailed" xml:space="preserve">
         <value>Extraction failed</value>
     </data>
     <data name="SelectDownloadsFolder" xml:space="preserve">
@@ -799,13 +799,13 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="PullPicturesAndVideos" xml:space="preserve">
         <value>Pull screen/videoshots</value>
     </data>
-    <data name="PullPicturesAndVideosSuccess" xml:space="preserve">
+    <data name="TaskResultPullMediaSuccess" xml:space="preserve">
         <value>Pull succeeded</value>
     </data>
     <data name="PullingPicturesAndVideosTooltip" xml:space="preserve">
         <value>Pull pictures and videos from device</value>
     </data>
-    <data name="PullPicturesAndVideosFailed" xml:space="preserve">
+    <data name="TaskResultPullMediaFailed" xml:space="preserve">
         <value>Pull failed</value>
     </data>
     <data name="PullingPicturesAndVideos" xml:space="preserve">
@@ -868,7 +868,10 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="Size" xml:space="preserve">
         <value>Size</value>
     </data>
-    <data name="OsVersionTooOld" xml:space="preserve">
+    <data name="TaskResultOsVersionTooOld" xml:space="preserve">
         <value>OS version too old</value>
+    </data>
+    <data name="TaskResultUnknownError" xml:space="preserve">
+        <value>Unknown error</value>
     </data>
 </root>

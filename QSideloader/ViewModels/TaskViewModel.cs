@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Concurrency;
@@ -50,7 +49,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         TaskId = new TaskId();
         TaskName = "TaskName";
         ProgressStatus = "ProgressStatus";
-        RunTask = ReactiveCommand.Create(() => { Hint = "Click to cancel"; });
+        RunTask = ReactiveCommand.Create(() => { Hint = Resources.ClickToCancel; });
         Activator = new ViewModelActivator();
     }
 
@@ -160,7 +159,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         {
             Log.Error(ex, "Task {TaskId} {TaskType} {TaskName} failed", TaskId, TaskType, TaskName);
             if (!IsFinished)
-                OnFinished($"{Resources.TaskFailed}: {ex.Message}", false, ex);
+                OnFinished(TaskResult.UnknownError, ex);
         });
     }
 
@@ -225,28 +224,28 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private async Task RunDownloadAndInstallAsync()
     {
         EnsureDeviceConnected(true);
-        await DoCancellableAsync(async () => { _path = await DownloadAsync(); }, nameof(Resources.DownloadFailed));
+        await DoCancellableAsync(async () => { _path = await DownloadAsync(); }, TaskResult.DownloadFailed);
 
-        // successStatus isn't needed here
+        
         await DoCancellableAsync(async () =>
         {
             var deleteAfterInstall =
                 _sideloaderSettings.DownloadsPruningPolicy == DownloadsPruningPolicy.DeleteAfterInstall;
             await InstallAsync(_path ?? throw new InvalidOperationException("path is null"),
-                deleteAfterInstall);
-        }, nameof(Resources.InstallFailed));
+                deleteAfterInstall); 
+        }, TaskResult.InstallFailed); // successResult isn't needed here
     }
 
     private async Task RunDownloadOnlyAsync()
     {
-        await DoCancellableAsync(async () => { _path = await DownloadAsync(); }, nameof(Resources.DownloadFailed),
-            nameof(Resources.DownloadSuccess));
+        await DoCancellableAsync(async () => { _path = await DownloadAsync(); }, TaskResult.DownloadFailed,
+            TaskResult.DownloadSuccess);
     }
 
     private async Task RunInstallOnlyAsync()
     {
         EnsureDeviceConnected(true);
-        // successStatus isn't needed here
+        // successResult isn't needed here
         await DoCancellableAsync(async () =>
         {
             _ = _path ?? throw new InvalidOperationException("path is null");
@@ -254,14 +253,14 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                                      _sideloaderSettings.DownloadsPruningPolicy ==
                                      DownloadsPruningPolicy.DeleteAfterInstall;
             await InstallAsync(_path, deleteAfterInstall);
-        }, nameof(Resources.InstallFailed));
+        }, TaskResult.InstallFailed);
     }
 
     private async Task RunUninstallAsync()
     {
         EnsureDeviceConnected(true);
-        await DoCancellableAsync(async () => { await UninstallAsync(); }, nameof(Resources.UninstallFailed),
-            nameof(Resources.UninstallSuccess));
+        await DoCancellableAsync(async () => { await UninstallAsync(); }, TaskResult.UninstallFailed,
+            TaskResult.UninstallSuccess);
     }
 
     private async Task RunBackupAndUninstallAsync()
@@ -271,21 +270,21 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         {
             await BackupAsync();
             await UninstallAsync();
-        }, nameof(Resources.UninstallFailed), nameof(Resources.UninstallSuccess));
+        }, TaskResult.UninstallFailed, TaskResult.UninstallSuccess);
     }
 
     private async Task RunBackupAsync()
     {
         EnsureDeviceConnected(true);
-        await DoCancellableAsync(async () => { await BackupAsync(); }, nameof(Resources.BackupFailed),
-            nameof(Resources.BackupSuccess));
+        await DoCancellableAsync(async () => { await BackupAsync(); }, TaskResult.BackupFailed,
+            TaskResult.BackupSuccess);
     }
 
     private async Task RunRestoreAsync()
     {
         EnsureDeviceConnected(true);
-        await DoCancellableAsync(async () => { await RestoreAsync(_backup!); }, nameof(Resources.RestoreFailed),
-            nameof(Resources.RestoreSuccess));
+        await DoCancellableAsync(async () => { await RestoreAsync(_backup!); }, TaskResult.RestoreFailed,
+            TaskResult.RestoreSuccess);
     }
 
     private async Task RunPullAndUploadAsync()
@@ -317,7 +316,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             await _downloaderService.UploadDonationAsync(archivePath,
                 _cancellationTokenSource.Token);
             Globals.MainWindowViewModel!.OnGameDonated(apkInfo.PackageName, apkInfo.VersionCode);
-        }, nameof(Resources.DonationFailed), nameof(Resources.UploadSuccess));
+        }, TaskResult.DonationFailed, TaskResult.DonationSuccess);
     }
 
     private async Task RunInstallTrailersAddonAsync()
@@ -326,12 +325,12 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         {
             if (Directory.Exists(PathHelper.TrailersPath) && !File.Exists(_path))
             {
-                OnFinished(nameof(Resources.AlreadyInstalled));
+                OnFinished(TaskResult.AlreadyInstalled);
                 return;
             }
 
             await InstallTrailersAddonAsync();
-        }, nameof(Resources.InstallFailed), nameof(Resources.InstallSuccess));
+        }, TaskResult.InstallFailed, TaskResult.InstallSuccess);
     }
 
     private async Task RunExtractAsync()
@@ -345,7 +344,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 {
                     _adbDevice!.PullApp(_app!.PackageName, _path!, _cancellationTokenSource.Token);
                 });
-            }, nameof(Resources.ExtractionFailed), nameof(Resources.ExtractSuccess));
+            }, TaskResult.ExtractionFailed, TaskResult.ExtractionSuccess);
     }
 
     private async Task RunPullMediaAsync()
@@ -354,26 +353,26 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         Status = Resources.PullingPicturesAndVideos;
         await DoCancellableAsync(
             async () => { await Task.Run(() => { _adbDevice!.PullMedia(_path!, _cancellationTokenSource.Token); }); },
-            nameof(Resources.PullPicturesAndVideosFailed), nameof(Resources.PullPicturesAndVideosSuccess));
+            TaskResult.PullMediaFailed, TaskResult.PullMediaSuccess);
     }
 
 
-    private async Task DoCancellableAsync(Func<Task> func, string? failureStatus = null, string? successStatus = null)
+    private async Task DoCancellableAsync(Func<Task> func, TaskResult? failureResult = null, TaskResult? successResult = null)
     {
         try
         {
             await func();
-            if (!string.IsNullOrEmpty(successStatus))
-                OnFinished(successStatus);
+            if (successResult is not null)
+                OnFinished(successResult.Value);
         }
         catch (OperationCanceledException)
         {
-            OnFinished(nameof(Resources.Cancelled));
+            OnFinished(TaskResult.Cancelled);
         }
         catch (Exception e)
         {
-            if (!string.IsNullOrEmpty(failureStatus))
-                OnFinished(failureStatus, false, e);
+            if (failureResult is not null)
+                OnFinished(failureResult.Value, e);
         }
     }
 
@@ -434,11 +433,11 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 {
                     AdbService.ReleasePackageOperationLock();
                     if (e is OperationCanceledException)
-                        OnFinished(nameof(Resources.Cancelled));
+                        OnFinished(TaskResult.Cancelled);
                     else if (e.InnerException is PackageInstallationException && e.InnerException.Message.Contains("INSTALL_FAILED_OLDER_SDK"))
-                        OnFinished(nameof(Resources.OsVersionTooOld), false, e);
+                        OnFinished(TaskResult.OsVersionTooOld, e);
                     else
-                        OnFinished(nameof(Resources.InstallFailed), false, e);
+                        OnFinished(TaskResult.InstallFailed, e);
                 },
                 () =>
                 {
@@ -456,11 +455,11 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                         {
                             Log.Error(e, "Failed to delete downloaded files");
                             // Treating as success because the installation is still successful
-                            OnFinished(nameof(Resources.FailedToDeleteDownloadedFiles));
+                            OnFinished(TaskResult.DownloadCleanupFailed);
                         }
                     }
 
-                    OnFinished(nameof(Resources.InstallSuccess));
+                    OnFinished(TaskResult.InstallSuccess);
                 });
     }
 
@@ -535,21 +534,21 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         Status = Resources.Installing;
         ProgressStatus = "";
         await GeneralUtils.InstallTrailersAddonAsync(_path, true);
-        OnFinished(nameof(Resources.InstallSuccess));
+        OnFinished(TaskResult.InstallSuccess);
     }
 
-    private void OnFinished(string statusResourceNameOrString, bool isSuccess = true, Exception? e = null)
+    private void OnFinished(TaskResult result, Exception? e = null)
     {
         if (IsFinished)
             return;
+        var isSuccess = result.IsSuccess();
         Hint = Resources.ClickToDismiss;
         IsFinished = true;
-        Status = Resources.ResourceManager.GetString(statusResourceNameOrString) ?? statusResourceNameOrString;
+        Status = result.GetMessage();
         ProgressStatus = "";
         Log.Information("Task {TaskId} {TaskType} {TaskName} finished. Result: {Status}. Is success: {IsSuccess}",
             TaskId, TaskType, TaskName,
-            Resources.ResourceManager.GetString(statusResourceNameOrString, CultureInfo.InvariantCulture)
-            ?? statusResourceNameOrString, isSuccess);
+            result, isSuccess);
         Globals.MainWindowViewModel!.OnTaskFinished(isSuccess, TaskId);
         if (isSuccess) return;
         if (e is not null)
@@ -602,7 +601,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 return;
         }
 
-        OnFinished(nameof(Resources.FailedNoDeviceConnection), false);
+        OnFinished(TaskResult.NoDeviceConnection);
         throw new InvalidOperationException("No device connection");
     }
 }

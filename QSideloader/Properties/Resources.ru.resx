@@ -362,13 +362,13 @@
     <data name="AdbDevicesDialogTitle" xml:space="preserve">
         <value>ADB устройства</value>
     </data>
-    <data name="AlreadyInstalled" xml:space="preserve">
+    <data name="TaskResultAlreadyInstalled" xml:space="preserve">
         <value>Уже установлено</value>
     </data>
-    <data name="BackupFailed" xml:space="preserve">
+    <data name="TaskResultBackupFailed" xml:space="preserve">
         <value>Не удалось создать рез. копию</value>
     </data>
-    <data name="BackupSuccess" xml:space="preserve">
+    <data name="TaskResultBackupSuccess" xml:space="preserve">
         <value>Рез. копия создана</value>
     </data>
     <data name="CalculatingSize" xml:space="preserve">
@@ -401,10 +401,10 @@
     <data name="DeletingDownloadedFiles" xml:space="preserve">
         <value>Удаление загруженных файлов</value>
     </data>
-    <data name="DonationFailed" xml:space="preserve">
+    <data name="TaskResultDonationFailed" xml:space="preserve">
         <value>Не удалось пожертвовать</value>
     </data>
-    <data name="DownloadFailed" xml:space="preserve">
+    <data name="TaskResultDownloadFailed" xml:space="preserve">
         <value>Не удалось загрузить</value>
     </data>
     <data name="Downloading" xml:space="preserve">
@@ -413,7 +413,7 @@
     <data name="DownloadQueued" xml:space="preserve">
         <value>В очереди на загрузку</value>
     </data>
-    <data name="DownloadSuccess" xml:space="preserve">
+    <data name="TaskResultDownloadSuccess" xml:space="preserve">
         <value>Загружено</value>
     </data>
     <data name="Error" xml:space="preserve">
@@ -431,10 +431,10 @@
     <data name="ExceptionCopiedToClipboard" xml:space="preserve">
         <value>Ошибка была скопирована в буфер обмена</value>
     </data>
-    <data name="FailedNoDeviceConnection" xml:space="preserve">
+    <data name="TaskResultNoDeviceConnection" xml:space="preserve">
         <value>Ошибка: нет подключения к устройству</value>
     </data>
-    <data name="FailedToDeleteDownloadedFiles" xml:space="preserve">
+    <data name="TaskResultFailedToDeleteDownloadedFiles" xml:space="preserve">
         <value>Не удалось удалить загруженные файлы</value>
     </data>
     <data name="ForceDevicesRescanButton" xml:space="preserve">
@@ -443,7 +443,7 @@
     <data name="IncompatibleUpdateReinstalling" xml:space="preserve">
         <value>Несовместимое обновление, переустановка</value>
     </data>
-    <data name="InstallFailed" xml:space="preserve">
+    <data name="TaskResultInstallFailed" xml:space="preserve">
         <value>Не удалось установить</value>
     </data>
     <data name="Installing" xml:space="preserve">
@@ -455,7 +455,7 @@
     <data name="InstallQueued" xml:space="preserve">
         <value>В очереди на установку</value>
     </data>
-    <data name="InstallSuccess" xml:space="preserve">
+    <data name="TaskResultInstallSuccess" xml:space="preserve">
         <value>Установлено</value>
     </data>
     <data name="PerformingCustomInstall" xml:space="preserve">
@@ -473,13 +473,13 @@
     <data name="ReloadButton" xml:space="preserve">
         <value>Перезагрузить</value>
     </data>
-    <data name="RestoreFailed" xml:space="preserve">
+    <data name="TaskResultRestoreFailed" xml:space="preserve">
         <value>Не удалось восстановить</value>
     </data>
     <data name="RestoreQueued" xml:space="preserve">
         <value>В очереди на восстановление</value>
     </data>
-    <data name="RestoreSuccess" xml:space="preserve">
+    <data name="TaskResultRestoreSuccess" xml:space="preserve">
         <value>Восстановлено</value>
     </data>
     <data name="RestoringBackup" xml:space="preserve">
@@ -491,7 +491,7 @@
     <data name="TaskNameFailed" xml:space="preserve">
         <value>Не удалось выполнить задачу {0}</value>
     </data>
-    <data name="UninstallFailed" xml:space="preserve">
+    <data name="TaskResultUninstallFailed" xml:space="preserve">
         <value>Не удалось удалить</value>
     </data>
     <data name="Uninstalling" xml:space="preserve">
@@ -500,13 +500,13 @@
     <data name="UninstallQueued" xml:space="preserve">
         <value>В очереди на удаление</value>
     </data>
-    <data name="UninstallSuccess" xml:space="preserve">
+    <data name="TaskResultUninstallSuccess" xml:space="preserve">
         <value>Удалено</value>
     </data>
     <data name="Uploading" xml:space="preserve">
         <value>Отправка</value>
     </data>
-    <data name="UploadSuccess" xml:space="preserve">
+    <data name="TaskResultUploadSuccess" xml:space="preserve">
         <value>Отправлено</value>
     </data>
     <data name="AdbAuthorizationDialogText" xml:space="preserve">
@@ -698,13 +698,13 @@
     <data name="ExtractAppsTooltip" xml:space="preserve">
         <value>Выгрузить выбранные приложения с устройства</value>
     </data>
-    <data name="ExtractionFailed" xml:space="preserve">
+    <data name="TaskResultExtractFailed" xml:space="preserve">
         <value>Не удалось извлечь</value>
     </data>
     <data name="ExtractSelected" xml:space="preserve">
         <value>Извлечь выбранные</value>
     </data>
-    <data name="ExtractSuccess" xml:space="preserve">
+    <data name="TaskResultExtractSuccess" xml:space="preserve">
         <value>Извлечено</value>
     </data>
     <data name="SelectBackupsFolder" xml:space="preserve">
@@ -797,10 +797,10 @@
     <data name="PullPicturesAndVideos" xml:space="preserve">
         <value>Выгрузить медиа</value>
     </data>
-    <data name="PullPicturesAndVideosSuccess" xml:space="preserve">
+    <data name="TaskResultPullMediaSuccess" xml:space="preserve">
         <value>Успешно выгружено</value>
     </data>
-    <data name="PullPicturesAndVideosFailed" xml:space="preserve">
+    <data name="TaskResultPullMediaFailed" xml:space="preserve">
         <value>Не удалось выгрузить</value>
     </data>
     <data name="EnableTaskAutoDismiss" xml:space="preserve">
@@ -860,7 +860,10 @@
     <data name="Size" xml:space="preserve">
         <value>Размер</value>
     </data>
-    <data name="OsVersionTooOld" xml:space="preserve">
+    <data name="TaskResultOsVersionTooOld" xml:space="preserve">
         <value>Слишком старая версия ОС</value>
+    </data>
+    <data name="TaskResultUnknownError" xml:space="preserve">
+        <value>Неизвестная ошибка</value>
     </data>
 </root>

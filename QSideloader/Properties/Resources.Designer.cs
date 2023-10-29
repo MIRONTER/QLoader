@@ -819,63 +819,63 @@ namespace QSideloader.Properties {
             }
         }
         
-        public static string DownloadFailed {
+        public static string TaskResultDownloadFailed {
             get {
-                return ResourceManager.GetString("DownloadFailed", resourceCulture);
+                return ResourceManager.GetString("TaskResultDownloadFailed", resourceCulture);
             }
         }
         
-        public static string InstallFailed {
+        public static string TaskResultInstallFailed {
             get {
-                return ResourceManager.GetString("InstallFailed", resourceCulture);
+                return ResourceManager.GetString("TaskResultInstallFailed", resourceCulture);
             }
         }
         
-        public static string DownloadSuccess {
+        public static string TaskResultDownloadSuccess {
             get {
-                return ResourceManager.GetString("DownloadSuccess", resourceCulture);
+                return ResourceManager.GetString("TaskResultDownloadSuccess", resourceCulture);
             }
         }
         
-        public static string InstallSuccess {
+        public static string TaskResultInstallSuccess {
             get {
-                return ResourceManager.GetString("InstallSuccess", resourceCulture);
+                return ResourceManager.GetString("TaskResultInstallSuccess", resourceCulture);
             }
         }
         
-        public static string UninstallFailed {
+        public static string TaskResultUninstallFailed {
             get {
-                return ResourceManager.GetString("UninstallFailed", resourceCulture);
+                return ResourceManager.GetString("TaskResultUninstallFailed", resourceCulture);
             }
         }
         
-        public static string UninstallSuccess {
+        public static string TaskResultUninstallSuccess {
             get {
-                return ResourceManager.GetString("UninstallSuccess", resourceCulture);
+                return ResourceManager.GetString("TaskResultUninstallSuccess", resourceCulture);
             }
         }
         
-        public static string BackupFailed {
+        public static string TaskResultBackupFailed {
             get {
-                return ResourceManager.GetString("BackupFailed", resourceCulture);
+                return ResourceManager.GetString("TaskResultBackupFailed", resourceCulture);
             }
         }
         
-        public static string BackupSuccess {
+        public static string TaskResultBackupSuccess {
             get {
-                return ResourceManager.GetString("BackupSuccess", resourceCulture);
+                return ResourceManager.GetString("TaskResultBackupSuccess", resourceCulture);
             }
         }
         
-        public static string RestoreFailed {
+        public static string TaskResultRestoreFailed {
             get {
-                return ResourceManager.GetString("RestoreFailed", resourceCulture);
+                return ResourceManager.GetString("TaskResultRestoreFailed", resourceCulture);
             }
         }
         
-        public static string RestoreSuccess {
+        public static string TaskResultRestoreSuccess {
             get {
-                return ResourceManager.GetString("RestoreSuccess", resourceCulture);
+                return ResourceManager.GetString("TaskResultRestoreSuccess", resourceCulture);
             }
         }
         
@@ -897,9 +897,9 @@ namespace QSideloader.Properties {
             }
         }
         
-        public static string DonationFailed {
+        public static string TaskResultDonationFailed {
             get {
-                return ResourceManager.GetString("DonationFailed", resourceCulture);
+                return ResourceManager.GetString("TaskResultDonationFailed", resourceCulture);
             }
         }
         
@@ -909,15 +909,15 @@ namespace QSideloader.Properties {
             }
         }
         
-        public static string UploadSuccess {
+        public static string TaskResultUploadSuccess {
             get {
-                return ResourceManager.GetString("UploadSuccess", resourceCulture);
+                return ResourceManager.GetString("TaskResultUploadSuccess", resourceCulture);
             }
         }
         
-        public static string AlreadyInstalled {
+        public static string TaskResultAlreadyInstalled {
             get {
-                return ResourceManager.GetString("AlreadyInstalled", resourceCulture);
+                return ResourceManager.GetString("TaskResultAlreadyInstalled", resourceCulture);
             }
         }
         
@@ -957,9 +957,9 @@ namespace QSideloader.Properties {
             }
         }
         
-        public static string FailedToDeleteDownloadedFiles {
+        public static string TaskResultFailedToDeleteDownloadedFiles {
             get {
-                return ResourceManager.GetString("FailedToDeleteDownloadedFiles", resourceCulture);
+                return ResourceManager.GetString("TaskResultFailedToDeleteDownloadedFiles", resourceCulture);
             }
         }
         
@@ -999,9 +999,9 @@ namespace QSideloader.Properties {
             }
         }
         
-        public static string FailedNoDeviceConnection {
+        public static string TaskResultNoDeviceConnection {
             get {
-                return ResourceManager.GetString("FailedNoDeviceConnection", resourceCulture);
+                return ResourceManager.GetString("TaskResultNoDeviceConnection", resourceCulture);
             }
         }
         
@@ -1371,15 +1371,15 @@ namespace QSideloader.Properties {
             }
         }
         
-        public static string ExtractSuccess {
+        public static string TaskResultExtractSuccess {
             get {
-                return ResourceManager.GetString("ExtractSuccess", resourceCulture);
+                return ResourceManager.GetString("TaskResultExtractSuccess", resourceCulture);
             }
         }
         
-        public static string ExtractionFailed {
+        public static string TaskResultExtractFailed {
             get {
-                return ResourceManager.GetString("ExtractionFailed", resourceCulture);
+                return ResourceManager.GetString("TaskResultExtractFailed", resourceCulture);
             }
         }
         
@@ -1563,9 +1563,9 @@ namespace QSideloader.Properties {
             }
         }
         
-        public static string PullPicturesAndVideosSuccess {
+        public static string TaskResultPullMediaSuccess {
             get {
-                return ResourceManager.GetString("PullPicturesAndVideosSuccess", resourceCulture);
+                return ResourceManager.GetString("TaskResultPullMediaSuccess", resourceCulture);
             }
         }
         
@@ -1575,9 +1575,9 @@ namespace QSideloader.Properties {
             }
         }
         
-        public static string PullPicturesAndVideosFailed {
+        public static string TaskResultPullMediaFailed {
             get {
-                return ResourceManager.GetString("PullPicturesAndVideosFailed", resourceCulture);
+                return ResourceManager.GetString("TaskResultPullMediaFailed", resourceCulture);
             }
         }
         
@@ -1701,9 +1701,15 @@ namespace QSideloader.Properties {
             }
         }
         
-        public static string OsVersionTooOld {
+        public static string TaskResultOsVersionTooOld {
             get {
-                return ResourceManager.GetString("OsVersionTooOld", resourceCulture);
+                return ResourceManager.GetString("TaskResultOsVersionTooOld", resourceCulture);
+            }
+        }
+        
+        public static string TaskResultUnknownError {
+            get {
+                return ResourceManager.GetString("TaskResultUnknownError", resourceCulture);
             }
         }
     }
