@@ -1865,7 +1865,6 @@ public partial class AdbService
             var apkPath = ApkPathRegex().Match(RunShellCommand($"pm path {packageName}")).Groups[1]
                 .ToString();
             Directory.CreateDirectory(backupPath);
-            File.Create(Path.Combine(backupPath, ".backup")).Dispose();
             var backupEmpty = true;
             try
             {
@@ -1919,6 +1918,7 @@ public partial class AdbService
 
                 if (!backupEmpty)
                 {
+                    File.Create(Path.Combine(backupPath, ".backup")).Dispose();
                     //var json = JsonConvert.SerializeObject(game);
                     //File.WriteAllText("game.json", json);
                     Log.Information("Backup of {PackageName} created", packageName);
