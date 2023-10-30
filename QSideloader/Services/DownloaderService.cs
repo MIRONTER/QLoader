@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.NetworkInformation;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Text.Json;
@@ -71,7 +72,7 @@ public partial class DownloaderService
 
     private List<(string mirrorName, string? message, Exception? error)> ExcludedMirrorList { get; set; } = new();
     public IEnumerable<string> MirrorList => _mirrorList.AsReadOnly();
-    public static int RcloneStatsPort => 48040;
+    private const int DefaultRcloneStatsPort = 48040;
     private static string RcloneConnectionTimeout => "5s";
     private static string RcloneIoIdleTimeout => "30s";
 
@@ -737,10 +738,11 @@ public partial class DownloaderService
     ///     Downloads the provided game.
     /// </summary>
     /// <param name="game"><see cref="Game" /> to download.</param>
+    /// <param name="rcloneStatsPort">Port to expose rclone stats on (optional).</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>Path to downloaded game.</returns>
     /// <exception cref="DownloaderServiceException">Thrown if an unrecoverable download error occured.</exception>
-    public async Task<string> DownloadGameAsync(Game game, CancellationToken ct = default)
+    public async Task<string> DownloadGameAsync(Game game, int? rcloneStatsPort, CancellationToken ct = default)
     {
         var srcPath = $"Quest Games/{game.ReleaseName}";
         var dstPath = Path.Combine(_sideloaderSettings.DownloadsLocation, game.ReleaseName!);
@@ -754,9 +756,13 @@ public partial class DownloaderService
             {
                 try
                 {
+                    var args =
+                        "--progress --drive-acknowledge-abuse --drive-stop-on-download-limit";
+                    if (rcloneStatsPort is not null)
+                        args += $" --rc --rc-addr :{rcloneStatsPort}";
                     await RcloneTransferAsync(srcPath, dstPath,
                         "copy",
-                        $"--progress --drive-acknowledge-abuse --rc --rc-addr :{RcloneStatsPort} --drive-stop-on-download-limit",
+                        args,
                         3, ct);
                     if (!Directory.Exists(dstPath))
                         throw new DirectoryNotFoundException(
@@ -814,10 +820,11 @@ public partial class DownloaderService
     /// <summary>
     ///     Starts polling download stats from rclone.
     /// </summary>
+    /// <param name="rcloneStatsPort">Port to poll stats from.</param>
     /// <param name="interval">Interval between polls.</param>
     /// <param name="scheduler">Scheduler to run polling on.</param>
     /// <returns>IObservable that provides the stats.</returns>
-    public static IObservable<(double downloadSpeedBytes, double downloadedBytes)?> PollStats(TimeSpan interval,
+    public static IObservable<(double downloadSpeedBytes, double downloadedBytes)?> PollStats(int rcloneStatsPort, TimeSpan interval,
         IScheduler scheduler)
     {
         return Observable.Create<(double downloadSpeedBytes, double downloadedBytes)?>(observer =>
@@ -826,7 +833,7 @@ public partial class DownloaderService
             {
                 while (!ct.IsCancellationRequested)
                 {
-                    var result = await GetRcloneDownloadStats();
+                    var result = await GetRcloneDownloadStats(rcloneStatsPort);
                     observer.OnNext(result);
                     await ctrl.Sleep(interval, ct);
                 }
@@ -838,11 +845,11 @@ public partial class DownloaderService
     ///     Gets the download stats from rclone.
     /// </summary>
     /// <returns></returns>
-    private static async Task<(double downloadSpeedBytes, double downloadedBytes)?> GetRcloneDownloadStats()
+    private static async Task<(double downloadSpeedBytes, double downloadedBytes)?> GetRcloneDownloadStats(int statsPort)
     {
         try
         {
-            var response = await HttpClient.PostAsync($"http://127.0.0.1:{RcloneStatsPort}/core/stats", null);
+            var response = await HttpClient.PostAsync($"http://127.0.0.1:{statsPort}/core/stats", null);
             var responseContent = await response.Content.ReadAsStringAsync();
             var results =
                 JsonSerializer.Deserialize(responseContent, JsonSerializerContext.Default.DictionaryStringObject);
@@ -855,6 +862,18 @@ public partial class DownloaderService
         {
             return null;
         }
+    }
+
+    public static int? GetAvailableStatsPort()
+    {
+        var ipProperties = IPGlobalProperties.GetIPGlobalProperties();
+        var usedPorts = Enumerable.Empty<int>()
+            .Concat(ipProperties.GetActiveTcpConnections().Select(c => c.LocalEndPoint.Port))
+            .Concat(ipProperties.GetActiveTcpListeners().Select(l => l.Port))
+            .Concat(ipProperties.GetActiveUdpListeners().Select(l => l.Port))
+            .ToHashSet();
+        var port = Enumerable.Range(DefaultRcloneStatsPort, 1000).FirstOrDefault(p => !usedPorts.Contains(p));
+        return port == 0 ? null : port;
     }
 
     /// <summary>

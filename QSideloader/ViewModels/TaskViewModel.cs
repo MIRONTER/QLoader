@@ -386,10 +386,16 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             Status = Resources.CalculatingSize;
             _gameSizeBytes = await _downloaderService.GetGameSizeBytesAsync(_game!, _cancellationTokenSource.Token);
             Status = Resources.Downloading;
-            downloadStatsSubscription = DownloaderService.PollStats(TimeSpan.FromMilliseconds(100), ThreadPoolScheduler.Instance)
-                .SubscribeOn(RxApp.TaskpoolScheduler)
-                .Subscribe(RefreshDownloadStats);
-            var gamePath = await _downloaderService.DownloadGameAsync(_game!, _cancellationTokenSource.Token);
+            var statsPort = DownloaderService.GetAvailableStatsPort();
+            if (statsPort is not null)
+            {
+                Log.Debug("Polling download stats on port {Port}", statsPort);
+                downloadStatsSubscription = DownloaderService
+                    .PollStats(statsPort.Value, TimeSpan.FromMilliseconds(100), ThreadPoolScheduler.Instance)
+                    .SubscribeOn(RxApp.TaskpoolScheduler)
+                    .Subscribe(RefreshDownloadStats);
+            }
+            var gamePath = await _downloaderService.DownloadGameAsync(_game!, statsPort, _cancellationTokenSource.Token);
             downloadStatsSubscription.Dispose();
             if (_game?.ReleaseName is not null && TaskType != TaskType.DownloadOnly)
                 _downloaderService.PruneDownloadedVersions(_game.ReleaseName);
