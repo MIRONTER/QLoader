@@ -18,11 +18,11 @@ public class BackupContentsStringValueConverter : IValueConverter
             case Backup backup:
             {
                 var contentsList = new List<string>();
-                if (backup.ContainsApk)
+                if (backup.HasApk)
                     contentsList.Add("Apk");
-                if (backup.ContainsObb)
+                if (backup.HasObb)
                     contentsList.Add("Obb");
-                if (backup.ContainsSharedData || backup.ContainsPrivateData)
+                if (backup.HasSharedData || backup.HasPrivateData)
                     contentsList.Add(Resources.Data);
                 return string.Join(", ", contentsList);
             }

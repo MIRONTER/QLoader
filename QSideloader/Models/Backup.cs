@@ -23,19 +23,19 @@ public partial class Backup : INotifyPropertyChanged
         // ReSharper disable once StringLiteralTypo
         Date = DateTime.ParseExact(dateString, "yyyyMMddTHHmmss", System.Globalization.CultureInfo.InvariantCulture);
         Path = path;
-        ContainsApk = Directory.GetFiles(path, "*.apk").Any();
-        ContainsObb = Directory.Exists(System.IO.Path.Combine(path, "obb"));
-        ContainsSharedData = Directory.Exists(System.IO.Path.Combine(path, "data"));
-        ContainsPrivateData = Directory.Exists(System.IO.Path.Combine(path, "data_private"));
+        HasApk = Directory.GetFiles(path, "*.apk").Any();
+        HasObb = Directory.Exists(System.IO.Path.Combine(path, "obb"));
+        HasSharedData = Directory.Exists(System.IO.Path.Combine(path, "data"));
+        HasPrivateData = Directory.Exists(System.IO.Path.Combine(path, "data_private"));
     }
 
     public string Name { get; }
     public DateTime Date { get; }
     public string Path { get; }
-    public bool ContainsApk { get; }
-    public bool ContainsObb { get; }
-    public bool ContainsSharedData { get; }
-    public bool ContainsPrivateData { get; }
+    public bool HasApk { get; }
+    public bool HasObb { get; }
+    public bool HasSharedData { get; }
+    public bool HasPrivateData { get; }
 
     public bool IsSelected
     {

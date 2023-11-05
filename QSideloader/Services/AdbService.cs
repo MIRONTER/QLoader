@@ -1879,7 +1879,9 @@ public partial class AdbService
 
                     Directory.CreateDirectory(privateDataBackupPath);
                     RunShellCommand(
-                        $"mkdir /sdcard/backup_tmp/; run-as {packageName} cp -av {privateDataPath} /sdcard/backup_tmp/{packageName}/",
+                        $"mkdir -p /sdcard/backup_tmp/{packageName}/; " +
+                        // piping files through tar because run-as <package_name> has weird permissions
+                        $"run-as {packageName} tar -cf - -C {privateDataPath} . | tar -xvf - -C /sdcard/backup_tmp/{packageName}/",
                         true);
                     PullDirectory($"/sdcard/backup_tmp/{packageName}/", privateDataBackupPath,
                         new List<string> {"cache", "code_cache"}, ct);
@@ -1961,7 +1963,7 @@ public partial class AdbService
             var obbBackupPath = Path.Combine(backup.Path, "obb");
 
             var restoredApk = false;
-            if (backup.ContainsApk)
+            if (backup.HasApk)
             {
                 var apkPath = Directory.EnumerateFiles(backup.Path, "*.apk", SearchOption.TopDirectoryOnly)
                     .FirstOrDefault();
@@ -1970,20 +1972,20 @@ public partial class AdbService
                 restoredApk = true;
             }
 
-            if (backup.ContainsObb)
+            if (backup.HasObb)
             {
                 Log.Debug("Restoring OBB");
                 PushDirectory(Directory.EnumerateDirectories(obbBackupPath).First(), "/sdcard/Android/obb/", true);
             }
 
-            if (backup.ContainsSharedData)
+            if (backup.HasSharedData)
             {
                 Log.Debug("Restoring shared data");
                 PushDirectory(Directory.EnumerateDirectories(sharedDataBackupPath).First(), "/sdcard/Android/data/",
                     true);
             }
 
-            if (backup.ContainsPrivateData)
+            if (backup.HasPrivateData)
             {
                 var packageName =
                     Path.GetFileName(Directory.EnumerateDirectories(privateDataBackupPath).FirstOrDefault());
@@ -1993,7 +1995,8 @@ public partial class AdbService
                     RunShellCommand("mkdir /sdcard/restore_tmp/", true);
                     PushDirectory(Path.Combine(privateDataBackupPath, packageName), "/sdcard/restore_tmp/");
                     RunShellCommand(
-                        $"run-as {packageName} cp -av /sdcard/restore_tmp/{packageName}/ /data/data/{packageName}/; rm -rf /sdcard/restore_tmp/",
+                        // piping files through tar because run-as <package_name> has weird permissions
+                        $"tar -cf - -C /sdcard/restore_tmp/{packageName}/ . | run-as {packageName} tar -xvf - -C /data/data/{packageName}/; rm -rf /sdcard/restore_tmp/",
                         true);
                 }
             }
