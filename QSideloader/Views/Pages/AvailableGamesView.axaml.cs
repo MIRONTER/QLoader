@@ -52,7 +52,6 @@ public partial class AvailableGamesView : ReactiveUserControl<AvailableGamesView
                         dataGrid.Focus();
                         dataGrid.SelectedIndex = 0;
                     }
-
                     break;
                 // Escape - clear the search box
                 case Key.Escape:
@@ -62,12 +61,6 @@ public partial class AvailableGamesView : ReactiveUserControl<AvailableGamesView
                 case Key.Space:
                     if (selectedGame is null) return;
                     selectedGame.IsSelected = !selectedGame.IsSelected;
-                    break;
-                // Alt - show game details for the highlighted game
-                case Key.LeftAlt or Key.RightAlt:
-                    if (selectedGame is null) return;
-                    Globals.MainWindowViewModel!.ShowGameDetails.Execute(selectedGame)
-                        .Subscribe(_ => { }, _ => { });
                     break;
                 // F5 - refresh the list
                 case Key.F5:
@@ -86,6 +79,14 @@ public partial class AvailableGamesView : ReactiveUserControl<AvailableGamesView
         }
         else
         {
+            // LeftAlt or RightAlt - show game details for the highlighted game
+            if (e is {KeyModifiers: KeyModifiers.Alt, Key: Key.LeftAlt or Key.RightAlt})
+            {
+                if (selectedGame is null) return;
+                Globals.MainWindowViewModel!.ShowGameDetails.Execute(selectedGame)
+                    .Subscribe(_ => { }, _ => { });
+                e.Handled = true;
+            }
             // Ctrl+F - focus the search box
             if (e is {KeyModifiers: KeyModifiers.Control, Key: Key.F})
             {

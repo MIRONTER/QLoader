@@ -49,6 +49,7 @@ public partial class GameDetailsWindow : ReactiveWindow<GameDetailsViewModel>
             ?.MainWindow;
         if (mainWindow is null) return;
         mainWindow.Activated += MainWindow_OnActivated;
+        mainWindow.KeyUp += OnKeyUp;
     }
 
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
@@ -60,5 +61,6 @@ public partial class GameDetailsWindow : ReactiveWindow<GameDetailsViewModel>
             ?.MainWindow;
         if (mainWindow is null) return;
         mainWindow.Activated -= MainWindow_OnActivated;
+        mainWindow.KeyUp -= OnKeyUp;
     }
 }

@@ -42,34 +42,41 @@ public partial class InstalledGamesView : ReactiveUserControl<InstalledGamesView
         //Log.Debug("Key pressed: {Key}, modifiers: {Modifiers}", e.Key, e.KeyModifiers);
         var dataGrid = InstalledGamesDataGrid;
         var selectedGame = (Game?) dataGrid.SelectedItem;
-        if (e.KeyModifiers != KeyModifiers.None) return;
-        switch (e.Key)
+        if (e.KeyModifiers == KeyModifiers.None)
         {
-            // If Enter or arrow down/up is pressed, focus the data grid
-            case Key.Down or Key.Up:
-                var isDataGridFocused = dataGrid.IsFocused;
-                if (!isDataGridFocused)
-                {
-                    dataGrid.Focus();
-                    dataGrid.SelectedIndex = 0;
-                }
+            switch (e.Key)
+            {
+                // If Enter or arrow down/up is pressed, focus the data grid
+                case Key.Down or Key.Up:
+                    var isDataGridFocused = dataGrid.IsFocused;
+                    if (!isDataGridFocused)
+                    {
+                        dataGrid.Focus();
+                        dataGrid.SelectedIndex = 0;
+                    }
 
-                break;
-            // If Space is pressed, toggle the selected game's selected state
-            case Key.Space:
-                if (selectedGame is null) return;
-                selectedGame.IsSelected = !selectedGame.IsSelected;
-                break;
-            // If Alt is pressed, show game details for the selected game
-            case Key.LeftAlt or Key.RightAlt:
+                    break;
+                // If Space is pressed, toggle the selected game's selected state
+                case Key.Space:
+                    if (selectedGame is null) return;
+                    selectedGame.IsSelected = !selectedGame.IsSelected;
+                    break;
+                // If F5 is pressed, refresh the list
+                case Key.F5:
+                    ViewModel!.Refresh.Execute(true).Subscribe(_ => { }, _ => { });
+                    break;
+            }
+        }
+        else
+        {
+            // LeftAlt or RightAlt - show game details for the highlighted game
+            if (e is {KeyModifiers: KeyModifiers.Alt, Key: Key.LeftAlt or Key.RightAlt})
+            {
                 if (selectedGame is null) return;
                 Globals.MainWindowViewModel!.ShowGameDetails.Execute(selectedGame)
                     .Subscribe(_ => { }, _ => { });
-                break;
-            // If F5 is pressed, refresh the list
-            case Key.F5:
-                ViewModel!.Refresh.Execute(true).Subscribe(_ => { }, _ => { });
-                break;
+                e.Handled = true;
+            }
         }
     }
 
