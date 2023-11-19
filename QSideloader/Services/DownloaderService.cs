@@ -761,7 +761,7 @@ public partial class DownloaderService
                     if (rcloneStatsPort is not null)
                         args += $" --rc --rc-addr :{rcloneStatsPort}";
                     await RcloneTransferAsync(srcPath, dstPath,
-                        "copy",
+                        "sync",
                         args,
                         3, ct);
                     if (!Directory.Exists(dstPath))
