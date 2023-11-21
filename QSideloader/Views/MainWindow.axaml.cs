@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -200,6 +201,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
     {
         if (_isClosing || ViewModel!.TaskList.Count == 0 || ViewModel.TaskList.All(x => x.IsFinished))
         {
+            KillRclone();
             Log.Information("Closing application");
             await Log.CloseAndFlushAsync();
             return;
@@ -220,6 +222,28 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
 
         _isClosing = true;
         Close();
+
+        // Kill all dangling rclone processes
+        void KillRclone()
+        {
+            var rclonePath = Path.GetFullPath(PathHelper.RclonePath);
+            var rcloneName = Path.GetFileNameWithoutExtension(rclonePath);
+            var rcloneProcesses = Process.GetProcessesByName(rcloneName);
+            foreach (var process in rcloneProcesses)
+            {
+                // check full path to make sure it's our rclone
+                if (process.MainModule?.FileName != rclonePath) continue;
+                Log.Debug("Killing rclone process {ProcessId}", process.Id);
+                try
+                {
+                    process.Kill();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Failed to kill rclone process {ProcessId}", process.Id);
+                }
+            }
+        }
     }
 
     private void DragEnter(object? sender, DragEventArgs e)
