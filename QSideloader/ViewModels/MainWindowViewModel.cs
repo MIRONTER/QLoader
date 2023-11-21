@@ -49,6 +49,8 @@ public partial class MainWindowViewModel : ViewModelBase
     // ReSharper restore PrivateFieldCanBeConvertedToLocalVariable
 
     private readonly Subject<Unit> _gameDonateSubject = new();
+    
+    private readonly GameDetailsViewModel _gameDetailsViewModel = new();
 
     public MainWindowViewModel(IMainWindow mainWindow)
     {
@@ -60,8 +62,8 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             if (_downloaderService.AvailableGames is null) return;
             Log.Debug("Opening game details dialog for {GameName}", game.GameName);
-            var gameDetails = new GameDetailsViewModel(game);
-            var dialog = new GameDetailsWindow(gameDetails);
+            _gameDetailsViewModel.Game = game;
+            var dialog = new GameDetailsWindow(_gameDetailsViewModel);
             if (Application.Current is null) return;
             var window = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
                 ?.MainWindow!;

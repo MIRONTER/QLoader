@@ -5,6 +5,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using AdvancedSharpAdbClient;
+using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using LibVLCSharp.Shared;
 using QSideloader.Models;
@@ -17,41 +18,15 @@ using Serilog;
 
 namespace QSideloader.ViewModels;
 
-public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDisposable
+public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel
 {
     private static LibVLC? _libVlc;
-    private readonly AdbService _adbService;
+    private Game? _game;
 
-    /// <summary>
-    /// Dummy constructor for XAML, do not use
-    /// </summary>
-    [Obsolete("Only for XAML", true)]
     public GameDetailsViewModel()
     {
         Activator = new ViewModelActivator();
-        _adbService = AdbService.Instance;
-        Game = new Game("GameName", "ReleaseName", 1337, "NoteText");
-        DisplayName = "GameName";
-        Description = "DescriptionText";
-        StoreRating = "8.5 (120)";
-        try
-        {
-            _libVlc ??= new LibVLC();
-            MediaPlayer = new MediaPlayer(_libVlc);
-        }
-        catch
-        {
-            Log.Warning("Failed to initialize LibVLC");
-        }
-
-    }
-
-    public GameDetailsViewModel(Game game)
-    {
-        Activator = new ViewModelActivator();
-        _adbService = AdbService.Instance;
-        Game = game;
-        DisplayName = game.GameName ?? "GameName";
+        var adbService = AdbService.Instance;
 
         // Initialize LibVLC only if trailers are installed
         if (Directory.Exists(PathHelper.TrailersPath))
@@ -68,33 +43,40 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
                     TimeSpan.FromSeconds(5));
             }
 
+        if (Design.IsDesignMode) return;
+        
         Task.Run(TryLoadStoreInfo);
 
         this.WhenActivated(disposables =>
         {
-            _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged).DisposeWith(disposables);
-            IsDeviceConnected = _adbService.CheckDeviceConnectionSimple();
+            adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged).DisposeWith(disposables);
+            IsDeviceConnected = adbService.CheckDeviceConnectionSimple();
             Observable.Timer(TimeSpan.FromSeconds(2)).Subscribe(_ => PlayTrailer()).DisposeWith(disposables);
-            this.DisposeWith(disposables);
+            Disposable.Create(StopMediaPlayer).DisposeWith(disposables);
         });
     }
 
-    public Game Game { get; }
+    public Game? Game
+    {
+        get => _game;
+        set
+        {
+            if (value == _game) return;
+            _game = value;
+            DisplayName = value?.GameName ?? "GameName";
+            Task.Run(TryLoadStoreInfo);
+        }
+    }
+
     [Reactive] public MediaPlayer? MediaPlayer { get; set; }
     [Reactive] public bool ShowTrailerPlayer { get; set; }
     [Reactive] public bool IsDeviceConnected { get; set; }
-    [Reactive] public string DisplayName { get; set; }
+    [Reactive] public string DisplayName { get; set; } = "";
     [Reactive] public string Description { get; set; } = "";
     [Reactive] public string StoreRating { get; set; } = "";
     [Reactive] public bool ShowOculusStoreLink { get; set; }
     [Reactive] public string? OculusStoreUrl { get; set; } = "";
     public ViewModelActivator Activator { get; }
-
-    public void Dispose()
-    {
-        DisposeMediaPlayer();
-        GC.SuppressFinalize(this);
-    }
 
     private void OnDeviceStateChanged(DeviceState state)
     {
@@ -108,7 +90,7 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
 
     private void PlayTrailer()
     {
-        if (_libVlc is null || MediaPlayer is null || !Directory.Exists(PathHelper.TrailersPath)) return;
+        if (Game is null || _libVlc is null || MediaPlayer is null || !Directory.Exists(PathHelper.TrailersPath)) return;
         var trailerFilePath = Path.Combine(PathHelper.TrailersPath, $"{Game.PackageName}.mp4");
         // Try finding a trailer using case-insensitive enumeration
         try
@@ -121,36 +103,31 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel, IDispo
         catch (FileNotFoundException)
         {
             Log.Debug("Trailer file {TrailerFileName} not found, disabling player", Path.GetFileName(trailerFilePath));
-            DisposeMediaPlayer();
+            StopMediaPlayer();
         }
     }
 
-    private void DisposeMediaPlayer()
+    private void StopMediaPlayer()
     {
         if (MediaPlayer is null) return;
-        // VideoView causes a crash if we just use MediaPlayer.Dispose() here
-        var mediaPlayer = MediaPlayer;
-        MediaPlayer = null;
-        mediaPlayer.Stop();
+        MediaPlayer.Stop();
         ShowTrailerPlayer = false;
-        mediaPlayer.Hwnd = nint.Zero;
-        mediaPlayer.XWindow = 0U;
-        mediaPlayer.Dispose();
     }
 
     private async void TryLoadStoreInfo()
     {
         try
         {
-            var game = await ApiClient.GetGameStoreInfoAsync(Game.PackageName);
-            if (game is null) return;
-            if (!string.IsNullOrEmpty(game.DisplayName))
-                DisplayName = game.DisplayName;
-            Description = game.Description ?? "";
-            var ratingAggregate = Math.Round(game.QualityRatingAggregate, 2);
-            StoreRating = $"{ratingAggregate} ({game.RatingCount})";
-            OculusStoreUrl = game.Url;
-            if (OculusStoreUrl is not null && game.PackageName == "com.CMGames.IntoTheRadius")
+            if (Game is null) return;
+            var gameInfo = await ApiClient.GetGameStoreInfoAsync(Game.PackageName);
+            if (gameInfo is null) return;
+            if (!string.IsNullOrEmpty(gameInfo.DisplayName))
+                DisplayName = gameInfo.DisplayName;
+            Description = gameInfo.Description ?? "";
+            var ratingAggregate = Math.Round(gameInfo.QualityRatingAggregate, 2);
+            StoreRating = $"{ratingAggregate} ({gameInfo.RatingCount})";
+            OculusStoreUrl = gameInfo.Url;
+            if (OculusStoreUrl is not null && gameInfo.PackageName == "com.CMGames.IntoTheRadius")
                 ShowOculusStoreLink = true;
         }
         catch (Exception e)

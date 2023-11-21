@@ -55,7 +55,10 @@ public partial class GameDetailsWindow : ReactiveWindow<GameDetailsViewModel>
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     private void Window_OnClosed(object? sender, EventArgs e)
     {
-        if (DataContext is GameDetailsViewModel viewModel) viewModel.Dispose();
+        if (DataContext is GameDetailsViewModel)
+        {
+            DataContext = null;
+        }
         if (Application.Current is null) return;
         var mainWindow = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
             ?.MainWindow;
