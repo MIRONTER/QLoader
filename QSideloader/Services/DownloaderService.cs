@@ -779,12 +779,12 @@ public partial class DownloaderService
                 catch (DownloadQuotaExceededException e)
                 {
                     Log.Warning("Quota exceeded on mirror {MirrorName}", MirrorName);
-                    downloadExceptions.Add(e);
+                    downloadExceptions.Insert(0, e);
                 }
                 catch (RcloneOperationException e)
                 {
                     Log.Warning(e, "Download error on mirror {MirrorName}", MirrorName);
-                    downloadExceptions.Add(e);
+                    downloadExceptions.Insert(0, e);
                 }
 
                 SwitchMirror(localMirrorList);
