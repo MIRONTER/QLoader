@@ -17,6 +17,8 @@ public static class ZipUtil
             throw new FileNotFoundException("Archive not found", archivePath);
         if (string.IsNullOrEmpty(extractPath))
             extractPath = Path.GetDirectoryName(archivePath);
+        if (!Directory.Exists(extractPath))
+            throw new DirectoryNotFoundException("Extract path directory does not exist");
         Log.Debug("Extracting archive: \"{ArchivePath}\" -> \"{ExtractPath}\"",
             archivePath, extractPath);
         using var forcefulCts = new CancellationTokenSource();
