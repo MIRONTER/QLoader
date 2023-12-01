@@ -1413,7 +1413,7 @@ public partial class AdbService
                     if (File.Exists(gamePath))
                     {
                         if (gamePath.EndsWith(".apk"))
-                            InstallApk(observer, gamePath);
+                            InstallPackage(gamePath, reinstall, true, observer, null, ct);
                         else
                             throw new InvalidOperationException("Attempted to sideload a non-APK file");
                     }
@@ -1441,7 +1441,7 @@ public partial class AdbService
                             // install APKs, copy OBB dir
                         {
                             foreach (var apkPath in Directory.EnumerateFiles(gamePath, "*.apk"))
-                                InstallApk(observer, apkPath);
+                                InstallPackage(apkPath, reinstall, true, observer, null, ct);
 
                             if (game.PackageName is not null &&
                                 Directory.Exists(Path.Combine(gamePath, game.PackageName)))
@@ -1502,45 +1502,6 @@ public partial class AdbService
 
                 return Disposable.Empty;
             });
-
-            void InstallApk(IObserver<(string status, string? progress)> observer, string apkPath)
-            {
-                try
-                {
-                    observer.OnNext((Resources.InstallingApk, null));
-                    var progress = new Progress<int>();
-                    progress.ProgressChanged += (_, args) =>
-                    {
-                        observer.OnNext((Resources.InstallingApk, args + "%"));
-                    };
-                    InstallPackage(apkPath, false, true, progress, ct);
-                }
-                catch (PackageInstallationException e)
-                {
-                    if (e.Message.Contains("INSTALL_FAILED_UPDATE_INCOMPATIBLE") ||
-                        e.Message.Contains("INSTALL_FAILED_VERSION_DOWNGRADE"))
-                    {
-                        observer.OnNext((Resources.IncompatibleUpdateReinstalling, null));
-                        Log.Information("Incompatible update, reinstalling. Reason: {Message}", e.Message);
-                        var apkInfo = GeneralUtils.GetApkInfoAsync(apkPath).ConfigureAwait(false).GetAwaiter().GetResult();
-                        var backup = CreateBackup(apkInfo.PackageName, new BackupOptions {NameAppend = "reinstall"},
-                            ct);
-                        UninstallPackageInternal(apkInfo.PackageName);
-                        var progress = new Progress<int>();
-                        progress.ProgressChanged += (_, args) =>
-                        {
-                            observer.OnNext((Resources.IncompatibleUpdateReinstalling, args + "%"));
-                        };
-                        InstallPackage(apkPath, false, true, progress, ct);
-                        if (backup is not null)
-                            RestoreBackup(backup);
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-            }
         }
 
         /// <summary>
@@ -1583,7 +1544,7 @@ public partial class AdbService
                                 var reinstall = adbArgs.Contains("-r");
                                 var grantRuntimePermissions = adbArgs.Contains("-g");
                                 var apkPath = Path.Combine(gamePath, adbArgs.First(x => x.EndsWith(".apk")));
-                                InstallPackage(apkPath, reinstall, grantRuntimePermissions, null, ct);
+                                InstallPackage(apkPath, reinstall, grantRuntimePermissions, null, null, ct);
                                 break;
                             }
                             case "uninstall":
@@ -1702,6 +1663,57 @@ public partial class AdbService
                 throw new CleanupException(packageName, e);
             }
         }
+        
+        /// <summary>
+        /// Wrapper around <see cref="InstallPackageInternal"/> that handles some common installation errors.
+        /// </summary>
+        /// <param name="apkPath">Path to APK file.</param>
+        /// <param name="reinstall">Set reinstall flag for pm.</param>
+        /// <param name="grantRuntimePermissions">Grant all runtime permissions.</param>
+        /// <param name="observer">An optional parameter for install status notifications.</param>
+        /// <param name="progress">An optional parameter which, when specified, returns progress notifications. The progress is reported as a value between 0 and 100.</param>
+        /// <param name="ct">Cancellation token.</param>
+        private void InstallPackage(string apkPath, bool reinstall, bool grantRuntimePermissions,
+            IObserver<(string status, string? progress)>? observer = default,
+            Progress<int>? progress = default,
+            CancellationToken ct = default)
+        {
+            try
+            {
+                observer?.OnNext((Resources.InstallingApk, null));
+                progress ??= new Progress<int>();
+                progress.ProgressChanged += (_, args) =>
+                {
+                    observer?.OnNext((Resources.InstallingApk, args + "%"));
+                };
+                InstallPackageInternal(apkPath, reinstall, grantRuntimePermissions, progress, ct);
+            }
+            catch (PackageInstallationException e)
+            {
+                if (e.Message.Contains("INSTALL_FAILED_UPDATE_INCOMPATIBLE") ||
+                    e.Message.Contains("INSTALL_FAILED_VERSION_DOWNGRADE"))
+                {
+                    observer?.OnNext((Resources.IncompatibleUpdateReinstalling, null));
+                    Log.Information("Incompatible update, reinstalling. Reason: {Message}", e.Message);
+                    var apkInfo = GeneralUtils.GetApkInfoAsync(apkPath).ConfigureAwait(false).GetAwaiter().GetResult();
+                    var backup = CreateBackup(apkInfo.PackageName, new BackupOptions {NameAppend = "reinstall"},
+                        ct);
+                    UninstallPackageInternal(apkInfo.PackageName);
+                    progress ??= new Progress<int>();
+                    progress.ProgressChanged += (_, args) =>
+                    {
+                        observer?.OnNext((Resources.IncompatibleUpdateReinstalling, args + "%"));
+                    };
+                    InstallPackageInternal(apkPath, false, true, progress, ct);
+                    if (backup is not null)
+                        RestoreBackup(backup);
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
 
         /// <summary>
         ///     Installs the package from the given path.
@@ -1712,7 +1724,7 @@ public partial class AdbService
         /// <param name="progress">An optional parameter which, when specified, returns progress notifications. The progress is reported as a value between 0 and 100.</param>
         /// <param name="ct">Cancellation token.</param>
         /// <remarks>Legacy install method is used to avoid rare hang issues.</remarks>
-        private void InstallPackage(string apkPath, bool reinstall, bool grantRuntimePermissions,
+        private void InstallPackageInternal(string apkPath, bool reinstall, bool grantRuntimePermissions,
             IProgress<int>? progress = default,
             CancellationToken ct = default)
         {
