@@ -45,6 +45,7 @@ public partial class AdbService
     private static readonly SemaphoreSlim DeviceListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim BackupListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim AdbServerSemaphoreSlim = new(1, 1);
+    private static readonly SemaphoreSlim AdbDeviceMonitorSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim PackageOperationSemaphoreSlim = new(1, 1);
     private readonly AdbServerClient _adb;
     private readonly Subject<Unit> _backupListChangeSubject = new();
@@ -118,7 +119,7 @@ public partial class AdbService
             throw new AdbServiceException("Error running shell command: " + command, e);
         }
 
-        var result = receiver.ToString().Trim();
+        var result = receiver.ToString()?.Trim() ?? "";
         if (!logCommand) return result;
         if (!string.IsNullOrWhiteSpace(result))
             Log.Debug("Command returned: {Result}", result);
@@ -135,12 +136,16 @@ public partial class AdbService
     public bool CheckDeviceConnection(bool assumeOffline = false)
     {
         if (Design.IsDesignMode) return false;
-        try
+        
+        if (!CheckADBRunning(out _))
         {
-            EnsureADBRunning();
-        }
-        catch
-        {
+            // If ADB server is not running, attempt to start it in background and return false for now
+            Log.Debug("ADB server is not running, returning no device connected");
+            Task.Run(() =>
+            {
+                EnsureADBRunning();
+                CheckDeviceConnection();
+            }).SafeFireAndForget();
             return false;
         }
 
@@ -287,6 +292,32 @@ public partial class AdbService
         }
     }
 
+    private bool CheckADBRunning(out bool outdatedVersion)
+    {
+        outdatedVersion = false;
+        try
+        {
+            var adbServerStatus = _adb.AdbServer.GetStatus();
+            if (adbServerStatus.IsRunning)
+            {
+                var requiredAdbVersion = new Version("1.0.40");
+                if (adbServerStatus.Version >= requiredAdbVersion)
+                {
+                    StartDeviceMonitor(false);
+                    return true;
+                }
+
+                outdatedVersion = true;
+                return false;
+            }
+        }
+        catch
+        {
+            Log.Warning("Failed to check ADB server status");
+        }
+        return false;
+    }
+
     /// <summary>
     ///     Ensures that ADB server is running.
     /// </summary>
@@ -295,29 +326,8 @@ public partial class AdbService
     {
         try
         {
-            var restartNeeded = false;
             AdbServerSemaphoreSlim.Wait();
-            try
-            {
-                var adbServerStatus = _adb.AdbServer.GetStatus();
-                if (adbServerStatus.IsRunning)
-                {
-                    var requiredAdbVersion = new Version("1.0.40");
-                    if (adbServerStatus.Version >= requiredAdbVersion)
-                    {
-                        StartDeviceMonitor(false);
-                        return;
-                    }
-
-                    restartNeeded = true;
-                    Log.Warning("ADB daemon is outdated and will be restarted");
-                }
-            }
-            catch
-            {
-                Log.Warning("Failed to check ADB server status");
-                restartNeeded = true;
-            }
+            if (CheckADBRunning(out var outdatedVersion)) return;
 
             Log.Information("Starting ADB server");
 
@@ -325,9 +335,10 @@ public partial class AdbService
             try
             {
                 var adbPath = PathHelper.AdbPath;
-                if (restartNeeded)
+                if (outdatedVersion)
                     try
                     {
+                        Log.Warning("ADB server version is too old, restarting");
                         Cli.Wrap(adbPath)
                             .WithArguments("kill-server")
                             .ExecuteBufferedAsync()
@@ -445,17 +456,29 @@ public partial class AdbService
     /// <param name="restart">Should restart device monitor.</param>
     private void StartDeviceMonitor(bool restart)
     {
-        if (_deviceMonitor is null || restart)
+        AdbDeviceMonitorSemaphoreSlim.Wait();
+        try
         {
-            if (_deviceMonitor is not null)
-                _deviceMonitor.DeviceChanged -= OnDeviceChanged;
-            _deviceMonitor = new DeviceMonitor(new AdbSocket(new IPEndPoint(IPAddress.Loopback, 5037)));
-        }
+            if (_deviceMonitor is null || restart)
+            {
+                if (_deviceMonitor is not null)
+                    _deviceMonitor.DeviceChanged -= OnDeviceChanged;
+                _deviceMonitor = new DeviceMonitor(new AdbSocket(new IPEndPoint(IPAddress.Loopback, 5037)));
+            }
 
-        if (_deviceMonitor.IsRunning) return;
-        _deviceMonitor.DeviceChanged += OnDeviceChanged;
-        _deviceMonitor.Start();
-        Log.Debug("Started device monitor");
+            if (_deviceMonitor.IsRunning) return;
+            _deviceMonitor.DeviceChanged += OnDeviceChanged;
+            _deviceMonitor.Start();
+            Log.Debug("Started device monitor");
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Failed to start device monitor");
+        }
+        finally
+        {
+            AdbDeviceMonitorSemaphoreSlim.Release();
+        }
     }
     
     private void StartMdnsBrowser()
@@ -542,7 +565,7 @@ public partial class AdbService
         Log.Information("Connected to device {Device}", device);
         device.State = DeviceState.Online;
         Device = device;
-        if (!FirstDeviceSearch)
+        //if (!FirstDeviceSearch)
             NotifyDeviceStateChange(DeviceState.Online);
     }
 
@@ -595,13 +618,13 @@ public partial class AdbService
     /// <returns><see cref="List{T}" /> of <see cref="AdbDevice" />.</returns>
     private List<AdbDevice> GetOculusDevices(out List<DeviceData> unauthorizedDevices)
     {
-        Log.Information("Searching for devices");
+        Log.Debug("Searching for devices");
         unauthorizedDevices = new List<DeviceData>();
         List<AdbDevice> oculusDeviceList = new();
         var deviceList = _adb.AdbClient.GetDevices().ToList();
         if (deviceList.Count == 0)
         {
-            Log.Warning("No ADB devices found");
+            Log.Debug("No ADB devices found");
             return oculusDeviceList;
         }
 
@@ -716,7 +739,7 @@ public partial class AdbService
     /// <param name="silent">Don't send log messages.</param>
     private async Task TryConnectWirelessAdbAsync(string host, int port = 5555, bool remember = false, bool silent = false)
     {
-        EnsureADBRunning();
+        await Task.Run(EnsureADBRunning);
         if (DeviceList.Any(x => x.Serial.Contains(host)))
         {
             if (!silent)
