@@ -1521,6 +1521,7 @@ public partial class AdbService
                     observer.OnError(cleanupException is not null
                     ? new AggregateException(new AdbServiceException("Failed to sideload game", e), cleanupException)
                     : new AdbServiceException("Failed to sideload game", e));
+                    OnPackageListChanged();
                 }
 
                 return Disposable.Empty;
