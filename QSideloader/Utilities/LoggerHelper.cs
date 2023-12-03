@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using QSideloader.Services;
 using QSideloader.ViewModels;
 using Serilog;
 using Serilog.Context;

@@ -2,14 +2,10 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.Reactive;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
-using Avalonia.Media.Imaging;
 using FileHelpers;
 using QSideloader.Utilities;
-using ReactiveUI;
-using Serilog;
 
 namespace QSideloader.Models;
 

@@ -28,7 +28,7 @@ public static class AsyncImageLoader
 
 		// Cancel/Add new pending operation
 		var cts = _pendingOperations.AddOrUpdate(sender, new CancellationTokenSource(),
-			(x, y) =>
+			(_, y) =>
 			{
 				y.Cancel();
 				return new CancellationTokenSource();
@@ -60,7 +60,7 @@ public static class AsyncImageLoader
 		}, cts.Token);
 
 		if (bitmap != null && !cts.Token.IsCancellationRequested)
-			sender.Source = bitmap!;
+			sender.Source = bitmap;
 
 		// "It is not guaranteed to be thread safe by ICollection, but ConcurrentDictionary's implementation is. Additionally, we recently exposed this API for .NET 5 as a public ConcurrentDictionary.TryRemove"
 		((ICollection<KeyValuePair<Image, CancellationTokenSource>>)_pendingOperations).Remove(new KeyValuePair<Image, CancellationTokenSource>(sender, cts));
