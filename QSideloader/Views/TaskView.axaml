@@ -7,7 +7,7 @@
              x:Class="QSideloader.Views.TaskView"
              Width="320" Height="56" Margin="0,4,4,4" Padding="4,0"
              PointerEntered="TaskView_OnPointerEntered"
-             PointerExited="TaskView_OnPointerExited" 
+             PointerExited="TaskView_OnPointerExited"
              x:DataType="viewModels:TaskViewModel">
     <Design.DataContext>
         <viewModels:TaskViewModel />

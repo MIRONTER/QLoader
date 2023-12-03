@@ -32,7 +32,6 @@ using Timer = System.Timers.Timer;
 
 namespace QSideloader.ViewModels;
 
-
 [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 [SuppressMessage("ReSharper", "PropertyCanBeMadeInitOnly.Global")]
 public class SettingsData : ReactiveObject
@@ -58,6 +57,7 @@ public class SettingsData : ReactiveObject
             ShowRelaunchNotification();
         }
     }
+
     [JsonIgnore] public static string[] ConnectionTypes { get; } = {"USB", "Wireless"};
     [Reactive] public string? PreferredConnectionType { get; set; } = ConnectionTypes[0];
     [Reactive] public string DownloadsLocation { get; set; } = DefaultDownloadsLocation;
@@ -78,6 +78,7 @@ public class SettingsData : ReactiveObject
             ShowRelaunchNotification();
         }
     }
+
     [Reactive] public string LastWirelessAdbHost { get; set; } = "";
     [JsonIgnore] public static string[] PopularityRanges { get; } = {"30 days", "7 days", "1 day", "None"};
     [Reactive] public string? PopularityRange { get; set; } = PopularityRanges[0];
@@ -98,15 +99,17 @@ public class SettingsData : ReactiveObject
         {
             ShowRelaunchNotification();
             _forceEnglish = value;
-            
         }
     }
+
     [Reactive] public bool EnableTaskAutoDismiss { get; set; } = true;
+
     /// <summary>
     /// Task auto dismiss delay in seconds
     /// </summary>
-    [Reactive] public int TaskAutoDismissDelay { get; set; } = 10;
-    
+    [Reactive]
+    public int TaskAutoDismissDelay { get; set; } = 10;
+
     private Timer AutoSaveDelayTimer { get; } = new() {AutoReset = false, Interval = 500, Enabled = true};
 
     public SettingsData()
@@ -253,13 +256,13 @@ public class SettingsData : ReactiveObject
             SettingsFileSemaphoreSlim.Release();
         }
     }
-    
+
     private static void ShowRelaunchNotification()
     {
         Globals.ShowNotification(Resources.Settings, Resources.ApplicationRestartNeededForSetting,
             NotificationType.Information, TimeSpan.FromSeconds(2));
     }
-    
+
     private void AutoSave(object? sender, EventArgs e)
     {
         AutoSaveDelayTimer.Stop();
@@ -416,7 +419,7 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> ForceCleanupPackage { get; }
     public ReactiveCommand<Unit, Unit> CleanLeftoverApks { get; }
     public ReactiveCommand<Unit, Unit> FixDateTime { get; }
-    
+
     private void SyncTextBoxes()
     {
         DownloadsLocationTextBoxText = Settings.DownloadsLocation;
@@ -496,9 +499,9 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
         {
             if (DownloaderBandwidthLimitTextBoxText == Settings.DownloaderBandwidthLimit ||
                 !string.IsNullOrEmpty(DownloaderBandwidthLimitTextBoxText) &&
-                 !int.TryParse(
-                     BandwidthRegex().Match(DownloaderBandwidthLimitTextBoxText).Groups[1].ToString(),
-                     out _)) return;
+                !int.TryParse(
+                    BandwidthRegex().Match(DownloaderBandwidthLimitTextBoxText).Groups[1].ToString(),
+                    out _)) return;
             Settings.DownloaderBandwidthLimit = DownloaderBandwidthLimitTextBoxText;
             if (!string.IsNullOrEmpty(DownloaderBandwidthLimitTextBoxText))
             {

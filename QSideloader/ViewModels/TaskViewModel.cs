@@ -227,13 +227,13 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         EnsureDeviceConnected(true);
         await DoCancellableAsync(async () => { _path = await DownloadAsync(); }, TaskResult.DownloadFailed);
 
-        
+
         await DoCancellableAsync(async () =>
         {
             var deleteAfterInstall =
                 _sideloaderSettings.DownloadsPruningPolicy == DownloadsPruningPolicy.DeleteAfterInstall;
             await InstallAsync(_path ?? throw new InvalidOperationException("path is null"),
-                deleteAfterInstall); 
+                deleteAfterInstall);
         }, TaskResult.InstallFailed); // successResult isn't needed here
     }
 
@@ -358,7 +358,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     }
 
 
-    private async Task DoCancellableAsync(Func<Task> func, TaskResult? failureResult = null, TaskResult? successResult = null)
+    private async Task DoCancellableAsync(Func<Task> func, TaskResult? failureResult = null,
+        TaskResult? successResult = null)
     {
         try
         {
@@ -400,7 +401,9 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                     .SubscribeOn(RxApp.TaskpoolScheduler)
                     .Subscribe(RefreshDownloadStats);
             }
-            var gamePath = await _downloaderService.DownloadGameAsync(_game!, statsPort, _cancellationTokenSource.Token);
+
+            var gamePath =
+                await _downloaderService.DownloadGameAsync(_game!, statsPort, _cancellationTokenSource.Token);
             downloadStatsSubscription.Dispose();
             if (_game?.ReleaseName is not null && TaskType != TaskType.DownloadOnly)
                 _downloaderService.PruneDownloadedVersions(_game.ReleaseName);
@@ -445,7 +448,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                     AdbService.ReleasePackageOperationLock();
                     if (e is OperationCanceledException)
                         OnFinished(TaskResult.Cancelled);
-                    else if (e.InnerException is PackageInstallationException && e.InnerException.Message.Contains("INSTALL_FAILED_OLDER_SDK"))
+                    else if (e.InnerException is PackageInstallationException &&
+                             e.InnerException.Message.Contains("INSTALL_FAILED_OLDER_SDK"))
                         OnFinished(TaskResult.OsVersionTooOld, e);
                     else if (e.ToString().Contains("No space left on device"))
                         OnFinished(TaskResult.NotEnoughDeviceSpace, e);

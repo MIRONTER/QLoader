@@ -61,12 +61,12 @@ public class InstalledApp : INotifyPropertyChanged
     {
         Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.PullAndUpload, App = this});
     }
-    
+
     public void Uninstall()
     {
         Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.Uninstall, App = this});
     }
-    
+
     public void Extract(string path)
     {
         Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.Extract, App = this, Path = path});

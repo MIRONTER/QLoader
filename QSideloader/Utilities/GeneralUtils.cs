@@ -129,7 +129,7 @@ public static partial class GeneralUtils
 
         foreach (var o in searcher.Get())
         {
-            var queryObj = (ManagementObject)o;
+            var queryObj = (ManagementObject) o;
             sb.Append(queryObj["NumberOfCores"]);
             sb.Append(queryObj["ProcessorId"]);
             sb.Append(queryObj["Name"]);
@@ -141,7 +141,7 @@ public static partial class GeneralUtils
 
         foreach (var o in searcher.Get())
         {
-            var queryObj = (ManagementObject)o;
+            var queryObj = (ManagementObject) o;
             sb.Append(queryObj["Manufacturer"]);
             sb.Append(queryObj["Name"]);
             sb.Append(queryObj["Version"]);
@@ -152,7 +152,7 @@ public static partial class GeneralUtils
 
         foreach (var o in searcher.Get())
         {
-            var queryObj = (ManagementObject)o;
+            var queryObj = (ManagementObject) o;
             sb.Append(queryObj["Product"]);
         }
 
@@ -268,6 +268,7 @@ public static partial class GeneralUtils
                 Log.Warning("Invalid line in overrides file: {Line}", line);
                 continue;
             }
+
             var key = split[0].Trim();
             var value = string.IsNullOrWhiteSpace(split[1]) ? null : split[1].Trim();
             if (overrides.ContainsKey(key))
@@ -277,35 +278,35 @@ public static partial class GeneralUtils
                 Log.Warning("Unknown key in overrides file: {Key}", key);
             }
         }
-        
+
         Log.Information("Loaded overrides: {Overrides}", overrides);
 
         return overrides;
     }
-    
+
     public static string GetIanaTimeZoneId(TimeZoneInfo tzi)
     {
         if (tzi.HasIanaId)
-            return tzi.Id;  // no conversion necessary
+            return tzi.Id; // no conversion necessary
 
         if (TimeZoneInfo.TryConvertWindowsIdToIanaId(tzi.Id, out var ianaId))
-            return ianaId;  // use the converted ID
+            return ianaId; // use the converted ID
 
         throw new TimeZoneNotFoundException($"No IANA time zone found for \"{tzi.Id}\".");
     }
 
     [GeneratedRegex("application-label:'(.*?)'")]
     private static partial Regex ApplicationLabelRegex();
-    
+
     [GeneratedRegex("package: name='(.*?)'")]
     private static partial Regex PackageNameRegex();
-    
+
     [GeneratedRegex("versionCode='(.*?)'")]
     private static partial Regex VersionCodeRegex();
-    
+
     [GeneratedRegex("versionName='(.*?)'")]
     private static partial Regex VersionNameRegex();
-    
+
     [GeneratedRegex("IOPlatformUUID\" = \"(.*?)\"")]
     private static partial Regex IoPlatformUuidRegex();
 }

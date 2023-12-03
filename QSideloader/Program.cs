@@ -34,7 +34,7 @@ internal static class Program
             x11Options.RenderingMode = new[] {X11RenderingMode.Software};
             avaloniaNativeOptions.RenderingMode = new[] {AvaloniaNativeRenderingMode.Software};
         }
-        
+
         var builder = AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .LogToTrace()

@@ -106,6 +106,7 @@ public partial class DownloaderService
             {
                 Log.Information("Using override config url: {OverrideUrl}", overrideUrl);
             }
+
             if (await TryDownloadConfigFromServer(overrideUrl))
             {
                 Log.Information("Rclone config updated from server");
@@ -252,7 +253,8 @@ public partial class DownloaderService
         if (list is null) return;
         var count = 0;
         foreach (var mirrorName in list.Select(mirror => mirror["mirror_name"].GetString())
-                     .Where(mirrorName => mirrorName is not null && ExcludedMirrorList.All(x => x.mirrorName != mirrorName)))
+                     .Where(mirrorName =>
+                         mirrorName is not null && ExcludedMirrorList.All(x => x.mirrorName != mirrorName)))
         {
             ExcludedMirrorList.Add((mirrorName!, "Dead mirror", null));
             count++;
@@ -351,8 +353,8 @@ public partial class DownloaderService
     /// <param name="excludedMirrorList">List excluded mirrors.</param>
     /// <param name="currentException">Exception that occured on the current mirror.</param>
     /// <exception cref="DownloaderServiceException">Thrown if given mirror list is exhausted.</exception>
-    private void SwitchMirror(IList<string> mirrorList, 
-        ICollection<(string mirrorName, string? message, Exception? error)>? excludedMirrorList = null, 
+    private void SwitchMirror(IList<string> mirrorList,
+        ICollection<(string mirrorName, string? message, Exception? error)>? excludedMirrorList = null,
         Exception? currentException = null)
     {
         if (!string.IsNullOrEmpty(MirrorName) && mirrorList.Contains(MirrorName))
@@ -827,7 +829,8 @@ public partial class DownloaderService
     /// <param name="interval">Interval between polls.</param>
     /// <param name="scheduler">Scheduler to run polling on.</param>
     /// <returns>IObservable that provides the stats.</returns>
-    public static IObservable<(double downloadSpeedBytes, double downloadedBytes)?> PollStats(int rcloneStatsPort, TimeSpan interval,
+    public static IObservable<(double downloadSpeedBytes, double downloadedBytes)?> PollStats(int rcloneStatsPort,
+        TimeSpan interval,
         IScheduler scheduler)
     {
         return Observable.Create<(double downloadSpeedBytes, double downloadedBytes)?>(observer =>
@@ -848,7 +851,8 @@ public partial class DownloaderService
     ///     Gets the download stats from rclone.
     /// </summary>
     /// <returns></returns>
-    private static async Task<(double downloadSpeedBytes, double downloadedBytes)?> GetRcloneDownloadStats(int statsPort)
+    private static async Task<(double downloadSpeedBytes, double downloadedBytes)?> GetRcloneDownloadStats(
+        int statsPort)
     {
         try
         {
@@ -857,8 +861,8 @@ public partial class DownloaderService
             var results =
                 JsonSerializer.Deserialize(responseContent, JsonSerializerContext.Default.DictionaryStringObject);
             if (results is null || !results.ContainsKey("transferring")) return null;
-            if (!((JsonElement)results["speed"]).TryGetDouble(out var downloadSpeedBytes)) return null;
-            if (!((JsonElement)results["bytes"]).TryGetDouble(out var downloadedBytes)) return null;
+            if (!((JsonElement) results["speed"]).TryGetDouble(out var downloadSpeedBytes)) return null;
+            if (!((JsonElement) results["bytes"]).TryGetDouble(out var downloadedBytes)) return null;
             return (downloadSpeedBytes, downloadedBytes);
         }
         catch
@@ -1085,10 +1089,10 @@ public partial class DownloaderService
     /// </summary>
     [GeneratedRegex("(FFA-\\d+):")]
     private static partial Regex RcloneMirrorRegex();
-    
+
     [GeneratedRegex("^.+ v\\d+ .+\\.zip$")]
     private static partial Regex DonationArchiveRegex();
-    
+
     [GeneratedRegex("(.+) v\\d+\\+.+")]
     private static partial Regex StandardReleaseNameRegex();
 }

@@ -136,7 +136,7 @@ public partial class AdbService
     public bool CheckDeviceConnection(bool assumeOffline = false)
     {
         if (Design.IsDesignMode) return false;
-        
+
         if (!CheckADBRunning(out _))
         {
             // If ADB server is not running, attempt to start it in background and return false for now
@@ -315,6 +315,7 @@ public partial class AdbService
         {
             Log.Warning("Failed to check ADB server status");
         }
+
         return false;
     }
 
@@ -480,20 +481,20 @@ public partial class AdbService
             AdbDeviceMonitorSemaphoreSlim.Release();
         }
     }
-    
+
     private void StartMdnsBrowser()
     {
         try
         {
             var serviceBrowser = new ServiceBrowser();
             serviceBrowser.ServiceAdded += OnServiceAdded;
-            serviceBrowser.StartBrowse(new [] {"_adb-tls-connect._tcp", "_adb_secure_connect._tcp"}); 
+            serviceBrowser.StartBrowse(new[] {"_adb-tls-connect._tcp", "_adb_secure_connect._tcp"});
         }
         catch (Exception e)
         {
             Log.Error(e, "Failed to start mDNS browser");
         }
-        
+
         async void OnServiceAdded(object? _, ServiceAnnouncementEventArgs e)
         {
             var service = e.Announcement;
@@ -566,7 +567,7 @@ public partial class AdbService
         device.State = DeviceState.Online;
         Device = device;
         //if (!FirstDeviceSearch)
-            NotifyDeviceStateChange(DeviceState.Online);
+        NotifyDeviceStateChange(DeviceState.Online);
     }
 
     /// <summary>
@@ -673,7 +674,6 @@ public partial class AdbService
             };
         Log.Warning("No Oculus devices found");
         return oculusDeviceList;
-
     }
 
     /// <summary>
@@ -737,7 +737,8 @@ public partial class AdbService
     /// <param name="port">Port to connect to.</param>
     /// <param name="remember">Whether to remember the host for auto connect (port 5555 will be used).</param>
     /// <param name="silent">Don't send log messages.</param>
-    private async Task TryConnectWirelessAdbAsync(string host, int port = 5555, bool remember = false, bool silent = false)
+    private async Task TryConnectWirelessAdbAsync(string host, int port = 5555, bool remember = false,
+        bool silent = false)
     {
         await Task.Run(EnsureADBRunning);
         if (DeviceList.Any(x => x.Serial.Contains(host)))
@@ -913,7 +914,7 @@ public partial class AdbService
             FriendlyName = modelProps.Name;
             ProductType = modelProps.Type;
             SupportedRefreshRates = modelProps.SupportedRefreshRates;
-            
+
 
             HashedId = GetHashedId(TrueSerial ?? Serial);
 
@@ -922,7 +923,7 @@ public partial class AdbService
             var bootCompleted = RunShellCommand("getprop sys.boot_completed");
             if (!bootCompleted.Contains('1'))
                 Log.Warning("Device {HashedId} has not finished booting yet", HashedId);
-            
+
             if (IsWireless)
                 ApplyWirelessFix();
         }
@@ -1198,10 +1199,7 @@ public partial class AdbService
             {
                 await _downloaderService.EnsureMetadataAvailableAsync();
                 donationsAvailable = await _downloaderService.GetDonationsAvailable();
-            }).ContinueWith(t =>
-            {
-                metadataAvailable = t.IsCompletedSuccessfully;
-            }).Wait();
+            }).ContinueWith(t => { metadataAvailable = t.IsCompletedSuccessfully; }).Wait();
 
 
             Log.Debug("Refreshing list of installed apps on {Device}", this);
@@ -1214,14 +1212,16 @@ public partial class AdbService
                     let versionCode = package.versionInfo?.VersionCode ?? -1
                     let name = installedGames.FirstOrDefault(g => g.PackageName == packageName)?.GameName ?? packageName
                     let donationsUnavailable = !donationsAvailable
-                    let isBlacklisted = _downloaderService.DonationBlacklistedPackages.Contains(packageName) || packageName.StartsWith("com.oculus.") || packageName.StartsWith("environment")
+                    let isBlacklisted = _downloaderService.DonationBlacklistedPackages.Contains(packageName) ||
+                                        packageName.StartsWith("com.oculus.") || packageName.StartsWith("environment")
                     let isNew = _downloaderService.AvailableGames!.All(g => g.PackageName != packageName)
                     let isIgnored = _sideloaderSettings.IgnoredDonationPackages.Any(i => i == packageName)
                     let isDonated = _sideloaderSettings.DonatedPackages.Any(i =>
                         i.packageName == packageName && i.versionCode >= versionCode)
                     let isNewVersion = _downloaderService.AvailableGames!.Where(g => g.PackageName == packageName)
                         .All(g => versionCode > g.VersionCode)
-                    let isHiddenFromDonation = donationsUnavailable || isBlacklisted || isIgnored || isDonated || !(isNew || isNewVersion)
+                    let isHiddenFromDonation = donationsUnavailable || isBlacklisted || isIgnored || isDonated ||
+                                               !(isNew || isNewVersion)
                     let donationStatus = !isHiddenFromDonation ? isNew ? Resources.NewApp : Resources.NewVersion :
                         donationsUnavailable ? Resources.DonationsUnavailable :
                         isDonated ? Resources.Donated :
@@ -1519,8 +1519,9 @@ public partial class AdbService
                     op.SetException(e);
                     op.Abandon();
                     observer.OnError(cleanupException is not null
-                    ? new AggregateException(new AdbServiceException("Failed to sideload game", e), cleanupException)
-                    : new AdbServiceException("Failed to sideload game", e));
+                        ? new AggregateException(new AdbServiceException("Failed to sideload game", e),
+                            cleanupException)
+                        : new AdbServiceException("Failed to sideload game", e));
                     OnPackageListChanged();
                 }
 
@@ -1687,7 +1688,7 @@ public partial class AdbService
                 throw new CleanupException(packageName, e);
             }
         }
-        
+
         /// <summary>
         /// Wrapper around <see cref="InstallPackageInternal"/> that handles some common installation errors.
         /// </summary>
@@ -1706,10 +1707,7 @@ public partial class AdbService
             {
                 observer?.OnNext((Resources.InstallingApk, null));
                 progress ??= new Progress<int>();
-                progress.ProgressChanged += (_, args) =>
-                {
-                    observer?.OnNext((Resources.InstallingApk, args + "%"));
-                };
+                progress.ProgressChanged += (_, args) => { observer?.OnNext((Resources.InstallingApk, args + "%")); };
                 InstallPackageInternal(apkPath, reinstall, grantRuntimePermissions, progress, ct);
             }
             catch (PackageInstallationException e)
@@ -1929,6 +1927,7 @@ public partial class AdbService
                         Log.Debug("No files in pulled private data, deleting");
                         Directory.Delete(privateDataBackupPath, true);
                     }
+
                     backupEmpty = backupEmpty && !privateDataHasFiles;
                     if (RemoteDirectoryExists(sharedDataPath))
                     {
@@ -2106,7 +2105,8 @@ public partial class AdbService
             // Set time
             var timeSinceEpoch = DateTimeOffset.Now.ToUnixTimeMilliseconds();
             Log.Information("Setting date and time on device to {TimeSinceEpoch}", timeSinceEpoch);
-            if (RunShellCommand($"service call alarm 2 i64 {timeSinceEpoch}", true) != "Result: Parcel(00000000 00000001   '........')")
+            if (RunShellCommand($"service call alarm 2 i64 {timeSinceEpoch}", true) !=
+                "Result: Parcel(00000000 00000001   '........')")
                 Log.Warning("Unexpected result when setting time");
             // Verify time
             var time = long.Parse(RunShellCommand("date +%s%N | cut -b1-13", true));
@@ -2116,7 +2116,7 @@ public partial class AdbService
                 Log.Error("Time verification failed (diff: {TimeDiff} > 1000ms)", timeDiff);
                 return false;
             }
-            
+
             // Set timezone
             var tzId = GeneralUtils.GetIanaTimeZoneId(TimeZoneInfo.Local);
             Log.Information("Setting timezone on device to {TzId}", tzId);
@@ -2128,7 +2128,7 @@ public partial class AdbService
                 Log.Error("Timezone verification failed");
                 return false;
             }
-            
+
             return true;
         }
 
@@ -2136,26 +2136,27 @@ public partial class AdbService
         {
             Log.Debug("Cleaning leftover APKs");
             RunShellCommand("rm -v /data/local/tmp/*.apk", true);
-        } 
+        }
 
         [GeneratedRegex("src ([\\d]{1,3}.[\\d]{1,3}.[\\d]{1,3}.[\\d]{1,3})")]
         private static partial Regex IpAddressRegex();
-        
+
         [GeneratedRegex("[0-9]{1,3}")]
         private static partial Regex BatteryLevelRegex();
-        
+
         [GeneratedRegex("\\s{1,}")]
         private static partial Regex SpaceUsedFreeRegex();
-        
+
         /// <summary>
         /// Regex pattern to split command into list of arguments.
         /// </summary>
         [GeneratedRegex("[\\\"].+?[\\\"]|[^ ]+")]
         private static partial Regex CommandArgsRegex();
-        
+
         [GeneratedRegex("package:(\\S+)")]
         private static partial Regex ApkPathRegex();
     }
+
     [GeneratedRegex("^(?:[A-Za-z]{1}[\\w]*\\.)+[A-Za-z][\\w]*$")]
     public static partial Regex PackageNameRegex();
 }

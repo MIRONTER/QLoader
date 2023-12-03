@@ -50,10 +50,10 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
         AddHandler(DragDrop.DropEvent, Drop);
 
         ContentFrame.NavigationFailed += ContentFrame_OnNavigationFailed;
-        
+
         // Navigate to the first page
         NavigationView.SelectedItem = NavigationView.MenuItems.OfType<NavigationViewItem>().First();
-        
+
         // Recalculate task list height when windows size changes
         this.GetObservable(ClientSizeProperty).Throttle(TimeSpan.FromMilliseconds(100))
             .ObserveOn(RxApp.MainThreadScheduler)
@@ -76,8 +76,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
         }
         else
         {
-            var selectedItem = (NavigationViewItem)e.SelectedItem;
-            var selectedItemTag = (string)selectedItem.Tag!;
+            var selectedItem = (NavigationViewItem) e.SelectedItem;
+            var selectedItemTag = (string) selectedItem.Tag!;
             var pageName = "QSideloader.Views.Pages." + selectedItemTag;
             var pageType = Type.GetType(pageName);
             if (pageType is null) return;
@@ -96,22 +96,22 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
     {
         NavigationView.SelectedItem = NavigationView.MenuItems
             .OfType<NavigationViewItem>()
-            .First(x => (string?)x.Tag == "GameDonationView");
+            .First(x => (string?) x.Tag == "GameDonationView");
     }
 
     private void RecalculateTaskListBoxHeight()
     {
         var windowHeight = ClientSize.Height;
-        TaskListBox.MaxHeight = (int)windowHeight / (double)3 / 60 * 60;
+        TaskListBox.MaxHeight = (int) windowHeight / (double) 3 / 60 * 60;
         //Log.Debug("Recalculated TaskListBox height to {Height}", taskListBox.MaxHeight);
     }
 
     private void TaskListBox_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (e.AddedItems.Count == 0) return;
-        var viewModel = (MainWindowViewModel)DataContext!;
-        var listBox = (ListBox?)sender;
-        var selectedTask = (TaskViewModel?)e.AddedItems[0];
+        var viewModel = (MainWindowViewModel) DataContext!;
+        var listBox = (ListBox?) sender;
+        var selectedTask = (TaskViewModel?) e.AddedItems[0];
         if (listBox is null || selectedTask is null) return;
         listBox.SelectedItem = null;
         switch (selectedTask.IsFinished)
@@ -140,14 +140,14 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
 
     private void InitializeUpdater()
     {
-        if (Globals.Overrides.TryGetValue("DisableSelfUpdate", out var value) && 
+        if (Globals.Overrides.TryGetValue("DisableSelfUpdate", out var value) &&
             bool.TryParse(value, out var disableSelfUpdate) && disableSelfUpdate ||
             Globals.Overrides["DisableSelfUpdate"] == "1")
         {
             Log.Warning("Updater disabled by override");
             return;
         }
-        
+
         // TODO: add windows support
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
@@ -270,6 +270,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
                 Log.Warning("e.Data.GetFileNames() returned null");
                 return;
             }
+
             var fileNames = files.Select(x => x.Path.LocalPath).ToList();
 
             Log.Debug("Dropped folders/files: {FilesNames}", fileNames);
@@ -308,7 +309,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
             {
                 Title = Properties.Resources.SelectApkFile,
                 AllowMultiple = true,
-                FileTypeFilter = new FilePickerFileType[] { new("APK files") { Patterns = new []{ "*.apk" } } }
+                FileTypeFilter = new FilePickerFileType[] {new("APK files") {Patterns = new[] {"*.apk"}}}
             });
             if (result.Count == 0) return;
             var paths = from file in result

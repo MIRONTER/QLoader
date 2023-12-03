@@ -28,7 +28,7 @@
                 <Button Grid.Column="2" HorizontalAlignment="Right" Command="{Binding RestoreDefaults}"
                         Content="{x:Static p:Resources.RestoreDefaultsButton}" />
             </Grid>
-            <StackPanel x:Name="UpdaterPanel" Orientation="Horizontal" 
+            <StackPanel x:Name="UpdaterPanel" Orientation="Horizontal"
                         IsEnabled="{Binding IsUpdaterAvailable}"
                         IsVisible="{Binding IsUpdaterAvailable}">
                 <ToggleSwitch IsChecked="{Binding Settings.CheckUpdatesAutomatically, Mode=TwoWay}"
@@ -46,7 +46,8 @@
                 <ComboBox IsEnabled="{Binding !IsSwitchingMirror}" ItemsSource="{Binding MirrorList}"
                           SelectedItem="{Binding SelectedMirror}" />
                 <controls:ProgressRing Margin="10,0,0,0" IsEnabled="{Binding IsSwitchingMirror}"
-                              IsVisible="{Binding IsSwitchingMirror}" IsIndeterminate="True" Width="30" Height="30" />
+                                       IsVisible="{Binding IsSwitchingMirror}" IsIndeterminate="True" Width="30"
+                                       Height="30" />
                 <Button Margin="10,0,0,0" IsEnabled="{Binding !IsSwitchingMirror}"
                         Command="{Binding ReloadMirrorList}" Content="{x:Static p:Resources.ReloadListButton}" />
             </StackPanel>
@@ -74,7 +75,7 @@
             <TextBlock Margin="0,8,0,4" VerticalAlignment="Center" Text="{x:Static p:Resources.PopularityTimeRange}" />
             <ComboBox ItemsSource="{Binding Settings.PopularityRanges}"
                       SelectedItem="{Binding Settings.PopularityRange}" />
-            
+
             <ToggleSwitch Margin="0,8,0,0"
                           IsChecked="{Binding Settings.EnableAutoDonation}"
                           Content="{x:Static p:Resources.EnableAutoDonation}"
@@ -113,10 +114,12 @@
             </StackPanel>
 
             <TextBlock Margin="0,8,0,4" VerticalAlignment="Center" Text="{x:Static p:Resources.DownloadsPruningPolicy}" />
-            <ComboBox ItemsSource="{Binding AllDownloadsPruningPolicies}" SelectedItem="{Binding DownloadsPruningPolicy}">
+            <ComboBox ItemsSource="{Binding AllDownloadsPruningPolicies}"
+                      SelectedItem="{Binding DownloadsPruningPolicy}">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding Converter={StaticResource DownloadPruningPolicyStringFromEnum}, Mode=OneWay}" />
+                        <TextBlock
+                            Text="{Binding Converter={StaticResource DownloadPruningPolicyStringFromEnum}, Mode=OneWay}" />
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>

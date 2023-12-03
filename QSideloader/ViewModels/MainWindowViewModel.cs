@@ -49,7 +49,7 @@ public partial class MainWindowViewModel : ViewModelBase
     // ReSharper restore PrivateFieldCanBeConvertedToLocalVariable
 
     private readonly Subject<Unit> _gameDonateSubject = new();
-    
+
     private readonly GameDetailsViewModel _gameDetailsViewModel = new();
 
     public MainWindowViewModel(IMainWindow mainWindow)
@@ -96,7 +96,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public INotificationManager? NotificationManager { get; set; }
     [Reactive] public bool IsDeviceConnected { get; private set; }
     [Reactive] public bool IsDeviceUnauthorized { get; private set; }
-    
+
     public ObservableCollection<TaskViewModel> TaskList { get; } = new();
 
     [Reactive] public int DonatableAppsCount { get; private set; }
@@ -122,11 +122,11 @@ public partial class MainWindowViewModel : ViewModelBase
         Dispatcher.UIThread.InvokeAsync(() =>
         {
             // Don't allow to add duplicate donation tasks
-            if (taskOptions is { Type: TaskType.PullAndUpload, App: not null })
+            if (taskOptions is {Type: TaskType.PullAndUpload, App: not null})
             {
                 var runningDonations = Globals.MainWindowViewModel!.GetTaskList()
-                        .Where(x => x.TaskType == TaskType.PullAndUpload && !x.IsFinished).ToList();
-                    if (runningDonations.Any(x => x.PackageName == taskOptions.App.PackageName))
+                    .Where(x => x.TaskType == TaskType.PullAndUpload && !x.IsFinished).ToList();
+                if (runningDonations.Any(x => x.PackageName == taskOptions.App.PackageName))
                 {
                     Log.Debug("Donation task for {PackageName} already running", taskOptions.App.PackageName);
                     return;
@@ -298,6 +298,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             lastDonatableApps = _sideloaderSettings.LastDonatableApps;
         }
+
         var newDonatableApp = false;
         foreach (var app in donatableApps)
         {
@@ -353,7 +354,7 @@ public partial class MainWindowViewModel : ViewModelBase
                     {
                         Content = new TextBlock
                         {
-                            Text =  Resources.SelectSharingMethodSubtext
+                            Text = Resources.SelectSharingMethodSubtext
                         }
                     },
                     CloseButtonText = Resources.CloseButton,
@@ -598,7 +599,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (string.IsNullOrEmpty(trailersAddonPath)) return;
 
         Log.Information("Found trailers addon zip. Starting background install");
-        var taskOptions = new TaskOptions { Type = TaskType.InstallTrailersAddon, Path = trailersAddonPath };
+        var taskOptions = new TaskOptions {Type = TaskType.InstallTrailersAddon, Path = trailersAddonPath};
         AddTask(taskOptions);
     }
 
@@ -623,7 +624,7 @@ public partial class MainWindowViewModel : ViewModelBase
             }
         });
     }
-    
+
     [GeneratedRegex("[^\\w\\d\\s\\p{P}]")]
     private static partial Regex CleanStringRegex();
 }

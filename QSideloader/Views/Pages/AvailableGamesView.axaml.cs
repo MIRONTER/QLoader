@@ -52,6 +52,7 @@ public partial class AvailableGamesView : ReactiveUserControl<AvailableGamesView
                         dataGrid.Focus();
                         dataGrid.SelectedIndex = 0;
                     }
+
                     break;
                 // Escape - clear the search box
                 case Key.Escape:
@@ -87,6 +88,7 @@ public partial class AvailableGamesView : ReactiveUserControl<AvailableGamesView
                     .Subscribe(_ => { }, _ => { });
                 e.Handled = true;
             }
+
             // Ctrl+F - focus the search box
             if (e is {KeyModifiers: KeyModifiers.Control, Key: Key.F})
             {

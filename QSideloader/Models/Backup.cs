@@ -59,10 +59,10 @@ public partial class Backup : INotifyPropertyChanged
         // ReSharper disable once StringLiteralTypo
         return Date.ToString("yyyyMMddTHHmmss") + "_" + Name;
     }
-    
+
     public void Restore()
     {
-        Globals.MainWindowViewModel!.AddTask(new TaskOptions { Type = TaskType.Restore, Backup = this });
+        Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.Restore, Backup = this});
     }
 
     [GeneratedRegex("\\d{8}T\\d{6}")]

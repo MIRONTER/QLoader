@@ -108,7 +108,8 @@
                             Title=""
                             Message="{x:Static p:Resources.DonationsAvailable}">
                     <ui:InfoBar.ActionButton>
-                        <Button Content="{x:Static p:Resources.SelectSharingMethod}" Command="{Binding ShowSharingDialog}" />
+                        <Button Content="{x:Static p:Resources.SelectSharingMethod}"
+                                Command="{Binding ShowSharingDialog}" />
                     </ui:InfoBar.ActionButton>
                 </ui:InfoBar>
                 <Border Grid.Row="0" Grid.RowSpan="2"

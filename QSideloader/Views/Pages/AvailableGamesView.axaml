@@ -84,23 +84,28 @@
                 <DataGridTextColumn Binding="{Binding LastUpdated}" Header="{x:Static p:Resources.LastUpdatedHeader}"
                                     Width="auto"
                                     IsReadOnly="True" />
-                <DataGridTextColumn Binding="{Binding GameSize, Mode=OneWay, Converter={StaticResource GameSizeFromMBytesInt}}"
-                                    Header="{x:Static p:Resources.GameSizeHeader}"
-                                    Width="auto" IsReadOnly="True" />
+                <DataGridTextColumn
+                    Binding="{Binding GameSize, Mode=OneWay, Converter={StaticResource GameSizeFromMBytesInt}}"
+                    Header="{x:Static p:Resources.GameSizeHeader}"
+                    Width="auto" IsReadOnly="True" />
 
                 <DataGridTextColumn Binding="{Binding Popularity[1D]}"
                                     Header="{x:Static p:Resources.Popularity1DHeader}" Width="auto" IsReadOnly="True"
-                                    IsVisible="{Binding (vm:AvailableGamesViewModel).ShowPopularity1Day}" SortMemberPath="Popularity[1D]" />
+                                    IsVisible="{Binding (vm:AvailableGamesViewModel).ShowPopularity1Day}"
+                                    SortMemberPath="Popularity[1D]" />
                 <DataGridTextColumn Binding="{Binding Popularity[7D]}"
                                     Header="{x:Static p:Resources.Popularity7DHeader}" Width="auto" IsReadOnly="True"
-                                    IsVisible="{Binding (vm:AvailableGamesViewModel).ShowPopularity7Days}" SortMemberPath="Popularity[7D]" />
+                                    IsVisible="{Binding (vm:AvailableGamesViewModel).ShowPopularity7Days}"
+                                    SortMemberPath="Popularity[7D]" />
                 <DataGridTextColumn Binding="{Binding Popularity[30D]}"
                                     Header="{x:Static p:Resources.Popularity30DHeader}" Width="auto" IsReadOnly="True"
-                                    IsVisible="{Binding (vm:AvailableGamesViewModel).ShowPopularity30Days}" SortMemberPath="Popularity[30D]" />
+                                    IsVisible="{Binding (vm:AvailableGamesViewModel).ShowPopularity30Days}"
+                                    SortMemberPath="Popularity[30D]" />
 
-                <DataGridTextColumn Binding="{Binding (models:Game).IsInstalled, Mode=OneWay, Converter={StaticResource OnDeviceStatusFromBool}}"
-                                    Header="{x:Static p:Resources.OnDeviceHeader}" Width="auto" IsReadOnly="True"
-                                    IsVisible="{Binding (vm:AvailableGamesViewModel).IsDeviceConnected}" SortMemberPath="IsInstalled" />
+                <DataGridTextColumn
+                    Binding="{Binding (models:Game).IsInstalled, Mode=OneWay, Converter={StaticResource OnDeviceStatusFromBool}}"
+                    Header="{x:Static p:Resources.OnDeviceHeader}" Width="auto" IsReadOnly="True"
+                    IsVisible="{Binding (vm:AvailableGamesViewModel).IsDeviceConnected}" SortMemberPath="IsInstalled" />
             </DataGrid.Columns>
             <DataGrid.Resources>
                 <!-- ReSharper disable Xaml.RedundantResource -->
@@ -123,7 +128,7 @@
                 </ItemsRepeater.ItemTemplate>
             </ItemsRepeater>
         </ScrollViewer>-->
-        
+
 
         <views:LoadingProgressRingView Grid.Row="0" Grid.RowSpan="2"
                                        IsVisible="{Binding IsBusy}" />

@@ -58,7 +58,8 @@
                 </Button.CommandParameter>
             </Button>
         </StackPanel>
-        <DataGrid x:Name="BackupsGrid" x:DataType="models:Backup" Grid.Row="1" ItemsSource="{Binding (vm:BackupViewModel).Backups}">
+        <DataGrid x:Name="BackupsGrid" x:DataType="models:Backup" Grid.Row="1"
+                  ItemsSource="{Binding (vm:BackupViewModel).Backups}">
             <DataGrid.Columns>
                 <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
                 <DataGridTemplateColumn Width="52"

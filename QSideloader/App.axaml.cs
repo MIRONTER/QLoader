@@ -34,7 +34,7 @@ public class App : Application
                 Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("en");
             LoggerHelper.InitializeLogging(sideloaderSettings);
         }
-        
+
         Locator.CurrentMutable.RegisterViewsForViewModels(Assembly.GetExecutingAssembly());
 
         AvaloniaXamlLoader.Load(this);
@@ -48,7 +48,7 @@ public class App : Application
             var mainWindow = new MainWindow();
             desktop.MainWindow = mainWindow;
             desktop.MainWindow.DataContext = new MainWindowViewModel(mainWindow);
-            Globals.MainWindowViewModel = (MainWindowViewModel)desktop.MainWindow.DataContext;
+            Globals.MainWindowViewModel = (MainWindowViewModel) desktop.MainWindow.DataContext;
         }
 
         base.OnFrameworkInitializationCompleted();

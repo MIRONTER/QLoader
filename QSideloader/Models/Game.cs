@@ -136,35 +136,37 @@ public class Game : INotifyPropertyChanged
     {
         Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadOnly, Game = this});
     }
-    
+
     public void Install()
     {
         Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadAndInstall, Game = this});
     }
-    
+
     public void InstallFromPath(string path)
     {
         Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.InstallOnly, Game = this, Path = path});
     }
-    
+
     public void ShowDetailsWindow()
     {
         Globals.MainWindowViewModel!.ShowGameDetails.Execute(this).Subscribe(_ => { }, _ => { });
     }
-    
+
     public void Uninstall()
     {
         Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.Uninstall, Game = this});
     }
-    
+
     public void BackupAndUninstall(BackupOptions backupOptions)
     {
-        Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.BackupAndUninstall, Game = this, BackupOptions = backupOptions});
+        Globals.MainWindowViewModel!.AddTask(new TaskOptions
+            {Type = TaskType.BackupAndUninstall, Game = this, BackupOptions = backupOptions});
     }
-    
+
     public void Backup(BackupOptions backupOptions)
     {
-        Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.Backup, Game = this, BackupOptions = backupOptions});
+        Globals.MainWindowViewModel!.AddTask(new TaskOptions
+            {Type = TaskType.Backup, Game = this, BackupOptions = backupOptions});
     }
 
     public static Game FromTestData()

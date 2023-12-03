@@ -43,7 +43,7 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel
             }
 
         if (Design.IsDesignMode) return;
-        
+
         Task.Run(TryLoadStoreInfo);
 
         this.WhenActivated(disposables =>
@@ -89,7 +89,8 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel
 
     private void PlayTrailer()
     {
-        if (Game is null || _libVlc is null || MediaPlayer is null || !Directory.Exists(PathHelper.TrailersPath)) return;
+        if (Game is null || _libVlc is null || MediaPlayer is null ||
+            !Directory.Exists(PathHelper.TrailersPath)) return;
         var trailerFilePath = Path.Combine(PathHelper.TrailersPath, $"{Game.PackageName}.mp4");
         // Try finding a trailer using case-insensitive enumeration
         try

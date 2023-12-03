@@ -93,7 +93,9 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
     public ReactiveCommand<Unit, Unit> Download { get; }
     public ReactiveCommand<Game, Unit> DownloadSingle { get; }
     public ReadOnlyObservableCollection<Game> AvailableGames => _availableGames;
+
     public bool IsBusy => _isBusy.Value;
+
     //[Reactive] public bool MultiSelectEnabled { get; set; } = true;
     [Reactive] public string SearchText { get; set; } = "";
     [Reactive] public bool IsDeviceConnected { get; set; }

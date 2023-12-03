@@ -59,6 +59,7 @@ public partial class GameDetailsWindow : ReactiveWindow<GameDetailsViewModel>
         {
             DataContext = null;
         }
+
         if (Application.Current is null) return;
         var mainWindow = (Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
             ?.MainWindow;

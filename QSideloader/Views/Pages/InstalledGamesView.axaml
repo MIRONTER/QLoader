@@ -128,9 +128,10 @@
                 <DataGridTextColumn Binding="{Binding ReleaseName}"
                                     Header="{x:Static p:Resources.LatestReleaseNameHeader}"
                                     Width="auto" IsReadOnly="True" />
-                <DataGridTextColumn Binding="{Binding GameSize, Mode=OneWay, Converter={StaticResource GameSizeFromMBytesInt}}"
-                                    Header="{x:Static p:Resources.GameSizeHeader}"
-                                    Width="auto" IsReadOnly="True" />
+                <DataGridTextColumn
+                    Binding="{Binding GameSize, Mode=OneWay, Converter={StaticResource GameSizeFromMBytesInt}}"
+                    Header="{x:Static p:Resources.GameSizeHeader}"
+                    Width="auto" IsReadOnly="True" />
                 <DataGridTextColumn
                     Binding="{Binding ., Mode=OneWay, Converter={StaticResource UpdateStatusStringFromInstalledGame}}"
                     Header="{x:Static p:Resources.UpdateStatusHeader}"

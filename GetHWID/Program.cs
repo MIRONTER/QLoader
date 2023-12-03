@@ -58,7 +58,7 @@ static string GetHwidCompat()
 
     foreach (var o in searcher.Get())
     {
-        var queryObj = (ManagementObject)o;
+        var queryObj = (ManagementObject) o;
         sb.Append(queryObj["NumberOfCores"]);
         sb.Append(queryObj["ProcessorId"]);
         sb.Append(queryObj["Name"]);
@@ -70,7 +70,7 @@ static string GetHwidCompat()
 
     foreach (var o in searcher.Get())
     {
-        var queryObj = (ManagementObject)o;
+        var queryObj = (ManagementObject) o;
         sb.Append(queryObj["Manufacturer"]);
         sb.Append(queryObj["Name"]);
         sb.Append(queryObj["Version"]);
@@ -81,7 +81,7 @@ static string GetHwidCompat()
 
     foreach (var o in searcher.Get())
     {
-        var queryObj = (ManagementObject)o;
+        var queryObj = (ManagementObject) o;
         sb.Append(queryObj["Product"]);
     }
 

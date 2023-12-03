@@ -96,6 +96,7 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
                 {
                     RefreshRates.Add(refreshRate.ToString());
                 }
+
                 try
                 {
                     LoadCurrentSettings();
@@ -145,6 +146,7 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
                     Log.Error("Selected path for media pull does not exist: {Path}", path);
                     return;
                 }
+
                 _sideloaderSettings.LastMediaPullLocation = path;
                 Globals.MainWindowViewModel!.AddTask(new TaskOptions
                 {

@@ -10,9 +10,9 @@ public static class Globals
     public static MainWindowViewModel? MainWindowViewModel { get; set; }
 
     public static SideloaderSettingsViewModel SideloaderSettingsViewModel { get; } = new();
-    
+
     public static SettingsData SideloaderSettings => SideloaderSettingsViewModel.Settings;
-    
+
     public static Dictionary<string, string?> Overrides { get; } = GeneralUtils.ParseOverridesFile();
 
     public static object? Updater { get; set; }
