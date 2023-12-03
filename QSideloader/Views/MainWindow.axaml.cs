@@ -274,7 +274,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
             var fileNames = files.Select(x => x.Path.LocalPath).ToList();
 
             Log.Debug("Dropped folders/files: {FilesNames}", fileNames);
-            await ViewModel!.HandleDroppedItemsAsync(fileNames);
+            await MainWindowViewModel.HandleDroppedItemsAsync(fileNames);
         }
         else
         {
@@ -316,7 +316,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
                 let localPath = file.TryGetLocalPath()
                 where File.Exists(localPath)
                 select localPath;
-            await ViewModel!.HandleDroppedItemsAsync(paths);
+            await MainWindowViewModel.HandleDroppedItemsAsync(paths);
         }
         else if (openFolder)
         {
@@ -330,7 +330,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
                 let localPath = folder.TryGetLocalPath()
                 where Directory.Exists(localPath)
                 select localPath;
-            await ViewModel!.HandleDroppedItemsAsync(paths);
+            await MainWindowViewModel.HandleDroppedItemsAsync(paths);
         }
     }
 }
