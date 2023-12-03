@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using AdvancedSharpAdbClient;
 using AdvancedSharpAdbClient.DeviceCommands;
 using Avalonia.Controls.Notifications;
+using QSideloader.Exceptions;
 using QSideloader.Models;
 using QSideloader.Properties;
 using QSideloader.Services;
@@ -369,6 +370,10 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         {
             OnFinished(TaskResult.Cancelled);
         }
+        catch (DownloaderServiceException e) when (e.InnerException is NotEnoughDiskSpaceException)
+        {
+            OnFinished(TaskResult.NotEnoughDiskSpace, e);
+        }
         catch (Exception e)
         {
             if (failureResult is not null)
@@ -442,6 +447,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                         OnFinished(TaskResult.Cancelled);
                     else if (e.InnerException is PackageInstallationException && e.InnerException.Message.Contains("INSTALL_FAILED_OLDER_SDK"))
                         OnFinished(TaskResult.OsVersionTooOld, e);
+                    else if (e.ToString().Contains("No space left on device"))
+                        OnFinished(TaskResult.NotEnoughDeviceSpace, e);
                     else
                         OnFinished(TaskResult.InstallFailed, e);
                 },

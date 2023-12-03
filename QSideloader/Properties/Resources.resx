@@ -874,4 +874,10 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="TaskResultUnknownError" xml:space="preserve">
         <value>Unknown error</value>
     </data>
+    <data name="TaskResultNotEnoughDiskSpace" xml:space="preserve">
+        <value>Not enough space on disk</value>
+    </data>
+    <data name="TaskResultNotEnoughDeviceSpace" xml:space="preserve">
+        <value>Not enough space on device</value>
+    </data>
 </root>

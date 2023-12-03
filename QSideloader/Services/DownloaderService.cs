@@ -487,7 +487,7 @@ public partial class DownloaderService
                         e.Message.Contains("no space left on device"))
                     {
                         op.SetException(e);
-                        throw new NotEnoughSpaceException(destination, e);
+                        throw new NotEnoughDiskSpaceException(destination, e);
                     }
 
                     if (!e.Message.Contains("no such host"))
@@ -751,7 +751,6 @@ public partial class DownloaderService
         {
             Log.Information("Downloading release {ReleaseName}", game.ReleaseName);
             var localMirrorList = _mirrorList.ToList();
-            var excludedMirrorList = new List<(string mirrorName, string? message, Exception? error)>();
             while (true)
             {
                 try
@@ -794,6 +793,10 @@ public partial class DownloaderService
 
             Log.Information("Release {ReleaseName} downloaded", game.ReleaseName);
             return dstPath;
+        }
+        catch (NotEnoughDiskSpaceException e)
+        {
+            throw new DownloaderServiceException("Failed to download release", e);
         }
         catch (Exception e) when (e is not OperationCanceledException)
         {

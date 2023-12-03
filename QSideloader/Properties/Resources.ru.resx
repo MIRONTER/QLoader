@@ -866,4 +866,10 @@
     <data name="TaskResultUnknownError" xml:space="preserve">
         <value>Неизвестная ошибка</value>
     </data>
+    <data name="TaskResultNotEnoughDiskSpace" xml:space="preserve">
+        <value>Недостаточно места на диске</value>
+    </data>
+    <data name="TaskResultNotEnoughDeviceSpace" xml:space="preserve">
+        <value>Недостаточно места на устройстве</value>
+    </data>
 </root>

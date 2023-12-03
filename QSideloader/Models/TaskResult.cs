@@ -26,7 +26,9 @@ public enum TaskResult
     ExtractionSuccess,
     PullMediaFailed,
     PullMediaSuccess,
-    UnknownError
+    UnknownError,
+    NotEnoughDiskSpace,
+    NotEnoughDeviceSpace,
 }
 
 public static class TaskResultExtensions
@@ -36,27 +38,29 @@ public static class TaskResultExtensions
         return result switch
         {
             TaskResult.Cancelled => true,
+            TaskResult.UninstallSuccess => true,
+            TaskResult.InstallSuccess => true,
+            TaskResult.BackupSuccess => true,
+            TaskResult.ExtractionSuccess => true,
+            TaskResult.DownloadSuccess => true,
+            TaskResult.DonationSuccess => true,
+            TaskResult.RestoreSuccess => true,
+            TaskResult.PullMediaSuccess => true,
             TaskResult.InstallFailed => false,
             TaskResult.AlreadyInstalled => false,
             TaskResult.OsVersionTooOld => false,
-            TaskResult.InstallSuccess => true,
             TaskResult.DownloadCleanupFailed => false,
             TaskResult.DownloadFailed => false,
-            TaskResult.DownloadSuccess => true,
             TaskResult.NoDeviceConnection => false,
             TaskResult.UninstallFailed => false,
-            TaskResult.UninstallSuccess => true,
             TaskResult.BackupFailed => false,
-            TaskResult.BackupSuccess => true,
             TaskResult.RestoreFailed => false,
-            TaskResult.RestoreSuccess => true,
             TaskResult.DonationFailed => false,
-            TaskResult.DonationSuccess => true,
             TaskResult.ExtractionFailed => false,
-            TaskResult.ExtractionSuccess => true,
             TaskResult.PullMediaFailed => false,
-            TaskResult.PullMediaSuccess => true,
             TaskResult.UnknownError => false,
+            TaskResult.NotEnoughDiskSpace => false,
+            TaskResult.NotEnoughDeviceSpace => false,
             _ => throw new ArgumentOutOfRangeException(nameof(result), result, null)
         };
     }
@@ -87,6 +91,8 @@ public static class TaskResultExtensions
             TaskResult.PullMediaFailed => Resources.TaskResultPullMediaFailed,
             TaskResult.PullMediaSuccess => Resources.TaskResultPullMediaSuccess,
             TaskResult.UnknownError => Resources.TaskResultUnknownError,
+            TaskResult.NotEnoughDiskSpace => Resources.TaskResultNotEnoughDiskSpace,
+            TaskResult.NotEnoughDeviceSpace => Resources.TaskResultNotEnoughDeviceSpace,
             _ => throw new ArgumentOutOfRangeException(nameof(result), result, null)
         };
     }
