@@ -453,6 +453,4 @@ $RECYCLE.BIN/
 Resources/videos/*
 Resources/thumbnails/*
 
-Properties/Resources.Designer.cs
-
 **/rclone/*
