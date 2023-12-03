@@ -146,12 +146,12 @@ public class SettingsData : ReactiveObject
         return new SettingsData();
     }
 
-    public static SettingsData RestoreDefaults(SettingsData settings)
+    public static SettingsData RestoreDefaults(SettingsData currentSettings)
     {
         return new SettingsData
         {
-            InstallationId = settings.InstallationId,
-            DonatedPackages = settings.DonatedPackages
+            InstallationId = currentSettings.InstallationId,
+            DonatedPackages = currentSettings.DonatedPackages
         };
     }
 
