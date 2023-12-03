@@ -52,7 +52,7 @@ public static partial class GeneralUtils
         var apkInfo = new ApkInfo
         {
             ApplicationLabel = ApplicationLabelRegex().Match(aaptOutput.StandardOutput).Groups[1].Value,
-            PackageName = PackageNameRegex().Match(aaptOutput.StandardOutput).Groups[1].Value,
+            PackageName = PmPackageNameRegex().Match(aaptOutput.StandardOutput).Groups[1].Value,
             VersionCode = int.Parse(VersionCodeRegex().Match(aaptOutput.StandardOutput).Groups[1].Value),
             VersionName = VersionNameRegex().Match(aaptOutput.StandardOutput).Groups[1].Value
         };
@@ -299,7 +299,7 @@ public static partial class GeneralUtils
     private static partial Regex ApplicationLabelRegex();
 
     [GeneratedRegex("package: name='(.*?)'")]
-    private static partial Regex PackageNameRegex();
+    private static partial Regex PmPackageNameRegex();
 
     [GeneratedRegex("versionCode='(.*?)'")]
     private static partial Regex VersionCodeRegex();

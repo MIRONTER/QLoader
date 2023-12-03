@@ -618,6 +618,8 @@ public partial class DownloaderService
             GameListSemaphoreSlim.Release();
         }
 
+        return;
+
         async Task<(bool success, Exception? error)> TryDownloadGameListAsync()
         {
             // Trying different list files seems useless, just wasting time

@@ -125,7 +125,7 @@ public partial class MainWindowViewModel : ViewModelBase
             if (taskOptions is {Type: TaskType.PullAndUpload, App: not null})
             {
                 var runningDonations = Globals.MainWindowViewModel!.GetTaskList()
-                    .Where(x => x.TaskType == TaskType.PullAndUpload && !x.IsFinished).ToList();
+                    .Where(x => x is {TaskType: TaskType.PullAndUpload, IsFinished: false}).ToList();
                 if (runningDonations.Any(x => x.PackageName == taskOptions.App.PackageName))
                 {
                     Log.Debug("Donation task for {PackageName} already running", taskOptions.App.PackageName);
@@ -191,7 +191,7 @@ public partial class MainWindowViewModel : ViewModelBase
         Task.Run(RefreshGameDonationBadge).SafeFireAndForget();
     }
 
-    public async Task HandleDroppedItemsAsync(IEnumerable<string> fileNames)
+    public static async Task HandleDroppedItemsAsync(IEnumerable<string> fileNames)
     {
         foreach (var fileName in fileNames)
             if (Directory.Exists(fileName))

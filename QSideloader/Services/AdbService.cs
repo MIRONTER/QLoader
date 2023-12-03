@@ -2138,7 +2138,7 @@ public partial class AdbService
             RunShellCommand("rm -v /data/local/tmp/*.apk", true);
         }
 
-        [GeneratedRegex("src ([\\d]{1,3}.[\\d]{1,3}.[\\d]{1,3}.[\\d]{1,3})")]
+        [GeneratedRegex(@"src ([\d]{1,3}.[\d]{1,3}.[\d]{1,3}.[\d]{1,3})")]
         private static partial Regex IpAddressRegex();
 
         [GeneratedRegex("[0-9]{1,3}")]
@@ -2157,6 +2157,6 @@ public partial class AdbService
         private static partial Regex ApkPathRegex();
     }
 
-    [GeneratedRegex("^(?:[A-Za-z]{1}[\\w]*\\.)+[A-Za-z][\\w]*$")]
+    [GeneratedRegex(@"^(?:[A-Za-z]{1}[\w]*\.)+[A-Za-z][\w]*$")]
     public static partial Regex PackageNameRegex();
 }
