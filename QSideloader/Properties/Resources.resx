@@ -880,4 +880,10 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="TaskResultNotEnoughDeviceSpace" xml:space="preserve">
         <value>Not enough space on device</value>
     </data>
+    <data name="DownloadAndInstallTooltip" xml:space="preserve">
+        <value>Download and install the game</value>
+    </data>
+    <data name="DownloadTooltip" xml:space="preserve">
+        <value>Download the game</value>
+    </data>
 </root>

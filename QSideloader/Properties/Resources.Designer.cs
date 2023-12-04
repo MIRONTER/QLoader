@@ -793,6 +793,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Download and install the game.
+        /// </summary>
+        public static string DownloadAndInstallTooltip {
+            get {
+                return ResourceManager.GetString("DownloadAndInstallTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Download.
         /// </summary>
         public static string DownloadButton {
@@ -888,6 +897,15 @@ namespace QSideloader.Properties {
         public static string DownloadsPruningPolicy {
             get {
                 return ResourceManager.GetString("DownloadsPruningPolicy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Download the game.
+        /// </summary>
+        public static string DownloadTooltip {
+            get {
+                return ResourceManager.GetString("DownloadTooltip", resourceCulture);
             }
         }
         

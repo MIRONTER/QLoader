@@ -872,4 +872,10 @@
     <data name="TaskResultNotEnoughDeviceSpace" xml:space="preserve">
         <value>Недостаточно места на устройстве</value>
     </data>
+    <data name="DownloadAndInstallTooltip" xml:space="preserve">
+        <value>Загрузить и установить игру</value>
+    </data>
+    <data name="DownloadTooltip" xml:space="preserve">
+        <value>Загрузить игру</value>
+    </data>
 </root>
