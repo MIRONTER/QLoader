@@ -1213,7 +1213,7 @@ public partial class AdbService
                     let name = installedGames.FirstOrDefault(g => g.PackageName == packageName)?.GameName ?? packageName
                     let donationsUnavailable = !donationsAvailable
                     let isBlacklisted = _downloaderService.DonationBlacklistedPackages.Contains(packageName) ||
-                                        packageName.StartsWith("com.oculus.") || packageName.StartsWith("environment")
+                                        packageName.StartsWith("com.oculus.") || packageName.StartsWith("com.meta.") || packageName.Contains(".environment.")
                     let isNew = _downloaderService.AvailableGames!.All(g => g.PackageName != packageName)
                     let isIgnored = _sideloaderSettings.IgnoredDonationPackages.Any(i => i == packageName)
                     let isDonated = _sideloaderSettings.DonatedPackages.Any(i =>
