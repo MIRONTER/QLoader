@@ -7,7 +7,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AdvancedSharpAdbClient;
+using AdvancedSharpAdbClient.Models;
 using QSideloader.Models;
 using QSideloader.Services;
 using ReactiveUI;
@@ -187,7 +187,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
 
     private void RefreshDeviceSelection()
     {
-        CurrentDevice = DeviceList.FirstOrDefault(x => _adbService.Device == x);
+        CurrentDevice = DeviceList.FirstOrDefault(x => _adbService.Device?.Equals(x) ?? false);
         TrueSerial = CurrentDevice?.TrueSerial;
     }
 

@@ -17,6 +17,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using AdvancedSharpAdbClient;
 using AdvancedSharpAdbClient.DeviceCommands;
+using AdvancedSharpAdbClient.Models;
+using AdvancedSharpAdbClient.Models.DeviceCommands;
+using AdvancedSharpAdbClient.Receivers;
 using AsyncAwaitBestPractices;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
@@ -32,7 +35,7 @@ using Serilog;
 using Serilog.Events;
 using SerilogTimings;
 using Tmds.MDns;
-using UnixFileMode = AdvancedSharpAdbClient.UnixFileMode;
+using UnixFileType = AdvancedSharpAdbClient.Models.UnixFileType;
 
 namespace QSideloader.Services;
 
@@ -119,7 +122,7 @@ public partial class AdbService
             throw new AdbServiceException("Error running shell command: " + command, e);
         }
 
-        var result = receiver.ToString()?.Trim() ?? "";
+        var result = receiver.ToString().Trim();
         if (!logCommand) return result;
         if (!string.IsNullOrWhiteSpace(result))
             Log.Debug("Command returned: {Result}", result);
@@ -756,7 +759,7 @@ public partial class AdbService
             var result = await _adb.AdbClient.ConnectAsync(host, port,
                 new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token);
 
-            if (result is not null && result.Contains($"connected to {host}:{port}"))
+            if (result.Contains($"connected to {host}:{port}"))
             {
                 RefreshDeviceList();
                 if (remember)
@@ -918,7 +921,7 @@ public partial class AdbService
 
             HashedId = GetHashedId(TrueSerial ?? Serial);
 
-            PackageManager = new PackageManager(_adb.AdbClient, this, true);
+            PackageManager = new PackageManager(_adb.AdbClient, this);
 
             var bootCompleted = RunShellCommand("getprop sys.boot_completed");
             if (!bootCompleted.Contains('1'))
@@ -1139,7 +1142,7 @@ public partial class AdbService
             RefreshInstalledPackages();
             RefreshInstalledGames();
             RefreshInstalledApps();
-            if (_adbService.Device == this)
+            if (_adbService.Device?.Equals(this) ?? false)
                 _adbService._packageListChangeSubject.OnNext(Unit.Default);
         }
 
@@ -1167,7 +1170,7 @@ public partial class AdbService
                     let games = _downloaderService.AvailableGames!.Where(g => g.PackageName == package.packageName)
                     where games.Any()
                     from game in games
-                    select new InstalledGame(game, package.versionInfo.VersionCode, package.versionInfo.VersionName);
+                    select new InstalledGame(game, package.versionInfo!.Value.VersionCode, package.versionInfo!.Value.VersionName);
                 InstalledGames = query.ToList();
                 var tupleList = InstalledGames.Select(g => (g.ReleaseName, g.PackageName)).ToList();
                 Log.Debug("Found {Count} installed games on {Device}: {InstalledGames}", InstalledGames.Count, this,
@@ -1265,7 +1268,9 @@ public partial class AdbService
             Log.Debug("Pushing file: \"{LocalPath}\" -> \"{RemotePath}\"", localPath, remotePath);
             using var syncService = new SyncService(_adb.AdbClient, this);
             using var file = File.OpenRead(localPath);
-            syncService.Push(file, remotePath, 771, DateTime.Now, progress, ct);
+            var isCancelled = false;
+            ct.Register(() => isCancelled = true);
+            syncService.Push(file, remotePath, 771, DateTime.Now, progress, isCancelled);
         }
 
         /// <summary>
@@ -1325,7 +1330,9 @@ public partial class AdbService
             Log.Debug("Pulling file: \"{RemotePath}\" -> \"{LocalPath}\"", remotePath, localFilePath);
             using var syncService = new SyncService(_adb.AdbClient, this);
             using var file = File.OpenWrite(localFilePath);
-            syncService.Pull(remotePath, file, null, ct);
+            var isCancelled = false;
+            ct.Register(() => isCancelled = true);
+            syncService.Pull(remotePath, file, null, isCancelled);
         }
 
         public void PullMedia(string path, CancellationToken ct = default)
@@ -1359,9 +1366,9 @@ public partial class AdbService
             var remoteDirectoryListing = syncService.GetDirectoryListing(remotePath).Where(x =>
                 !excludeDirsList.Contains(x.Path.Split('/').Last(s => !string.IsNullOrEmpty(s)))).ToList();
             foreach (var remoteFile in remoteDirectoryListing.Where(x => x.Path != "." && x.Path != ".."))
-                if (remoteFile.FileMode.HasFlag(UnixFileMode.Directory))
+                if (remoteFile.FileType.HasFlag(UnixFileType.Directory))
                     PullDirectory(remotePath + remoteFile.Path, localDir, excludeDirsList, ct);
-                else if (remoteFile.FileMode.HasFlag(UnixFileMode.Regular))
+                else if (remoteFile.FileType.HasFlag(UnixFileType.Regular))
                     PullFile(remotePath + remoteFile.Path, localDir, ct);
         }
 
@@ -1377,7 +1384,7 @@ public partial class AdbService
             try
             {
                 using var syncService = new SyncService(_adb.AdbClient, this);
-                return syncService.Stat(path).FileMode.HasFlag(UnixFileMode.Directory);
+                return syncService.Stat(path).FileType.HasFlag(UnixFileType.Directory);
             }
             catch (Exception e)
             {
@@ -1398,7 +1405,7 @@ public partial class AdbService
             try
             {
                 using var syncService = new SyncService(_adb.AdbClient, this);
-                return syncService.Stat(path).FileMode.HasFlag(UnixFileMode.Regular);
+                return syncService.Stat(path).FileType.HasFlag(UnixFileType.Regular);
             }
             catch (Exception e)
             {
@@ -1782,7 +1789,14 @@ public partial class AdbService
             try
             {
                 // Using legacy PackageManager.InstallPackage method as AdbClient.Install hangs occasionally
-                PackageManager.InstallPackage(apkPath, reinstall, grantRuntimePermissions, ct);
+                var args = new List<string>();
+                if (reinstall)
+                    args.Add("-r");
+                if (grantRuntimePermissions)
+                    args.Add("-g");
+                var isCancelled = false;
+                ct.Register(() => isCancelled = true);
+                PackageManager.InstallPackage(apkPath, isCancelled, args.ToArray());
                 Log.Information("Package {ApkFileName} installed", Path.GetFileName(apkPath));
             }
             finally

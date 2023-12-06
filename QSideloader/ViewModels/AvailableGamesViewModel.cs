@@ -6,7 +6,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AdvancedSharpAdbClient;
+using AdvancedSharpAdbClient.Models;
 using Avalonia.Controls.Notifications;
 using DynamicData;
 using QSideloader.Models;

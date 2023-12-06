@@ -67,7 +67,7 @@
         <TrimmableAssembly Include="Avalonia.Themes.Default" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="AdvancedSharpAdbClient" Version="9.9.20" />
+        <PackageReference Include="AdvancedSharpAdbClient" Version="9.9.21" />
         <PackageReference Include="AsyncAwaitBestPractices" Version="7.0.0" />
         <PackageReference Include="Avalonia" Version="11.0.5" />
         <PackageReference Include="Avalonia.Desktop" Version="11.0.5" />

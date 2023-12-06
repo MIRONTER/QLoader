@@ -3,7 +3,7 @@ using System.IO;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using AdvancedSharpAdbClient;
+using AdvancedSharpAdbClient.Models;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using LibVLCSharp.Shared;
