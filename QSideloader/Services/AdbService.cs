@@ -75,11 +75,11 @@ public partial class AdbService
         _adb = new AdbServerClient();
         if (Design.IsDesignMode) return;
         // This event may fire when DeviceSemaphoreSlim is taken, so we need to use TaskPool threads
-        WhenDeviceListChanged.ObserveOn(Scheduler.Default).Subscribe(_ => CheckConnectionPreference());
+        WhenDeviceListChanged.ObserveOn(Scheduler.Default).Subscribe(_ => Task.Run(CheckConnectionPreferenceAsync));
         Task.Run(async () =>
         {
             RefreshBackupList();
-            CheckDeviceConnection();
+            await CheckDeviceConnectionAsync();
             var lastWirelessAdbHost = _sideloaderSettings.LastWirelessAdbHost;
             if (!string.IsNullOrEmpty(lastWirelessAdbHost))
                 await TryConnectWirelessAdbAsync(lastWirelessAdbHost, remember: true);
@@ -88,7 +88,6 @@ public partial class AdbService
     }
 
     public static AdbService Instance { get; } = new();
-    private bool FirstDeviceSearch { get; set; } = true;
 
     public AdbDevice? Device { get; private set; }
 
@@ -128,6 +127,35 @@ public partial class AdbService
             Log.Debug("Command returned: {Result}", result);
         return result;
     }
+    
+    /// <summary>
+    ///     Runs a shell command on the device.
+    /// </summary>
+    /// <param name="device">Device to run the command on.</param>
+    /// <param name="command">Command to run.</param>
+    /// <param name="logCommand">Should log the command and result.</param>
+    /// <returns>Output of executed command.</returns>
+    /// <exception cref="AdbServiceException">Thrown if an error occured when running the command.</exception>
+    private async Task<string> RunShellCommandAsync(DeviceData device, string command, bool logCommand = false)
+    {
+        ConsoleOutputReceiver receiver = new();
+        try
+        {
+            if (logCommand)
+                Log.Debug("Running shell command: {Command}", command);
+            await _adb.AdbClient.ExecuteRemoteCommandAsync(command, device, receiver);
+        }
+        catch (Exception e)
+        {
+            throw new AdbServiceException("Error running shell command: " + command, e);
+        }
+
+        var result = receiver.ToString().Trim();
+        if (!logCommand) return result;
+        if (!string.IsNullOrWhiteSpace(result))
+            Log.Debug("Command returned: {Result}", result);
+        return result;
+    }
 
     /// <summary>
     ///     Checks that device is connected and if not, tries to find an appropriate device and connect to it.
@@ -136,35 +164,35 @@ public partial class AdbService
     /// <returns>
     ///     <c>true</c> if device is connected, <c>false</c> if no device was found.
     /// </returns>
-    public bool CheckDeviceConnection(bool assumeOffline = false)
+    public async Task<bool> CheckDeviceConnectionAsync(bool assumeOffline = false)
     {
         if (Design.IsDesignMode) return false;
 
-        if (!CheckADBRunning(out _))
+        if (!(await CheckADBRunningAsync()).running)
         {
             // If ADB server is not running, attempt to start it in background and return false for now
             Log.Debug("ADB server is not running, returning no device connected");
-            Task.Run(() =>
+            Task.Run(async () =>
             {
-                EnsureADBRunning();
-                CheckDeviceConnection();
+                await EnsureADBRunningAsync();
+                await CheckDeviceConnectionAsync();
             }).SafeFireAndForget();
             return false;
         }
 
         var connectionStatus = false;
-        DeviceSemaphoreSlim.Wait();
+        await DeviceSemaphoreSlim.WaitAsync();
         try
         {
-            if (Device is not null && !assumeOffline) connectionStatus = Device.Ping();
+            if (Device is not null && !assumeOffline) connectionStatus = await Device.PingAsync();
 
             if (!connectionStatus)
             {
                 AdbDevice? foundDevice = null;
-                RefreshDeviceList();
+                await RefreshDeviceListAsync();
                 foreach (var device in DeviceList)
                 {
-                    connectionStatus = device.Ping();
+                    connectionStatus = await device.PingAsync();
                     if (!connectionStatus) continue;
                     foundDevice = device;
                     break;
@@ -192,45 +220,42 @@ public partial class AdbService
         {
             DeviceSemaphoreSlim.Release();
         }
-
-        FirstDeviceSearch = false;
+        
         return connectionStatus;
     }
 
     /// <summary>
     ///     Simple check of current connection status (only background ping and background device list scanning when needed).
-    ///     For full check use <see cref="CheckDeviceConnection" />.
+    ///     For full check use <see cref="CheckDeviceConnectionAsync" />.
     /// </summary>
     /// <returns>
     ///     <c>true</c> if device is connected, <c>false</c> otherwise.
     /// </returns>
     public bool CheckDeviceConnectionSimple()
     {
-        if (FirstDeviceSearch)
-            return CheckDeviceConnection();
         if (Device is null) return false;
         if (Device.State != DeviceState.Online)
         {
-            Task.Run(() => CheckDeviceConnection());
+            Task.Run(async () => await CheckDeviceConnectionAsync());
             return false;
         }
 
-        Task.Run(() => Device.Wake());
+        Task.Run(Device.WakeAsync);
         return true;
     }
 
     /// <summary>
     ///     Refreshes the device list.
     /// </summary>
-    public void RefreshDeviceList()
+    public async Task RefreshDeviceListAsync()
     {
         try
         {
             var skipScan = DeviceListSemaphoreSlim.CurrentCount == 0;
-            DeviceListSemaphoreSlim.Wait();
+            await DeviceListSemaphoreSlim.WaitAsync();
             try
             {
-                EnsureADBRunning();
+                await EnsureADBRunningAsync();
             }
             catch
             {
@@ -238,7 +263,7 @@ public partial class AdbService
             }
 
             if (skipScan) return;
-            var deviceList = GetOculusDevices(out var unauthorizedDevices);
+            var (deviceList, unauthorizedDevices) = await GetOculusDevicesAsync();
             _unauthorizedDeviceList = unauthorizedDevices;
             var addedDevices = deviceList.Where(d => _deviceList.All(x => x.Serial != d.Serial)).ToList();
             var removedDevices = _deviceList.Where(d => deviceList.All(x => x.Serial != d.Serial)).ToList();
@@ -246,7 +271,7 @@ public partial class AdbService
 
             foreach (var device in addedDevices)
             {
-                device.Initialize();
+                await device.InitializeAsync();
                 _deviceList.Add(device);
             }
 
@@ -262,9 +287,9 @@ public partial class AdbService
     /// <summary>
     ///     Checks the current connection type and switches to preferred type if necessary.
     /// </summary>
-    private void CheckConnectionPreference()
+    private Task CheckConnectionPreferenceAsync()
     {
-        if (Device is null) return;
+        if (Device is null) return Task.CompletedTask;
         var preferredConnectionType = _sideloaderSettings.PreferredConnectionType;
         switch (Device.IsWireless)
         {
@@ -275,7 +300,7 @@ public partial class AdbService
                 {
                     Log.Information("Auto-switching to preferred connection type ({ConnectionType})",
                         preferredConnectionType);
-                    TrySwitchDevice(preferredDevice);
+                    return TrySwitchDeviceAsync(preferredDevice);
                 }
 
                 break;
@@ -287,31 +312,31 @@ public partial class AdbService
                 {
                     Log.Information("Auto-switching to preferred connection type ({ConnectionType})",
                         preferredConnectionType);
-                    TrySwitchDevice(preferredDevice);
+                    return TrySwitchDeviceAsync(preferredDevice);
                 }
 
                 break;
             }
         }
+
+        return Task.CompletedTask;
     }
 
-    private bool CheckADBRunning(out bool outdatedVersion)
+    private async Task<(bool running, bool outdatedVersion)> CheckADBRunningAsync()
     {
-        outdatedVersion = false;
         try
         {
-            var adbServerStatus = _adb.AdbServer.GetStatus();
+            var adbServerStatus = await _adb.AdbServer.GetStatusAsync();
             if (adbServerStatus.IsRunning)
             {
                 var requiredAdbVersion = new Version("1.0.40");
                 if (adbServerStatus.Version >= requiredAdbVersion)
                 {
                     StartDeviceMonitor(false);
-                    return true;
+                    return (true, false);
                 }
-
-                outdatedVersion = true;
-                return false;
+                
+                return (true, true);
             }
         }
         catch
@@ -319,19 +344,20 @@ public partial class AdbService
             Log.Warning("Failed to check ADB server status");
         }
 
-        return false;
+        return (false, false);
     }
-
+    
     /// <summary>
     ///     Ensures that ADB server is running.
     /// </summary>
     /// <exception cref="AdbServiceException">Thrown if ADB server start failed.</exception>
-    private void EnsureADBRunning()
+    private async Task EnsureADBRunningAsync()
     {
         try
         {
-            AdbServerSemaphoreSlim.Wait();
-            if (CheckADBRunning(out var outdatedVersion)) return;
+            await AdbServerSemaphoreSlim.WaitAsync();
+            var (running, outdatedVersion) = await CheckADBRunningAsync();
+            if (running) return;
 
             Log.Information("Starting ADB server");
 
@@ -343,20 +369,18 @@ public partial class AdbService
                     try
                     {
                         Log.Warning("ADB server version is too old, restarting");
-                        Cli.Wrap(adbPath)
+                        await Cli.Wrap(adbPath)
                             .WithArguments("kill-server")
-                            .ExecuteBufferedAsync()
-                            .ConfigureAwait(false).GetAwaiter().GetResult();
+                            .ExecuteBufferedAsync();
                     }
                     catch (CommandExecutionException)
                     {
                         Array.ForEach(Process.GetProcessesByName("adb"), p => p.Kill());
                     }
 
-                Cli.Wrap(adbPath)
+                await Cli.Wrap(adbPath)
                     .WithArguments("start-server")
-                    .ExecuteBufferedAsync()
-                    .ConfigureAwait(false).GetAwaiter().GetResult();
+                    .ExecuteBufferedAsync();
             }
             catch (Exception e)
             {
@@ -365,7 +389,7 @@ public partial class AdbService
                 throw new AdbServiceException("Failed to start ADB server", e);
             }
 
-            if (!_adb.AdbServer.GetStatus().IsRunning)
+            if (!(await _adb.AdbServer.GetStatusAsync()).IsRunning)
             {
                 Log.Error("Failed to start ADB server");
                 Globals.ShowNotification("ADB", Resources.FailedToStartAdbServer, NotificationType.Error,
@@ -373,7 +397,7 @@ public partial class AdbService
                 throw new AdbServiceException("Failed to start ADB server");
             }
 
-            _adb.AdbClient.Connect("127.0.0.1:62001");
+            await _adb.AdbClient.ConnectAsync("127.0.0.1:62001");
             Log.Information("Started ADB server");
             StartDeviceMonitor(true);
         }
@@ -391,7 +415,6 @@ public partial class AdbService
         Log.Warning("Restarting ADB server");
         try
         {
-            if (_deviceMonitor is not null) _deviceMonitor.DeviceChanged -= OnDeviceChanged;
             var adbPath = PathHelper.AdbPath;
             var adbServerStatus = await _adb.AdbServer.GetStatusAsync();
             if (adbServerStatus.IsRunning)
@@ -415,7 +438,7 @@ public partial class AdbService
         OnDeviceOffline(Device);
         _deviceList.Clear();
         _deviceListChangeSubject.OnNext(_deviceList);
-        CheckDeviceConnection();
+        await CheckDeviceConnectionAsync();
     }
 
     /// <summary>
@@ -451,7 +474,7 @@ public partial class AdbService
         OnDeviceOffline(Device);
         _deviceList.Clear();
         _deviceListChangeSubject.OnNext(_deviceList);
-        CheckDeviceConnection();
+        Task.Run(async () => await CheckDeviceConnectionAsync());
     }
 
     /// <summary>
@@ -465,13 +488,11 @@ public partial class AdbService
         {
             if (_deviceMonitor is null || restart)
             {
-                if (_deviceMonitor is not null)
-                    _deviceMonitor.DeviceChanged -= OnDeviceChanged;
                 _deviceMonitor = new DeviceMonitor(new AdbSocket(new IPEndPoint(IPAddress.Loopback, 5037)));
             }
 
             if (_deviceMonitor.IsRunning) return;
-            _deviceMonitor.DeviceChanged += OnDeviceChanged;
+            _deviceMonitor.DeviceChanged += (_, args) => Task.Run(async () => await OnDeviceChangedAsync(args));
             _deviceMonitor.Start();
             Log.Debug("Started device monitor");
         }
@@ -511,30 +532,30 @@ public partial class AdbService
     /// <summary>
     ///     Method for handling <see cref="DeviceMonitor.DeviceChanged" /> event.
     /// </summary>
-    private void OnDeviceChanged(object? sender, DeviceDataEventArgs e)
+    private async Task OnDeviceChangedAsync(DeviceDataEventArgs e)
     {
         Log.Debug("OnDeviceChanged: got event. Device State = {DeviceState}", e.Device.State);
         switch (e.Device.State)
         {
             case DeviceState.Online:
-                if (DeviceList.All(x => x.Serial != e.Device.Serial)) RefreshDeviceList();
+                if (DeviceList.All(x => x.Serial != e.Device.Serial)) await RefreshDeviceListAsync();
 
-                CheckDeviceConnection();
+                await CheckDeviceConnectionAsync();
                 break;
             case DeviceState.Offline:
                 if (e.Device.Serial == Device?.Serial)
                 {
-                    CheckDeviceConnection(true);
+                    await CheckDeviceConnectionAsync(true);
                 }
                 else
                 {
-                    RefreshDeviceList();
-                    CheckDeviceConnection();
+                    await RefreshDeviceListAsync();
+                    await CheckDeviceConnectionAsync();
                 }
 
                 break;
             case DeviceState.Unauthorized:
-                CheckDeviceConnection();
+                await CheckDeviceConnectionAsync();
                 break;
             case DeviceState.BootLoader:
             case DeviceState.Host:
@@ -620,16 +641,16 @@ public partial class AdbService
     ///     Gets the list of Oculus devices.
     /// </summary>
     /// <returns><see cref="List{T}" /> of <see cref="AdbDevice" />.</returns>
-    private List<AdbDevice> GetOculusDevices(out List<DeviceData> unauthorizedDevices)
+    private async Task<(List<AdbDevice> oculusDevices, List<DeviceData> unauthorizedDevices)> GetOculusDevicesAsync()
     {
         Log.Debug("Searching for devices");
-        unauthorizedDevices = new List<DeviceData>();
+        var unauthorizedDevices = new List<DeviceData>();
         List<AdbDevice> oculusDeviceList = new();
-        var deviceList = _adb.AdbClient.GetDevices().ToList();
+        var deviceList = (await _adb.AdbClient.GetDevicesAsync()).ToList();
         if (deviceList.Count == 0)
         {
             Log.Debug("No ADB devices found");
-            return oculusDeviceList;
+            return (oculusDeviceList, unauthorizedDevices);
         }
 
         foreach (var device in deviceList)
@@ -669,31 +690,31 @@ public partial class AdbService
         }
 
         if (oculusDeviceList.Count != 0)
-            return _sideloaderSettings.PreferredConnectionType switch
+            return (_sideloaderSettings.PreferredConnectionType switch
             {
                 "USB" => oculusDeviceList.OrderBy(x => x.IsWireless).ToList(),
                 "Wireless" => oculusDeviceList.OrderByDescending(x => x.IsWireless).ToList(),
                 _ => oculusDeviceList
-            };
+            }, unauthorizedDevices);
         Log.Warning("No Oculus devices found");
-        return oculusDeviceList;
+        return (oculusDeviceList, unauthorizedDevices);
     }
 
     /// <summary>
     ///     Tries to switch to another device.
     /// </summary>
     /// <param name="device">Device to switch to.</param>
-    public void TrySwitchDevice(AdbDevice device)
+    public async Task TrySwitchDeviceAsync(AdbDevice device)
     {
         if (device.Serial == Device?.Serial) return;
-        if (device.State != DeviceState.Online || !device.Ping())
+        if (device.State != DeviceState.Online || !await device.PingAsync())
         {
             Log.Warning("Attempted switch to offline device {Device}", device);
-            RefreshDeviceList();
+            await RefreshDeviceListAsync();
             return;
         }
 
-        DeviceSemaphoreSlim.Wait();
+        await DeviceSemaphoreSlim.WaitAsync();
         try
         {
             Log.Information("Switching to device {Device}", device);
@@ -722,7 +743,7 @@ public partial class AdbService
         {
             _forcePreferWireless = true;
             Observable.Timer(TimeSpan.FromSeconds(10)).Subscribe(_ => _forcePreferWireless = false);
-            var host = device.EnableWirelessAdb();
+            var host = await device.EnableWirelessAdbAsync();
             await Task.Delay(1000);
             await TryConnectWirelessAdbAsync(host, 5555, true, true);
         }
@@ -743,7 +764,7 @@ public partial class AdbService
     private async Task TryConnectWirelessAdbAsync(string host, int port = 5555, bool remember = false,
         bool silent = false)
     {
-        await Task.Run(EnsureADBRunning);
+        await EnsureADBRunningAsync();
         if (DeviceList.Any(x => x.Serial.Contains(host)))
         {
             if (!silent)
@@ -761,7 +782,7 @@ public partial class AdbService
 
             if (result.Contains($"connected to {host}:{port}"))
             {
-                RefreshDeviceList();
+                await RefreshDeviceListAsync();
                 if (remember)
                     _sideloaderSettings.LastWirelessAdbHost = host;
                 return;
@@ -787,9 +808,9 @@ public partial class AdbService
     ///     Takes the package operation lock.
     /// </summary>
     /// <param name="ct">Cancellation token.</param>
-    public static async Task TakePackageOperationLockAsync(CancellationToken ct = default)
+    public static Task TakePackageOperationLockAsync(CancellationToken ct = default)
     {
-        await PackageOperationSemaphoreSlim.WaitAsync(ct);
+        return PackageOperationSemaphoreSlim.WaitAsync(ct);
     }
 
     /// <summary>
@@ -923,12 +944,12 @@ public partial class AdbService
 
             PackageManager = new PackageManager(_adb.AdbClient, this);
 
-            var bootCompleted = RunShellCommand("getprop sys.boot_completed");
+            var bootCompleted = _adbService.RunShellCommand(deviceData, "getprop sys.boot_completed");
             if (!bootCompleted.Contains('1'))
                 Log.Warning("Device {HashedId} has not finished booting yet", HashedId);
 
             if (IsWireless)
-                ApplyWirelessFix();
+                Task.Run(ApplyWirelessFixAsync);
         }
 
         private PackageManager PackageManager { get; }
@@ -964,13 +985,13 @@ public partial class AdbService
             return IsWireless ? $"{HashedId} (wireless)" : HashedId;
         }
 
-        public void Initialize()
+        public async Task InitializeAsync()
         {
             // Check if the device is running Android 12 and KeyMapper is installed
             // This combination causes serious issues with the OS, so try to uninstall KeyMapper automatically
-            CheckKeyMapper();
-            CleanLeftoverApks();
-            Task.Run(OnPackageListChanged);
+            await CheckKeyMapperAsync();
+            await CleanLeftoverApksAsync();
+            await OnPackageListChangedAsync();
         }
 
         /// <summary>
@@ -980,19 +1001,19 @@ public partial class AdbService
         /// <param name="logCommand">Should log the command and result.</param>
         /// <returns>Output of executed command.</returns>
         /// <exception cref="AdbServiceException">Thrown if an error occured when running the command.</exception>
-        public string RunShellCommand(string command, bool logCommand = false)
+        public Task<string> RunShellCommandAsync(string command, bool logCommand = false)
         {
-            return _adbService.RunShellCommand(this, command, logCommand);
+            return _adbService.RunShellCommandAsync(this, command, logCommand);
         }
 
         /// <summary>
         ///     Wakes up the device by sending a power button key event.
         /// </summary>
-        public void Wake()
+        public async Task WakeAsync()
         {
             try
             {
-                RunShellCommand("input keyevent KEYCODE_WAKEUP");
+                await RunShellCommandAsync("input keyevent KEYCODE_WAKEUP");
             }
             catch (Exception e)
             {
@@ -1006,13 +1027,13 @@ public partial class AdbService
         /// <returns>
         ///     <c>true</c> if device responded, <c>false</c> otherwise.
         /// </returns>
-        public bool Ping()
+        public async Task<bool> PingAsync()
         {
-            Wake();
+            await WakeAsync();
             if (State != DeviceState.Online) return false;
             try
             {
-                return RunShellCommand("echo 1").Trim() == "1";
+                return (await RunShellCommandAsync("echo 1")).Trim() == "1";
             }
             catch (Exception e)
             {
@@ -1025,11 +1046,11 @@ public partial class AdbService
         /// <summary>
         ///     Refreshes the <see cref="InstalledPackages" /> list
         /// </summary>
-        public void RefreshInstalledPackages()
+        public async Task RefreshInstalledPackagesAsync()
         {
             using var op = Operation.At(LogEventLevel.Debug).Begin("Refreshing installed packages on {Device}", this);
             var skip = _packagesSemaphoreSlim.CurrentCount == 0;
-            _packagesSemaphoreSlim.Wait();
+            await _packagesSemaphoreSlim.WaitAsync();
             try
             {
                 if (skip)
@@ -1039,13 +1060,13 @@ public partial class AdbService
                 }
 
                 Log.Debug("Refreshing list of installed packages on {Device}", this);
-                PackageManager.RefreshPackages();
+                await PackageManager.RefreshPackagesAsync();
                 for (var i = 0; i < InstalledPackages.Count; i++)
                 {
                     var package = InstalledPackages[i];
                     if (PackageManager.Packages.ContainsKey(package.packageName))
                     {
-                        package.versionInfo = PackageManager.GetVersionInfo(package.packageName);
+                        package.versionInfo = await PackageManager.GetVersionInfoAsync(package.packageName);
                         InstalledPackages[i] = package;
                     }
                     else
@@ -1056,7 +1077,7 @@ public partial class AdbService
 
                 foreach (var package in PackageManager.Packages.Keys.Where(package =>
                              InstalledPackages.All(x => x.packageName != package)).ToList())
-                    InstalledPackages.Add((package, PackageManager.GetVersionInfo(package)));
+                    InstalledPackages.Add((package, await PackageManager.GetVersionInfoAsync(package)));
                 op.Complete();
             }
             finally
@@ -1072,12 +1093,12 @@ public partial class AdbService
         ///     If this method is called while another device info refresh is in progress,
         ///     the call will wait until the other refresh is finished and then return.
         /// </remarks>
-        public void RefreshInfo()
+        public async Task RefreshInfoAsync()
         {
             using var op = Operation.At(LogEventLevel.Debug, LogEventLevel.Error).Begin("Refreshing device info");
             // Check whether refresh is already running
             var alreadyRefreshing = _deviceInfoSemaphoreSlim.CurrentCount < 1;
-            _deviceInfoSemaphoreSlim.Wait();
+            await _deviceInfoSemaphoreSlim.WaitAsync();
             string? dfOutput = null;
             string? dumpsysOutput = null;
             try
@@ -1094,7 +1115,7 @@ public partial class AdbService
                 // Get battery level
                 try
                 {
-                    dumpsysOutput = RunShellCommand("dumpsys battery | grep level");
+                    dumpsysOutput = await RunShellCommandAsync("dumpsys battery | grep level");
                     BatteryLevel = int.Parse(BatteryLevelRegex().Match(dumpsysOutput).ToString());
                 }
                 catch (Exception e)
@@ -1108,7 +1129,7 @@ public partial class AdbService
                 // Get storage stats
                 try
                 {
-                    dfOutput = RunShellCommand("df /data");
+                    dfOutput = await RunShellCommandAsync("df /data");
                     var dfOutputSplit = dfOutput.Split(new[] {"\r\n", "\r", "\n"}, StringSplitOptions.None);
                     var line = SpaceUsedFreeRegex().Split(dfOutputSplit[1]);
                     SpaceUsed = (float) Math.Round(float.Parse(line[2]) * 1024 / 1000000000, 2);
@@ -1137,10 +1158,10 @@ public partial class AdbService
             }
         }
 
-        private void OnPackageListChanged()
+        private async Task OnPackageListChangedAsync()
         {
-            RefreshInstalledPackages();
-            RefreshInstalledGames();
+            await RefreshInstalledPackagesAsync();
+            await RefreshInstalledGamesAsync();
             RefreshInstalledApps();
             if (_adbService.Device?.Equals(this) ?? false)
                 _adbService._packageListChangeSubject.OnNext(Unit.Default);
@@ -1149,11 +1170,11 @@ public partial class AdbService
         /// <summary>
         ///     Refreshes the <see cref="InstalledGames" /> list
         /// </summary>
-        public void RefreshInstalledGames()
+        public async Task RefreshInstalledGamesAsync()
         {
             using var op = Operation.At(LogEventLevel.Debug).Begin("Refreshing installed games on {Device}", this);
             var skip = _packagesSemaphoreSlim.CurrentCount == 0;
-            _packagesSemaphoreSlim.Wait();
+            await _packagesSemaphoreSlim.WaitAsync();
             try
             {
                 if (skip)
@@ -1163,7 +1184,7 @@ public partial class AdbService
                 }
 
                 Log.Information("Refreshing list of installed games on {Device}", this);
-                _downloaderService.EnsureMetadataAvailableAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                await _downloaderService.EnsureMetadataAvailableAsync();
                 var query = from package in InstalledPackages.ToList()
                     where package.versionInfo is not null
                     // We can't determine which particular release is installed, so we list all releases with appropriate package name
@@ -1261,13 +1282,13 @@ public partial class AdbService
         /// <param name="progress">An optional parameter which, when specified, returns progress notifications.
         /// The progress is reported as a value between 0 and 100.</param>
         /// <param name="ct">Cancellation token.</param>
-        private void PushFile(string localPath, string remotePath, IProgress<int>? progress = null,
+        private async Task PushFileAsync(string localPath, string remotePath, IProgress<int>? progress = null,
             CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
             Log.Debug("Pushing file: \"{LocalPath}\" -> \"{RemotePath}\"", localPath, remotePath);
             using var syncService = new SyncService(_adb.AdbClient, this);
-            using var file = File.OpenRead(localPath);
+            await using var file = File.OpenRead(localPath);
             var isCancelled = false;
             ct.Register(() => isCancelled = true);
             syncService.Push(file, remotePath, 771, DateTime.Now, progress, isCancelled);
@@ -1281,7 +1302,7 @@ public partial class AdbService
         /// <param name="overwrite">Pushed directory should fully overwrite existing one (if exists).</param>
         /// <param name="progress">An optional parameter which, when specified, returns progress notifications.</param>
         /// <param name="ct">Cancellation token.</param>
-        private void PushDirectory(string localPath, string remotePath, bool overwrite = false,
+        private async Task PushDirectoryAsync(string localPath, string remotePath, bool overwrite = false,
             IProgress<(int totalFiles, int currentFile, int progress)>? progress = null, CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
@@ -1294,11 +1315,11 @@ public partial class AdbService
             var relativeDirList = dirList.Select(dirPath => Path.GetRelativePath(localPath, dirPath));
 
             var fullPath = (remotePath + localDir).Replace(@"\", "/");
-            if (overwrite && RemoteDirectoryExists(fullPath))
-                RunShellCommand($"rm -rf \"{fullPath}\"", true);
-            RunShellCommand($"mkdir -p \"{fullPath}/\"", true);
+            if (overwrite && await RemoteDirectoryExistsAsync(fullPath))
+                await RunShellCommandAsync($"rm -rf \"{fullPath}\"", true);
+            await RunShellCommandAsync($"mkdir -p \"{fullPath}/\"", true);
             foreach (var dirPath in relativeDirList)
-                RunShellCommand(
+                await RunShellCommandAsync(
                     $"mkdir -p \"{fullPath + "/" + dirPath.Replace("./", "")}\"".Replace(@"\", "/"), true);
 
             var fileList = Directory.EnumerateFiles(localPath, "*.*", SearchOption.AllDirectories).ToList();
@@ -1309,7 +1330,7 @@ public partial class AdbService
                 var file = relativeFileList[i];
                 var i1 = i;
                 var fileProgress = new Progress<int>(p => progress?.Report((fileCount, i1 + 1, p)));
-                PushFile(localPath + Path.DirectorySeparatorChar + file,
+                await PushFileAsync(localPath + Path.DirectorySeparatorChar + file,
                     fullPath + "/" + file.Replace(@"\", "/"), fileProgress, ct);
             }
         }
@@ -1320,7 +1341,7 @@ public partial class AdbService
         /// <param name="remotePath">Path to a file on the device.</param>
         /// <param name="localPath">Local path to pull to.</param>
         /// <param name="ct">Cancellation token.</param>
-        private void PullFile(string remotePath, string localPath, CancellationToken ct = default)
+        private async Task PullFileAsync(string remotePath, string localPath, CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
             if (!Directory.Exists(localPath))
@@ -1329,17 +1350,15 @@ public partial class AdbService
             var localFilePath = localPath + Path.DirectorySeparatorChar + remoteFileName;
             Log.Debug("Pulling file: \"{RemotePath}\" -> \"{LocalPath}\"", remotePath, localFilePath);
             using var syncService = new SyncService(_adb.AdbClient, this);
-            using var file = File.OpenWrite(localFilePath);
-            var isCancelled = false;
-            ct.Register(() => isCancelled = true);
-            syncService.Pull(remotePath, file, null, isCancelled);
+            await using var file = File.OpenWrite(localFilePath);
+            await syncService.PullAsync(remotePath, file, null, ct);
         }
 
-        public void PullMedia(string path, CancellationToken ct = default)
+        public async Task PullMediaAsync(string path, CancellationToken ct = default)
         {
             Log.Information("Pulling pictures and videos from {Device} to {Path}", this, path);
-            PullDirectory("/sdcard/Oculus/VideoShots", path, null, ct);
-            PullDirectory("/sdcard/Oculus/Screenshots", path, null, ct);
+            await PullDirectoryAsync("/sdcard/Oculus/VideoShots", path, null, ct);
+            await PullDirectoryAsync("/sdcard/Oculus/Screenshots", path, null, ct);
         }
 
         /// <summary>
@@ -1349,7 +1368,7 @@ public partial class AdbService
         /// <param name="localPath">Local path to pull to.</param>
         /// <param name="excludeDirs">Names of directories to exclude from pulling.</param>
         /// <param name="ct">Cancellation token.</param>
-        private void PullDirectory(string remotePath, string localPath, IEnumerable<string>? excludeDirs = default,
+        private async Task PullDirectoryAsync(string remotePath, string localPath, IEnumerable<string>? excludeDirs = default,
             CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
@@ -1367,9 +1386,9 @@ public partial class AdbService
                 !excludeDirsList.Contains(x.Path.Split('/').Last(s => !string.IsNullOrEmpty(s)))).ToList();
             foreach (var remoteFile in remoteDirectoryListing.Where(x => x.Path != "." && x.Path != ".."))
                 if (remoteFile.FileType.HasFlag(UnixFileType.Directory))
-                    PullDirectory(remotePath + remoteFile.Path, localDir, excludeDirsList, ct);
+                    await PullDirectoryAsync(remotePath + remoteFile.Path, localDir, excludeDirsList, ct);
                 else if (remoteFile.FileType.HasFlag(UnixFileType.Regular))
-                    PullFile(remotePath + remoteFile.Path, localDir, ct);
+                    await PullFileAsync(remotePath + remoteFile.Path, localDir, ct);
         }
 
         /// <summary>
@@ -1379,12 +1398,12 @@ public partial class AdbService
         /// <returns>
         ///     <see langword="true" /> if stat was successful and directory exists, <see langword="false" /> otherwise.
         /// </returns>
-        private bool RemoteDirectoryExists(string path)
+        private async Task<bool> RemoteDirectoryExistsAsync(string path)
         {
             try
             {
                 using var syncService = new SyncService(_adb.AdbClient, this);
-                return syncService.Stat(path).FileType.HasFlag(UnixFileType.Directory);
+                return (await syncService.StatAsync(path)).FileType.HasFlag(UnixFileType.Directory);
             }
             catch (Exception e)
             {
@@ -1400,12 +1419,12 @@ public partial class AdbService
         /// <returns>
         ///     <see langword="true" /> if stat was successful and directory exists, <see langword="false" /> otherwise.
         /// </returns>
-        private bool RemoteFileExists(string path)
+        private async Task<bool> RemoteFileExistsAsync(string path)
         {
             try
             {
                 using var syncService = new SyncService(_adb.AdbClient, this);
-                return syncService.Stat(path).FileType.HasFlag(UnixFileType.Regular);
+                return (await syncService.StatAsync(path)).FileType.HasFlag(UnixFileType.Regular);
             }
             catch (Exception e)
             {
@@ -1424,7 +1443,7 @@ public partial class AdbService
         public IObservable<(string status, string? progress)> SideloadGame(Game game, string gamePath,
             CancellationToken ct = default)
         {
-            return Observable.Create<(string status, string? progress)>(observer =>
+            return Observable.Create<(string status, string? progress)>(async observer =>
             {
                 ct.ThrowIfCancellationRequested();
                 using var op = Operation.At(LogEventLevel.Information, LogEventLevel.Error)
@@ -1443,7 +1462,7 @@ public partial class AdbService
                     if (File.Exists(gamePath))
                     {
                         if (gamePath.EndsWith(".apk"))
-                            InstallPackage(gamePath, reinstall, true, observer, null, ct);
+                            await InstallPackageAsync(gamePath, reinstall, true, observer, null, ct);
                         else
                             throw new InvalidOperationException("Attempted to sideload a non-APK file");
                     }
@@ -1465,13 +1484,13 @@ public partial class AdbService
                             observer.OnNext((Resources.PerformingCustomInstall, null));
                             var installScriptName = Path.GetFileName(installScriptPath);
                             Log.Information("Running commands from {InstallScriptName}", installScriptName);
-                            RunInstallScript(installScriptPath, ct);
+                            await RunInstallScriptAsync(installScriptPath, ct);
                         }
                         else
                             // install APKs, copy OBB dir
                         {
                             foreach (var apkPath in Directory.EnumerateFiles(gamePath, "*.apk"))
-                                InstallPackage(apkPath, reinstall, true, observer, null, ct);
+                                await InstallPackageAsync(apkPath, reinstall, true, observer, null, ct);
 
                             if (game.PackageName is not null &&
                                 Directory.Exists(Path.Combine(gamePath, game.PackageName)))
@@ -1484,14 +1503,14 @@ public partial class AdbService
                                     var progressString = $"{x.currentFile}/{x.totalFiles} ({x.progress}%)";
                                     observer.OnNext((Resources.PushingObbFiles, progressString));
                                 });
-                                PushDirectory(Path.Combine(gamePath, game.PackageName), "/sdcard/Android/obb/", true,
+                                await PushDirectoryAsync(Path.Combine(gamePath, game.PackageName), "/sdcard/Android/obb/", true,
                                     pushProgress, ct);
                             }
                         }
                     }
 
                     op.Complete();
-                    OnPackageListChanged();
+                    await OnPackageListChangedAsync();
                     observer.OnCompleted();
                 }
                 catch (Exception e)
@@ -1507,7 +1526,7 @@ public partial class AdbService
                         observer.OnNext((Resources.CleaningUp, null));
                         try
                         {
-                            CleanupRemnants(game.PackageName);
+                            await CleanupRemnantsAsync(game.PackageName);
                         }
                         catch (Exception ex)
                         {
@@ -1529,7 +1548,7 @@ public partial class AdbService
                         ? new AggregateException(new AdbServiceException("Failed to sideload game", e),
                             cleanupException)
                         : new AdbServiceException("Failed to sideload game", e));
-                    OnPackageListChanged();
+                    await OnPackageListChangedAsync();
                 }
 
                 return Disposable.Empty;
@@ -1543,7 +1562,7 @@ public partial class AdbService
         /// <param name="ct">Cancellation token.</param>
         /// <exception cref="FileNotFoundException">Thrown if install script not found.</exception>
         /// <exception cref="AdbServiceException">Thrown if an error occured when running the script.</exception>
-        private void RunInstallScript(string scriptPath, CancellationToken ct = default)
+        private async Task RunInstallScriptAsync(string scriptPath, CancellationToken ct = default)
         {
             try
             {
@@ -1552,9 +1571,9 @@ public partial class AdbService
                     throw new FileNotFoundException("Install script not found", scriptPath);
                 var scriptName = Path.GetFileName(scriptPath);
                 var gamePath = Path.GetDirectoryName(scriptPath)!;
-                var scriptCommands = File.ReadAllLines(scriptPath);
+                var scriptCommands = await File.ReadAllLinesAsync(scriptPath, ct);
                 foreach (var archivePath in Directory.GetFiles(gamePath, "*.7z", SearchOption.TopDirectoryOnly))
-                    ZipUtil.ExtractArchive(archivePath, gamePath, ct);
+                    await ZipUtil.ExtractArchiveAsync(archivePath, gamePath, ct);
                 foreach (var rawCommand in scriptCommands)
                 {
                     ct.ThrowIfCancellationRequested();
@@ -1576,7 +1595,7 @@ public partial class AdbService
                                 var reinstall = adbArgs.Contains("-r");
                                 var grantRuntimePermissions = adbArgs.Contains("-g");
                                 var apkPath = Path.Combine(gamePath, adbArgs.First(x => x.EndsWith(".apk")));
-                                InstallPackage(apkPath, reinstall, grantRuntimePermissions, null, null, ct);
+                                await InstallPackageAsync(apkPath, reinstall, grantRuntimePermissions, null, null, ct);
                                 break;
                             }
                             case "uninstall":
@@ -1585,10 +1604,10 @@ public partial class AdbService
                                     throw new InvalidOperationException(
                                         $"Wrong number of arguments in adb uninstall command: expected 1, got {adbArgs.Count}");
                                 var packageName = adbArgs.First();
-                                CreateBackup(packageName, new BackupOptions(), ct);
+                                await CreateBackupAsync(packageName, new BackupOptions(), ct);
                                 try
                                 {
-                                    UninstallPackageInternal(packageName);
+                                    await UninstallPackageInternalAsync(packageName);
                                 }
                                 catch (PackageNotFoundException)
                                 {
@@ -1604,9 +1623,9 @@ public partial class AdbService
                                 var source = Path.Combine(gamePath, adbArgs[0]);
                                 var destination = adbArgs[1];
                                 if (Directory.Exists(source))
-                                    PushDirectory(source, destination, ct: ct);
+                                    await PushDirectoryAsync(source, destination, ct: ct);
                                 else if (File.Exists(source))
-                                    PushFile(source, destination, null, ct);
+                                    await PushFileAsync(source, destination, null, ct);
                                 else
                                     Log.Information("Local path {Path} doesn't exist", source);
                                 break;
@@ -1618,10 +1637,10 @@ public partial class AdbService
                                         $"Wrong number of arguments in adb pull command: expected 2, got {adbArgs.Count}");
                                 var source = adbArgs[0];
                                 var destination = Path.Combine(gamePath, adbArgs[1]);
-                                if (RemoteDirectoryExists(source))
-                                    PullDirectory(source, destination, ct: ct);
-                                else if (RemoteFileExists(source))
-                                    PullFile(source, destination, ct);
+                                if (await RemoteDirectoryExistsAsync(source))
+                                    await PullDirectoryAsync(source, destination, ct: ct);
+                                else if (await RemoteFileExistsAsync(source))
+                                    await PullFileAsync(source, destination, ct);
                                 else
                                     Log.Information("Remote path {Path} doesn't exist", source);
                                 break;
@@ -1635,10 +1654,10 @@ public partial class AdbService
                                         throw new InvalidOperationException(
                                             $"Wrong number of arguments in adb shell pm uninstall command: expected 3, got {adbArgs.Count}");
                                     var packageName = adbArgs[2];
-                                    CreateBackup(packageName, new BackupOptions(), ct);
+                                    await CreateBackupAsync(packageName, new BackupOptions(), ct);
                                     try
                                     {
-                                        UninstallPackageInternal(packageName);
+                                        await UninstallPackageInternalAsync(packageName);
                                     }
                                     catch (PackageNotFoundException)
                                     {
@@ -1648,7 +1667,7 @@ public partial class AdbService
                                 }
 
                                 var shellCommand = string.Join(" ", adbArgs);
-                                RunShellCommand(shellCommand, true);
+                                await RunShellCommandAsync(shellCommand, true);
                                 break;
                             }
                             default:
@@ -1672,21 +1691,21 @@ public partial class AdbService
         /// </summary>
         /// <param name="packageName">Package name to clean.</param>
         /// <exception cref="ArgumentException">Thrown if <paramref name="packageName" /> is invalid.</exception>
-        private void CleanupRemnants(string? packageName)
+        private async Task CleanupRemnantsAsync(string? packageName)
         {
             EnsureValidPackageName(packageName);
             try
             {
                 try
                 {
-                    UninstallPackageInternal(packageName, true);
+                    await UninstallPackageInternalAsync(packageName, true);
                 }
                 catch
                 {
                     // ignored
                 }
 
-                RunShellCommand(
+                await RunShellCommandAsync(
                     $"rm -r /sdcard/Android/data/{packageName}/; rm -r /sdcard/Android/obb/{packageName}/");
             }
             catch (Exception e)
@@ -1697,7 +1716,7 @@ public partial class AdbService
         }
 
         /// <summary>
-        /// Wrapper around <see cref="InstallPackageInternal"/> that handles some common installation errors.
+        /// Wrapper around <see cref="InstallPackageInternalAsync"/> that handles some common installation errors.
         /// </summary>
         /// <param name="apkPath">Path to APK file.</param>
         /// <param name="reinstall">Set reinstall flag for pm.</param>
@@ -1705,7 +1724,7 @@ public partial class AdbService
         /// <param name="observer">An optional parameter for install status notifications.</param>
         /// <param name="progress">An optional parameter which, when specified, returns progress notifications. The progress is reported as a value between 0 and 100.</param>
         /// <param name="ct">Cancellation token.</param>
-        private void InstallPackage(string apkPath, bool reinstall, bool grantRuntimePermissions,
+        private async Task InstallPackageAsync(string apkPath, bool reinstall, bool grantRuntimePermissions,
             IObserver<(string status, string? progress)>? observer = default,
             Progress<int>? progress = default,
             CancellationToken ct = default)
@@ -1715,7 +1734,7 @@ public partial class AdbService
                 observer?.OnNext((Resources.InstallingApk, null));
                 progress ??= new Progress<int>();
                 progress.ProgressChanged += (_, args) => { observer?.OnNext((Resources.InstallingApk, args + "%")); };
-                InstallPackageInternal(apkPath, reinstall, grantRuntimePermissions, progress, ct);
+                await InstallPackageInternalAsync(apkPath, reinstall, grantRuntimePermissions, progress, ct);
             }
             catch (PackageInstallationException e)
             {
@@ -1724,18 +1743,18 @@ public partial class AdbService
                 {
                     observer?.OnNext((Resources.IncompatibleUpdateReinstalling, null));
                     Log.Information("Incompatible update, reinstalling. Reason: {Message}", e.Message);
-                    var apkInfo = GeneralUtils.GetApkInfoAsync(apkPath).ConfigureAwait(false).GetAwaiter().GetResult();
-                    var backup = CreateBackup(apkInfo.PackageName, new BackupOptions {NameAppend = "reinstall"},
+                    var apkInfo = await GeneralUtils.GetApkInfoAsync(apkPath);
+                    var backup = await CreateBackupAsync(apkInfo.PackageName, new BackupOptions {NameAppend = "reinstall"},
                         ct);
-                    UninstallPackageInternal(apkInfo.PackageName);
+                    await UninstallPackageInternalAsync(apkInfo.PackageName);
                     progress ??= new Progress<int>();
                     progress.ProgressChanged += (_, args) =>
                     {
                         observer?.OnNext((Resources.IncompatibleUpdateReinstalling, args + "%"));
                     };
-                    InstallPackageInternal(apkPath, false, true, progress, ct);
+                    await InstallPackageInternalAsync(apkPath, false, true, progress, ct);
                     if (backup is not null)
-                        RestoreBackup(backup);
+                        await RestoreBackupAsync(backup);
                 }
                 else
                 {
@@ -1753,7 +1772,7 @@ public partial class AdbService
         /// <param name="progress">An optional parameter which, when specified, returns progress notifications. The progress is reported as a value between 0 and 100.</param>
         /// <param name="ct">Cancellation token.</param>
         /// <remarks>Legacy install method is used to avoid rare hang issues.</remarks>
-        private void InstallPackageInternal(string apkPath, bool reinstall, bool grantRuntimePermissions,
+        private async Task InstallPackageInternalAsync(string apkPath, bool reinstall, bool grantRuntimePermissions,
             IProgress<int>? progress = default,
             CancellationToken ct = default)
         {
@@ -1794,9 +1813,7 @@ public partial class AdbService
                     args.Add("-r");
                 if (grantRuntimePermissions)
                     args.Add("-g");
-                var isCancelled = false;
-                ct.Register(() => isCancelled = true);
-                PackageManager.InstallPackage(apkPath, isCancelled, args.ToArray());
+                await PackageManager.InstallPackageAsync(apkPath, ct, args.ToArray());
                 Log.Information("Package {ApkFileName} installed", Path.GetFileName(apkPath));
             }
             finally
@@ -1810,17 +1827,17 @@ public partial class AdbService
         /// </summary>
         /// <param name="packageName">Package name to uninstall.</param>
         /// <exception cref="ArgumentException">Thrown if <c>packageName</c> is null.</exception>
-        public void UninstallPackage(string? packageName)
+        public async Task UninstallPackageAsync(string? packageName)
         {
             EnsureValidPackageName(packageName);
             try
             {
-                UninstallPackageInternal(packageName);
+                await UninstallPackageInternalAsync(packageName);
             }
             finally
             {
-                CleanupRemnants(packageName);
-                OnPackageListChanged();
+                await CleanupRemnantsAsync(packageName);
+                await OnPackageListChangedAsync();
             }
         }
 
@@ -1830,19 +1847,19 @@ public partial class AdbService
         /// <param name="packageName">Package name to uninstall.</param>
         /// <param name="silent">Don't send log messages.</param>
         /// <exception cref="PackageNotFoundException">Thrown if package is not installed.</exception>
-        private void UninstallPackageInternal(string? packageName, bool silent = false)
+        private async Task UninstallPackageInternalAsync(string? packageName, bool silent = false)
         {
             EnsureValidPackageName(packageName);
             try
             {
                 if (!silent)
                     Log.Information("Uninstalling package {PackageName}", packageName);
-                _adb.AdbClient.UninstallPackage(this, packageName!);
+                await _adb.AdbClient.UninstallPackageAsync(this, packageName!);
             }
             catch (PackageInstallationException e)
             {
                 if (e.Message.Contains("DELETE_FAILED_INTERNAL_ERROR") && string.IsNullOrWhiteSpace(
-                        RunShellCommand($"pm list packages | grep -w ^package:{Regex.Escape(packageName!)}$")))
+                        await RunShellCommandAsync($"pm list packages | grep -w ^package:{Regex.Escape(packageName!)}$")))
                 {
                     if (!silent)
                         Log.Warning("Package {PackageName} is not installed", packageName);
@@ -1852,8 +1869,8 @@ public partial class AdbService
                 if (!e.Message.Contains("DELETE_FAILED_DEVICE_POLICY_MANAGER")) throw;
                 Log.Information("Package {PackageName} is protected by device policy, trying to force uninstall",
                     packageName);
-                RunShellCommand("pm disable-user " + packageName, true);
-                _adb.AdbClient.UninstallPackage(this, packageName!);
+                await RunShellCommandAsync("pm disable-user " + packageName, true);
+                await _adb.AdbClient.UninstallPackageAsync(this, packageName!);
             }
         }
 
@@ -1861,22 +1878,22 @@ public partial class AdbService
         ///     Enables Wireless ADB using tcpip mode.
         /// </summary>
         /// <returns>Host IP address.</returns>
-        public string EnableWirelessAdb()
+        public async Task<string> EnableWirelessAdbAsync()
         {
             const int port = 5555;
-            ApplyWirelessFix();
-            var ipRouteOutput = RunShellCommand("ip route");
+            await ApplyWirelessFixAsync();
+            var ipRouteOutput = await RunShellCommandAsync("ip route");
             var ipAddress = IpAddressRegex().Match(ipRouteOutput).Groups[1].ToString();
-            _adb.AdbClient.TcpIp(this, port);
+            await _adb.AdbClient.TcpIpAsync(this, port);
             return ipAddress;
         }
 
         /// <summary>
         ///     Applies settings fixes to make wireless ADB more stable.
         /// </summary>
-        private void ApplyWirelessFix()
+        private async Task ApplyWirelessFixAsync()
         {
-            RunShellCommand(
+            await RunShellCommandAsync(
                 "settings put global wifi_wakeup_available 1 " +
                 "&& settings put global wifi_wakeup_enabled 1 " +
                 "&& settings put global wifi_sleep_policy 2 " +
@@ -1893,7 +1910,7 @@ public partial class AdbService
         /// <param name="options"><see cref="BackupOptions"/> to configure backup.</param>
         /// <param name="ct">Cancellation token.</param>
         /// <returns>Path to backup, or <c>null</c> if nothing was backed up.</returns>
-        public Backup? CreateBackup(string packageName, BackupOptions options, CancellationToken ct = default)
+        public async Task<Backup?> CreateBackupAsync(string packageName, BackupOptions options, CancellationToken ct = default)
         {
             EnsureValidPackageName(packageName);
             Log.Information("Backing up {PackageName}", packageName);
@@ -1910,7 +1927,7 @@ public partial class AdbService
             var sharedDataBackupPath = Path.Combine(backupPath, "data");
             var privateDataBackupPath = Path.Combine(backupPath, "data_private");
             var obbBackupPath = Path.Combine(backupPath, "obb");
-            var apkPath = ApkPathRegex().Match(RunShellCommand($"pm path {packageName}")).Groups[1]
+            var apkPath = ApkPathRegex().Match(await RunShellCommandAsync($"pm path {packageName}")).Groups[1]
                 .ToString();
             Directory.CreateDirectory(backupPath);
             var backupEmpty = true;
@@ -1919,21 +1936,21 @@ public partial class AdbService
                 if (options.BackupData)
                 {
                     Log.Debug("Backing up private data");
-                    if (RemoteDirectoryExists("/sdcard/backup_tmp/"))
+                    if (await RemoteDirectoryExistsAsync("/sdcard/backup_tmp/"))
                     {
                         Log.Information("Found old backup_tmp directory on device, deleting");
-                        RunShellCommand("rm -r /sdcard/backup_tmp/", true);
+                        await RunShellCommandAsync("rm -r /sdcard/backup_tmp/", true);
                     }
 
                     Directory.CreateDirectory(privateDataBackupPath);
-                    RunShellCommand(
+                    await RunShellCommandAsync(
                         $"mkdir -p /sdcard/backup_tmp/{packageName}/; " +
                         // piping files through tar because run-as <package_name> has weird permissions
                         $"run-as {packageName} tar -cf - -C {privateDataPath} . | tar -xvf - -C /sdcard/backup_tmp/{packageName}/",
                         true);
-                    PullDirectory($"/sdcard/backup_tmp/{packageName}/", privateDataBackupPath,
+                    await PullDirectoryAsync($"/sdcard/backup_tmp/{packageName}/", privateDataBackupPath,
                         new List<string> {"cache", "code_cache"}, ct);
-                    RunShellCommand("rm -rf /sdcard/backup_tmp/", true);
+                    await RunShellCommandAsync("rm -rf /sdcard/backup_tmp/", true);
                     var privateDataHasFiles = Directory.EnumerateFiles(privateDataBackupPath, "*",
                         SearchOption.AllDirectories).Any();
                     if (!privateDataHasFiles)
@@ -1943,12 +1960,12 @@ public partial class AdbService
                     }
 
                     backupEmpty = backupEmpty && !privateDataHasFiles;
-                    if (RemoteDirectoryExists(sharedDataPath))
+                    if (await RemoteDirectoryExistsAsync(sharedDataPath))
                     {
                         backupEmpty = false;
                         Log.Debug("Backing up shared data");
                         Directory.CreateDirectory(sharedDataBackupPath);
-                        PullDirectory(sharedDataPath, sharedDataBackupPath, new List<string> {"cache"}, ct);
+                        await PullDirectoryAsync(sharedDataPath, sharedDataBackupPath, new List<string> {"cache"}, ct);
                     }
                 }
 
@@ -1956,20 +1973,20 @@ public partial class AdbService
                 {
                     backupEmpty = false;
                     Log.Debug("Backing up APK");
-                    PullFile(apkPath, backupPath, ct);
+                    await PullFileAsync(apkPath, backupPath, ct);
                 }
 
-                if (options.BackupObb && RemoteDirectoryExists(obbPath))
+                if (options.BackupObb && await RemoteDirectoryExistsAsync(obbPath))
                 {
                     backupEmpty = false;
                     Log.Debug("Backing up OBB");
                     Directory.CreateDirectory(obbBackupPath);
-                    PullDirectory(obbPath, obbBackupPath, ct: ct);
+                    await PullDirectoryAsync(obbPath, obbBackupPath, ct: ct);
                 }
 
                 if (!backupEmpty)
                 {
-                    File.Create(Path.Combine(backupPath, ".backup")).Dispose();
+                    await File.Create(Path.Combine(backupPath, ".backup")).DisposeAsync();
                     //var json = JsonConvert.SerializeObject(game);
                     //File.WriteAllText("game.json", json);
                     Log.Information("Backup of {PackageName} created", packageName);
@@ -1991,7 +2008,7 @@ public partial class AdbService
             {
                 Log.Information("Cleaning up cancelled backup");
                 if (options.BackupData)
-                    RunShellCommand("rm -r /sdcard/backup_tmp/", true);
+                    await RunShellCommandAsync("rm -r /sdcard/backup_tmp/", true);
                 if (Directory.Exists(backupPath))
                     Directory.Delete(backupPath, true);
                 throw;
@@ -2004,7 +2021,7 @@ public partial class AdbService
         /// <param name="backup">Backup to restore.</param>
         /// <exception cref="DirectoryNotFoundException">Thrown if backup directory doesn't exist.</exception>
         /// <exception cref="ArgumentException">Thrown if backup is invalid.</exception>
-        public void RestoreBackup(Backup backup)
+        public async Task RestoreBackupAsync(Backup backup)
         {
             Log.Information("Restoring backup from {BackupPath}", backup.Path);
             var sharedDataBackupPath = Path.Combine(backup.Path, "data");
@@ -2017,20 +2034,20 @@ public partial class AdbService
                 var apkPath = Directory.EnumerateFiles(backup.Path, "*.apk", SearchOption.TopDirectoryOnly)
                     .FirstOrDefault();
                 Log.Debug("Restoring APK {ApkName}", Path.GetFileName(apkPath));
-                InstallPackage(apkPath!, true, true);
+                await InstallPackageAsync(apkPath!, true, true);
                 restoredApk = true;
             }
 
             if (backup.HasObb)
             {
                 Log.Debug("Restoring OBB");
-                PushDirectory(Directory.EnumerateDirectories(obbBackupPath).First(), "/sdcard/Android/obb/", true);
+                await PushDirectoryAsync(Directory.EnumerateDirectories(obbBackupPath).First(), "/sdcard/Android/obb/", true);
             }
 
             if (backup.HasSharedData)
             {
                 Log.Debug("Restoring shared data");
-                PushDirectory(Directory.EnumerateDirectories(sharedDataBackupPath).First(), "/sdcard/Android/data/",
+                await PushDirectoryAsync(Directory.EnumerateDirectories(sharedDataBackupPath).First(), "/sdcard/Android/data/",
                     true);
             }
 
@@ -2041,9 +2058,9 @@ public partial class AdbService
                 if (packageName is not null)
                 {
                     Log.Debug("Restoring private data");
-                    RunShellCommand("mkdir /sdcard/restore_tmp/", true);
-                    PushDirectory(Path.Combine(privateDataBackupPath, packageName), "/sdcard/restore_tmp/");
-                    RunShellCommand(
+                    await RunShellCommandAsync("mkdir /sdcard/restore_tmp/", true);
+                    await PushDirectoryAsync(Path.Combine(privateDataBackupPath, packageName), "/sdcard/restore_tmp/");
+                    await RunShellCommandAsync(
                         // piping files through tar because run-as <package_name> has weird permissions
                         $"tar -cf - -C /sdcard/restore_tmp/{packageName}/ . | run-as {packageName} tar -xvf - -C /data/data/{packageName}/; rm -rf /sdcard/restore_tmp/",
                         true);
@@ -2052,7 +2069,7 @@ public partial class AdbService
 
             Log.Information("Backup restored");
             if (!restoredApk) return;
-            OnPackageListChanged();
+            await OnPackageListChangedAsync();
         }
 
         /// <summary>
@@ -2062,7 +2079,7 @@ public partial class AdbService
         /// <param name="outputPath">Path to pull the app to.</param>
         /// <param name="ct">Cancellation token.</param>
         /// <returns>Path to the directory with pulled app.</returns>
-        public string PullApp(string packageName, string outputPath, CancellationToken ct = default)
+        public async Task<string> PullAppAsync(string packageName, string outputPath, CancellationToken ct = default)
         {
             EnsureValidPackageName(packageName);
             Log.Information("Pulling app {PackageName} from device", packageName);
@@ -2070,14 +2087,14 @@ public partial class AdbService
             if (Directory.Exists(path))
                 Directory.Delete(path, true);
             Directory.CreateDirectory(path);
-            var apkPath = ApkPathRegex().Match(RunShellCommand($"pm path {packageName}")).Groups[1]
+            var apkPath = ApkPathRegex().Match(await RunShellCommandAsync($"pm path {packageName}")).Groups[1]
                 .ToString();
             var localApkPath = Path.Combine(path, Path.GetFileName(apkPath));
             var obbPath = $"/sdcard/Android/obb/{packageName}/";
-            PullFile(apkPath, path, ct);
+            await PullFileAsync(apkPath, path, ct);
             File.Move(localApkPath, Path.Combine(path, packageName + ".apk"));
-            if (RemoteDirectoryExists(obbPath))
-                PullDirectory(obbPath, path, ct: ct);
+            if (await RemoteDirectoryExistsAsync(obbPath))
+                await PullDirectoryAsync(obbPath, path, ct: ct);
             return path;
         }
 
@@ -2094,14 +2111,14 @@ public partial class AdbService
                 throw new ArgumentException("Package name is not valid", nameof(packageName));
         }
 
-        private void CheckKeyMapper()
+        private async Task CheckKeyMapperAsync()
         {
             try
             {
-                if (RunShellCommand("getprop ro.build.version.release") != "12")
+                if (await RunShellCommandAsync("getprop ro.build.version.release") != "12")
                     return;
                 // PackageManager might be in a weird state, so just try to uninstall and catch 
-                UninstallPackageInternal("io.github.sds100.keymapper.debug", true);
+                await UninstallPackageInternalAsync("io.github.sds100.keymapper.debug", true);
                 Log.Information("Uninstalled KeyMapper");
             }
             catch (PackageNotFoundException)
@@ -2114,16 +2131,16 @@ public partial class AdbService
             }
         }
 
-        public bool TryFixDateTime()
+        public async Task<bool> TryFixDateTimeAsync()
         {
             // Set time
             var timeSinceEpoch = DateTimeOffset.Now.ToUnixTimeMilliseconds();
             Log.Information("Setting date and time on device to {TimeSinceEpoch}", timeSinceEpoch);
-            if (RunShellCommand($"service call alarm 2 i64 {timeSinceEpoch}", true) !=
+            if (await RunShellCommandAsync($"service call alarm 2 i64 {timeSinceEpoch}", true) !=
                 "Result: Parcel(00000000 00000001   '........')")
                 Log.Warning("Unexpected result when setting time");
             // Verify time
-            var time = long.Parse(RunShellCommand("date +%s%N | cut -b1-13", true));
+            var time = long.Parse(await RunShellCommandAsync("date +%s%N | cut -b1-13", true));
             var timeDiff = Math.Abs(time - timeSinceEpoch);
             if (timeDiff > 1000)
             {
@@ -2134,10 +2151,10 @@ public partial class AdbService
             // Set timezone
             var tzId = GeneralUtils.GetIanaTimeZoneId(TimeZoneInfo.Local);
             Log.Information("Setting timezone on device to {TzId}", tzId);
-            if (RunShellCommand($"service call alarm 3 s16 {tzId}", true) != "Result: Parcel(00000000    '....')")
+            if (await RunShellCommandAsync($"service call alarm 3 s16 {tzId}", true) != "Result: Parcel(00000000    '....')")
                 Log.Warning("Unexpected result when setting timezone");
             // Verify timezone
-            if (RunShellCommand("getprop persist.sys.timezone", true) != tzId)
+            if (await RunShellCommandAsync("getprop persist.sys.timezone", true) != tzId)
             {
                 Log.Error("Timezone verification failed");
                 return false;
@@ -2146,10 +2163,10 @@ public partial class AdbService
             return true;
         }
 
-        public void CleanLeftoverApks()
+        public async Task CleanLeftoverApksAsync()
         {
             Log.Debug("Cleaning leftover APKs");
-            RunShellCommand("rm -v /data/local/tmp/*.apk", true);
+            await RunShellCommandAsync("rm -v /data/local/tmp/*.apk", true);
         }
 
         [GeneratedRegex(@"src ([\d]{1,3}.[\d]{1,3}.[\d]{1,3}.[\d]{1,3})")]

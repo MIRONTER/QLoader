@@ -45,6 +45,7 @@ public class SettingsData : ReactiveObject
 
 
     // All properties and accessors must be public for JSON serialization
+    // ReSharper disable once UnusedMember.Global
     public static byte ConfigVersion => 1;
 
     [Reactive]
@@ -389,7 +390,7 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
 #else
     public bool IsConsoleToggleable { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 #endif*/
-    public bool IsConsoleToggleable => true;
+    public bool IsConsoleToggleable { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
     public bool IsUpdaterAvailable { get; } = Globals.Updater is not null;
     [Reactive] public List<string> MirrorList { get; private set; } = new();
     [Reactive] public string? SelectedMirror { get; set; }
@@ -550,7 +551,7 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
         });
     }
 
-    private IObservable<Unit> CheckUpdatesImpl()
+    private static IObservable<Unit> CheckUpdatesImpl()
     {
         return Observable.Start(() =>
         {
@@ -682,28 +683,28 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
             TimeSpan.FromSeconds(2));
     }
 
-    private IObservable<Unit> RescanDevicesImpl()
+    private static IObservable<Unit> RescanDevicesImpl()
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
             Log.Information("Manual device rescan requested");
             var adbService = AdbService.Instance;
             Globals.ShowNotification(Resources.Info, Resources.RescanningDevices, NotificationType.Information,
                 TimeSpan.FromSeconds(2));
-            adbService.RefreshDeviceList();
-            adbService.CheckDeviceConnection();
+            await adbService.RefreshDeviceListAsync();
+            await adbService.CheckDeviceConnectionAsync();
         });
     }
 
-    private IObservable<Unit> ReconnectDeviceImpl()
+    private static IObservable<Unit> ReconnectDeviceImpl()
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
             Log.Information("Device reconnect requested");
             try
             {
                 var adbService = AdbService.Instance;
-                if (adbService.CheckDeviceConnection())
+                if (await adbService.CheckDeviceConnectionAsync())
                 {
                     adbService.ReconnectDevice();
                     Globals.ShowNotification(Resources.Info, Resources.DeviceReconnectCompleted,
@@ -724,7 +725,7 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
         });
     }
 
-    private IObservable<Unit> RestartAdbServerImpl()
+    private static IObservable<Unit> RestartAdbServerImpl()
     {
         return Observable.Start(() =>
         {
@@ -735,12 +736,12 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
             Task.Run(async () =>
             {
                 await adbService.RestartAdbServerAsync();
-                adbService.CheckDeviceConnection();
+                await adbService.CheckDeviceConnectionAsync();
             });
         });
     }
 
-    private IObservable<Unit> ResetAdbKeysImpl()
+    private static IObservable<Unit> ResetAdbKeysImpl()
     {
         return Observable.Start(() =>
         {
@@ -751,7 +752,7 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
         });
     }
 
-    private IObservable<Unit> ForceCleanupPackageImpl()
+    private static IObservable<Unit> ForceCleanupPackageImpl()
     {
         return Observable.Start(() =>
         {
@@ -761,15 +762,15 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
         });
     }
 
-    private IObservable<Unit> CleanLeftoverApksImpl()
+    private static IObservable<Unit> CleanLeftoverApksImpl()
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
             Log.Information("Cleanup of leftover APKs requested");
             var adbService = AdbService.Instance;
-            if (adbService.CheckDeviceConnection())
+            if (await adbService.CheckDeviceConnectionAsync())
             {
-                adbService.Device!.CleanLeftoverApks();
+                await adbService.Device!.CleanLeftoverApksAsync();
                 Globals.ShowNotification(Resources.Info, Resources.LeftoverApksCleanupCompleted,
                     NotificationType.Information,
                     TimeSpan.FromSeconds(2));
@@ -782,15 +783,15 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
         });
     }
 
-    private IObservable<Unit> FixDateTimeImpl()
+    private static IObservable<Unit> FixDateTimeImpl()
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
             Log.Information("Date and time fix requested");
             var adbService = AdbService.Instance;
-            if (adbService.CheckDeviceConnection())
+            if (await adbService.CheckDeviceConnectionAsync())
             {
-                if (!adbService.Device!.TryFixDateTime())
+                if (!await adbService.Device!.TryFixDateTimeAsync())
                     throw new Exception("Failed to set date and time on device");
                 Globals.ShowNotification(Resources.Info, Resources.DateTimeSet, NotificationType.Information,
                     TimeSpan.FromSeconds(2));

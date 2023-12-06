@@ -34,11 +34,6 @@ public static class ZipUtil
                 forcefulCts.Token, ct);
     }
 
-    public static void ExtractArchive(string archivePath, string? extractPath = null, CancellationToken ct = default)
-    {
-        ExtractArchiveAsync(archivePath, extractPath, ct).Wait(ct);
-    }
-
     public static async Task<string> CreateArchiveAsync(string sourcePath, string destinationPath, string archiveName,
         CancellationToken ct = default)
     {

@@ -17,7 +17,7 @@ namespace QSideloader.Converters;
 /// </summary>
 public class BitmapImageFileValueConverter : IValueConverter
 {
-    public static BitmapImageFileValueConverter Instance = new();
+    public static readonly BitmapImageFileValueConverter Instance = new();
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {

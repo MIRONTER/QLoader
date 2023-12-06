@@ -28,7 +28,7 @@ public enum TaskResult
     PullMediaSuccess,
     UnknownError,
     NotEnoughDiskSpace,
-    NotEnoughDeviceSpace,
+    NotEnoughDeviceSpace
 }
 
 public static class TaskResultExtensions

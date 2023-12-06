@@ -65,9 +65,9 @@ public static class ApiClient
         }
     }
 
-    public static async Task<List<Dictionary<string, JsonElement>>?> GetDeadMirrorsAsync()
+    public static Task<List<Dictionary<string, JsonElement>>?> GetDeadMirrorsAsync()
     {
-        return await ApiHttpClient.GetFromJsonAsync<List<Dictionary<string, JsonElement>>>("mirrors?status=DOWN");
+        return ApiHttpClient.GetFromJsonAsync<List<Dictionary<string, JsonElement>>>("mirrors?status=DOWN");
     }
 
     /// <summary>

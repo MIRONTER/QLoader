@@ -6,6 +6,7 @@ using QSideloader.ViewModels;
 
 namespace QSideloader.Views;
 
+// ReSharper disable once UnusedType.Global
 public partial class TaskView : ReactiveUserControl<TaskViewModel>
 {
     public TaskView()

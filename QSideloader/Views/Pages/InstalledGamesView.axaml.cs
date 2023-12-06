@@ -15,6 +15,7 @@ using Serilog;
 
 namespace QSideloader.Views.Pages;
 
+// ReSharper disable once UnusedType.Global
 public partial class InstalledGamesView : ReactiveUserControl<InstalledGamesViewModel>
 {
     public InstalledGamesView()

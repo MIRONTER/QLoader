@@ -65,6 +65,6 @@ public partial class Backup : INotifyPropertyChanged
         Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.Restore, Backup = this});
     }
 
-    [GeneratedRegex("\\d{8}T\\d{6}")]
+    [GeneratedRegex(@"\d{8}T\d{6}")]
     private static partial Regex DateStringRegex();
 }

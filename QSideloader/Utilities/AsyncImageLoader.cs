@@ -13,7 +13,7 @@ public static class AsyncImageLoader
     public static readonly AttachedProperty<string?> SourceProperty =
         AvaloniaProperty.RegisterAttached<Image, string?>("Source", typeof(AsyncImageLoader));
 
-    public static readonly AttachedProperty<bool> IsLoadingProperty =
+    private static readonly AttachedProperty<bool> IsLoadingProperty =
         AvaloniaProperty.RegisterAttached<Image, bool>("IsLoading", typeof(AsyncImageLoader));
 
     static AsyncImageLoader()
@@ -23,14 +23,14 @@ public static class AsyncImageLoader
 
     private static BaseAsyncImageLoader Loader { get; } = new();
 
-    private static ConcurrentDictionary<Image, CancellationTokenSource> _pendingOperations = new();
+    private static readonly ConcurrentDictionary<Image, CancellationTokenSource> PendingOperations = new();
 
     private static async void OnSourceChanged(Image sender, AvaloniaPropertyChangedEventArgs args)
     {
         var url = args.GetNewValue<string?>();
 
         // Cancel/Add new pending operation
-        var cts = _pendingOperations.AddOrUpdate(sender, new CancellationTokenSource(),
+        var cts = PendingOperations.AddOrUpdate(sender, new CancellationTokenSource(),
             (_, y) =>
             {
                 y.Cancel();
@@ -39,7 +39,7 @@ public static class AsyncImageLoader
 
         if (url == null)
         {
-            ((ICollection<KeyValuePair<Image, CancellationTokenSource>>) _pendingOperations).Remove(
+            ((ICollection<KeyValuePair<Image, CancellationTokenSource>>) PendingOperations).Remove(
                 new KeyValuePair<Image, CancellationTokenSource>(sender, cts));
             sender.Source = null;
             return;
@@ -67,7 +67,7 @@ public static class AsyncImageLoader
             sender.Source = bitmap;
 
         // "It is not guaranteed to be thread safe by ICollection, but ConcurrentDictionary's implementation is. Additionally, we recently exposed this API for .NET 5 as a public ConcurrentDictionary.TryRemove"
-        ((ICollection<KeyValuePair<Image, CancellationTokenSource>>) _pendingOperations).Remove(
+        ((ICollection<KeyValuePair<Image, CancellationTokenSource>>) PendingOperations).Remove(
             new KeyValuePair<Image, CancellationTokenSource>(sender, cts));
         SetIsLoading(sender, false);
     }
@@ -87,6 +87,7 @@ public static class AsyncImageLoader
         return element.GetValue(IsLoadingProperty);
     }
 
+    // ReSharper disable once SuggestBaseTypeForParameter
     private static void SetIsLoading(Image element, bool value)
     {
         element.SetValue(IsLoadingProperty, value);

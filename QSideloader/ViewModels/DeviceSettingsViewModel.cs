@@ -51,9 +51,10 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
 
         this.WhenActivated(disposables =>
         {
-            Task.Run(OnActivated);
+            Task.Run(OnActivatedAsync).DisposeWith(disposables);
 
-            _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged).DisposeWith(disposables);
+            _adbService.WhenDeviceStateChanged.Subscribe(x => Task.Run(() => Task.FromResult(OnDeviceStateChangedAsync(x))))
+                .DisposeWith(disposables);
         });
     }
 
@@ -85,7 +86,7 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
     public ReactiveCommand<Unit, Unit> LaunchHiddenSettings { get; }
     public ViewModelActivator Activator { get; }
 
-    private void OnDeviceStateChanged(DeviceState state)
+    private async Task OnDeviceStateChangedAsync(DeviceState state)
     {
         switch (state)
         {
@@ -99,7 +100,7 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
 
                 try
                 {
-                    LoadCurrentSettings();
+                    await LoadCurrentSettingsAsync();
                 }
                 catch (Exception e)
                 {
@@ -114,10 +115,10 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
         }
     }
 
-    private void OnActivated()
+    private async Task OnActivatedAsync()
     {
-        if (_adbService.CheckDeviceConnectionSimple() || _adbService.CheckDeviceConnection())
-            OnDeviceStateChanged(DeviceState.Online);
+        if (_adbService.CheckDeviceConnectionSimple() || await _adbService.CheckDeviceConnectionAsync())
+            await OnDeviceStateChangedAsync(DeviceState.Online);
         else
             IsDeviceConnected = false;
     }
@@ -161,22 +162,22 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
         }
     }
 
-    private void LoadCurrentSettings()
+    private async Task LoadCurrentSettingsAsync()
     {
         Log.Debug("Loading device settings");
 #pragma warning disable CA1806
-        int.TryParse(_adbService.Device!.RunShellCommand("getprop debug.oculus.refreshRate"),
+        int.TryParse(await _adbService.Device!.RunShellCommandAsync("getprop debug.oculus.refreshRate"),
             out var refreshRate);
-        int.TryParse(_adbService.Device!.RunShellCommand("getprop debug.oculus.gpuLevel"),
+        int.TryParse(await _adbService.Device!.RunShellCommandAsync("getprop debug.oculus.gpuLevel"),
             out var gpuLevel);
-        int.TryParse(_adbService.Device!.RunShellCommand("getprop debug.oculus.cpuLevel"),
+        int.TryParse(await _adbService.Device!.RunShellCommandAsync("getprop debug.oculus.cpuLevel"),
             out var cpuLevel);
-        int.TryParse(_adbService.Device!.RunShellCommand("getprop debug.oculus.textureWidth"),
+        int.TryParse(await _adbService.Device!.RunShellCommandAsync("getprop debug.oculus.textureWidth"),
             out var textureWidth);
-        int.TryParse(_adbService.Device!.RunShellCommand("getprop debug.oculus.textureHeight"),
+        int.TryParse(await _adbService.Device!.RunShellCommandAsync("getprop debug.oculus.textureHeight"),
             out var textureHeight);
 #pragma warning restore CA1806
-        var currentUsername = _adbService.Device.RunShellCommand("settings get global username");
+        var currentUsername = await _adbService.Device!.RunShellCommandAsync("settings get global username");
         Dispatcher.UIThread.InvokeAsync(() =>
         {
             if (refreshRate != 0)
@@ -245,9 +246,9 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
     // TODO: too many conditions, see if this can be simplified
     private IObservable<Unit> ApplySettingsImpl()
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
-            if (!_adbService.CheckDeviceConnection())
+            if (!await _adbService.CheckDeviceConnectionAsync())
             {
                 Log.Warning("DeviceSettingsViewModel.ApplySettingsImpl: no device connection!");
                 IsDeviceConnected = false;
@@ -259,14 +260,14 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
             {
                 if (SelectedRefreshRate.Contains("Auto") && CurrentRefreshRate is not null)
                 {
-                    _adbService.Device!.RunShellCommand(
+                    await _adbService.Device!.RunShellCommandAsync(
                         "setprop debug.oculus.refreshRate \"\"", true);
                     CurrentRefreshRate = null;
                     Log.Information("Reset refresh rate to Auto");
                 }
                 else if (int.TryParse(SelectedRefreshRate, out var refreshRate))
                 {
-                    _adbService.Device!.RunShellCommand(
+                    await _adbService.Device!.RunShellCommandAsync(
                         $"setprop debug.oculus.refreshRate {refreshRate}", true);
                     CurrentRefreshRate = SelectedRefreshRate;
                     Log.Information("Set refresh rate: {RefreshRate} Hz", refreshRate);
@@ -277,14 +278,14 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
             {
                 if (SelectedGpuLevel.Contains("Auto") && CurrentGpuLevel is not null)
                 {
-                    _adbService.Device!.RunShellCommand(
+                    await _adbService.Device!.RunShellCommandAsync(
                         "setprop debug.oculus.gpuLevel \"\"", true);
                     CurrentGpuLevel = null;
                     Log.Information("Reset GPU level to Auto");
                 }
                 else if (int.TryParse(SelectedGpuLevel, out var gpuLevel))
                 {
-                    _adbService.Device!.RunShellCommand(
+                    await _adbService.Device!.RunShellCommandAsync(
                         $"setprop debug.oculus.gpuLevel {gpuLevel}", true);
                     CurrentGpuLevel = SelectedGpuLevel;
                     Log.Information("Set GPU level: {GpuLevel}", gpuLevel);
@@ -295,14 +296,14 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
             {
                 if (SelectedCpuLevel.Contains("Auto") && CurrentCpuLevel is not null)
                 {
-                    _adbService.Device!.RunShellCommand(
+                    await _adbService.Device!.RunShellCommandAsync(
                         "setprop debug.oculus.cpuLevel \"\"", true);
                     CurrentCpuLevel = null;
                     Log.Information("Reset CPU level to Auto");
                 }
                 else if (int.TryParse(SelectedCpuLevel, out var cpuLevel))
                 {
-                    _adbService.Device!.RunShellCommand(
+                    await _adbService.Device!.RunShellCommandAsync(
                         $"setprop debug.oculus.cpuLevel {cpuLevel}", true);
                     CurrentCpuLevel = SelectedCpuLevel;
                     Log.Information("Set CPU level: {CpuLevel}", cpuLevel);
@@ -313,9 +314,9 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
             {
                 if (SelectedTextureSize.Contains("Auto") && CurrentTextureSize is not null)
                 {
-                    _adbService.Device!.RunShellCommand(
+                    await _adbService.Device!.RunShellCommandAsync(
                         "setprop debug.oculus.textureWidth \"\"", true);
-                    _adbService.Device.RunShellCommand(
+                    await _adbService.Device!.RunShellCommandAsync(
                         "setprop debug.oculus.textureHeight \"\"", true);
                     CurrentTextureSize = null;
                     Log.Information("Reset texture resolution to Auto");
@@ -323,8 +324,8 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
                 else if (!SelectedTextureSize.Contains("Auto"))
                 {
                     ResolutionValueToDimensions(SelectedTextureSize, out var width, out var height);
-                    _adbService.Device!.RunShellCommand($"setprop debug.oculus.textureWidth {width}", true);
-                    _adbService.Device.RunShellCommand($"setprop debug.oculus.textureHeight {height}", true);
+                    await _adbService.Device!.RunShellCommandAsync($"setprop debug.oculus.textureWidth {width}", true);
+                    await _adbService.Device!.RunShellCommandAsync($"setprop debug.oculus.textureHeight {height}", true);
                     CurrentTextureSize = SelectedTextureSize;
                     Log.Information("Set texture resolution Width:{Width} Height:{Height}", width, height);
                 }
@@ -334,12 +335,12 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
             {
                 if (string.IsNullOrEmpty(UsernameTextBoxText) && CurrentUsername is not null)
                 {
-                    _adbService.Device!.RunShellCommand("settings put global username null");
+                    await _adbService.Device!.RunShellCommandAsync("settings put global username null");
                     Log.Information("Reset username");
                 }
                 else if (IsValidUsername(UsernameTextBoxText))
                 {
-                    _adbService.Device!.RunShellCommand($"settings put global username {UsernameTextBoxText}");
+                    await _adbService.Device!.RunShellCommandAsync($"settings put global username {UsernameTextBoxText}");
                     Log.Information("Set username");
                 }
             }
@@ -405,16 +406,16 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
 
     private IObservable<Unit> MountStorageImpl()
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
-            if (!_adbService.CheckDeviceConnection())
+            if (!await _adbService.CheckDeviceConnectionAsync())
             {
                 Log.Warning("DeviceSettingsViewModel.MountStorageImpl: no device connection!");
                 IsDeviceConnected = false;
                 return;
             }
 
-            _adbService.Device!.RunShellCommand("svc usb setFunctions mtp true", true);
+            await _adbService.Device!.RunShellCommandAsync("svc usb setFunctions mtp true", true);
             Log.Information("Mounted device storage");
             Globals.ShowNotification(Resources.Info, Resources.DeviceStorageMounted, NotificationType.Success,
                 TimeSpan.FromSeconds(2));
@@ -423,16 +424,16 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
 
     private IObservable<Unit> LaunchHiddenSettingsImpl()
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
-            if (!_adbService.CheckDeviceConnection())
+            if (!await _adbService.CheckDeviceConnectionAsync())
             {
                 Log.Warning("DeviceSettingsViewModel.LaunchHiddenSettingsImpl: no device connection!");
                 IsDeviceConnected = false;
                 return;
             }
 
-            _adbService.Device!.RunShellCommand(
+            await _adbService.Device!.RunShellCommandAsync(
                 "am start -a android.intent.action.VIEW -d com.oculus.tv -e uri com.android.settings/.DevelopmentSettings com.oculus.vrshell/.MainActivity",
                 true);
             Log.Information("Launched hidden settings");

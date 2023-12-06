@@ -3,6 +3,7 @@ using QSideloader.ViewModels;
 
 namespace QSideloader.Views.Pages;
 
+// ReSharper disable once UnusedType.Global
 public partial class GameDonationView : ReactiveUserControl<InstalledAppsViewModel>
 {
     public GameDonationView()

@@ -136,8 +136,8 @@ public static partial class LoggerHelper
 
     private static bool ShouldLogFirstChanceException(Exception e)
     {
-        return !((e.StackTrace is not null && e.StackTrace.Contains("GetRcloneDownloadStats"))
-                 || e.Message.Contains($"127.0.0.1:")
+        return !(e.StackTrace is not null && e.StackTrace.Contains("GetRcloneDownloadStats")
+                 || e.Message.Contains("127.0.0.1:")
                  || e.Message.Contains("does not contain a definition for 'bytes'")
                  || e.Message.Contains("does not contain a definition for 'speed'"));
     }

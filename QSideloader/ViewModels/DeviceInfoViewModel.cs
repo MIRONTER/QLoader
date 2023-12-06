@@ -42,8 +42,11 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
                 .DistinctUntilChanged()
                 .Subscribe(x =>
                 {
-                    _adbService.TrySwitchDevice(x!);
-                    RefreshDeviceSelection();
+                    Task.Run(async () =>
+                    {
+                        await _adbService.TrySwitchDeviceAsync(x!);
+                        RefreshDeviceSelection();
+                    });
                 }).DisposeWith(disposables);
         });
     }
@@ -102,14 +105,14 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> RefreshImpl()
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
             // Check whether refresh is already in running
             if (RefreshSemaphoreSlim.CurrentCount == 0) return;
-            RefreshSemaphoreSlim.Wait();
+            await RefreshSemaphoreSlim.WaitAsync();
             try
             {
-                RefreshDeviceInfo();
+                await RefreshDeviceInfoAsync();
                 RefreshProps();
             }
             finally
@@ -121,7 +124,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task EnableWirelessAdbImpl()
     {
-        if (!_adbService.CheckDeviceConnection())
+        if (!await _adbService.CheckDeviceConnectionAsync())
         {
             Log.Warning("DeviceInfoViewModel.EnableWirelessAdbImpl: no device connection!");
             OnDeviceOffline();
@@ -133,9 +136,9 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         Observable.Timer(TimeSpan.FromSeconds(5)).Subscribe(_ => IsDeviceSwitchEnabled = true);
     }
 
-    private void RefreshDeviceInfo()
+    private async Task RefreshDeviceInfoAsync()
     {
-        if (!_adbService.CheckDeviceConnection())
+        if (!await _adbService.CheckDeviceConnectionAsync())
         {
             Log.Warning("DeviceInfoViewModel.RefreshDeviceInfo: no device connection!");
             OnDeviceOffline();
@@ -145,7 +148,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         IsDeviceConnected = true;
         SetRefreshTimerState(true);
         IsDeviceWireless = _adbService.Device!.IsWireless;
-        _adbService.Device.RefreshInfo();
+        await _adbService.Device.RefreshInfoAsync();
     }
 
     private void RefreshProps()

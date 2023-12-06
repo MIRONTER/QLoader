@@ -90,7 +90,7 @@ public partial class MainWindowViewModel : ViewModelBase
             });
         });
         TryInstallTrailersAddon();
-        IsDeviceConnected = _adbService.CheckDeviceConnection();
+        Task.Run(async () => IsDeviceConnected = await _adbService.CheckDeviceConnectionAsync());
     }
 
     public INotificationManager? NotificationManager { get; set; }
@@ -444,7 +444,7 @@ public partial class MainWindowViewModel : ViewModelBase
                         },
                         CloseButtonText = Resources.CloseButton,
                         PrimaryButtonText = Resources.CopyLinkButton,
-                        PrimaryButtonCommand = ReactiveCommand.Create(async () => { await CopyLink(text); }),
+                        PrimaryButtonCommand = ReactiveCommand.Create(() => CopyLinkAsync(text)),
                         SecondaryButtonText = Resources.CopyToClipboardButton,
                         SecondaryButtonCommand = ReactiveCommand.Create(async () =>
                         {
@@ -458,7 +458,7 @@ public partial class MainWindowViewModel : ViewModelBase
         });
     }
 
-    private async Task CopyLink(string text)
+    private async Task CopyLinkAsync(string text)
     {
         try
         {
@@ -543,10 +543,10 @@ public partial class MainWindowViewModel : ViewModelBase
                         Log.Information("Force connection check requested");
                         ShowNotification(Resources.Info, Resources.RescanningDevices,
                             NotificationType.Information, TimeSpan.FromSeconds(2));
-                        Task.Run(() => _adbService.CheckDeviceConnection());
+                        Task.Run(async () => await _adbService.CheckDeviceConnectionAsync());
                     }),
                     SecondaryButtonText = "adb devices",
-                    SecondaryButtonCommand = ReactiveCommand.Create(async () => { await ShowAdbDevicesDialogAsync(); })
+                    SecondaryButtonCommand = ReactiveCommand.Create(ShowAdbDevicesDialogAsync)
                 };
                 dialog.ShowAsync();
             });
@@ -582,7 +582,7 @@ public partial class MainWindowViewModel : ViewModelBase
                         NotificationType.Success);
                 }),
                 SecondaryButtonText = Resources.ReloadButton,
-                SecondaryButtonCommand = ReactiveCommand.Create(async () => { await ShowAdbDevicesDialogAsync(); })
+                SecondaryButtonCommand = ReactiveCommand.Create(ShowAdbDevicesDialogAsync)
             };
             dialog.ShowAsync();
         });
@@ -605,7 +605,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task RunAutoDonation()
     {
-        if (!_sideloaderSettings.EnableAutoDonation || !_adbService.CheckDeviceConnection()) return;
+        if (!_sideloaderSettings.EnableAutoDonation || !await _adbService.CheckDeviceConnectionAsync()) return;
         await _downloaderService.EnsureMetadataAvailableAsync();
         Log.Debug("Running auto donation");
         await Dispatcher.UIThread.InvokeAsync(() =>
@@ -625,6 +625,6 @@ public partial class MainWindowViewModel : ViewModelBase
         });
     }
 
-    [GeneratedRegex("[^\\w\\d\\s\\p{P}]")]
+    [GeneratedRegex(@"[^\w\d\s\p{P}]")]
     private static partial Regex CleanStringRegex();
 }

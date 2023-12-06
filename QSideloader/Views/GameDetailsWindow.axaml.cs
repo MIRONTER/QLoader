@@ -10,6 +10,7 @@ namespace QSideloader.Views;
 
 public partial class GameDetailsWindow : ReactiveWindow<GameDetailsViewModel>
 {
+    // ReSharper disable once UnusedMember.Global
     public GameDetailsWindow()
     {
         InitializeComponent();

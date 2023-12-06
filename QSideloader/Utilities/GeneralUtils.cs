@@ -83,7 +83,7 @@ public static partial class GeneralUtils
                 if (useCompatOnWindows)
                     return GetHwidCompat();
                 var regKey =
-                    Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Cryptography", false);
+                    Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography", false);
                 var regValue = regKey?.GetValue("MachineGuid") ??
                                throw new InvalidOperationException("Failed to get HWID");
                 hwid = regValue.ToString();

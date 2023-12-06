@@ -6,6 +6,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using AdvancedSharpAdbClient.Models;
 using Avalonia.Controls.Notifications;
 using Avalonia.Threading;
@@ -72,14 +73,14 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> RefreshImpl(bool rescanGames = false)
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
             // Check whether refresh is already running
             if (RefreshSemaphoreSlim.CurrentCount == 0) return;
-            RefreshSemaphoreSlim.Wait();
+            await RefreshSemaphoreSlim.WaitAsync();
             try
             {
-                RefreshInstalledGames(rescanGames);
+                await RefreshInstalledGamesAsync(rescanGames);
             }
             finally
             {
@@ -292,10 +293,10 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         Dispatcher.UIThread.InvokeAsync(_installedGamesSourceCache.Clear);
     }
 
-    private void RefreshInstalledGames(bool rescanGames)
+    private async Task RefreshInstalledGamesAsync(bool rescanGames)
     {
-        if ((rescanGames && !_adbService.CheckDeviceConnection()) ||
-            (!rescanGames && !_adbService.CheckDeviceConnectionSimple()))
+        if (rescanGames && !await _adbService.CheckDeviceConnectionAsync() ||
+            !rescanGames && !_adbService.CheckDeviceConnectionSimple())
         {
             Log.Warning("InstalledGamesViewModel.RefreshInstalledGames: no device connection!");
             OnDeviceOffline();
@@ -305,8 +306,8 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         IsDeviceConnected = true;
         if (rescanGames)
         {
-            _adbService.Device!.RefreshInstalledPackages();
-            _adbService.Device!.RefreshInstalledGames();
+            await _adbService.Device!.RefreshInstalledPackagesAsync();
+            await _adbService.Device!.RefreshInstalledGamesAsync();
         }
 
         while (_adbService.Device!.IsRefreshingInstalledGames)

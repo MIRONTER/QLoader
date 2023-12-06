@@ -138,7 +138,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
         RecalculateTaskListBoxHeight();
     }
 
-    private void InitializeUpdater()
+    private static void InitializeUpdater()
     {
         if (Globals.Overrides.TryGetValue("DisableSelfUpdate", out var value) &&
             bool.TryParse(value, out var disableSelfUpdate) && disableSelfUpdate ||
@@ -222,6 +222,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
 
         _isClosing = true;
         Close();
+        return;
 
         // Kill all dangling rclone processes
         void KillRclone()

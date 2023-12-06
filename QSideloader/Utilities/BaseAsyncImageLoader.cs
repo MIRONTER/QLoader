@@ -10,7 +10,7 @@ using Serilog;
 namespace QSideloader.Utilities;
 
 // Based on https://github.com/AvaloniaUtils/AsyncImageLoader.Avalonia/blob/master/AsyncImageLoader.Avalonia/Loaders/BaseWebImageLoader.cs
-public class BaseAsyncImageLoader : IDisposable
+public sealed class BaseAsyncImageLoader : IDisposable
 {
     private readonly ParametrizedLogger? _logger;
     private readonly bool _shouldDisposeHttpClient;
@@ -37,7 +37,7 @@ public class BaseAsyncImageLoader : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    protected virtual async Task<Bitmap?> LoadAsync(string url)
+    private async Task<Bitmap?> LoadAsync(string url)
     {
         var configuredTaskAwaitable = LoadFromLocalAsync(url).ConfigureAwait(false);
         var bitmap1 = await configuredTaskAwaitable;
@@ -107,7 +107,7 @@ public class BaseAsyncImageLoader : IDisposable
         }
     }
 
-    protected virtual async Task<byte[]?> LoadDataFromExternalAsync(string url)
+    private async Task<byte[]?> LoadDataFromExternalAsync(string url)
     {
         try
         {

@@ -151,10 +151,10 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 throw new ArgumentOutOfRangeException(nameof(taskOptions), "Unknown task type");
         }
 
-        RunTask = ReactiveCommand.CreateFromTask(async () =>
+        RunTask = ReactiveCommand.CreateFromTask(() =>
         {
             Hint = Resources.ClickToCancel;
-            await action();
+            return action();
         });
         RunTask.ThrownExceptions.Subscribe(ex =>
         {
@@ -224,49 +224,49 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task RunDownloadAndInstallAsync()
     {
-        EnsureDeviceConnected(true);
+        await EnsureDeviceConnectedAsync(true);
         await DoCancellableAsync(async () => { _path = await DownloadAsync(); }, TaskResult.DownloadFailed);
 
 
-        await DoCancellableAsync(async () =>
+        await DoCancellableAsync(() =>
         {
             var deleteAfterInstall =
                 _sideloaderSettings.DownloadsPruningPolicy == DownloadsPruningPolicy.DeleteAfterInstall;
-            await InstallAsync(_path ?? throw new InvalidOperationException("path is null"),
+            return InstallAsync(_path ?? throw new InvalidOperationException("path is null"),
                 deleteAfterInstall);
         }, TaskResult.InstallFailed); // successResult isn't needed here
     }
 
-    private async Task RunDownloadOnlyAsync()
+    private Task RunDownloadOnlyAsync()
     {
-        await DoCancellableAsync(async () => { _path = await DownloadAsync(); }, TaskResult.DownloadFailed,
+        return DoCancellableAsync(async () => { _path = await DownloadAsync(); }, TaskResult.DownloadFailed,
             TaskResult.DownloadSuccess);
     }
 
     private async Task RunInstallOnlyAsync()
     {
-        EnsureDeviceConnected(true);
+        await EnsureDeviceConnectedAsync(true);
         // successResult isn't needed here
-        await DoCancellableAsync(async () =>
+        await DoCancellableAsync(() =>
         {
             _ = _path ?? throw new InvalidOperationException("path is null");
             var deleteAfterInstall = _path.StartsWith(_sideloaderSettings.DownloadsLocation) &&
                                      _sideloaderSettings.DownloadsPruningPolicy ==
                                      DownloadsPruningPolicy.DeleteAfterInstall;
-            await InstallAsync(_path, deleteAfterInstall);
+            return InstallAsync(_path, deleteAfterInstall);
         }, TaskResult.InstallFailed);
     }
 
     private async Task RunUninstallAsync()
     {
-        EnsureDeviceConnected(true);
-        await DoCancellableAsync(async () => { await UninstallAsync(); }, TaskResult.UninstallFailed,
+        await EnsureDeviceConnectedAsync(true);
+        await DoCancellableAsync(UninstallAsync, TaskResult.UninstallFailed,
             TaskResult.UninstallSuccess);
     }
 
     private async Task RunBackupAndUninstallAsync()
     {
-        EnsureDeviceConnected(true);
+        await EnsureDeviceConnectedAsync(true);
         await DoCancellableAsync(async () =>
         {
             await BackupAsync();
@@ -276,29 +276,25 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task RunBackupAsync()
     {
-        EnsureDeviceConnected(true);
-        await DoCancellableAsync(async () => { await BackupAsync(); }, TaskResult.BackupFailed,
+        await EnsureDeviceConnectedAsync(true);
+        await DoCancellableAsync(BackupAsync, TaskResult.BackupFailed,
             TaskResult.BackupSuccess);
     }
 
     private async Task RunRestoreAsync()
     {
-        EnsureDeviceConnected(true);
-        await DoCancellableAsync(async () => { await RestoreAsync(_backup!); }, TaskResult.RestoreFailed,
+        await EnsureDeviceConnectedAsync(true);
+        await DoCancellableAsync(() => RestoreAsync(_backup!), TaskResult.RestoreFailed,
             TaskResult.RestoreSuccess);
     }
 
     private async Task RunPullAndUploadAsync()
     {
-        EnsureDeviceConnected();
+        await EnsureDeviceConnectedAsync();
         await DoCancellableAsync(async () =>
         {
             Status = Resources.PullingFromDevice;
-            var path = "";
-            await Task.Run(() =>
-            {
-                path = _adbDevice!.PullApp(_app!.PackageName, "donations", _cancellationTokenSource.Token);
-            });
+            var path = await _adbDevice!.PullAppAsync(_app!.PackageName, "donations", _cancellationTokenSource.Token);
             Status = Resources.PreparingToUpload;
             var apkInfo = await GeneralUtils.GetApkInfoAsync(Path.Combine(path, _app!.PackageName + ".apk"));
             if (string.IsNullOrEmpty(apkInfo.PackageName))
@@ -320,40 +316,32 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         }, TaskResult.DonationFailed, TaskResult.DonationSuccess);
     }
 
-    private async Task RunInstallTrailersAddonAsync()
+    private Task RunInstallTrailersAddonAsync()
     {
-        await DoCancellableAsync(async () =>
+        return DoCancellableAsync(() =>
         {
-            if (Directory.Exists(PathHelper.TrailersPath) && !File.Exists(_path))
-            {
-                OnFinished(TaskResult.AlreadyInstalled);
-                return;
-            }
+            if (!Directory.Exists(PathHelper.TrailersPath) || File.Exists(_path))
+                return InstallTrailersAddonAsync();
+            OnFinished(TaskResult.AlreadyInstalled);
+            return Task.CompletedTask;
 
-            await InstallTrailersAddonAsync();
         }, TaskResult.InstallFailed, TaskResult.InstallSuccess);
     }
 
     private async Task RunExtractAsync()
     {
-        EnsureDeviceConnected();
+        await EnsureDeviceConnectedAsync();
         Status = Resources.PullingFromDevice;
         await DoCancellableAsync(
-            async () =>
-            {
-                await Task.Run(() =>
-                {
-                    _adbDevice!.PullApp(_app!.PackageName, _path!, _cancellationTokenSource.Token);
-                });
-            }, TaskResult.ExtractionFailed, TaskResult.ExtractionSuccess);
+            async () => await _adbDevice!.PullAppAsync(_app!.PackageName, _path!, _cancellationTokenSource.Token),
+            TaskResult.ExtractionFailed, TaskResult.ExtractionSuccess);
     }
 
     private async Task RunPullMediaAsync()
     {
-        EnsureDeviceConnected();
+        await EnsureDeviceConnectedAsync();
         Status = Resources.PullingPicturesAndVideos;
-        await DoCancellableAsync(
-            async () => { await Task.Run(() => { _adbDevice!.PullMedia(_path!, _cancellationTokenSource.Token); }); },
+        await DoCancellableAsync(() => _adbDevice!.PullMediaAsync(_path!, _cancellationTokenSource.Token),
             TaskResult.PullMediaFailed, TaskResult.PullMediaSuccess);
     }
 
@@ -423,7 +411,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         await AdbService.TakePackageOperationLockAsync(_cancellationTokenSource.Token);
         try
         {
-            EnsureDeviceConnected();
+            await EnsureDeviceConnectedAsync();
         }
         catch (InvalidOperationException)
         {
@@ -486,13 +474,13 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         await AdbService.TakePackageOperationLockAsync(_cancellationTokenSource.Token);
         try
         {
-            EnsureDeviceConnected();
+            await EnsureDeviceConnectedAsync();
             using var _ = LogContext.PushProperty("Device", _adbDevice!.ToString());
             Status = Resources.Uninstalling;
             if (_game is not null)
-                await Task.Run(() => _adbDevice!.UninstallPackage(_game.PackageName));
+                await _adbDevice!.UninstallPackageAsync(_game.PackageName);
             else if (_app is not null)
-                await Task.Run(() => _adbDevice!.UninstallPackage(_app.PackageName));
+                await _adbDevice!.UninstallPackageAsync(_app.PackageName);
             else
                 throw new InvalidOperationException("Both game and app are null");
         }
@@ -508,11 +496,10 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         await AdbService.TakePackageOperationLockAsync(_cancellationTokenSource.Token);
         try
         {
-            EnsureDeviceConnected();
+            await EnsureDeviceConnectedAsync();
             using var _ = LogContext.PushProperty("Device", _adbDevice!.ToString());
             Status = Resources.CreatingBackup;
-            await Task.Run(() =>
-                _adbDevice!.CreateBackup(_game!.PackageName!, _backupOptions!, _cancellationTokenSource.Token));
+            await _adbDevice!.CreateBackupAsync(_game!.PackageName!, _backupOptions!, _cancellationTokenSource.Token);
         }
         finally
         {
@@ -526,10 +513,10 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         await AdbService.TakePackageOperationLockAsync(_cancellationTokenSource.Token);
         try
         {
-            EnsureDeviceConnected();
+            await EnsureDeviceConnectedAsync();
             using var _ = LogContext.PushProperty("Device", _adbDevice!.ToString());
             Status = Resources.RestoringBackup;
-            await Task.Run(() => _adbDevice!.RestoreBackup(backup));
+            await _adbDevice!.RestoreBackupAsync(backup);
         }
         finally
         {
@@ -594,12 +581,12 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     /// <param name="simpleCheck">Use simple connection check.</param>
     /// <exception cref="InvalidOperationException">Thrown if device is not connected.</exception>
     /// <remarks>First call with <c>simpleCheck=false</c> ties the task to current device.</remarks>
-    private void EnsureDeviceConnected(bool simpleCheck = false)
+    private async Task EnsureDeviceConnectedAsync(bool simpleCheck = false)
     {
         if (!_ensuredDeviceConnected)
         {
-            if ((simpleCheck && _adbService.CheckDeviceConnectionSimple()) ||
-                (!simpleCheck && _adbService.CheckDeviceConnection()))
+            if (simpleCheck && _adbService.CheckDeviceConnectionSimple() ||
+                !simpleCheck && await _adbService.CheckDeviceConnectionAsync())
             {
                 // If user switched to another device during download, here we can safely assign the new device
                 _adbDevice = _adbService.Device!;
@@ -612,8 +599,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
         else
         {
             if (_adbDevice is not null &&
-                ((simpleCheck && _adbDevice.State == DeviceState.Online) ||
-                 (!simpleCheck && _adbDevice.Ping()))
+                (simpleCheck && _adbDevice.State == DeviceState.Online ||
+                 !simpleCheck && await _adbDevice.PingAsync())
                )
                 return;
         }

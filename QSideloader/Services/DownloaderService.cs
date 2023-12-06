@@ -92,7 +92,7 @@ public partial class DownloaderService
         await RcloneConfigSemaphoreSlim.WaitAsync();
         try
         {
-            var overrideUrl = Globals.Overrides.TryGetValue("ConfigUpdateUrl", out var @override) ? @override : null;
+            var overrideUrl = Globals.Overrides.GetValueOrDefault("ConfigUpdateUrl");
             var usingOverride = !string.IsNullOrEmpty(overrideUrl);
             if (!File.Exists(Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, "FFA_config")) &&
                 string.IsNullOrWhiteSpace(overrideUrl))
@@ -143,6 +143,8 @@ public partial class DownloaderService
         {
             RcloneConfigSemaphoreSlim.Release();
         }
+
+        return;
 
         async Task<bool> TryDownloadConfigFromServer(string? overrideConfigUrl = null)
         {
@@ -319,18 +321,18 @@ public partial class DownloaderService
     /// <returns>
     ///     <c>true</c> if switched successfully, <c>false</c> otherwise.
     /// </returns>
-    public async Task<bool> TryManualSwitchMirrorAsync(string mirrorName)
+    public async Task TryManualSwitchMirrorAsync(string mirrorName)
     {
         if (!_mirrorList.Contains(mirrorName))
         {
             Log.Warning("Attempted to switch to unknown mirror {MirrorName}", mirrorName);
-            return false;
+            return;
         }
 
         if (!CanSwitchMirror)
         {
             Log.Warning("Could not switch to mirror {MirrorName} because of a concurrent operation", mirrorName);
-            return false;
+            return;
         }
 
         MirrorName = mirrorName;
@@ -338,11 +340,10 @@ public partial class DownloaderService
         try
         {
             await EnsureMetadataAvailableAsync(true);
-            return true;
         }
         catch
         {
-            return false;
+            // ignored
         }
     }
 
@@ -814,9 +815,9 @@ public partial class DownloaderService
     }
 
 
-    public static async Task TakeDownloadLockAsync(CancellationToken ct = default)
+    public static Task TakeDownloadLockAsync(CancellationToken ct = default)
     {
-        await DownloadSemaphoreSlim.WaitAsync(ct);
+        return DownloadSemaphoreSlim.WaitAsync(ct);
     }
 
     public static void ReleaseDownloadLock()
@@ -1092,9 +1093,9 @@ public partial class DownloaderService
     [GeneratedRegex("(FFA-\\d+):")]
     private static partial Regex RcloneMirrorRegex();
 
-    [GeneratedRegex("^.+ v\\d+ .+\\.zip$")]
+    [GeneratedRegex(@"^.+ v\d+ .+\.zip$")]
     private static partial Regex DonationArchiveRegex();
 
-    [GeneratedRegex("(.+) v\\d+\\+.+")]
+    [GeneratedRegex(@"(.+) v\d+\+.+")]
     private static partial Regex StandardReleaseNameRegex();
 }
