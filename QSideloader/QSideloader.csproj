@@ -68,6 +68,8 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="AdvancedSharpAdbClient" Version="9.9.21" />
+        <PackageReference Include="android-aapt2" Version="34.0.0" />
+        <PackageReference Include="android-adb" Version="34.0.5" />
         <PackageReference Include="AsyncAwaitBestPractices" Version="7.0.0" />
         <PackageReference Include="Avalonia" Version="11.0.5" />
         <PackageReference Include="Avalonia.Desktop" Version="11.0.5" />

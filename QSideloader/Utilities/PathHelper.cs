@@ -12,10 +12,7 @@ public static class PathHelper
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             // ReSharper disable StringLiteralTypo
-            AdbPath = @".\tools\windows\platform-tools\adb.exe";
             RclonePath = @".\tools\windows\rclone\FFA.exe";
-            SevenZipPath = Path.Combine(@".\tools\windows", Environment.Is64BitProcess ? "x64" : "x86", "7za.exe");
-            AaptPath = @".\tools\windows\platform-tools\aapt2.exe";
             // ReSharper restore StringLiteralTypo
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -26,10 +23,7 @@ public static class PathHelper
                 Architecture.Arm64 => "arm64",
                 _ => throw new NotImplementedException("Unsupported architecture")
             };
-            AdbPath = Path.Combine("./tools/linux/", architectureString, "platform-tools/adb");
             RclonePath = Path.Combine("./tools/linux/", architectureString, "rclone/FFA");
-            SevenZipPath = Path.Combine("./tools/linux/", architectureString, "7zz");
-            AaptPath = Path.Combine("./tools/linux/", architectureString, "platform-tools/aapt2");
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
@@ -39,18 +33,13 @@ public static class PathHelper
                 Architecture.Arm64 => "arm64",
                 _ => throw new NotImplementedException("Unsupported architecture")
             };
-            AdbPath = @"./tools/darwin/platform-tools/adb";
-            RclonePath = @"./tools/darwin/rclone/FFA";
             RclonePath = Path.Combine("./tools/darwin/", architectureString, "rclone/FFA");
-            SevenZipPath = @"./tools/darwin/7zz";
-            AaptPath = @"./tools/darwin/platform-tools/aapt2";
         }
     }
 
-    public static string AdbPath { get; } = "";
+    public static string AdbPath { get; } = FindExecutable("adb");
     public static string RclonePath { get; } = "";
-    public static string SevenZipPath { get; } = "";
-    public static string AaptPath { get; } = "";
+    public static string AaptPath { get; } = FindExecutable("aapt2");
     public static string SettingsPath => "settings.json";
     public static string OverridesPath => "overrides.conf";
     public static string ThumbnailsPath => Path.Combine("Resources", "thumbnails");
@@ -89,5 +78,32 @@ public static class PathHelper
         }
 
         return resultFileName;
+    }
+
+    private static string FindExecutable(string name)
+    {
+        // try current directory first
+        if (File.Exists(name))
+            return Path.GetFullPath(name);
+
+        // search in NATIVE_DLL_SEARCH_DIRECTORIES
+        name = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? name + ".exe" : name;
+        if (AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES") is string nativeDllSearchDirectories)
+        {
+            var directories = nativeDllSearchDirectories.Split(Path.PathSeparator);
+            foreach (var directory in directories)
+            {
+                var exePath = Path.Combine(directory, name);
+                if (File.Exists(exePath))
+                    return exePath;
+            }
+        }
+        else
+        {
+            throw new InvalidOperationException("NATIVE_DLL_SEARCH_DIRECTORIES not set");
+        }
+
+        // something went wrong (packaging error?)
+        throw new FileNotFoundException($"Could not find {name} in NATIVE_DLL_SEARCH_DIRECTORIES");
     }
 }
