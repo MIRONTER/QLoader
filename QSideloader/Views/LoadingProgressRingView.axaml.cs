@@ -2,7 +2,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using FluentAvalonia.UI.Controls;
-using SerilogTimings;
 
 namespace QSideloader.Views;
 
