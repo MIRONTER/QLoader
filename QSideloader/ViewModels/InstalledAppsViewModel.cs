@@ -97,7 +97,7 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> RefreshImpl(bool rescan = false)
     {
-        return Observable.FromAsync(async () =>
+        return Observable.StartAsync(async () =>
         {
             // Check whether refresh is already running
             if (RefreshSemaphoreSlim.CurrentCount == 0) return;
@@ -145,7 +145,7 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> DonateAllImpl()
     {
-        return Observable.FromAsync(async () =>
+        return Observable.StartAsync(async () =>
         {
             if (!await _adbService.CheckDeviceConnectionAsync())
             {
@@ -175,7 +175,7 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> IgnoreImpl()
     {
-        return Observable.FromAsync(async () =>
+        return Observable.StartAsync(async () =>
         {
             var selectedApps = _installedAppsSourceCache.Items.Where(app => app.IsSelectedDonation).ToList();
             if (selectedApps.Count == 0)
@@ -227,7 +227,7 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> UninstallImpl()
     {
-        return Observable.FromAsync(async () =>
+        return Observable.StartAsync(async () =>
         {
             if (!await _adbService.CheckDeviceConnectionAsync())
             {

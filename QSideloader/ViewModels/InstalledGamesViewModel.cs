@@ -72,7 +72,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> RefreshImpl(bool rescanGames = false)
     {
-        return Observable.FromAsync(async () =>
+        return Observable.StartAsync(async () =>
         {
             // Check whether refresh is already running
             if (RefreshSemaphoreSlim.CurrentCount == 0) return;
@@ -90,7 +90,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> UpdateImpl()
     {
-        return Observable.FromAsync(async () =>
+        return Observable.StartAsync(async () =>
         {
             if (!await _adbService.CheckDeviceConnectionAsync())
             {
@@ -119,7 +119,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> UpdateAllImpl()
     {
-        return Observable.FromAsync(async () =>
+        return Observable.StartAsync(async () =>
         {
             if (!await _adbService.CheckDeviceConnectionAsync())
             {
@@ -185,7 +185,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> UpdateSingleImpl(Game game)
     {
-        return Observable.FromAsync(async () =>
+        return Observable.StartAsync(async () =>
         {
             if (!await _adbService.CheckDeviceConnectionAsync())
             {
@@ -201,7 +201,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> UninstallImpl()
     {
-        return Observable.FromAsync(async () =>
+        return Observable.StartAsync(async () =>
         {
             var skipBackup = SkipAutoBackup;
             SkipAutoBackup = false;
@@ -235,7 +235,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> BackupImpl()
     {
-        return Observable.FromAsync(async () =>
+        return Observable.StartAsync(async () =>
         {
             if (!await _adbService.CheckDeviceConnectionAsync())
             {

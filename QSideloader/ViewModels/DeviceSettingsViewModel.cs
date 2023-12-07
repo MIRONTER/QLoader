@@ -246,7 +246,7 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
     // TODO: too many conditions, see if this can be simplified
     private IObservable<Unit> ApplySettingsImpl()
     {
-        return Observable.FromAsync(async () =>
+        return Observable.StartAsync(async () =>
         {
             if (!await _adbService.CheckDeviceConnectionAsync())
             {
@@ -406,7 +406,7 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
 
     private IObservable<Unit> MountStorageImpl()
     {
-        return Observable.FromAsync(async () =>
+        return Observable.StartAsync(async () =>
         {
             if (!await _adbService.CheckDeviceConnectionAsync())
             {
@@ -424,7 +424,7 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
 
     private IObservable<Unit> LaunchHiddenSettingsImpl()
     {
-        return Observable.FromAsync(async () =>
+        return Observable.StartAsync(async () =>
         {
             if (!await _adbService.CheckDeviceConnectionAsync())
             {

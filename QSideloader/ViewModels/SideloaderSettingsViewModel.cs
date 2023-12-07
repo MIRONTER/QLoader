@@ -584,7 +584,7 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
 
     private IObservable<Unit> SwitchMirrorImpl()
     {
-        return Observable.FromAsync(async () =>
+        return Observable.StartAsync(async () =>
         {
             if (MirrorSelectionRefreshSemaphoreSlim.CurrentCount == 0) return;
             var downloaderService = DownloaderService.Instance;
@@ -685,7 +685,7 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
 
     private static IObservable<Unit> RescanDevicesImpl()
     {
-        return Observable.FromAsync(async () =>
+        return Observable.StartAsync(async () =>
         {
             Log.Information("Manual device rescan requested");
             var adbService = AdbService.Instance;
@@ -698,7 +698,7 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
 
     private static IObservable<Unit> ReconnectDeviceImpl()
     {
-        return Observable.FromAsync(async () =>
+        return Observable.StartAsync(async () =>
         {
             Log.Information("Device reconnect requested");
             try
@@ -764,7 +764,7 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
 
     private static IObservable<Unit> CleanLeftoverApksImpl()
     {
-        return Observable.FromAsync(async () =>
+        return Observable.StartAsync(async () =>
         {
             Log.Information("Cleanup of leftover APKs requested");
             var adbService = AdbService.Instance;
@@ -785,7 +785,7 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
 
     private static IObservable<Unit> FixDateTimeImpl()
     {
-        return Observable.FromAsync(async () =>
+        return Observable.StartAsync(async () =>
         {
             Log.Information("Date and time fix requested");
             var adbService = AdbService.Instance;

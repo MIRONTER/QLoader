@@ -105,7 +105,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> RefreshImpl()
     {
-        return Observable.FromAsync(async () =>
+        return Observable.StartAsync(async () =>
         {
             // Check whether refresh is already in running
             if (RefreshSemaphoreSlim.CurrentCount == 0) return;

@@ -61,7 +61,7 @@ public class BackupViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> RefreshImpl(bool rescan)
     {
-        return Observable.FromAsync(async () =>
+        return Observable.StartAsync(async () =>
         {
             IsDeviceConnected = await _adbService.CheckDeviceConnectionAsync();
             if (rescan)

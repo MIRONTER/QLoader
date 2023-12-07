@@ -378,7 +378,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private IObservable<Unit> DonateAllGamesImpl()
     {
-        return Observable.FromAsync(async () =>
+        return Observable.StartAsync(async () =>
         {
             DonationBarShown = false;
             if (!await _adbService.CheckDeviceConnectionAsync())
