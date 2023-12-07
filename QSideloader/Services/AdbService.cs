@@ -94,6 +94,8 @@ public partial class AdbService
 
     public IReadOnlyList<AdbDevice> DeviceList => _deviceList.AsReadOnly();
     public IEnumerable<Backup> BackupList => _backupList.AsReadOnly();
+    
+    public bool IsDeviceConnected => Device is not null && Device.State == DeviceState.Online;
 
     public IObservable<Unit> WhenBackupListChanged => _backupListChangeSubject.AsObservable();
     public IObservable<DeviceState> WhenDeviceStateChanged => _deviceStateChangeSubject.AsObservable();

@@ -90,9 +90,9 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> UpdateImpl()
     {
-        return Observable.StartAsync(async () =>
+        return Observable.Start(() =>
         {
-            if (!await _adbService.CheckDeviceConnectionAsync())
+            if (!_adbService.IsDeviceConnected)
             {
                 Log.Warning("InstalledGamesViewModel.UpdateImpl: no device connection!");
                 OnDeviceOffline();
@@ -119,9 +119,9 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> UpdateAllImpl()
     {
-        return Observable.StartAsync(async () =>
+        return Observable.Start(() =>
         {
-            if (!await _adbService.CheckDeviceConnectionAsync())
+            if (!_adbService.IsDeviceConnected)
             {
                 Log.Warning("InstalledGamesViewModel.UpdateAllImpl: no device connection!");
                 OnDeviceOffline();
@@ -185,9 +185,9 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> UpdateSingleImpl(Game game)
     {
-        return Observable.StartAsync(async () =>
+        return Observable.Start(() =>
         {
-            if (!await _adbService.CheckDeviceConnectionAsync())
+            if (!_adbService.IsDeviceConnected)
             {
                 Log.Warning("InstalledGamesViewModel.UpdateSingleImpl: no device connection!");
                 OnDeviceOffline();
@@ -201,11 +201,11 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> UninstallImpl()
     {
-        return Observable.StartAsync(async () =>
+        return Observable.Start(() =>
         {
             var skipBackup = SkipAutoBackup;
             SkipAutoBackup = false;
-            if (!await _adbService.CheckDeviceConnectionAsync())
+            if (!_adbService.IsDeviceConnected)
             {
                 Log.Warning("InstalledGamesViewModel.UninstallImpl: no device connection!");
                 OnDeviceOffline();
@@ -235,9 +235,9 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> BackupImpl()
     {
-        return Observable.StartAsync(async () =>
+        return Observable.Start(() =>
         {
-            if (!await _adbService.CheckDeviceConnectionAsync())
+            if (!_adbService.IsDeviceConnected)
             {
                 Log.Warning("InstalledGamesViewModel.BackupImpl: no device connection!");
                 OnDeviceOffline();

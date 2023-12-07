@@ -248,7 +248,7 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
     {
         return Observable.StartAsync(async () =>
         {
-            if (!await _adbService.CheckDeviceConnectionAsync())
+            if (!_adbService.IsDeviceConnected)
             {
                 Log.Warning("DeviceSettingsViewModel.ApplySettingsImpl: no device connection!");
                 IsDeviceConnected = false;
@@ -408,7 +408,7 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
     {
         return Observable.StartAsync(async () =>
         {
-            if (!await _adbService.CheckDeviceConnectionAsync())
+            if (!_adbService.IsDeviceConnected)
             {
                 Log.Warning("DeviceSettingsViewModel.MountStorageImpl: no device connection!");
                 IsDeviceConnected = false;
@@ -426,7 +426,7 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
     {
         return Observable.StartAsync(async () =>
         {
-            if (!await _adbService.CheckDeviceConnectionAsync())
+            if (!_adbService.IsDeviceConnected)
             {
                 Log.Warning("DeviceSettingsViewModel.LaunchHiddenSettingsImpl: no device connection!");
                 IsDeviceConnected = false;

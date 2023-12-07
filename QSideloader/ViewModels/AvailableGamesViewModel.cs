@@ -138,9 +138,9 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> InstallSingleImpl(Game game)
     {
-        return Observable.FromAsync(async () =>
+        return Observable.Start(() =>
         {
-            if (!await _adbService.CheckDeviceConnectionAsync())
+            if (!_adbService.IsDeviceConnected)
             {
                 Log.Warning("AvailableGamesViewModel.InstallImpl: no device connection!");
                 IsDeviceConnected = false;

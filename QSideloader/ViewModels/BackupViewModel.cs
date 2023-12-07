@@ -78,9 +78,9 @@ public class BackupViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> RestoreImpl()
     {
-        return Observable.FromAsync(async () =>
+        return Observable.Start(() =>
         {
-            if (!await _adbService.CheckDeviceConnectionAsync())
+            if (!_adbService.IsDeviceConnected)
             {
                 Log.Warning("BackupViewModel.RestoreImpl: no device connection!");
                 OnDeviceOffline();
