@@ -332,7 +332,7 @@ public partial class AdbService
                 var requiredAdbVersion = new Version("1.0.40");
                 if (adbServerStatus.Version >= requiredAdbVersion)
                 {
-                    StartDeviceMonitor(false);
+                    await StartDeviceMonitorAsync(false);
                     return (true, false);
                 }
                 
@@ -399,7 +399,7 @@ public partial class AdbService
 
             await _adb.AdbClient.ConnectAsync("127.0.0.1:62001");
             Log.Information("Started ADB server");
-            StartDeviceMonitor(true);
+            await StartDeviceMonitorAsync(true);
         }
         finally
         {
@@ -481,9 +481,9 @@ public partial class AdbService
     ///     (Re)starts <see cref="DeviceMonitor" />
     /// </summary>
     /// <param name="restart">Should restart device monitor.</param>
-    private void StartDeviceMonitor(bool restart)
+    private async Task StartDeviceMonitorAsync(bool restart)
     {
-        AdbDeviceMonitorSemaphoreSlim.Wait();
+        await AdbDeviceMonitorSemaphoreSlim.WaitAsync();
         try
         {
             if (_deviceMonitor is null || restart)
@@ -493,7 +493,7 @@ public partial class AdbService
 
             if (_deviceMonitor.IsRunning) return;
             _deviceMonitor.DeviceChanged += (_, args) => Task.Run(async () => await OnDeviceChangedAsync(args));
-            _deviceMonitor.Start();
+            await _deviceMonitor.StartAsync();
             Log.Debug("Started device monitor");
         }
         catch (Exception e)

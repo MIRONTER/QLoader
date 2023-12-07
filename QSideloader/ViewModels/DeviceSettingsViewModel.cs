@@ -178,7 +178,7 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
             out var textureHeight);
 #pragma warning restore CA1806
         var currentUsername = await _adbService.Device!.RunShellCommandAsync("settings get global username");
-        Dispatcher.UIThread.InvokeAsync(() =>
+        await Dispatcher.UIThread.InvokeAsync(() =>
         {
             if (refreshRate != 0)
             {
