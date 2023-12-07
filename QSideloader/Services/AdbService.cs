@@ -2085,7 +2085,7 @@ public partial class AdbService
             if (string.IsNullOrEmpty(packageName))
                 throw new ArgumentException("Package name cannot be null or empty", nameof(packageName));
             if (!PackageNameRegex().IsMatch(packageName))
-                throw new ArgumentException("Package name is not valid", nameof(packageName));
+                throw new ArgumentException($"Package name is not valid: \"{packageName}\"", nameof(packageName));
         }
 
         private async Task CheckKeyMapperAsync()
