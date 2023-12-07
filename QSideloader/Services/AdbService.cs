@@ -1069,6 +1069,16 @@ public partial class AdbService
             // Check whether refresh is already running
             var alreadyRefreshing = _deviceInfoSemaphoreSlim.CurrentCount < 1;
             await _deviceInfoSemaphoreSlim.WaitAsync();
+            var bootCompleted = await _adbService.RunShellCommandAsync(this, "getprop sys.boot_completed") == "1";
+            if (!bootCompleted)
+            {
+                Log.Warning("Device {Device} has not finished booting yet, waiting before refreshing info", this);
+            }
+            while (!bootCompleted)
+            {
+                bootCompleted = await _adbService.RunShellCommandAsync(this, "getprop sys.boot_completed") == "1";
+                await Task.Delay(200);
+            }
             string? dfOutput = null;
             string? dumpsysOutput = null;
             try
