@@ -79,7 +79,6 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             await RefreshSemaphoreSlim.WaitAsync();
             try
             {
-                IsDeviceConnected = await _adbService.CheckDeviceConnectionAsync();
                 await RefreshInstalledGamesAsync(rescanGames);
             }
             finally

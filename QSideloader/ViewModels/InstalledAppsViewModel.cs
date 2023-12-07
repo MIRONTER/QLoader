@@ -104,7 +104,6 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
             await RefreshSemaphoreSlim.WaitAsync();
             try
             {
-                IsDeviceConnected = await _adbService.CheckDeviceConnectionAsync();
                 await RefreshInstalledAppsAsync(rescan);
                 await Globals.MainWindowViewModel!.RefreshGameDonationBadgeAsync();
             }

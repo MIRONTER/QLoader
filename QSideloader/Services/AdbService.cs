@@ -61,6 +61,7 @@ public partial class AdbService
     private List<DeviceData> _unauthorizedDeviceList = new();
     private DeviceMonitor? _deviceMonitor;
     private bool _forcePreferWireless;
+    private bool _firstDeviceSearch = true;
 
     static AdbService()
     {
@@ -196,7 +197,7 @@ public partial class AdbService
                 {
                     if (_unauthorizedDeviceList.Count > 0)
                         OnDeviceUnauthorized(_unauthorizedDeviceList[0]);
-                    else
+                    else if (_firstDeviceSearch)
                         OnDeviceOffline(null);
                 }
             }
@@ -208,6 +209,7 @@ public partial class AdbService
         }
         finally
         {
+            _firstDeviceSearch = false;
             DeviceSemaphoreSlim.Release();
         }
         
@@ -666,7 +668,7 @@ public partial class AdbService
                 "Wireless" => oculusDeviceList.OrderByDescending(x => x.IsWireless).ToList(),
                 _ => oculusDeviceList
             }, unauthorizedDevices);
-        Log.Warning("No Oculus devices found");
+        Log.Debug("No Oculus devices found");
         return (oculusDeviceList, unauthorizedDevices);
     }
 
