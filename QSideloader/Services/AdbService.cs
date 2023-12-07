@@ -933,7 +933,7 @@ public partial class AdbService
         public List<(string packageName, VersionInfo? versionInfo)> InstalledPackages { get; } = new();
         public List<InstalledGame> InstalledGames { get; private set; } = new();
         public List<InstalledApp> InstalledApps { get; private set; } = new();
-        public bool IsRefreshingInstalledGames => _packagesSemaphoreSlim.CurrentCount == 0;
+        public bool IsRefreshingInstalledGames => _packagesSemaphoreSlim.CurrentCount == 0 || InstalledPackages.Count == 0;
         public string FriendlyName { get; }
         public OculusProductType ProductType { get; }
         public IEnumerable<int> SupportedRefreshRates { get; private set; }
