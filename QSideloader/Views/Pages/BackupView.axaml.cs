@@ -8,8 +8,8 @@ public partial class BackupView : ReactiveUserControl<BackupViewModel>
 {
     public BackupView()
     {
+        InitializeComponent();
         ViewModel = new BackupViewModel();
         DataContext = ViewModel;
-        InitializeComponent();
     }
 }
