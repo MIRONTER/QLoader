@@ -49,7 +49,7 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel
         this.WhenActivated(disposables =>
         {
             adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged).DisposeWith(disposables);
-            IsDeviceConnected = adbService.CheckDeviceConnectionSimple();
+            Task.Run(async () => IsDeviceConnected = await adbService.CheckDeviceConnectionAsync()).DisposeWith(disposables);
             Observable.Timer(TimeSpan.FromSeconds(2)).Subscribe(_ => PlayTrailer()).DisposeWith(disposables);
             Disposable.Create(StopMediaPlayer).DisposeWith(disposables);
         });

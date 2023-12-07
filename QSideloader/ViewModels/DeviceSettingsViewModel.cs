@@ -117,7 +117,7 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
 
     private async Task OnActivatedAsync()
     {
-        if (_adbService.CheckDeviceConnectionSimple() || await _adbService.CheckDeviceConnectionAsync())
+        if (await _adbService.CheckDeviceConnectionAsync())
             await OnDeviceStateChangedAsync(DeviceState.Online);
         else
             IsDeviceConnected = false;

@@ -168,17 +168,7 @@ public partial class AdbService
     {
         if (Design.IsDesignMode) return false;
 
-        if (!(await CheckADBRunningAsync()).running)
-        {
-            // If ADB server is not running, attempt to start it in background and return false for now
-            Log.Debug("ADB server is not running, returning no device connected");
-            Task.Run(async () =>
-            {
-                await EnsureADBRunningAsync();
-                await CheckDeviceConnectionAsync();
-            }).SafeFireAndForget();
-            return false;
-        }
+        await EnsureADBRunningAsync();
 
         var connectionStatus = false;
         await DeviceSemaphoreSlim.WaitAsync();
@@ -225,26 +215,6 @@ public partial class AdbService
     }
 
     /// <summary>
-    ///     Simple check of current connection status (only background ping and background device list scanning when needed).
-    ///     For full check use <see cref="CheckDeviceConnectionAsync" />.
-    /// </summary>
-    /// <returns>
-    ///     <c>true</c> if device is connected, <c>false</c> otherwise.
-    /// </returns>
-    public bool CheckDeviceConnectionSimple()
-    {
-        if (Device is null) return false;
-        if (Device.State != DeviceState.Online)
-        {
-            Task.Run(async () => await CheckDeviceConnectionAsync());
-            return false;
-        }
-
-        Task.Run(Device.WakeAsync);
-        return true;
-    }
-
-    /// <summary>
     ///     Refreshes the device list.
     /// </summary>
     public async Task RefreshDeviceListAsync()
@@ -271,7 +241,7 @@ public partial class AdbService
 
             foreach (var device in addedDevices)
             {
-                await device.InitializeAsync();
+                device.InitializeAsync().SafeFireAndForget();
                 _deviceList.Add(device);
             }
 
@@ -1009,7 +979,7 @@ public partial class AdbService
         /// <summary>
         ///     Wakes up the device by sending a power button key event.
         /// </summary>
-        public async Task WakeAsync()
+        private async Task WakeAsync()
         {
             try
             {
@@ -1162,7 +1132,7 @@ public partial class AdbService
         {
             await RefreshInstalledPackagesAsync();
             await RefreshInstalledGamesAsync();
-            RefreshInstalledApps();
+            await RefreshInstalledAppsAsync();
             if (_adbService.Device?.Equals(this) ?? false)
                 _adbService._packageListChangeSubject.OnNext(Unit.Default);
         }
@@ -1213,18 +1183,25 @@ public partial class AdbService
         /// <summary>
         ///     Refreshes the <see cref="InstalledApps" /> list
         /// </summary>
-        public void RefreshInstalledApps()
+        public async Task RefreshInstalledAppsAsync()
         {
             using var op = Operation.At(LogEventLevel.Debug).Begin("Refreshing installed apps on {Device}", this);
             var metadataAvailable = false;
             var donationsAvailable = false;
 
-            Task.Run(async () =>
+            try
             {
-                await _downloaderService.EnsureMetadataAvailableAsync();
-                donationsAvailable = await _downloaderService.GetDonationsAvailable();
-            }).ContinueWith(t => { metadataAvailable = t.IsCompletedSuccessfully; }).Wait();
-
+                await Task.Run(async () =>
+                {
+                    await _downloaderService.EnsureMetadataAvailableAsync();
+                    donationsAvailable = await _downloaderService.GetDonationsAvailable();
+                });
+                metadataAvailable = true;
+            }
+            catch
+            {
+                // ignored
+            }
 
             Log.Debug("Refreshing list of installed apps on {Device}", this);
             var installedGames = InstalledGames.ToList();

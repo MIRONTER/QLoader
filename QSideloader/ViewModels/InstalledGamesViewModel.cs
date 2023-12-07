@@ -51,7 +51,6 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             cacheListBind.Subscribe().DisposeWith(disposables);
             _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged).DisposeWith(disposables);
             _adbService.WhenPackageListChanged.Subscribe(_ => Refresh.Execute().Subscribe()).DisposeWith(disposables);
-            IsDeviceConnected = _adbService.CheckDeviceConnectionSimple();
             Refresh.Execute().Subscribe();
         });
     }
@@ -80,6 +79,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
             await RefreshSemaphoreSlim.WaitAsync();
             try
             {
+                IsDeviceConnected = await _adbService.CheckDeviceConnectionAsync();
                 await RefreshInstalledGamesAsync(rescanGames);
             }
             finally
@@ -91,9 +91,9 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> UpdateImpl()
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
-            if (!_adbService.CheckDeviceConnectionSimple())
+            if (!await _adbService.CheckDeviceConnectionAsync())
             {
                 Log.Warning("InstalledGamesViewModel.UpdateImpl: no device connection!");
                 OnDeviceOffline();
@@ -120,9 +120,9 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> UpdateAllImpl()
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
-            if (!_adbService.CheckDeviceConnectionSimple())
+            if (!await _adbService.CheckDeviceConnectionAsync())
             {
                 Log.Warning("InstalledGamesViewModel.UpdateAllImpl: no device connection!");
                 OnDeviceOffline();
@@ -186,9 +186,9 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> UpdateSingleImpl(Game game)
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
-            if (!_adbService.CheckDeviceConnectionSimple())
+            if (!await _adbService.CheckDeviceConnectionAsync())
             {
                 Log.Warning("InstalledGamesViewModel.UpdateSingleImpl: no device connection!");
                 OnDeviceOffline();
@@ -202,11 +202,11 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> UninstallImpl()
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
             var skipBackup = SkipAutoBackup;
             SkipAutoBackup = false;
-            if (!_adbService.CheckDeviceConnectionSimple())
+            if (!await _adbService.CheckDeviceConnectionAsync())
             {
                 Log.Warning("InstalledGamesViewModel.UninstallImpl: no device connection!");
                 OnDeviceOffline();
@@ -236,9 +236,9 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> BackupImpl()
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
-            if (!_adbService.CheckDeviceConnectionSimple())
+            if (!await _adbService.CheckDeviceConnectionAsync())
             {
                 Log.Warning("InstalledGamesViewModel.BackupImpl: no device connection!");
                 OnDeviceOffline();
@@ -295,8 +295,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task RefreshInstalledGamesAsync(bool rescanGames)
     {
-        if (rescanGames && !await _adbService.CheckDeviceConnectionAsync() ||
-            !rescanGames && !_adbService.CheckDeviceConnectionSimple())
+        if (!await _adbService.CheckDeviceConnectionAsync())
         {
             Log.Warning("InstalledGamesViewModel.RefreshInstalledGames: no device connection!");
             OnDeviceOffline();
@@ -312,7 +311,7 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
 
         while (_adbService.Device!.IsRefreshingInstalledGames)
         {
-            Thread.Sleep(100);
+            await Task.Delay(100);
             if (_adbService.Device is null)
                 return;
         }

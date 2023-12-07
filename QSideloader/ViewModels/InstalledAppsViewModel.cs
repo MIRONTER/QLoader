@@ -77,7 +77,6 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
             _adbService.WhenPackageListChanged.Subscribe(_ => Refresh.Execute().Subscribe()).DisposeWith(disposables);
             Globals.MainWindowViewModel!.WhenGameDonated.Subscribe(_ => Refresh.Execute().Subscribe())
                 .DisposeWith(disposables);
-            IsDeviceConnected = _adbService.CheckDeviceConnectionSimple();
             Refresh.Execute().Subscribe();
             IsShowHiddenFromDonation = false;
         });
@@ -98,15 +97,16 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> RefreshImpl(bool rescan = false)
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
             // Check whether refresh is already running
             if (RefreshSemaphoreSlim.CurrentCount == 0) return;
-            RefreshSemaphoreSlim.Wait();
+            await RefreshSemaphoreSlim.WaitAsync();
             try
             {
-                RefreshInstalledApps(rescan);
-                Globals.MainWindowViewModel!.RefreshGameDonationBadge();
+                IsDeviceConnected = await _adbService.CheckDeviceConnectionAsync();
+                await RefreshInstalledAppsAsync(rescan);
+                await Globals.MainWindowViewModel!.RefreshGameDonationBadgeAsync();
             }
             finally
             {
@@ -117,9 +117,9 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> DonateImpl()
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
-            if (!_adbService.CheckDeviceConnectionSimple())
+            if (!await _adbService.CheckDeviceConnectionAsync())
             {
                 Log.Warning("InstalledAppsViewModel.DonateImpl: no device connection!");
                 OnDeviceOffline();
@@ -146,9 +146,9 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> DonateAllImpl()
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
-            if (!_adbService.CheckDeviceConnectionSimple())
+            if (!await _adbService.CheckDeviceConnectionAsync())
             {
                 Log.Warning("InstalledAppsViewModel.DonateAllImpl: no device connection!");
                 OnDeviceOffline();
@@ -176,7 +176,7 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> IgnoreImpl()
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
             var selectedApps = _installedAppsSourceCache.Items.Where(app => app.IsSelectedDonation).ToList();
             if (selectedApps.Count == 0)
@@ -221,16 +221,16 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
             }
 
             if (count == 0) return;
-            RefreshInstalledApps(true);
-            Globals.MainWindowViewModel!.RefreshGameDonationBadge();
+            await RefreshInstalledAppsAsync(true);
+            await Globals.MainWindowViewModel!.RefreshGameDonationBadgeAsync();
         });
     }
 
     private IObservable<Unit> UninstallImpl()
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
-            if (!_adbService.CheckDeviceConnectionSimple())
+            if (!await _adbService.CheckDeviceConnectionAsync())
             {
                 Log.Warning("InstalledAppsViewModel.UninstallImpl: no device connection!");
                 OnDeviceOffline();
@@ -256,7 +256,7 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task ExtractImpl()
     {
-        if (!_adbService.CheckDeviceConnectionSimple())
+        if (!await _adbService.CheckDeviceConnectionAsync())
         {
             Log.Warning("InstalledAppsViewModel.ExtractImpl: no device connection!");
             OnDeviceOffline();
@@ -325,9 +325,9 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
         Dispatcher.UIThread.InvokeAsync(_installedAppsSourceCache.Clear);
     }
 
-    private void RefreshInstalledApps(bool rescan)
+    private async Task RefreshInstalledAppsAsync(bool rescan)
     {
-        if (!_adbService.CheckDeviceConnectionSimple())
+        if (!await _adbService.CheckDeviceConnectionAsync())
         {
             Log.Warning("InstalledAppsViewModel.RefreshInstalledApps: no device connection!");
             OnDeviceOffline();
@@ -335,10 +335,10 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
         }
 
         IsDeviceConnected = true;
-        if (rescan) _adbService.Device?.RefreshInstalledApps();
+        if (rescan && _adbService.Device is not null) await _adbService.Device.RefreshInstalledAppsAsync();
         while (_adbService.Device!.IsRefreshingInstalledGames)
         {
-            Thread.Sleep(100);
+            await Task.Delay(100);
             if (_adbService.Device is null)
                 return;
         }

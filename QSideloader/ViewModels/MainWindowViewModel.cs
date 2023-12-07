@@ -82,7 +82,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged);
         _adbService.WhenPackageListChanged.Subscribe(_ =>
         {
-            RefreshGameDonationBadge();
+            Task.Run(RefreshGameDonationBadgeAsync).SafeFireAndForget();
             Task.Run(RunAutoDonation).SafeFireAndForget(ex =>
             {
                 Log.Error(ex, "Error running auto donation");
@@ -188,7 +188,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 break;
         }
 
-        Task.Run(RefreshGameDonationBadge).SafeFireAndForget();
+        Task.Run(RefreshGameDonationBadgeAsync).SafeFireAndForget();
     }
 
     public static async Task HandleDroppedItemsAsync(IEnumerable<string> fileNames)
@@ -274,9 +274,9 @@ public partial class MainWindowViewModel : ViewModelBase
             }
     }
 
-    public void RefreshGameDonationBadge()
+    public async Task RefreshGameDonationBadgeAsync()
     {
-        if (!_adbService.CheckDeviceConnectionSimple() || !DonationsAvailable)
+        if (!await _adbService.CheckDeviceConnectionAsync() || !DonationsAvailable)
         {
             DonatableAppsCount = 0;
             DonationBarShown = false;
@@ -321,7 +321,7 @@ public partial class MainWindowViewModel : ViewModelBase
         DonationBarShown = true;
     }
 
-    public void OnGameDonated(string packageName, int versionCode)
+    public async Task OnGameDonatedAsync(string packageName, int versionCode)
     {
         var existingDonatedPackage =
             _sideloaderSettings.DonatedPackages.FirstOrDefault(p => p.packageName == packageName);
@@ -336,8 +336,9 @@ public partial class MainWindowViewModel : ViewModelBase
             _sideloaderSettings.DonatedPackages.Add((packageName, versionCode));
         }
 
-        _adbService.Device?.RefreshInstalledApps();
-        RefreshGameDonationBadge();
+        if (_adbService.Device is not null)
+            await _adbService.Device.RefreshInstalledAppsAsync();
+        await RefreshGameDonationBadgeAsync();
         _gameDonateSubject.OnNext(Unit.Default);
     }
 
@@ -377,10 +378,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private IObservable<Unit> DonateAllGamesImpl()
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
             DonationBarShown = false;
-            if (!_adbService.CheckDeviceConnectionSimple())
+            if (!await _adbService.CheckDeviceConnectionAsync())
             {
                 Log.Warning("MainWindowViewModel.DonateAllGamesImpl: no device connection!");
                 return;

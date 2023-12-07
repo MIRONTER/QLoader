@@ -46,7 +46,6 @@ public class BackupViewModel : ViewModelBase, IActivatableViewModel
             _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged).DisposeWith(disposables);
             _adbService.WhenBackupListChanged.Subscribe(_ => Refresh.Execute(false).Subscribe())
                 .DisposeWith(disposables);
-            IsDeviceConnected = _adbService.CheckDeviceConnectionSimple();
             Refresh.Execute(false).Subscribe();
         });
     }
@@ -62,8 +61,9 @@ public class BackupViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> RefreshImpl(bool rescan)
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
+            IsDeviceConnected = await _adbService.CheckDeviceConnectionAsync();
             if (rescan)
                 _adbService.RefreshBackupList();
             var toRemove = _backupsSourceCache.Items
@@ -78,9 +78,9 @@ public class BackupViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> RestoreImpl()
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
-            if (!_adbService.CheckDeviceConnectionSimple())
+            if (!await _adbService.CheckDeviceConnectionAsync())
             {
                 Log.Warning("BackupViewModel.RestoreImpl: no device connection!");
                 OnDeviceOffline();

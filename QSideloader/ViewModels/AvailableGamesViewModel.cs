@@ -72,7 +72,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         {
             cacheListBind.Subscribe().DisposeWith(disposables);
             _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged).DisposeWith(disposables);
-            _adbService.WhenPackageListChanged.Subscribe(_ => RefreshInstalled()).DisposeWith(disposables);
+            _adbService.WhenPackageListChanged.Subscribe(_ => Task.Run(RefreshInstalledAsync)).DisposeWith(disposables);
             ShowPopularity30Days = _sideloaderSettings.PopularityRange == "30 days";
             ShowPopularity7Days = _sideloaderSettings.PopularityRange == "7 days";
             ShowPopularity1Day = _sideloaderSettings.PopularityRange == "1 day";
@@ -109,9 +109,9 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         return Observable.FromAsync(async () =>
         {
             await _downloaderService.EnsureMetadataAvailableAsync(force);
-            IsDeviceConnected = _adbService.CheckDeviceConnectionSimple();
+            IsDeviceConnected = await  _adbService.CheckDeviceConnectionAsync();
             PopulateAvailableGames();
-            RefreshInstalled();
+            await RefreshInstalledAsync();
         });
     }
 
@@ -138,9 +138,9 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private IObservable<Unit> InstallSingleImpl(Game game)
     {
-        return Observable.Start(() =>
+        return Observable.FromAsync(async () =>
         {
-            if (!_adbService.CheckDeviceConnectionSimple())
+            if (!await _adbService.CheckDeviceConnectionAsync())
             {
                 Log.Warning("AvailableGamesViewModel.InstallImpl: no device connection!");
                 IsDeviceConnected = false;
@@ -190,11 +190,11 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         {
             case DeviceState.Online:
                 IsDeviceConnected = true;
-                Task.Run(RefreshInstalled);
+                Task.Run(RefreshInstalledAsync);
                 break;
             case DeviceState.Offline:
                 IsDeviceConnected = false;
-                Task.Run(RefreshInstalled);
+                Task.Run(RefreshInstalledAsync);
                 break;
         }
     }
@@ -217,7 +217,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         });
     }
 
-    private void RefreshInstalled()
+    private async Task RefreshInstalledAsync()
     {
         var games = _availableGamesSourceCache.Items.ToList();
         if (_adbService.Device is null)
@@ -228,7 +228,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         }
 
         while (_adbService.Device.IsRefreshingInstalledGames)
-            Thread.Sleep(100);
+            await Task.Delay(100);
         if (_adbService.Device is null)
         {
             foreach (var game in games)

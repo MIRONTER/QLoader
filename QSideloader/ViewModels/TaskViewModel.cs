@@ -7,7 +7,6 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AdvancedSharpAdbClient.DeviceCommands;
-using AdvancedSharpAdbClient.Models;
 using Avalonia.Controls.Notifications;
 using QSideloader.Exceptions;
 using QSideloader.Models;
@@ -25,7 +24,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 {
     private readonly AdbService _adbService;
     private AdbService.AdbDevice? _adbDevice;
-    private bool _ensuredDeviceConnected;
+    private bool _tiedToDevice;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly DownloaderService _downloaderService;
     private readonly Game? _game;
@@ -224,7 +223,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task RunDownloadAndInstallAsync()
     {
-        await EnsureDeviceConnectedAsync(true);
+        await EnsureDeviceConnectedAsync(false);
         await DoCancellableAsync(async () => { _path = await DownloadAsync(); }, TaskResult.DownloadFailed);
 
 
@@ -245,7 +244,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task RunInstallOnlyAsync()
     {
-        await EnsureDeviceConnectedAsync(true);
+        await EnsureDeviceConnectedAsync(false);
         // successResult isn't needed here
         await DoCancellableAsync(() =>
         {
@@ -259,14 +258,14 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task RunUninstallAsync()
     {
-        await EnsureDeviceConnectedAsync(true);
+        await EnsureDeviceConnectedAsync(false);
         await DoCancellableAsync(UninstallAsync, TaskResult.UninstallFailed,
             TaskResult.UninstallSuccess);
     }
 
     private async Task RunBackupAndUninstallAsync()
     {
-        await EnsureDeviceConnectedAsync(true);
+        await EnsureDeviceConnectedAsync(false);
         await DoCancellableAsync(async () =>
         {
             await BackupAsync();
@@ -276,14 +275,14 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
 
     private async Task RunBackupAsync()
     {
-        await EnsureDeviceConnectedAsync(true);
+        await EnsureDeviceConnectedAsync(false);
         await DoCancellableAsync(BackupAsync, TaskResult.BackupFailed,
             TaskResult.BackupSuccess);
     }
 
     private async Task RunRestoreAsync()
     {
-        await EnsureDeviceConnectedAsync(true);
+        await EnsureDeviceConnectedAsync(false);
         await DoCancellableAsync(() => RestoreAsync(_backup!), TaskResult.RestoreFailed,
             TaskResult.RestoreSuccess);
     }
@@ -312,7 +311,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
             Status = Resources.Uploading;
             await _downloaderService.UploadDonationAsync(archivePath,
                 _cancellationTokenSource.Token);
-            Globals.MainWindowViewModel!.OnGameDonated(apkInfo.PackageName, apkInfo.VersionCode);
+            await Globals.MainWindowViewModel!.OnGameDonatedAsync(apkInfo.PackageName, apkInfo.VersionCode);
         }, TaskResult.DonationFailed, TaskResult.DonationSuccess);
     }
 
@@ -578,30 +577,25 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     /// <summary>
     /// Ensure that the device is connected and it's the correct device.
     /// </summary>
-    /// <param name="simpleCheck">Use simple connection check.</param>
+    /// <param name="tieDevice">Whether to tie the task to the current device.</param>
     /// <exception cref="InvalidOperationException">Thrown if device is not connected.</exception>
-    /// <remarks>First call with <c>simpleCheck=false</c> ties the task to current device.</remarks>
-    private async Task EnsureDeviceConnectedAsync(bool simpleCheck = false)
+    private async Task EnsureDeviceConnectedAsync(bool tieDevice = true)
     {
-        if (!_ensuredDeviceConnected)
+        if (!_tiedToDevice)
         {
-            if (simpleCheck && _adbService.CheckDeviceConnectionSimple() ||
-                !simpleCheck && await _adbService.CheckDeviceConnectionAsync())
+            if (await _adbService.CheckDeviceConnectionAsync())
             {
-                // If user switched to another device during download, here we can safely assign the new device
+                // If user switched to another device before we tied to a specific device, we can reassign the device
                 _adbDevice = _adbService.Device!;
-                if (!simpleCheck)
-                    _ensuredDeviceConnected = true;
+                if (tieDevice)
+                    _tiedToDevice = true;
                 return;
             }
         }
-        // If we have already ensured that a device is connected, we stick to that device
+        // If we have already tied to a specific device, we only want to see that device
         else
         {
-            if (_adbDevice is not null &&
-                (simpleCheck && _adbDevice.State == DeviceState.Online ||
-                 !simpleCheck && await _adbDevice.PingAsync())
-               )
+            if (_adbDevice is not null && await _adbDevice.PingAsync())
                 return;
         }
 
