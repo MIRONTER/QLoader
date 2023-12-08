@@ -438,7 +438,9 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                     else if (e.InnerException is PackageInstallationException &&
                              e.InnerException.Message.Contains("INSTALL_FAILED_OLDER_SDK"))
                         OnFinished(TaskResult.OsVersionTooOld, e);
-                    else if (e.ToString().Contains("No space left on device"))
+                    else if (e.InnerException is NotEnoughDeviceSpaceException ||
+                             e.InnerException?.InnerException is NotEnoughDeviceSpaceException ||
+                             e.ToString().Contains("No space left on device"))
                         OnFinished(TaskResult.NotEnoughDeviceSpace, e);
                     else
                         OnFinished(TaskResult.InstallFailed, e);

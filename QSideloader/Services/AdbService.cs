@@ -1061,6 +1061,31 @@ public partial class AdbService
         }
 
         /// <summary>
+        ///    Gets the storage stats from the device.
+        /// </summary>
+        /// <returns>Storage stats as a tuple of (space total, space free) in bytes.</returns>
+        private async Task<(long spaceTotal, long spaceFree)> GetSpaceStatsAsync()
+        {
+            string? statOutput = null;
+            try
+            {
+                statOutput = await RunShellCommandAsync("stat -fc %S:%b:%a /data");
+                var statOutputSplit = statOutput.Split(':');
+                var blockSize = long.Parse(statOutputSplit[0]);
+                var totalBlocks = long.Parse(statOutputSplit[1]);
+                var availableBlocks = long.Parse(statOutputSplit[2]);
+                return (totalBlocks * blockSize, availableBlocks * blockSize);
+            }
+            catch (Exception e)
+            {
+                SpaceUsed = -1;
+                SpaceFree = -1;
+                Log.Error(e, "Failed to get storage stats from df output: {DfOutput}", statOutput);
+                throw;
+            }
+        }
+
+        /// <summary>
         ///     Refreshes device info.
         /// </summary>
         /// <remarks>
@@ -1083,7 +1108,6 @@ public partial class AdbService
                 bootCompleted = await _adbService.RunShellCommandAsync(this, "getprop sys.boot_completed") == "1";
                 await Task.Delay(200);
             }
-            string? dfOutput = null;
             string? dumpsysOutput = null;
             try
             {
@@ -1113,18 +1137,16 @@ public partial class AdbService
                 // Get storage stats
                 try
                 {
-                    dfOutput = await RunShellCommandAsync("df /data");
-                    var dfOutputSplit = dfOutput.Split(new[] {"\r\n", "\r", "\n"}, StringSplitOptions.None);
-                    var line = SpaceUsedFreeRegex().Split(dfOutputSplit[1]);
-                    SpaceUsed = (float) Math.Round(float.Parse(line[2]) * 1024 / 1000000000, 2);
-                    SpaceFree = (float) Math.Round(float.Parse(line[3]) * 1024 / 1000000000, 2);
+                    var (spaceTotal, spaceFree) = await GetSpaceStatsAsync();
+                    var spaceUsed = spaceTotal - spaceFree;
+                    SpaceUsed = (float) Math.Round((double)spaceUsed / 1000000000, 2);
+                    SpaceFree = (float) Math.Round((double)spaceFree / 1000000000, 2);
                 }
                 catch (Exception e)
                 {
                     error = true;
                     SpaceUsed = -1;
                     SpaceFree = -1;
-                    Log.Error(e, "Failed to get storage stats from df output: {DfOutput}", dfOutput);
                     op.SetException(e);
                 }
 
@@ -1277,7 +1299,17 @@ public partial class AdbService
             CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
-            Log.Debug("Pushing file: \"{LocalPath}\" -> \"{RemotePath}\"", localPath, remotePath);
+            // check available space 
+            var fileSize = new FileInfo(localPath).Length;
+            var (_, spaceFree) = await GetSpaceStatsAsync();
+            if (spaceFree < fileSize)
+            {
+                Log.Error("Not enough space on device {Device} to push file {LocalPath} ({FileSize} bytes)",
+                    this, localPath, fileSize);
+                throw new NotEnoughDeviceSpaceException(this);
+            }
+            Log.Debug("Pushing file: \"{LocalPath}\" -> \"{RemotePath}\", size: {FileSize}", localPath, remotePath,
+                fileSize);
             using var syncService = new SyncService(_adb.AdbClient, this);
             await using var file = File.OpenRead(localPath);
             var isCancelled = false;
