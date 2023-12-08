@@ -1304,8 +1304,8 @@ public partial class AdbService
             var (_, spaceFree) = await GetSpaceStatsAsync();
             if (spaceFree < fileSize)
             {
-                Log.Error("Not enough space on device {Device} to push file {LocalPath} ({FileSize} bytes)",
-                    this, localPath, fileSize);
+                Log.Error("Not enough space on device {Device} to push file {LocalPath} ({SpaceFree} < {FileSize})",
+                    this, localPath, spaceFree, fileSize);
                 throw new NotEnoughDeviceSpaceException(this);
             }
             Log.Debug("Pushing file: \"{LocalPath}\" -> \"{RemotePath}\", size: {FileSize}", localPath, remotePath,
@@ -1314,7 +1314,7 @@ public partial class AdbService
             await using var file = File.OpenRead(localPath);
             var isCancelled = false;
             ct.Register(() => isCancelled = true);
-            syncService.Push(file, remotePath, 771, DateTime.Now, progress, isCancelled);
+            syncService.Push(file, remotePath, 777, DateTime.Now, progress, isCancelled);
         }
 
         /// <summary>
