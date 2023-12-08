@@ -67,6 +67,7 @@
         <TrimmableAssembly Include="Avalonia.Themes.Default" />
     </ItemGroup>
     <ItemGroup>
+        <PackageReference Include="7zip" Version="23.1.0" />
         <PackageReference Include="AdvancedSharpAdbClient" Version="9.9.21" />
         <PackageReference Include="android-aapt2" Version="34.0.0" />
         <PackageReference Include="android-adb" Version="34.0.5" />
@@ -103,7 +104,6 @@
         <PackageReference Include="LibVLCSharp.Avalonia" Version="3.8.2" />
         <PackageReference Include="Serilog.Sinks.Seq" Version="6.0.0" />
         <PackageReference Include="SerilogTimings" Version="3.0.1" />
-        <PackageReference Include="SharpCompress" Version="0.34.2" />
         <PackageReference Include="System.Management" Version="8.0.0" />
         <PackageReference Include="System.Net.Http.Json" Version="8.0.0" />
         <PackageReference Include="Tmds.MDns" Version="0.8.0" />

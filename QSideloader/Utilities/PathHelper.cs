@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Serilog;
 
 namespace QSideloader.Utilities;
 
@@ -40,6 +41,9 @@ public static class PathHelper
     public static string AdbPath { get; } = FindExecutable("adb");
     public static string RclonePath { get; } = "";
     public static string AaptPath { get; } = FindExecutable("aapt2");
+    public static string SevenZipPath { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+        ? FindExecutable("7za")
+        : FindExecutable("7zz");
     public static string SettingsPath => "settings.json";
     public static string OverridesPath => "overrides.conf";
     public static string ThumbnailsPath => Path.Combine("Resources", "thumbnails");
