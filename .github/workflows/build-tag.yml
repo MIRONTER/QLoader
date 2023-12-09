@@ -41,11 +41,11 @@ jobs:
       run: |
         Expand-Archive -Path Resources.zip -DestinationPath QSideloader\Resources\ -Force
     
-    - name: Publish Debug
+    - name: Publish Release
       shell: pwsh
       run: |
         Set-Location QSideloader
-        dotnet publish -c Debug --self-contained true --runtime win-x64 -p:PublishSingleFile=true -o ..\win-x64
+        dotnet publish -c Release --self-contained true --runtime win-x64 -p:PublishSingleFile=true -o ..\win-x64
     
     - name: Prepare for upload
       shell: pwsh
@@ -91,10 +91,10 @@ jobs:
     - name: Unpack resources
       run: unzip -q Resources.zip -d QSideloader/Resources/
     
-    - name: Publish Debug
+    - name: Publish Release
       run: |
         cd QSideloader
-        dotnet publish -c Debug --self-contained true --runtime linux-x64 -p:PublishSingleFile=true -o ../linux-x64
+        dotnet publish -c Release --self-contained true --runtime linux-x64 -p:PublishSingleFile=true -o ../linux-x64
     
     - name: Prepare for upload
       env:
@@ -140,10 +140,10 @@ jobs:
     - name: Unpack resources
       run: unzip -q Resources.zip -d QSideloader/Resources/
     
-    - name: Publish Debug
+    - name: Publish Release
       run: |
         cd QSideloader
-        dotnet publish -c Debug --self-contained true --runtime linux-arm64 -p:PublishSingleFile=true -o ../linux-arm64
+        dotnet publish -c Release --self-contained true --runtime linux-arm64 -p:PublishSingleFile=true -o ../linux-arm64
     
     - name: Prepare for upload
       env:
@@ -194,10 +194,10 @@ jobs:
     - name: Unpack resources
       run: unzip -q Resources.zip -d QSideloader/Resources/
     
-    - name: Publish Debug
+    - name: Publish Release
       run: |
         cd QSideloader
-        dotnet publish -c Debug --self-contained true --runtime osx-x64 -p:PublishSingleFile=true -o ../osx-x64
+        dotnet publish -c Release --self-contained true --runtime osx-x64 -p:PublishSingleFile=true -o ../osx-x64
     
     - name: Prepare for upload
       env:
