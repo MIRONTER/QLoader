@@ -48,13 +48,32 @@ public class SettingsData : ReactiveObject
     // ReSharper disable once UnusedMember.Global
     public static byte ConfigVersion => 1;
 
-    [Reactive]
     public bool CheckUpdatesAutomatically
     {
         get => _checkUpdatesAutomatically;
         set
         {
-            _checkUpdatesAutomatically = value;
+            this.RaiseAndSetIfChanged(ref _checkUpdatesAutomatically, value);
+            ShowRelaunchNotification();
+        }
+    }
+    
+    public bool EnableDebugConsole
+    {
+        get => _enableDebugConsole;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _enableDebugConsole, value);
+            ShowRelaunchNotification();
+        }
+    }
+    
+    public bool ForceEnglish
+    {
+        get => _forceEnglish;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _forceEnglish, value);
             ShowRelaunchNotification();
         }
     }
@@ -69,16 +88,6 @@ public class SettingsData : ReactiveObject
     [Reactive]
     public DownloadsPruningPolicy DownloadsPruningPolicy { get; set; } = DownloadsPruningPolicy.DeleteAfterInstall;
 
-    [Reactive]
-    public bool EnableDebugConsole
-    {
-        get => _enableDebugConsole;
-        set
-        {
-            _enableDebugConsole = value;
-            ShowRelaunchNotification();
-        }
-    }
 
     [Reactive] public string LastWirelessAdbHost { get; set; } = "";
     [JsonIgnore] public static string[] PopularityRanges { get; } = {"30 days", "7 days", "1 day", "None"};
@@ -91,17 +100,6 @@ public class SettingsData : ReactiveObject
     [Reactive] public bool EnableRemoteLogging { get; set; }
     [Reactive] public bool EnableAutoDonation { get; set; }
     [Reactive] public bool DisableDonationNotification { get; set; }
-
-    [Reactive]
-    public bool ForceEnglish
-    {
-        get => _forceEnglish;
-        set
-        {
-            ShowRelaunchNotification();
-            _forceEnglish = value;
-        }
-    }
 
     [Reactive] public bool EnableTaskAutoDismiss { get; set; } = true;
 
