@@ -9,4 +9,14 @@
         <PublishAot>true</PublishAot>
     </PropertyGroup>
 
+    <ItemGroup>
+      <PackageReference Include="CliWrap" Version="3.6.4" />
+      <PackageReference Include="Downloader" Version="3.0.6" />
+      <PackageReference Include="Serilog" Version="3.1.1" />
+      <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
+      <PackageReference Include="System.Management" Version="8.0.0" />
+    </ItemGroup>
+
+    <Import Project="..\QSideloader.Common\QSideloader.Common.projitems" Label="Shared" />
+
 </Project>

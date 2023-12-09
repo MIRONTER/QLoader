@@ -24,6 +24,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using QSideloader.Common;
 using FluentAvalonia.UI.Controls;
 using QSideloader.Converters;
 using QSideloader.Models;
@@ -35,6 +36,7 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Serilog;
 using Serilog.Context;
+using JsonSerializerContext = QSideloader.Models.JsonSerializerContext;
 
 namespace QSideloader.ViewModels;
 

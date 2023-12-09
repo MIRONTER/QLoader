@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>7995E831-0482-40E3-B5F6-7B540291AA50</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>QSideloader.Common</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CommonJsonSerializerContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Hwid.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UpdateInfo.cs" />
+  </ItemGroup>
+</Project>

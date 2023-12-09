@@ -26,6 +26,7 @@ using Avalonia.Controls.Notifications;
 using CliWrap;
 using CliWrap.Buffered;
 using CliWrap.Exceptions;
+using QSideloader.Common;
 using QSideloader.Exceptions;
 using QSideloader.Models;
 using QSideloader.Properties;
@@ -602,10 +603,10 @@ public partial class AdbService
     /// </summary>
     /// <param name="deviceSerial">Device serial to convert.</param>
     /// <returns>Hashed ID as <see cref="string" />.</returns>
-    /// <remarks><see cref="GeneralUtils.GetHwid"/> is used as salt.</remarks>
+    /// <remarks><see cref="Hwid.GetHwid"/> is used as salt.</remarks>
     private static string GetHashedId(string deviceSerial)
     {
-        var hwid = GeneralUtils.GetHwid(false);
+        var hwid = Hwid.GetHwid(false);
         var saltedSerial = hwid + deviceSerial;
         var hashedId = Convert.ToHexString(SHA256.HashData(Encoding.ASCII.GetBytes(saltedSerial)))[..16];
         return hashedId;
@@ -2197,9 +2198,6 @@ public partial class AdbService
 
         [GeneratedRegex("[0-9]{1,3}")]
         private static partial Regex BatteryLevelRegex();
-
-        [GeneratedRegex("\\s{1,}")]
-        private static partial Regex SpaceUsedFreeRegex();
 
         /// <summary>
         /// Regex pattern to split command into list of arguments.

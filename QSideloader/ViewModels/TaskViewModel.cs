@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AdvancedSharpAdbClient.DeviceCommands;
 using Avalonia.Controls.Notifications;
+using QSideloader.Common;
 using QSideloader.Exceptions;
 using QSideloader.Models;
 using QSideloader.Properties;
@@ -304,7 +305,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 GeneralUtils.SanitizeFileName(
                     $"{apkInfo.ApplicationLabel} v{apkInfo.VersionCode} {apkInfo.PackageName}.zip");
             await File.WriteAllTextAsync(Path.Combine(path, "HWID.txt"),
-                GeneralUtils.GetHwid(false));
+                Hwid.GetHwid(false));
             var archivePath = await ZipUtil.CreateArchiveAsync(path, "donations",
                 archiveName, _cancellationTokenSource.Token);
             Directory.Delete(path, true);
