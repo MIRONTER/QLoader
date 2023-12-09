@@ -14,7 +14,7 @@ public class UpdateStatusStringValueConverter : IValueConverter
         {
             null => null,
             InstalledGame game => game.IsUpdateAvailable
-                ? string.Format(Resources.UpdateAvailable, game.InstalledVersionCode, game.AvailableVersionCode)
+                ? string.Format(Resources.UpdateAvailableStatus, game.InstalledVersionCode, game.AvailableVersionCode)
                 : Resources.UpToDate,
             _ => throw new NotSupportedException()
         };

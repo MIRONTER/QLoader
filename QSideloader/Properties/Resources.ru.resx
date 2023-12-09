@@ -551,7 +551,7 @@
     <data name="UpToDate" xml:space="preserve">
         <value>Нет обновлений</value>
     </data>
-    <data name="UpdateAvailable" xml:space="preserve">
+    <data name="UpdateAvailableStatus" xml:space="preserve">
         <value>Доступно обновление! ({0} -&gt; {1})</value>
     </data>
     <data name="Data" xml:space="preserve">

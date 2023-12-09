@@ -2518,9 +2518,9 @@ namespace QSideloader.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Update Available! ({0} -&gt; {1}).
         /// </summary>
-        public static string UpdateAvailable {
+        public static string UpdateAvailableStatus {
             get {
-                return ResourceManager.GetString("UpdateAvailable", resourceCulture);
+                return ResourceManager.GetString("UpdateAvailableStatus", resourceCulture);
             }
         }
         
