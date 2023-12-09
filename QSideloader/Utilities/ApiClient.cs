@@ -20,7 +20,7 @@ namespace QSideloader.Utilities;
 public static class ApiClient
 {
     private const string StaticFilesUrl = "https://qloader.5698452.xyz/files/";
-    private const string ApiUrl = "https://qloader.5698452.xyz/api/v1/";
+    private const string DefaultApiUrl = "https://qloader.5698452.xyz/api/v1/";
 
     static ApiClient()
     {
@@ -28,7 +28,16 @@ public static class ApiClient
         {
             Proxy = WebRequest.DefaultWebProxy
         };
-        ApiHttpClient = new HttpClient(apiHttpClientHandler) {BaseAddress = new Uri(ApiUrl)};
+        Globals.Overrides.TryGetValue("ApiUrl", out var apiUrl);
+        if (apiUrl is not null)
+        {
+            Log.Information("Using API URL override: {ApiUrl}", apiUrl);
+        }
+        else
+        {
+            apiUrl = DefaultApiUrl;
+        }
+        ApiHttpClient = new HttpClient(apiHttpClientHandler) {BaseAddress = new Uri(apiUrl)};
         var appName = Program.Name;
         var appVersion = Assembly.GetExecutingAssembly().GetName().Version;
         var appVersionString = appVersion is not null

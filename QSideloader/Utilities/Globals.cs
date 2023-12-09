@@ -13,7 +13,7 @@ public static class Globals
 
     public static SettingsData SideloaderSettings => SideloaderSettingsViewModel.Settings;
 
-    public static Dictionary<string, string?> Overrides { get; } = GeneralUtils.ParseOverridesFile();
+    public static Dictionary<string, string?> Overrides { get; } = GeneralUtils.ParseOverridesConfig();
 
     public static object? Updater { get; set; }
 

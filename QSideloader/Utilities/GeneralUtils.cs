@@ -145,12 +145,13 @@ public static partial class GeneralUtils
         return new string(fileName.Where(c => !invalidChars.Contains(c)).ToArray());
     }
 
-    public static Dictionary<string, string?> ParseOverridesFile()
+    public static Dictionary<string, string?> ParseOverridesConfig()
     {
         var overrides = new Dictionary<string, string?>
         {
             {"ConfigUpdateUrl", null},
-            {"DisableSelfUpdate", "0"}
+            {"DisableSelfUpdate", "0"},
+            {"ApiUrl", null}
         };
         if (!File.Exists(PathHelper.OverridesPath))
             return overrides;
