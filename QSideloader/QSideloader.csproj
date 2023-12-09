@@ -18,6 +18,8 @@
         <ApplicationIcon>Assets\app.ico</ApplicationIcon>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
         <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+        <IncludeSourceRevisionInInformationalVersion Condition="$(InformationalVersion.Contains('dev')) == 'true'">true</IncludeSourceRevisionInInformationalVersion>
+        <IncludeSourceRevisionInInformationalVersion Condition="$(InformationalVersion.Contains('dev')) != 'true'">false</IncludeSourceRevisionInInformationalVersion>
     </PropertyGroup>
     <ItemGroup>
         <Tools Condition="$(RuntimeIdentifier.Contains('win')) Or '$(RuntimeIdentifier)'==''" Include="tools\windows\**\*" />
