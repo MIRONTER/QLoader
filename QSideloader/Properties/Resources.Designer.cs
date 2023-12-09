@@ -82,28 +82,13 @@ namespace QSideloader.Properties {
         ///   Looks up a localized string similar to No connected device found. Make sure you have done the following:
         ///1. Enable developer mode
         ///2. Connect your headset to your computer using usb data cable
-        ///3. Close any possibly conflicting apps (SideQuest for example)
+        ///3. Close any possibly conflicting apps (SideQuest or Bluestacks for example)
         ///
         ///You may use {0} for downloads without connecting to a device..
         /// </summary>
         public static string AdbConnectionDialogText {
             get {
                 return ResourceManager.GetString("AdbConnectionDialogText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No connected device found. Make sure you have done the following:
-        ///1. Enable developer mode
-        ///2. Install Oculus ADB driver
-        ///3. Connect your headset to your computer using usb data cable
-        ///4. Close any possibly conflicting apps (SideQuest or BlueStacks for example)
-        ///
-        ///You may use {0} for downloads without connecting to a device..
-        /// </summary>
-        public static string AdbConnectionDialogTextWin {
-            get {
-                return ResourceManager.GetString("AdbConnectionDialogTextWin", resourceCulture);
             }
         }
         

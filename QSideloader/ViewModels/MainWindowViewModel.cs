@@ -523,9 +523,7 @@ public partial class MainWindowViewModel : ViewModelBase
         return Observable.Start(() =>
         {
             var appName = Program.Name;
-            var message = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? string.Format(Resources.AdbConnectionDialogTextWin, appName)
-                : string.Format(Resources.AdbConnectionDialogText, appName);
+            var message = string.Format(Resources.AdbConnectionDialogText, appName);
 
             Dispatcher.UIThread.InvokeAsync(() =>
             {

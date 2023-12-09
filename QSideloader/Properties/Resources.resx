@@ -390,16 +390,7 @@ Please allow USB debugging in your headset.</value>
         <value>No connected device found. Make sure you have done the following:
 1. Enable developer mode
 2. Connect your headset to your computer using usb data cable
-3. Close any possibly conflicting apps (SideQuest for example)
-
-You may use {0} for downloads without connecting to a device.</value>
-    </data>
-    <data name="AdbConnectionDialogTextWin" xml:space="preserve">
-        <value>No connected device found. Make sure you have done the following:
-1. Enable developer mode
-2. Install Oculus ADB driver
-3. Connect your headset to your computer using usb data cable
-4. Close any possibly conflicting apps (SideQuest or BlueStacks for example)
+3. Close any possibly conflicting apps (SideQuest or Bluestacks for example)
 
 You may use {0} for downloads without connecting to a device.</value>
     </data>
