@@ -8,7 +8,7 @@ on:
 jobs:
   build-win-x64:
 
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - name: Setup Rclone
@@ -21,6 +21,11 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
+    - name: Install tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install zip -y
+
     - uses: actions/checkout@v3
       with:
         submodules: 'true'
@@ -29,26 +34,19 @@ jobs:
       run: rclone copy drive:qloader_files/dependencies.zip ./
 
     - name: Unpack external dependencies
-      shell: pwsh
-      run: |
-        Expand-Archive -Path dependencies.zip -DestinationPath QSideloader -Force
+      run: unzip -q dependencies.zip -d QSideloader/
 
     - name: Publish Debug
-      shell: pwsh
       run: |
-        Set-Location QSideloader
-        dotnet publish -c Debug --self-contained true --runtime win-x64 -p:PublishSingleFile=true -o ..\win-x64
-        
+        cd QSideloader
+        dotnet publish -c Debug --self-contained true --runtime win-x64 -p:PublishSingleFile=true -o ../win-x64
     - name: Prepare for upload
-      shell: pwsh
       env:
         RUN_NUMBER: ${{ github.run_number }}
       run: |
-        $RUN_NUMBER = $env:RUN_NUMBER
-        Write-Output "Packing win-x64"
-        New-Item -ItemType Directory -Path builds_ci\run-$RUN_NUMBER\ -Force
-        Compress-Archive -Path win-x64\* -DestinationPath builds_ci\run-$RUN_NUMBER\win-x64.zip
-    
+        echo Packing win-x64
+        mkdir -p builds_ci/run-$RUN_NUMBER/
+        zip -r builds_ci/run-$RUN_NUMBER/win-x64.zip win-x64/*
     - name: Upload artifact
       run: rclone copy -v builds_ci/ drive:qloader_files/builds_ci/
 
