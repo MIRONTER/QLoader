@@ -1229,7 +1229,7 @@ public partial class AdbService
                 await Task.Run(async () =>
                 {
                     await _downloaderService.EnsureMetadataAvailableAsync();
-                    donationsAvailable = await _downloaderService.GetDonationsAvailable();
+                    donationsAvailable = await _downloaderService.GetDonationsAvailableAsync();
                 });
                 metadataAvailable = true;
             }

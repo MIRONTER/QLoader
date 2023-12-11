@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -260,6 +261,8 @@ public partial class DownloaderService
     /// <returns><see cref="List{T}" /> of mirrors.</returns>
     private static async Task<List<string>> GetMirrorListAsync()
     {
+        await RcloneSemaphoreSlim.WaitAsync();
+        RcloneSemaphoreSlim.Release();
         List<string> mirrorList = new();
 
         var result = await ExecuteRcloneCommandAsync("listremotes");
@@ -268,9 +271,11 @@ public partial class DownloaderService
         return mirrorList;
     }
 
-    public async Task<bool> GetDonationsAvailable()
+    public async Task<bool> GetDonationsAvailableAsync()
     {
         if (_donationsAvailable is not null) return _donationsAvailable.Value;
+        await RcloneSemaphoreSlim.WaitAsync();
+        RcloneSemaphoreSlim.Release();
         var result = await ExecuteRcloneCommandAsync("listremotes");
         _donationsAvailable = result.StandardOutput.Contains("FFA-DD:");
         return _donationsAvailable.Value;
@@ -595,8 +600,8 @@ public partial class DownloaderService
             return;
         }
 
-        while (RcloneSemaphoreSlim.CurrentCount == 0)
-            await Task.Delay(100);
+        await RcloneSemaphoreSlim.WaitAsync();
+        RcloneSemaphoreSlim.Release();
         try
         {
             await EnsureMirrorSelectedAsync();

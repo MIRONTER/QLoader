@@ -80,7 +80,7 @@ public partial class MainWindowViewModel : ViewModelBase
         ShowAuthHelpDialog = ReactiveCommand.CreateFromObservable(ShowAuthHelpDialogImpl);
         DonateAllGames = ReactiveCommand.CreateFromObservable(DonateAllGamesImpl);
         ShowSharingDialog = ReactiveCommand.CreateFromObservable(ShowSharingOptionsImpl);
-        Task.Run(async () => { DonationsAvailable = await _downloaderService.GetDonationsAvailable(); });
+        Task.Run(async () => { DonationsAvailable = await _downloaderService.GetDonationsAvailableAsync(); });
         _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged);
         _adbService.WhenPackageListChanged.Subscribe(_ =>
         {
