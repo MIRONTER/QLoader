@@ -24,7 +24,7 @@ public static partial class Hwid
         string? hwid = null;
         try
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (OperatingSystem.IsLinux())
             {
                 if (File.Exists("/var/lib/dbus/machine-id"))
                     hwid = File.ReadAllText("/var/lib/dbus/machine-id");
@@ -33,7 +33,7 @@ public static partial class Hwid
             }
 
             // This algorithm is different from windows Loader v2 as that one fails on some systems
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (OperatingSystem.IsWindows())
             {
                 if (useCompatOnWindows)
                     return GetHwidCompat();
@@ -44,7 +44,7 @@ public static partial class Hwid
                 hwid = regValue.ToString();
             }
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            if (OperatingSystem.IsMacOS())
             {
                 var ioregOutput = Cli.Wrap("ioreg")
                     .WithArguments("-rd1 -c IOPlatformExpertDevice")
@@ -75,7 +75,7 @@ public static partial class Hwid
     /// <returns>HWID as <see cref="string" />.</returns>
     private static string GetHwidCompat()
     {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if (!OperatingSystem.IsWindows())
             throw new InvalidOperationException("Not supported on non-Windows platforms");
         var sb = new StringBuilder();
 

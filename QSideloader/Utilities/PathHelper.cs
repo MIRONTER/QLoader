@@ -9,13 +9,13 @@ public static class PathHelper
 {
     static PathHelper()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if (OperatingSystem.IsWindows())
         {
             // ReSharper disable StringLiteralTypo
             RclonePath = @".\tools\windows\rclone\FFA.exe";
             // ReSharper restore StringLiteralTypo
         }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        else if (OperatingSystem.IsLinux())
         {
             var architectureString = RuntimeInformation.ProcessArchitecture switch
             {
@@ -25,7 +25,7 @@ public static class PathHelper
             };
             RclonePath = Path.Combine("./tools/linux/", architectureString, "rclone/FFA");
         }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        else if (OperatingSystem.IsMacOS())
         {
             var architectureString = RuntimeInformation.ProcessArchitecture switch
             {
@@ -40,9 +40,9 @@ public static class PathHelper
     public static string AdbPath { get; } = FindExecutable("adb");
     public static string RclonePath { get; } = "";
     public static string AaptPath { get; } = FindExecutable("aapt2");
-    public static string SevenZipPath { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-        ? FindExecutable("7za")
-        : FindExecutable("7zz");
+
+    public static string SevenZipPath { get; } =
+        OperatingSystem.IsWindows() ? FindExecutable("7za") : FindExecutable("7zz");
     public static string SettingsPath => "settings.json";
     public static string OverridesPath => "overrides.conf";
     public static string ThumbnailsPath => Path.Combine("Resources", "thumbnails");
@@ -90,7 +90,7 @@ public static class PathHelper
             return Path.GetFullPath(name);
 
         // search in NATIVE_DLL_SEARCH_DIRECTORIES
-        name = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? name + ".exe" : name;
+        name = OperatingSystem.IsWindows() ? name + ".exe" : name;
         if (AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES") is string nativeDllSearchDirectories)
         {
             var directories = nativeDllSearchDirectories.Split(Path.PathSeparator);

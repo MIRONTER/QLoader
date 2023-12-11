@@ -117,9 +117,9 @@ public static partial class GeneralUtils
 
     public static string GetOsName()
     {
-        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "Windows" :
-            RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? "Linux" :
-            RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "OSX" :
+        return OperatingSystem.IsWindows() ? "Windows" :
+            OperatingSystem.IsLinux() ? "Linux" :
+            OperatingSystem.IsMacOS() ? "OSX" :
             "Unknown";
     }
 

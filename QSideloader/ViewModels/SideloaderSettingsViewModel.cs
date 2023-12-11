@@ -227,7 +227,7 @@ public class SettingsData : ReactiveObject
                 TypeInfoResolver = JsonSerializerContext.Default,
                 WriteIndented = true
             });
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (OperatingSystem.IsWindows())
             {
                 using FileStream stream = AtomicFileStream.Open(PathHelper.SettingsPath, FileMode.Create,
                     FileAccess.Write, FileShare.Read, 4096, FileOptions.None);
@@ -386,9 +386,9 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
 /*#if DEBUG
     public bool IsConsoleToggleable { get; }
 #else
-    public bool IsConsoleToggleable { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+    public bool IsConsoleToggleable { get; } = OperatingSystem.IsWindows();
 #endif*/
-    public bool IsConsoleToggleable { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+    public bool IsConsoleToggleable { get; } = OperatingSystem.IsWindows();
     public bool IsUpdaterAvailable { get; } = Globals.Updater is not null;
     [Reactive] public List<string> MirrorList { get; private set; } = new();
     [Reactive] public string? SelectedMirror { get; set; }

@@ -41,7 +41,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
         {
             thm.PreferSystemTheme = false;
             thm.PreferUserAccentColor = true;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (OperatingSystem.IsWindows())
                 thm.ForceWin32WindowToTheme(this, ThemeVariant.Dark);
         }
 
@@ -149,7 +149,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
         }
 
         // TODO: add windows support
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if (OperatingSystem.IsWindows())
         {
             Log.Warning("Running on Windows, skipping updater initialization");
             return;
@@ -183,18 +183,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
         }
     }
 
-    // When new task is added, scroll to last task in the list
-    /* this is hacky, consider just using regular ordering
-    private void TaskListOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        // ReSharper disable once InvertIf
-        if (e.OldItems is not null && e.NewItems is not null && e.OldItems.Count > e.NewItems.Count ||
-            e.OldItems is null && e.NewItems is not null)
-        {
-            var taskListBox = this.FindControl<ListBox>("TaskListBox");
-            taskListBox.ScrollIntoView(taskListBox.Items.OfType<TaskView>().Last());
-        }
-    }*/
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
     [SuppressMessage("ReSharper", "SuggestBaseTypeForParameter")]
     private async void Window_OnClosing(object? sender, WindowClosingEventArgs e)
