@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -72,6 +74,53 @@ public static class ApiClient
         catch (Exception e)
         {
             throw new ApiException("Failed to get rclone config", e);
+        }
+    }
+
+    /// <summary>
+    ///     Downloads the rclone binary to the provided path, if it doesn't exist or is outdated.
+    /// </summary>
+    /// <param name="currentModTime">Current modification time of the binary.</param>
+    /// <param name="currentSize">Current size of the binary, in bytes.</param>
+    /// <param name="outFileName">Path to download the binary to.</param>
+    /// <exception cref="ApiException"></exception>
+    public static async Task DownloadRcloneBinaryAsync(DateTime? currentModTime, long currentSize, string outFileName)
+    {
+        try
+        {
+            // ReSharper disable once SwitchExpressionHandlesSomeKnownEnumValuesWithExceptionInDefault
+            var binaryUrl = RuntimeInformation.ProcessArchitecture switch
+            {
+                Architecture.X64 when OperatingSystem.IsWindows() => $"{StaticFilesUrl}rclone/windows/FFA.exe",
+                Architecture.X64 when OperatingSystem.IsLinux() => $"{StaticFilesUrl}rclone/linux/FFA-x64",
+                Architecture.Arm64 when OperatingSystem.IsLinux() => $"{StaticFilesUrl}rclone/linux/FFA-arm64",
+                Architecture.X64 when OperatingSystem.IsMacOS() => $"{StaticFilesUrl}rclone/darwin/FFA-x64",
+                Architecture.Arm64 when OperatingSystem.IsMacOS() => $"{StaticFilesUrl}rclone/darwin/FFA-arm64",
+                _ => throw new PlatformNotSupportedException("No rclone binary download available for this platform")
+            };
+
+            // We need only the headers
+            using var response = await ApiHttpClient.GetAsync(binaryUrl, HttpCompletionOption.ResponseHeadersRead);
+            response.EnsureSuccessStatusCode();
+            
+            // Check modification time and size, and skip download if they match
+            Log.Debug("Rclone modtime: {ModTime}, size: {Size}", response.Content.Headers.LastModified,
+                response.Content.Headers.ContentLength);
+            if (currentModTime is not null && response.Content.Headers.LastModified <= currentModTime &&
+                response.Content.Headers.ContentLength == currentSize)
+            {
+                Log.Information("Rclone binary is up to date");
+                return;
+            }
+
+            await using var fs = File.Create(outFileName);
+            await response.Content.CopyToAsync(fs);
+            // Set modification time
+            File.SetLastWriteTime(outFileName, response.Content.Headers.LastModified?.UtcDateTime ?? DateTime.UtcNow);
+        }
+        catch (Exception e)
+        {
+            throw new ApiException("Failed to download rclone binary", e);
         }
     }
 

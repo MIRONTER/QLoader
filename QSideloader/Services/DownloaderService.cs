@@ -38,7 +38,7 @@ public partial class DownloaderService
     private static readonly SemaphoreSlim MirrorListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim GameListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim DownloadSemaphoreSlim = new(1, 1);
-    private static readonly SemaphoreSlim RcloneConfigSemaphoreSlim = new(1, 1);
+    private static readonly SemaphoreSlim RcloneSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim TrailersAddonSemaphoreSlim = new(1, 1);
     private readonly SettingsData _sideloaderSettings;
     private List<string> _mirrorList = new();
@@ -60,6 +60,7 @@ public partial class DownloaderService
         Task.Run(async () =>
         {
             await UpdateRcloneConfigAsync();
+            await UpdateRcloneBinaryAsync();
             await EnsureMetadataAvailableAsync();
             await UpdateResourcesAsync();
         });
@@ -67,16 +68,16 @@ public partial class DownloaderService
 
     public static DownloaderService Instance { get; } = new();
     public List<Game>? AvailableGames { get; private set; }
-    public List<string> DonationBlacklistedPackages { get; private set; } = new();
+    public List<string> DonationBlacklistedPackages { get; private set; } = [];
     public string MirrorName { get; private set; } = "";
 
-    private List<(string mirrorName, string? message, Exception? error)> ExcludedMirrorList { get; set; } = new();
+    private List<(string mirrorName, string? message, Exception? error)> ExcludedMirrorList { get; set; } = [];
     public IEnumerable<string> MirrorList => _mirrorList.AsReadOnly();
     private const int DefaultRcloneStatsPort = 48040;
     private static string RcloneConnectionTimeout => "5s";
     private static string RcloneIoIdleTimeout => "30s";
 
-    private static bool CanSwitchMirror => RcloneConfigSemaphoreSlim.CurrentCount > 0 &&
+    private static bool CanSwitchMirror => RcloneSemaphoreSlim.CurrentCount > 0 &&
                                            MirrorListSemaphoreSlim.CurrentCount > 0 &&
                                            GameListSemaphoreSlim.CurrentCount > 0;
 
@@ -84,12 +85,41 @@ public partial class DownloaderService
     private static HttpClient HttpClient { get; }
 
 
+    private static async Task UpdateRcloneBinaryAsync()
+    {
+        await RcloneSemaphoreSlim.WaitAsync();
+        try
+        {
+            var rclonePath = PathHelper.RclonePath;
+            if (Path.GetFileNameWithoutExtension(rclonePath) != "FFA")
+            {
+                Log.Warning("Non-FFA rclone binary, not updating");
+                return;
+            }
+
+            // We check whether the binary is outdated by comparing the modification time and size
+            DateTime? rcloneModTime = File.Exists(rclonePath) ? File.GetLastWriteTimeUtc(rclonePath) : null;
+            var rcloneSize = File.Exists(rclonePath) ? new FileInfo(rclonePath).Length : 0;
+
+            await ApiClient.DownloadRcloneBinaryAsync(rcloneModTime, rcloneSize, rclonePath);
+            Log.Information("Rclone binary updated from server");
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Failed to update rclone binary");
+        }
+        finally
+        {
+            RcloneSemaphoreSlim.Release();
+        }
+    }
+    
     /// <summary>
     ///     Downloads a new config file for rclone from a mirror.
     /// </summary>
     private async Task UpdateRcloneConfigAsync()
     {
-        await RcloneConfigSemaphoreSlim.WaitAsync();
+        await RcloneSemaphoreSlim.WaitAsync();
         try
         {
             var overrideUrl = Globals.Overrides.GetValueOrDefault("ConfigUpdateUrl");
@@ -141,7 +171,7 @@ public partial class DownloaderService
         }
         finally
         {
-            RcloneConfigSemaphoreSlim.Release();
+            RcloneSemaphoreSlim.Release();
         }
 
         return;
@@ -440,8 +470,8 @@ public partial class DownloaderService
     private async Task RcloneTransferAsync(string source, string destination, string operation,
         string additionalArgs = "", int retries = 1, CancellationToken ct = default)
     {
-        await RcloneConfigSemaphoreSlim.WaitAsync(ct);
-        RcloneConfigSemaphoreSlim.Release();
+        await RcloneSemaphoreSlim.WaitAsync(ct);
+        RcloneSemaphoreSlim.Release();
         await EnsureMirrorSelectedAsync();
         source = $"{MirrorName}:{source}";
         await RcloneTransferInternalAsync(source, destination, operation, additionalArgs, retries, ct);
@@ -565,7 +595,7 @@ public partial class DownloaderService
             return;
         }
 
-        while (RcloneConfigSemaphoreSlim.CurrentCount == 0)
+        while (RcloneSemaphoreSlim.CurrentCount == 0)
             await Task.Delay(100);
         try
         {
@@ -904,8 +934,8 @@ public partial class DownloaderService
         Log.Information("Uploading donation {ArchiveName}", archiveName);
         var md5Sum = GeneralUtils.GetMd5FileChecksum(path).ToLower();
         await File.WriteAllTextAsync(path + ".md5sum", md5Sum, ct);
-        await RcloneConfigSemaphoreSlim.WaitAsync(ct);
-        RcloneConfigSemaphoreSlim.Release();
+        await RcloneSemaphoreSlim.WaitAsync(ct);
+        RcloneSemaphoreSlim.Release();
         await RcloneTransferInternalAsync(path, "FFA-DD:/_donations/", "copy", ct: ct);
         await RcloneTransferInternalAsync(path + ".md5sum", "FFA-DD:/md5sum/", "copy",
             ct: ct);
@@ -1034,8 +1064,8 @@ public partial class DownloaderService
     /// <returns>Output of <c>rclone size</c> command.</returns>
     private static async Task<string> RcloneGetRemoteSizeJson(string remotePath, CancellationToken ct = default)
     {
-        await RcloneConfigSemaphoreSlim.WaitAsync(ct);
-        RcloneConfigSemaphoreSlim.Release();
+        await RcloneSemaphoreSlim.WaitAsync(ct);
+        RcloneSemaphoreSlim.Release();
 
         var result = await ExecuteRcloneCommandAsync($"size \"{remotePath}\" --fast-list --json", ct);
         return result.StandardOutput;
@@ -1054,8 +1084,8 @@ public partial class DownloaderService
         using var op = Operation.Begin("Rclone calculating size of \"{ReleaseName}\"", game.ReleaseName ?? "N/A");
         try
         {
-            await RcloneConfigSemaphoreSlim.WaitAsync(ct);
-            RcloneConfigSemaphoreSlim.Release();
+            await RcloneSemaphoreSlim.WaitAsync(ct);
+            RcloneSemaphoreSlim.Release();
             await EnsureMirrorSelectedAsync();
             var remotePath = $"{MirrorName}:Quest Games/{game.ReleaseName}";
             var sizeJson = await RcloneGetRemoteSizeJson(remotePath, ct);
