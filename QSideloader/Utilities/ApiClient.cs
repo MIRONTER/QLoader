@@ -104,8 +104,9 @@ public static class ApiClient
             response.EnsureSuccessStatusCode();
             
             // Check modification time and size, and skip download if they match
-            Log.Debug("Rclone modtime: {ModTime}, size: {Size}", response.Content.Headers.LastModified,
+            Log.Debug("Remote rclone modtime: {ModTime}, size: {Size}", response.Content.Headers.LastModified,
                 response.Content.Headers.ContentLength);
+            Log.Debug("Local rclone modtime: {ModTime}, size: {Size}", currentModTime, currentSize);
             if (currentModTime is not null && response.Content.Headers.LastModified <= currentModTime &&
                 response.Content.Headers.ContentLength == currentSize)
             {
