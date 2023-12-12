@@ -25,14 +25,6 @@ jobs:
       with:
         submodules: 'true'
 
-    - name: Download external dependencies
-      run: rclone copy drive:qloader_files/dependencies.zip ./
-
-    - name: Unpack external dependencies
-      shell: pwsh
-      run: |
-        Expand-Archive -Path dependencies.zip -DestinationPath QSideloader -Force
-
     - name: Download resources
       run: rclone copy --transfers 4 drive:qloader_files/Resources.zip ./
     
@@ -79,12 +71,6 @@ jobs:
       with:
         submodules: 'true'
 
-    - name: Download external dependencies
-      run: rclone copy drive:qloader_files/dependencies.zip ./
-
-    - name: Unpack external dependencies
-      run: unzip -q dependencies.zip -d QSideloader/
-
     - name: Download resources
       run: rclone copy --transfers 4 drive:qloader_files/Resources.zip ./
 
@@ -127,12 +113,6 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: 'true'
-
-    - name: Download external dependencies
-      run: rclone copy drive:qloader_files/dependencies.zip ./
-
-    - name: Unpack external dependencies
-      run: unzip -q dependencies.zip -d QSideloader/
 
     - name: Download resources
       run: rclone copy --transfers 4 drive:qloader_files/Resources.zip ./
@@ -182,14 +162,8 @@ jobs:
       with:
         submodules: 'true'
 
-    - name: Download external dependencies
-      run: rclone copy drive:qloader_files/dependencies.zip ./
-
-    - name: Unpack external dependencies
-      run: unzip -q dependencies.zip -d QSideloader/
-
     - name: Download resources
-      run: rclone copy --transfers 4 drive:qloader_files/Resources.zip ./
+      run: rclone copy drive:qloader_files/Resources.zip ./
 
     - name: Unpack resources
       run: unzip -q Resources.zip -d QSideloader/Resources/

@@ -22,30 +22,8 @@
         <IncludeSourceRevisionInInformationalVersion Condition="$(InformationalVersion.Contains('dev')) != 'true'">false</IncludeSourceRevisionInInformationalVersion>
     </PropertyGroup>
     <ItemGroup>
-        <Tools Condition="$(RuntimeIdentifier.Contains('win')) Or '$(RuntimeIdentifier)'==''" Include="tools\windows\**\*" />
-        <Tools Condition="$(RuntimeIdentifier.Contains('linux')) Or '$(RuntimeIdentifier)'==''" Include="tools\linux\**\*" />
-        <Tools Condition="$(RuntimeIdentifier.Contains('osx')) Or '$(RuntimeIdentifier)'==''" Include="tools\darwin\**\*" />
-        <ArchitectureSpecificTools Include="tools\windows\x64\**\*;tools\windows\x86\**\*" />
-        <ArchitectureSpecificTools Include="tools\darwin\x64\**\*;tools\darwin\arm64\**\*" />
-        <ArchitectureSpecificTools Include="tools\linux\x64\**\*;tools\linux\arm64\**\*" />
-        <NeededArchitectureSpecificTools Condition="($(RuntimeIdentifier.Contains('win')) And $(RuntimeIdentifier.Contains('x64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\windows\x64\**\*" />
-        <NeededArchitectureSpecificTools Condition="($(RuntimeIdentifier.Contains('win')) And $(RuntimeIdentifier.Contains('x86'))) Or '$(RuntimeIdentifier)'==''" Include="tools\windows\x86\**\*" />
-        <NeededArchitectureSpecificTools Condition="($(RuntimeIdentifier.Contains('osx')) And $(RuntimeIdentifier.Contains('x64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\darwin\x64\**\*" />
-        <NeededArchitectureSpecificTools Condition="($(RuntimeIdentifier.Contains('osx')) And $(RuntimeIdentifier.Contains('arm64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\darwin\arm64\**\*" />
-        <NeededArchitectureSpecificTools Condition="($(RuntimeIdentifier.Contains('linux')) And $(RuntimeIdentifier.Contains('x64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\linux\x64\**\*" />
-        <NeededArchitectureSpecificTools Condition="($(RuntimeIdentifier.Contains('linux')) And $(RuntimeIdentifier.Contains('arm64'))) Or '$(RuntimeIdentifier)'==''" Include="tools\linux\arm64\**\*" />
-    </ItemGroup>
-    <ItemGroup>
         <AvaloniaResource Include="Assets\**" />
         <None Remove=".gitignore" />
-        <Content Include="@(Tools)" Exclude="@(ArchitectureSpecificTools)">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-            <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-        </Content>
-        <Content Include="@(NeededArchitectureSpecificTools)">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-            <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-        </Content>
         <Content Include="Resources\**\*" Exclude="Resources\videos\**\*">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
             <ExcludeFromSingleFile>true</ExcludeFromSingleFile>

@@ -11,6 +11,7 @@ using QSideloader.Utilities;
 using QSideloader.ViewModels;
 using QSideloader.Views;
 using ReactiveUI;
+using Serilog;
 using Splat;
 
 namespace QSideloader;
@@ -24,7 +25,7 @@ public class App : Application
 
         Name = Program.Name;
 
-        // Force Russian locale
+        // Force Russian locale (for testing)
         //Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("ru");
 
         if (!Design.IsDesignMode)
@@ -33,6 +34,19 @@ public class App : Application
             if (sideloaderSettings.ForceEnglish)
                 Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("en");
             LoggerHelper.InitializeLogging(sideloaderSettings);
+        }
+        
+        // Delete leftover directory from old versions
+        if (Directory.Exists("tools"))
+        {
+            try
+            {
+                Directory.Delete("tools", true);
+            }
+            catch (Exception)
+            {
+                Log.Warning("Couldn't delete old tools directory");
+            }
         }
 
         Locator.CurrentMutable.RegisterViewsForViewModels(Assembly.GetExecutingAssembly());
