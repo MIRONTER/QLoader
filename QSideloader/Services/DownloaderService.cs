@@ -700,7 +700,7 @@ public partial class DownloaderService
                     foreach (var game in AvailableGames)
                     {
                         var popularityEntry =
-                            popularity.FirstOrDefault(x => x["package_name"].GetString() == game.PackageName);
+                            popularity.FirstOrDefault(x => x["package_name"].GetString() == game.OriginalPackageName);
                         if (popularityEntry is null) continue;
                         game.Popularity["1D"] =
                             (int) Math.Round(popularityEntry["1D"].GetInt32() / (double) popularityMax1D * 100);
@@ -812,7 +812,7 @@ public partial class DownloaderService
                         WriteIndented = true
                     });
                     await File.WriteAllTextAsync(Path.Combine(dstPath, "release.json"), json, ct);
-                    Task.Run(() => ApiClient.ReportGameDownloadAsync(game.PackageName!), ct).SafeFireAndForget();
+                    Task.Run(() => ApiClient.ReportGameDownloadAsync(game.OriginalPackageName!), ct).SafeFireAndForget();
                     break;
                 }
                 catch (DownloadQuotaExceededException e)

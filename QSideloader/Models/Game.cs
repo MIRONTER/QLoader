@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using FileHelpers;
 using QSideloader.Utilities;
 
@@ -11,11 +12,12 @@ namespace QSideloader.Models;
 
 [DelimitedRecord(";")]
 [IgnoreFirst]
-public class Game : INotifyPropertyChanged
+public partial class Game : INotifyPropertyChanged
 {
     [FieldHidden] [JsonIgnore] private bool _isInstalled;
     [FieldHidden] [JsonIgnore] private bool _isSelected;
     [FieldHidden] [JsonIgnore] private string? _thumbnailPath;
+    [FieldHidden] [JsonIgnore] private string? _originalPackageName;
 
     public Game()
     {
@@ -85,8 +87,9 @@ public class Game : INotifyPropertyChanged
         {
             //_thumbnailPath = Path.Combine("Resources", "NoThumbnailImage.png");
             if (_thumbnailPath is not null) return _thumbnailPath;
-            var jpgPath = Path.Combine(PathHelper.ThumbnailsPath, $"{PackageName}.jpg");
-            var pngPath = Path.Combine(PathHelper.ThumbnailsPath, $"{PackageName}.png");
+            if (OriginalPackageName is null) return Path.Combine("Resources", "NoThumbnailImage.png");
+            var jpgPath = Path.Combine(PathHelper.ThumbnailsPath, $"{OriginalPackageName}.jpg");
+            var pngPath = Path.Combine(PathHelper.ThumbnailsPath, $"{OriginalPackageName}.png");
             if (File.Exists(jpgPath))
                 _thumbnailPath = jpgPath;
             else if (File.Exists(pngPath))
@@ -105,12 +108,26 @@ public class Game : INotifyPropertyChanged
                     }
                     catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
                     {
-                        //Log.Debug("No thumbnail found for {PackageName}", PackageName);
+                        //Log.Debug("No thumbnail found for {OriginalPackageName}", OriginalPackageName);
                         _thumbnailPath = Path.Combine("Resources", "NoThumbnailImage.png");
                     }
                 }
 
             return _thumbnailPath;
+        }
+    }
+    
+    [FieldHidden]
+    [JsonIgnore]
+    public string? OriginalPackageName
+    {
+        // We're not setting this from PackageName setter because that makes using CSV reader more complicated
+        get
+        {
+            if (_originalPackageName is not null) return _originalPackageName;
+            if (PackageName is null) return null;
+            _originalPackageName = KnownRenamesRegex().Replace(PackageName, "");
+            return _originalPackageName;
         }
     }
 
@@ -173,4 +190,7 @@ public class Game : INotifyPropertyChanged
     {
         return new Game("Test", "Test v1337", 1337, null) {IsInstalled = true};
     }
+    
+    [GeneratedRegex(@"(^mr\.)|(^mrf\.)|(\.jjb)")]
+    private static partial Regex KnownRenamesRegex();
 }

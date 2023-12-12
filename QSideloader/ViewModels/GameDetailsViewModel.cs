@@ -91,7 +91,7 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel
     {
         if (Game is null || _libVlc is null || MediaPlayer is null ||
             !Directory.Exists(PathHelper.TrailersPath)) return;
-        var trailerFilePath = Path.Combine(PathHelper.TrailersPath, $"{Game.PackageName}.mp4");
+        var trailerFilePath = Path.Combine(PathHelper.TrailersPath, $"{Game.OriginalPackageName}.mp4");
         // Try finding a trailer using case-insensitive enumeration
         try
         {
@@ -119,7 +119,7 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel
         try
         {
             if (Game is null) return;
-            var gameInfo = await ApiClient.GetGameStoreInfoAsync(Game.PackageName);
+            var gameInfo = await ApiClient.GetGameStoreInfoAsync(Game.OriginalPackageName);
             if (gameInfo is null) return;
             if (!string.IsNullOrEmpty(gameInfo.DisplayName))
                 DisplayName = gameInfo.DisplayName;
