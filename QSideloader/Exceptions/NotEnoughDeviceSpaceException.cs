@@ -5,7 +5,7 @@ namespace QSideloader.Exceptions;
 
 public class NotEnoughDeviceSpaceException: Exception
 {
-    public NotEnoughDeviceSpaceException(AdbService.AdbDevice device) : base($"Not enough disk space on {device}")
+    public NotEnoughDeviceSpaceException(AdbService.AdbDevice device) : base($"Not enough space on {device}")
     {
         Device = device;
     }
