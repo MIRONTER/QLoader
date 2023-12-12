@@ -1079,9 +1079,7 @@ public partial class AdbService
             }
             catch (Exception e)
             {
-                SpaceUsed = -1;
-                SpaceFree = -1;
-                Log.Error(e, "Failed to get storage stats from df output: {DfOutput}", statOutput);
+                Log.Error(e, "Failed to get storage stats from stat output: {StatOutput}", statOutput);
                 throw;
             }
         }
