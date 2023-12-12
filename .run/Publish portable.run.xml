@@ -1,8 +1,6 @@
 ﻿<component name="ProjectRunConfigurationManager">
-    <configuration default="false" name="Publish portable" type="DotNetFolderPublish" factoryName="Publish to folder">
-        <riderPublish configuration="Release" delete_existing_files="true" platform="Any CPU" runtime="Portable"
-                      target_folder="$PROJECT_DIR$/QSideloader/bin/publish/Release/portable" target_framework="net7.0"
-                      uuid_high="-3235769417038805992" uuid_low="-8272883125021115361"/>
-        <method v="2"/>
-    </configuration>
+  <configuration default="false" name="Publish portable" type="DotNetFolderPublish" factoryName="Publish to folder">
+    <riderPublish configuration="Release" delete_existing_files="true" platform="Any CPU" runtime="Portable" target_folder="$PROJECT_DIR$/QSideloader/bin/publish/Release/portable" target_framework="net8.0" uuid_high="-3235769417038805992" uuid_low="-8272883125021115361" />
+    <method v="2" />
+  </configuration>
 </component>

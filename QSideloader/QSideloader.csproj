@@ -8,6 +8,7 @@
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+        <PublishSingleFile>true</PublishSingleFile>
         <NeutralLanguage>en</NeutralLanguage>
         <AssemblyName>Loader</AssemblyName>
         <AssemblyVersion>1.0.2.99</AssemblyVersion>
@@ -18,8 +19,8 @@
         <ApplicationIcon>Assets\app.ico</ApplicationIcon>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
         <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
-        <IncludeSourceRevisionInInformationalVersion Condition="$(InformationalVersion.Contains('dev')) == 'true'">true</IncludeSourceRevisionInInformationalVersion>
-        <IncludeSourceRevisionInInformationalVersion Condition="$(InformationalVersion.Contains('dev')) != 'true'">false</IncludeSourceRevisionInInformationalVersion>
+        <IncludeSourceRevisionInInformationalVersion Condition="$(InformationalVersion.Contains('dev'))">true</IncludeSourceRevisionInInformationalVersion>
+        <IncludeSourceRevisionInInformationalVersion Condition="!$(InformationalVersion.Contains('dev'))">false</IncludeSourceRevisionInInformationalVersion>
     </PropertyGroup>
     <ItemGroup>
         <AvaloniaResource Include="Assets\**" />
@@ -103,6 +104,13 @@
         <VlcWindowsX64IncludeFiles Include="plugins\video_output\libvmem_plugin.dll" />
         <VlcWindowsX86IncludeFiles Include="@(VlcWindowsX64IncludeFiles)" />
     </ItemGroup>
+    <!-- For some reason LibVLC package doesn't auto-detect the architecture -->
+    <PropertyGroup Condition="$(RuntimeIdentifier.Contains('x64')) Or '$(RuntimeIdentifier)'==''">
+        <VlcWindowsX86Enabled>false</VlcWindowsX86Enabled>
+    </PropertyGroup>
+    <PropertyGroup Condition="$(RuntimeIdentifier.Contains('x86')) Or '$(RuntimeIdentifier)'==''">
+        <VlcWindowsX64Enabled>false</VlcWindowsX64Enabled>
+    </PropertyGroup>
     <ItemGroup>
         <Compile Update="Views\Pages\GameDonationView.axaml.cs">
             <DependentUpon>GameDonationView.axaml</DependentUpon>
