@@ -7,7 +7,6 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -389,7 +388,7 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
     public bool IsConsoleToggleable { get; } = OperatingSystem.IsWindows();
 #endif*/
     public bool IsConsoleToggleable { get; } = OperatingSystem.IsWindows();
-    public bool IsUpdaterAvailable { get; } = Globals.Updater is not null;
+    public bool IsUpdaterAvailable => true;
     [Reactive] public List<string> MirrorList { get; private set; } = new();
     [Reactive] public string? SelectedMirror { get; set; }
     public bool IsSwitchingMirror => _isSwitchingMirror.Value;

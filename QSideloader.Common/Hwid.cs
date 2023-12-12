@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Management;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;

@@ -2,6 +2,4 @@
 
 namespace QSideloader.ViewModels;
 
-public class ViewModelBase : ReactiveValidationObject
-{
-}
+public class ViewModelBase : ReactiveValidationObject;

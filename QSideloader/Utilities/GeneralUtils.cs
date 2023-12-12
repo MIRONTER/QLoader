@@ -3,16 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Management;
 using System.Net.Http;
 using CliWrap;
 using CliWrap.Buffered;
-using Microsoft.Win32;
 using QSideloader.Models;
 using Serilog;
 using SerilogTimings;
@@ -204,7 +200,4 @@ public static partial class GeneralUtils
 
     [GeneratedRegex("versionName='(.*?)'")]
     private static partial Regex VersionNameRegex();
-
-    [GeneratedRegex("IOPlatformUUID\" = \"(.*?)\"")]
-    private static partial Regex IoPlatformUuidRegex();
 }
