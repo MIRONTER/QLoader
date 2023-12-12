@@ -9,31 +9,23 @@ public static class PathHelper
 {
     static PathHelper()
     {
-        if (OperatingSystem.IsWindows())
+        try
         {
-            // ReSharper disable StringLiteralTypo
-            RclonePath = @".\tools\windows\rclone\FFA.exe";
-            // ReSharper restore StringLiteralTypo
+            RclonePath = FindExecutable("FFA", "rclone");
         }
-        else if (OperatingSystem.IsLinux())
+        catch
         {
-            var architectureString = RuntimeInformation.ProcessArchitecture switch
+            try
             {
-                Architecture.X64 => "x64",
-                Architecture.Arm64 => "arm64",
-                _ => throw new NotImplementedException("Unsupported architecture")
-            };
-            RclonePath = Path.Combine("./tools/linux/", architectureString, "rclone/FFA");
-        }
-        else if (OperatingSystem.IsMacOS())
-        {
-            var architectureString = RuntimeInformation.ProcessArchitecture switch
+                RclonePath = FindExecutable("rclone", "rclone");
+            }
+            catch
             {
-                Architecture.X64 => "x64",
-                Architecture.Arm64 => "arm64",
-                _ => throw new NotImplementedException("Unsupported architecture")
-            };
-            RclonePath = Path.Combine("./tools/darwin/", architectureString, "rclone/FFA");
+                Directory.CreateDirectory("rclone");
+                RclonePath = OperatingSystem.IsWindows()
+                    ? Path.Combine("rclone", "FFA.exe")
+                    : Path.Combine("rclone", "FFA");
+            }
         }
     }
 
@@ -83,11 +75,15 @@ public static class PathHelper
         return resultFileName;
     }
 
-    private static string FindExecutable(string name)
+    private static string FindExecutable(string name, string? extraDir = null)
     {
         // try current directory first
         if (File.Exists(name))
             return Path.GetFullPath(name);
+        
+        // try extra dir if provided
+        if (!string.IsNullOrEmpty(extraDir) && File.Exists(Path.Combine(extraDir, name)))
+            return Path.Combine(extraDir, name);
 
         // search in NATIVE_DLL_SEARCH_DIRECTORIES
         name = OperatingSystem.IsWindows() ? name + ".exe" : name;

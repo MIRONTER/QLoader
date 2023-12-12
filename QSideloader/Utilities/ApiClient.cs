@@ -83,8 +83,9 @@ public static class ApiClient
     /// <param name="currentModTime">Current modification time of the binary.</param>
     /// <param name="currentSize">Current size of the binary, in bytes.</param>
     /// <param name="outFileName">Path to download the binary to.</param>
+    /// <returns><c>true</c> if new rclone binary was downloaded, <c>false</c> otherwise.</returns>
     /// <exception cref="ApiException"></exception>
-    public static async Task DownloadRcloneBinaryAsync(DateTime? currentModTime, long currentSize, string outFileName)
+    public static async Task<bool> DownloadRcloneBinaryAsync(DateTime? currentModTime, long currentSize, string outFileName)
     {
         try
         {
@@ -110,14 +111,14 @@ public static class ApiClient
             if (currentModTime is not null && response.Content.Headers.LastModified <= currentModTime &&
                 response.Content.Headers.ContentLength == currentSize)
             {
-                Log.Information("Rclone binary is up to date");
-                return;
+                return false;
             }
 
             await using var fs = File.Create(outFileName);
             await response.Content.CopyToAsync(fs);
             // Set modification time
             File.SetLastWriteTime(outFileName, response.Content.Headers.LastModified?.UtcDateTime ?? DateTime.UtcNow);
+            return true;
         }
         catch (Exception e)
         {

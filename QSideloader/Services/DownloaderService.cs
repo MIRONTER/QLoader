@@ -86,13 +86,15 @@ public partial class DownloaderService
     private static HttpClient HttpClient { get; }
 
 
+    private static bool IsUsingFfaRcloneBinary() => Path.GetFileNameWithoutExtension(PathHelper.RclonePath) == "FFA";
+
     private static async Task UpdateRcloneBinaryAsync()
     {
         await RcloneSemaphoreSlim.WaitAsync();
         try
         {
             var rclonePath = PathHelper.RclonePath;
-            if (Path.GetFileNameWithoutExtension(rclonePath) != "FFA")
+            if (!IsUsingFfaRcloneBinary())
             {
                 Log.Warning("Non-FFA rclone binary, not updating");
                 return;
@@ -102,8 +104,12 @@ public partial class DownloaderService
             DateTime? rcloneModTime = File.Exists(rclonePath) ? File.GetLastWriteTimeUtc(rclonePath) : null;
             var rcloneSize = File.Exists(rclonePath) ? new FileInfo(rclonePath).Length : 0;
 
-            await ApiClient.DownloadRcloneBinaryAsync(rcloneModTime, rcloneSize, rclonePath);
-            Log.Information("Rclone binary updated from server");
+            if (await ApiClient.DownloadRcloneBinaryAsync(rcloneModTime, rcloneSize, rclonePath))
+                Log.Information("Rclone binary updated from server");
+            else
+            {
+                Log.Information("Rclone binary is up to date");
+            }
         }
         catch (Exception e)
         {
@@ -125,10 +131,10 @@ public partial class DownloaderService
         {
             var overrideUrl = Globals.Overrides.GetValueOrDefault("ConfigUpdateUrl");
             var usingOverride = !string.IsNullOrEmpty(overrideUrl);
-            if (!File.Exists(Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, "FFA_config")) &&
+            if (!IsUsingFfaRcloneBinary() &&
                 string.IsNullOrWhiteSpace(overrideUrl))
             {
-                Log.Warning("FFA_config not found, skipping rclone config update");
+                Log.Warning("Non-FFA rclone and no config url override provided, skipping config update");
                 return;
             }
 
