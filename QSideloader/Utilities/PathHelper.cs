@@ -21,6 +21,7 @@ public static class PathHelper
             }
             catch
             {
+                // DownloaderService will download rclone
                 Directory.CreateDirectory("rclone");
                 RclonePath = OperatingSystem.IsWindows()
                     ? Path.Combine("rclone", "FFA.exe")
@@ -30,7 +31,7 @@ public static class PathHelper
     }
 
     public static string AdbPath { get; } = FindExecutable("adb");
-    public static string RclonePath { get; } = "";
+    public static string RclonePath { get; }
     public static string AaptPath { get; } = FindExecutable("aapt2");
 
     public static string SevenZipPath { get; } =
@@ -77,13 +78,15 @@ public static class PathHelper
 
     private static string FindExecutable(string name, string? extraDir = null)
     {
+        string? path = null;
         // try current directory first
         if (File.Exists(name))
-            return Path.GetFullPath(name);
+            path = Path.GetFullPath(name);
+        
         
         // try extra dir if provided
         if (!string.IsNullOrEmpty(extraDir) && File.Exists(Path.Combine(extraDir, name)))
-            return Path.Combine(extraDir, name);
+            path = Path.GetFullPath(Path.Combine(extraDir, name));
 
         // search in NATIVE_DLL_SEARCH_DIRECTORIES
         name = OperatingSystem.IsWindows() ? name + ".exe" : name;
@@ -93,8 +96,10 @@ public static class PathHelper
             foreach (var directory in directories)
             {
                 var exePath = Path.Combine(directory, name);
-                if (File.Exists(exePath))
-                    return exePath;
+                if (!File.Exists(exePath))
+                    continue;
+                path = exePath;
+                break;
             }
         }
         else
@@ -102,7 +107,25 @@ public static class PathHelper
             throw new InvalidOperationException("NATIVE_DLL_SEARCH_DIRECTORIES not set");
         }
 
-        // something went wrong (packaging error?)
-        throw new FileNotFoundException($"Could not find {name} in NATIVE_DLL_SEARCH_DIRECTORIES");
+        if (path == null)
+            // something went wrong (packaging error?)
+            throw new FileNotFoundException($"Could not find {name} in NATIVE_DLL_SEARCH_DIRECTORIES");
+        
+        if (OperatingSystem.IsWindows())
+            return path;
+        // make sure the executable bit is set
+        try
+        {
+            var mode = File.GetUnixFileMode(path);
+            if (mode.HasFlag(UnixFileMode.UserExecute))
+                return path;
+            mode |= UnixFileMode.UserExecute;
+            File.SetUnixFileMode(path, mode);
+        }
+        catch
+        {
+            // ignored
+        }
+        return path;
     }
 }
