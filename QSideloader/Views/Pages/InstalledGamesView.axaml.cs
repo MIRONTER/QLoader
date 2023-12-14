@@ -71,6 +71,7 @@ public partial class InstalledGamesView : ReactiveUserControl<InstalledGamesView
         else
         {
             // LeftAlt or RightAlt - show game details for the highlighted game
+            // ReSharper disable once InvertIf
             if (e is {KeyModifiers: KeyModifiers.Alt, Key: Key.LeftAlt or Key.RightAlt})
             {
                 if (selectedGame is null) return;

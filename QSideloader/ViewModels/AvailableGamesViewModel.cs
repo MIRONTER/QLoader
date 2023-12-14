@@ -36,12 +36,12 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         _sideloaderSettings = Globals.SideloaderSettings;
         Activator = new ViewModelActivator();
 
+        // ReSharper disable once MoveLocalFunctionAfterJumpStatement
         Func<Game, bool> GameFilter(string text)
         {
             return game => string.IsNullOrEmpty(text)
                            || text.Split()
-                               .All(x => game.ReleaseName!.ToLower()
-                                   .Contains(x.ToLower()));
+                               .All(x => game.ReleaseName!.Contains(x, StringComparison.OrdinalIgnoreCase));
         }
 
         var filterPredicate = this.WhenAnyValue(x => x.SearchText)
@@ -185,6 +185,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
 
     private void OnDeviceStateChanged(DeviceState state)
     {
+        // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
         switch (state)
         {
             case DeviceState.Online:

@@ -91,6 +91,7 @@ public partial class AvailableGamesView : ReactiveUserControl<AvailableGamesView
             }
 
             // Ctrl+F - focus the search box
+            // ReSharper disable once InvertIf
             if (e is {KeyModifiers: KeyModifiers.Control, Key: Key.F})
             {
                 SearchBox.Focus();

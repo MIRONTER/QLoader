@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 
 namespace QSideloader.Utilities;
 
@@ -60,7 +59,7 @@ public static class PathHelper
         };
         var foundFiles = Directory.EnumerateFiles(directory, pattern, options).ToList();
 
-        if (foundFiles.Any())
+        if (foundFiles.Count > 0)
         {
             if (foundFiles.Count > 1)
                 // More than two files with the same name but different case spelling found

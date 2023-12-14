@@ -61,7 +61,7 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
     public ReactiveCommand<Unit, Unit> PullMedia { get; set; }
 
     [Reactive] public bool IsDeviceConnected { get; private set; }
-    [Reactive] public ObservableCollection<string> RefreshRates { get; private set; } = new();
+    [Reactive] public ObservableCollection<string> RefreshRates { get; private set; } = [];
     [Reactive] public string? SelectedRefreshRate { get; set; }
     private string? CurrentRefreshRate { get; set; }
     public string[] GpuLevels { get; } = {"Auto (recommended)", "0", "1", "2", "3", "4"};
@@ -88,11 +88,12 @@ public partial class DeviceSettingsViewModel : ViewModelBase, IActivatableViewMo
 
     private async Task OnDeviceStateChangedAsync(DeviceState state)
     {
+        // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
         switch (state)
         {
             case DeviceState.Online:
                 IsDeviceConnected = true;
-                RefreshRates = new ObservableCollection<string> {"Auto (recommended)"};
+                RefreshRates = ["Auto (recommended)"];
                 foreach (var refreshRate in _adbService.Device!.SupportedRefreshRates)
                 {
                     RefreshRates.Add(refreshRate.ToString());

@@ -66,12 +66,13 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
     [Reactive] public bool IsDeviceWireless { get; private set; }
     [Reactive] public AdbService.AdbDevice? CurrentDevice { get; set; }
     [Reactive] public string? TrueSerial { get; set; }
-    [Reactive] public ObservableCollection<AdbService.AdbDevice> DeviceList { get; set; } = new();
+    [Reactive] public ObservableCollection<AdbService.AdbDevice> DeviceList { get; set; } = [];
     [Reactive] public bool IsDeviceSwitchEnabled { get; set; } = true;
     public ViewModelActivator Activator { get; }
 
     private void OnDeviceStateChanged(DeviceState state)
     {
+        // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
         switch (state)
         {
             case DeviceState.Online:
@@ -177,7 +178,7 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
                 DeviceList.Add(device);
             // Workaround to avoid crash with ArgumentOutOfRangeException
             if (DeviceList.Count == toRemove.Count)
-                DeviceList = new ObservableCollection<AdbService.AdbDevice>();
+                DeviceList = [];
             else
                 foreach (var device in toRemove)
                     DeviceList.Remove(device);

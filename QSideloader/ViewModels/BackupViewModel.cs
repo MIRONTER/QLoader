@@ -138,6 +138,7 @@ public class BackupViewModel : ViewModelBase, IActivatableViewModel
 
     private void OnDeviceStateChanged(DeviceState state)
     {
+        // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
         switch (state)
         {
             case DeviceState.Online:

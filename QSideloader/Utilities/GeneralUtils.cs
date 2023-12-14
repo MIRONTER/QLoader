@@ -49,8 +49,8 @@ public static partial class GeneralUtils
         {
             ApplicationLabel = ApplicationLabelRegex().Match(aaptOutput.StandardOutput).Groups[1].Value,
             PackageName = PmPackageNameRegex().Match(aaptOutput.StandardOutput).Groups[1].Value,
-            VersionCode = int.Parse(VersionCodeRegex().Match(aaptOutput.StandardOutput).Groups[1].Value),
-            VersionName = VersionNameRegex().Match(aaptOutput.StandardOutput).Groups[1].Value
+            VersionCode = int.Parse(VersionCodeRegex().Match(aaptOutput.StandardOutput).Groups[1].Value)
+            //VersionName = VersionNameRegex().Match(aaptOutput.StandardOutput).Groups[1].Value
         };
         return apkInfo;
     }
@@ -154,9 +154,9 @@ public static partial class GeneralUtils
         var lines = File.ReadAllLines(PathHelper.OverridesPath);
         foreach (var line in lines)
         {
-            if (line.StartsWith("#") || string.IsNullOrWhiteSpace(line))
+            if (line.StartsWith('#') || string.IsNullOrWhiteSpace(line))
                 continue;
-            var split = line.Split("=");
+            var split = line.Split('=');
             if (split.Length != 2)
             {
                 Log.Warning("Invalid line in overrides file: {Line}", line);

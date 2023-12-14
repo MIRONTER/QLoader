@@ -98,7 +98,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [Reactive] public bool IsDeviceConnected { get; private set; }
     [Reactive] public bool IsDeviceUnauthorized { get; private set; }
 
-    public ObservableCollection<TaskViewModel> TaskList { get; } = new();
+    public ObservableCollection<TaskViewModel> TaskList { get; } = [];
 
     [Reactive] public int DonatableAppsCount { get; private set; }
     [Reactive] public bool DonationBarShown { get; private set; }
@@ -173,6 +173,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void OnDeviceStateChanged(DeviceState state)
     {
+        // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
         switch (state)
         {
             case DeviceState.Online:
@@ -187,6 +188,8 @@ public partial class MainWindowViewModel : ViewModelBase
                 IsDeviceConnected = false;
                 IsDeviceUnauthorized = true;
                 break;
+            default:
+                return;
         }
 
         Task.Run(RefreshGameDonationBadge).SafeFireAndForget();
@@ -615,7 +618,7 @@ public partial class MainWindowViewModel : ViewModelBase
             var toDonate = _adbService.Device!.InstalledApps
                 .Where(x => !x.IsHiddenFromDonation &&
                             runningDonations.All(d => d.PackageName != x.PackageName)).ToList();
-            if (!toDonate.Any()) return;
+            if (toDonate.Count == 0) return;
 
             Log.Information("Adding donation tasks");
             foreach (var app in toDonate)

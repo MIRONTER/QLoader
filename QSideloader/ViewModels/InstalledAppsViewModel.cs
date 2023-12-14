@@ -51,6 +51,7 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
         Uninstall = ReactiveCommand.CreateFromObservable(UninstallImpl);
         Extract = ReactiveCommand.CreateFromTask(ExtractImpl);
 
+        // ReSharper disable once MoveLocalFunctionAfterJumpStatement
         Func<InstalledApp, bool> DonationFilter(bool isShowHiddenFromDonation)
         {
             return app => !app.IsHiddenFromDonation || isShowHiddenFromDonation;
@@ -301,6 +302,7 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
 
     private void OnDeviceStateChanged(DeviceState state)
     {
+        // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
         switch (state)
         {
             case DeviceState.Online:

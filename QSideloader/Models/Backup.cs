@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using QSideloader.Utilities;
@@ -23,7 +22,7 @@ public partial class Backup : INotifyPropertyChanged
         // ReSharper disable once StringLiteralTypo
         Date = DateTime.ParseExact(dateString, "yyyyMMddTHHmmss", System.Globalization.CultureInfo.InvariantCulture);
         Path = path;
-        HasApk = Directory.GetFiles(path, "*.apk").Any();
+        HasApk = Directory.GetFiles(path, "*.apk").Length != 0;
         HasObb = Directory.Exists(System.IO.Path.Combine(path, "obb"));
         HasSharedData = Directory.Exists(System.IO.Path.Combine(path, "data"));
         HasPrivateData = Directory.Exists(System.IO.Path.Combine(path, "data_private"));

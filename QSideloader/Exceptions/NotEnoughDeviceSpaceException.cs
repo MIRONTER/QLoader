@@ -3,12 +3,4 @@ using QSideloader.Services;
 
 namespace QSideloader.Exceptions;
 
-public class NotEnoughDeviceSpaceException: Exception
-{
-    public NotEnoughDeviceSpaceException(AdbService.AdbDevice device) : base($"Not enough space on {device}")
-    {
-        Device = device;
-    }
-    
-    public AdbService.AdbDevice Device { get; }
-}
+public class NotEnoughDeviceSpaceException(AdbService.AdbDevice device) : Exception($"Not enough space on {device}");

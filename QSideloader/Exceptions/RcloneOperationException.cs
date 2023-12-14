@@ -2,10 +2,4 @@
 
 namespace QSideloader.Exceptions;
 
-public class RcloneOperationException : DownloaderServiceException
-{
-    public RcloneOperationException(string message, Exception inner)
-        : base(message, inner)
-    {
-    }
-}
+public class RcloneOperationException(string message, Exception inner) : DownloaderServiceException(message, inner);

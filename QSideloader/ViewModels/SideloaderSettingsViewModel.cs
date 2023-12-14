@@ -92,8 +92,8 @@ public class SettingsData : ReactiveObject
     [JsonIgnore] public static string[] PopularityRanges { get; } = {"30 days", "7 days", "1 day", "None"};
     [Reactive] public string? PopularityRange { get; set; } = PopularityRanges[0];
     public Guid InstallationId { get; set; } = Guid.NewGuid();
-    public ObservableCollection<(string packageName, int versionCode)> DonatedPackages { get; set; } = new();
-    public ObservableCollection<string> IgnoredDonationPackages { get; } = new();
+    public ObservableCollection<(string packageName, int versionCode)> DonatedPackages { get; set; } = [];
+    public ObservableCollection<string> IgnoredDonationPackages { get; } = [];
     [Reactive] public DateTime DonationBarLastShown { get; set; } = DateTime.MinValue;
     [Reactive] public Dictionary<string, int> LastDonatableApps { get; set; } = new();
     [Reactive] public bool EnableRemoteLogging { get; set; }
@@ -221,11 +221,7 @@ public class SettingsData : ReactiveObject
         SettingsFileSemaphoreSlim.Wait();
         try
         {
-            var json = JsonSerializer.Serialize(this, new JsonSerializerOptions
-            {
-                TypeInfoResolver = JsonSerializerContext.Default,
-                WriteIndented = true
-            });
+            var json = JsonSerializer.Serialize(this, Globals.DefaultJsonSerializerOptions);
             if (OperatingSystem.IsWindows())
             {
                 using FileStream stream = AtomicFileStream.Open(PathHelper.SettingsPath, FileMode.Create,
@@ -389,7 +385,7 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
 #endif*/
     public bool IsConsoleToggleable { get; } = OperatingSystem.IsWindows();
     public bool IsUpdaterAvailable => true;
-    [Reactive] public List<string> MirrorList { get; private set; } = new();
+    [Reactive] public List<string> MirrorList { get; private set; } = [];
     [Reactive] public string? SelectedMirror { get; set; }
     public bool IsSwitchingMirror => _isSwitchingMirror.Value;
 

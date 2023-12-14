@@ -1,10 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -134,53 +134,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
         NavigationView.SettingsItem.Content = Properties.Resources.Settings;
 
         if (Design.IsDesignMode) return;
-        InitializeUpdater();
         RecalculateTaskListBoxHeight();
-    }
-
-    private static void InitializeUpdater()
-    {
-        if (Globals.Overrides.TryGetValue("DisableSelfUpdate", out var value) &&
-            bool.TryParse(value, out var disableSelfUpdate) && disableSelfUpdate ||
-            Globals.Overrides["DisableSelfUpdate"] == "1")
-        {
-            Log.Warning("Updater disabled by override");
-            return;
-        }
-
-        // TODO: add windows support
-        if (OperatingSystem.IsWindows())
-        {
-            Log.Warning("Running on Windows, skipping updater initialization");
-            return;
-        }
-
-        var appcastUrl = RuntimeInformation.ProcessArchitecture switch
-        {
-            Architecture.X64 or Architecture.X86 =>
-                "https://qloader.5698452.xyz/files/appcast.xml",
-            Architecture.Arm64 => "https://qloader.5698452.xyz/files/appcast_arm64.xml",
-            _ => ""
-        };
-        if (string.IsNullOrEmpty(appcastUrl))
-        {
-            Log.Warning("Architecture {Architecture} is not supported by updater",
-                RuntimeInformation.ProcessArchitecture);
-            return;
-        }
-
-        Log.Information("Initializing updater");
-        try
-        {
-            throw new NotImplementedException();
-            //Globals.Updater = 
-            //if (_sideloaderSettings.CheckUpdatesAutomatically)
-            //    Globals.Updater.StartLoop(true);
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to initialize updater");
-        }
     }
 
     [SuppressMessage("ReSharper", "UnusedParameter.Local")]
@@ -298,7 +252,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
             {
                 Title = Properties.Resources.SelectApkFile,
                 AllowMultiple = true,
-                FileTypeFilter = new FilePickerFileType[] {new("APK files") {Patterns = new[] {"*.apk"}}}
+                FileTypeFilter = new FilePickerFileType[] {new("APK files") {Patterns = new List<string> {"*.apk"}}}
             });
             if (result.Count == 0) return;
             var paths = from file in result

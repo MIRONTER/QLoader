@@ -51,15 +51,16 @@ public partial class AdbService
     private static readonly SemaphoreSlim AdbServerSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim AdbDeviceMonitorSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim PackageOperationSemaphoreSlim = new(1, 1);
+    private static readonly string[] MdnsServiceTypes = {"_adb-tls-connect._tcp", "_adb_secure_connect._tcp"};
     private readonly AdbServerClient _adb;
     private readonly Subject<Unit> _backupListChangeSubject = new();
     private readonly Subject<DeviceState> _deviceStateChangeSubject = new();
     private readonly Subject<List<AdbDevice>> _deviceListChangeSubject = new();
     private readonly Subject<Unit> _packageListChangeSubject = new();
     private readonly SettingsData _sideloaderSettings;
-    private readonly List<AdbDevice> _deviceList = new();
-    private readonly List<Backup> _backupList = new();
-    private List<DeviceData> _unauthorizedDeviceList = new();
+    private readonly List<AdbDevice> _deviceList = [];
+    private readonly List<Backup> _backupList = [];
+    private List<DeviceData> _unauthorizedDeviceList = [];
     private DeviceMonitor? _deviceMonitor;
     private bool _forcePreferWireless;
     private bool _firstDeviceSearch = true;
@@ -242,7 +243,7 @@ public partial class AdbService
             _unauthorizedDeviceList = unauthorizedDevices;
             var addedDevices = deviceList.Where(d => _deviceList.All(x => x.Serial != d.Serial)).ToList();
             var removedDevices = _deviceList.Where(d => deviceList.All(x => x.Serial != d.Serial)).ToList();
-            if (!addedDevices.Any() && !removedDevices.Any()) return;
+            if (addedDevices.Count == 0 && removedDevices.Count == 0) return;
 
             foreach (var device in addedDevices)
             {
@@ -305,13 +306,11 @@ public partial class AdbService
             if (adbServerStatus.IsRunning)
             {
                 var requiredAdbVersion = new Version("1.0.40");
-                if (adbServerStatus.Version >= requiredAdbVersion)
-                {
-                    await StartDeviceMonitorAsync(false);
-                    return (true, false);
-                }
-                
-                return (true, true);
+                if (adbServerStatus.Version < requiredAdbVersion)
+                    return (true, true);
+                await StartDeviceMonitorAsync(false);
+                return (true, false);
+
             }
         }
         catch
@@ -487,12 +486,14 @@ public partial class AdbService
         {
             var serviceBrowser = new ServiceBrowser();
             serviceBrowser.ServiceAdded += OnServiceAdded;
-            serviceBrowser.StartBrowse(new[] {"_adb-tls-connect._tcp", "_adb_secure_connect._tcp"});
+            serviceBrowser.StartBrowse(MdnsServiceTypes);
         }
         catch (Exception e)
         {
             Log.Error(e, "Failed to start mDNS browser");
         }
+
+        return;
 
         async void OnServiceAdded(object? _, ServiceAnnouncementEventArgs e)
         {
@@ -620,7 +621,7 @@ public partial class AdbService
     {
         Log.Debug("Searching for devices");
         var unauthorizedDevices = new List<DeviceData>();
-        List<AdbDevice> oculusDeviceList = new();
+        List<AdbDevice> oculusDeviceList = [];
         var deviceList = (await _adb.AdbClient.GetDevicesAsync()).ToList();
         if (deviceList.Count == 0)
         {
@@ -931,9 +932,9 @@ public partial class AdbService
         public float SpaceUsed { get; private set; }
         public float SpaceFree { get; private set; }
         public float BatteryLevel { get; private set; }
-        public List<(string packageName, VersionInfo? versionInfo)> InstalledPackages { get; } = new();
-        public List<InstalledGame> InstalledGames { get; private set; } = new();
-        public List<InstalledApp> InstalledApps { get; private set; } = new();
+        public List<(string packageName, VersionInfo? versionInfo)> InstalledPackages { get; } = [];
+        public List<InstalledGame> InstalledGames { get; private set; } = [];
+        public List<InstalledApp> InstalledApps { get; private set; } = [];
         public bool IsRefreshingInstalledGames => _packagesSemaphoreSlim.CurrentCount == 0 || InstalledPackages.Count == 0;
         public string FriendlyName { get; }
         public OculusProductType ProductType { get; }
@@ -1207,7 +1208,7 @@ public partial class AdbService
             {
                 Log.Error(e, "Error refreshing installed games");
                 Globals.ShowErrorNotification(e, Resources.ErrorRefreshingInstalledGames);
-                InstalledGames = new List<InstalledGame>();
+                InstalledGames = [];
             }
             finally
             {
@@ -1328,7 +1329,7 @@ public partial class AdbService
             IProgress<(int totalFiles, int currentFile, int progress)>? progress = null, CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
-            if (!remotePath.EndsWith("/"))
+            if (!remotePath.EndsWith('/'))
                 remotePath += "/";
             var localDir = new DirectoryInfo(localPath).Name;
             Log.Debug("Pushing directory: \"{LocalPath}\" -> \"{RemotePath}\", overwrite: {Overwrite}",
@@ -1394,11 +1395,11 @@ public partial class AdbService
             CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
-            if (!remotePath.EndsWith("/"))
+            if (!remotePath.EndsWith('/'))
                 remotePath += "/";
             var remoteDirName = remotePath.Split('/').Last(x => !string.IsNullOrEmpty(x));
             var localDir = Path.Combine(localPath, remoteDirName);
-            var excludeDirsList = excludeDirs?.ToList() ?? new List<string>();
+            var excludeDirsList = excludeDirs?.ToList() ?? [];
             Directory.CreateDirectory(localDir);
             Log.Debug("Pulling directory: \"{RemotePath}\" -> \"{LocalPath}\"",
                 remotePath, localDir);
@@ -1599,7 +1600,7 @@ public partial class AdbService
                 foreach (var rawCommand in scriptCommands)
                 {
                     ct.ThrowIfCancellationRequested();
-                    if (string.IsNullOrWhiteSpace(rawCommand) || rawCommand.StartsWith("#")) continue;
+                    if (string.IsNullOrWhiteSpace(rawCommand) || rawCommand.StartsWith('#') || rawCommand.StartsWith("REM")) continue;
                     // Remove redirections
                     var command = rawCommand.Split('>').First().Trim();
                     Log.Information("{ScriptName}: Running command: \"{Command}\"", scriptName, command);
@@ -2176,13 +2177,11 @@ public partial class AdbService
             if (await RunShellCommandAsync($"service call alarm 3 s16 {tzId}", true) != "Result: Parcel(00000000    '....')")
                 Log.Warning("Unexpected result when setting timezone");
             // Verify timezone
-            if (await RunShellCommandAsync("getprop persist.sys.timezone", true) != tzId)
-            {
-                Log.Error("Timezone verification failed");
-                return false;
-            }
+            if (await RunShellCommandAsync("getprop persist.sys.timezone", true) == tzId)
+                return true;
+            Log.Error("Timezone verification failed");
+            return false;
 
-            return true;
         }
 
         public async Task CleanLeftoverApksAsync()

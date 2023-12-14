@@ -42,7 +42,7 @@ public partial class DownloaderService
     private static readonly SemaphoreSlim RcloneSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim TrailersAddonSemaphoreSlim = new(1, 1);
     private readonly SettingsData _sideloaderSettings;
-    private List<string> _mirrorList = new();
+    private List<string> _mirrorList = [];
     private bool? _donationsAvailable;
 
     static DownloaderService()
@@ -269,7 +269,7 @@ public partial class DownloaderService
     {
         await RcloneSemaphoreSlim.WaitAsync();
         RcloneSemaphoreSlim.Release();
-        List<string> mirrorList = new();
+        List<string> mirrorList = [];
 
         var result = await ExecuteRcloneCommandAsync("listremotes");
         var matches = RcloneMirrorRegex().Matches(result.StandardOutput);
@@ -316,9 +316,9 @@ public partial class DownloaderService
         // Reinitialize the mirror list with the new config and reselect mirror, if needed
         using var op = Operation.Time("Reloading mirror list");
         IsMirrorListInitialized = false;
-        _mirrorList = new List<string>();
+        _mirrorList = [];
         if (!keepExcluded)
-            ExcludedMirrorList = new List<(string mirrorName, string? message, Exception? error)>();
+            ExcludedMirrorList = [];
         await EnsureMirrorListInitializedAsync();
         if (_mirrorList.Contains(MirrorName)) return;
         Log.Information("Current mirror {MirrorName} not found in new mirror list", MirrorName);
@@ -395,8 +395,9 @@ public partial class DownloaderService
     /// <param name="excludedMirrorList">List excluded mirrors.</param>
     /// <param name="currentException">Exception that occured on the current mirror.</param>
     /// <exception cref="DownloaderServiceException">Thrown if given mirror list is exhausted.</exception>
-    private void SwitchMirror(IList<string> mirrorList,
-        ICollection<(string mirrorName, string? message, Exception? error)>? excludedMirrorList = null,
+    // ReSharper disable once SuggestBaseTypeForParameter
+    private void SwitchMirror(List<string> mirrorList,
+        List<(string mirrorName, string? message, Exception? error)>? excludedMirrorList = null,
         Exception? currentException = null)
     {
         if (!string.IsNullOrEmpty(MirrorName) && mirrorList.Contains(MirrorName))
@@ -410,7 +411,7 @@ public partial class DownloaderService
         if (mirrorList.Count == 0)
             throw new NoMirrorsAvailableException(false,
                 ExcludedMirrorList
-                    .Concat(excludedMirrorList ?? new List<(string mirrorName, string? message, Exception? error)>())
+                    .Concat(excludedMirrorList ?? [])
                     .ToList());
         var random = new Random();
         MirrorName = mirrorList[random.Next(mirrorList.Count)];
@@ -525,7 +526,7 @@ public partial class DownloaderService
                     throw;
                 case CommandExecutionException when e.Message.Contains("downloadQuotaExceeded"):
                     op.SetException(e);
-                    throw new DownloadQuotaExceededException(MirrorName, source, e);
+                    throw new DownloadQuotaExceededException(MirrorName, e);
                 case CommandExecutionException {ExitCode: 1 or 3 or 4 or 7}:
                     if (e.Message.Contains("There is not enough space on the disk") ||
                         e.Message.Contains("no space left on device"))
@@ -666,7 +667,7 @@ public partial class DownloaderService
         {
             // Trying different list files seems useless, just wasting time
             //List<string> gameListNames = new(){"FFA.txt", "FFA2.txt", "FFA3.txt", "FFA4.txt"};
-            List<string> gameListNames = new() {"FFA.txt"};
+            List<string> gameListNames = ["FFA.txt"];
             var errors = new List<Exception>();
             foreach (var gameListName in gameListNames)
                 try
@@ -679,7 +680,7 @@ public partial class DownloaderService
                 {
                     Log.Debug("Quota exceeded on game list {GameList} on mirror {MirrorName}",
                         gameListName, MirrorName);
-                    errors.Add(new DownloadQuotaExceededException(MirrorName, gameListName, e));
+                    errors.Add(new DownloadQuotaExceededException(MirrorName, e));
                 }
                 catch (RcloneOperationException e)
                 {
@@ -812,11 +813,7 @@ public partial class DownloaderService
                     if (!Directory.Exists(dstPath))
                         throw new DirectoryNotFoundException(
                             $"Didn't find directory with downloaded files on path \"{dstPath}\"");
-                    var json = JsonSerializer.Serialize(game, new JsonSerializerOptions
-                    {
-                        TypeInfoResolver = JsonSerializerContext.Default,
-                        WriteIndented = true
-                    });
+                    var json = JsonSerializer.Serialize(game, Globals.DefaultJsonSerializerOptions);
                     await File.WriteAllTextAsync(Path.Combine(dstPath, "release.json"), json, ct);
                     Task.Run(() => ApiClient.ReportGameDownloadAsync(game.OriginalPackageName!), ct).SafeFireAndForget();
                     break;

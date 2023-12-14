@@ -45,11 +45,6 @@ public sealed class BaseAsyncImageLoader : IDisposable
         {
             configuredTaskAwaitable = LoadFromInternalAsync(url).ConfigureAwait(false);
             var bitmap2 = await configuredTaskAwaitable;
-            if (bitmap2 == null)
-            {
-                configuredTaskAwaitable = LoadFromGlobalCache(url).ConfigureAwait(false);
-                bitmap2 = await configuredTaskAwaitable;
-            }
 
             bitmap1 = bitmap2;
         }
@@ -64,7 +59,6 @@ public sealed class BaseAsyncImageLoader : IDisposable
                 return null;
             using var memoryStream = new MemoryStream(numArray);
             var bitmap = new Bitmap(memoryStream);
-            await SaveToGlobalCache(url, numArray).ConfigureAwait(false);
             return bitmap;
         }
         catch (Exception)
@@ -92,7 +86,7 @@ public sealed class BaseAsyncImageLoader : IDisposable
     {
         try
         {
-            var uri = url.StartsWith("/") ? new Uri(url, UriKind.Relative) : new Uri(url, UriKind.RelativeOrAbsolute);
+            var uri = url.StartsWith('/') ? new Uri(url, UriKind.Relative) : new Uri(url, UriKind.RelativeOrAbsolute);
             if (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
                 return Task.FromResult((Bitmap?) null);
             return uri is {IsAbsoluteUri: true, IsFile: true}
@@ -118,10 +112,6 @@ public sealed class BaseAsyncImageLoader : IDisposable
             return null;
         }
     }
-
-    private static Task<Bitmap?> LoadFromGlobalCache(string url) => Task.FromResult((Bitmap?) null);
-
-    private static Task SaveToGlobalCache(string url, byte[] imageBytes) => Task.CompletedTask;
 
     ~BaseAsyncImageLoader() => Dispose(false);
 
