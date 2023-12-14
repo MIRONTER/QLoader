@@ -89,7 +89,6 @@ jobs:
         echo Packing linux-x64
         mkdir -p builds_tag/$TAG_NAME/
         chmod +x linux-x64/Loader
-        chmod -R +x linux-x64/tools/
         tar cvzf builds_tag/$TAG_NAME/linux-x64.tar.gz linux-x64/*
     
     - name: Upload artifact
@@ -132,7 +131,6 @@ jobs:
         echo Packing linux-arm64
         mkdir -p builds_tag/$TAG_NAME/
         chmod +x linux-arm64/Loader
-        chmod -R +x linux-arm64/tools/
         tar cvzf builds_tag/$TAG_NAME/linux-arm64.tar.gz linux-arm64/*
     
     - name: Upload artifact
@@ -180,7 +178,6 @@ jobs:
         echo Packing osx-x64
         mkdir -p builds_tag/$TAG_NAME/
         chmod +x osx-x64/Loader
-        chmod -R +x osx-x64/tools/
         zip -r builds_tag/$TAG_NAME/osx-x64.zip osx-x64/*
     
     - name: Upload artifact

@@ -75,7 +75,6 @@ jobs:
         echo Packing linux-x64
         mkdir -p builds_ci/run-$RUN_NUMBER/
         chmod +x linux-x64/Loader
-        chmod -R +x linux-x64/tools/
         tar cvzf builds_ci/run-$RUN_NUMBER/linux-x64.tar.gz linux-x64/*
 
     - name: Upload artifact
@@ -117,7 +116,6 @@ jobs:
         echo Packing osx-x64
         mkdir -p builds_ci/run-$RUN_NUMBER/
         chmod +x osx-x64/Loader
-        chmod -R +x osx-x64/tools/
         zip -r builds_ci/run-$RUN_NUMBER/osx-x64.zip osx-x64/*
 
     - name: Upload artifact
