@@ -1,7 +1,9 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
@@ -16,7 +18,7 @@ using Splat;
 
 namespace QSideloader;
 
-public class App : Application
+public partial class App : Application
 {
     public override void Initialize()
     {
@@ -36,22 +38,12 @@ public class App : Application
             LoggerHelper.InitializeLogging(sideloaderSettings);
         }
         
-        // Delete leftover directory from old versions
-        if (Directory.Exists("tools"))
-        {
-            try
-            {
-                Directory.Delete("tools", true);
-            }
-            catch (Exception)
-            {
-                Log.Warning("Couldn't delete old tools directory");
-            }
-        }
-
         Locator.CurrentMutable.RegisterViewsForViewModels(Assembly.GetExecutingAssembly());
 
         AvaloniaXamlLoader.Load(this);
+        
+        // Clean up leftovers from old versions
+        Cleanup();
     }
 
     public override void OnFrameworkInitializationCompleted()
@@ -67,4 +59,44 @@ public class App : Application
 
         base.OnFrameworkInitializationCompleted();
     }
+
+    private static void Cleanup()
+    {
+        if (File.Exists("Avalonia.dll"))
+            // we're unpacked, don't clean up
+            return;
+        
+        // delete old directories
+        string[] dirs = ["tools", "libvlc"];
+        foreach (var dir in dirs)
+        {
+            if (!Directory.Exists(dir))
+                continue;
+            try
+            {
+                Directory.Delete(dir, true);
+            }
+            catch (Exception)
+            {
+                Log.Warning("Couldn't delete old {Dir} directory", dir);
+            }
+        }
+        
+        // delete unpacked library files
+        foreach (var file in Directory.GetFiles(Environment.CurrentDirectory, "*.*", SearchOption.TopDirectoryOnly)
+            .Where(file => IsLibraryFileNameRegex().IsMatch(file)))
+        {
+            try
+            {
+                File.Delete(file);
+            }
+            catch (Exception)
+            {
+                Log.Warning("Couldn't delete old library file: {File}", file);
+            }
+        }
+    }
+    
+    [GeneratedRegex(@"\.(dll|so|dylib)$")]
+    private static partial Regex IsLibraryFileNameRegex();
 }
