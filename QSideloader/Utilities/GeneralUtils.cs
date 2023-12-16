@@ -189,7 +189,7 @@ public static partial class GeneralUtils
         throw new TimeZoneNotFoundException($"No IANA time zone found for \"{tzi.Id}\".");
     }
 
-    [GeneratedRegex("application-label:'(.*?)'")]
+    [GeneratedRegex("application-label:'(.*)'")]
     private static partial Regex ApplicationLabelRegex();
 
     [GeneratedRegex("package: name='(.*?)'")]
