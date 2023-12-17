@@ -877,4 +877,22 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="DownloadTooltip" xml:space="preserve">
         <value>Download the game</value>
     </data>
+    <data name="AppUpdateAvailable" xml:space="preserve">
+        <value>App update is available!</value>
+    </data>
+    <data name="Show" xml:space="preserve">
+        <value>Show</value>
+    </data>
+    <data name="UpdateDialogTitle" xml:space="preserve">
+        <value>App update</value>
+    </data>
+    <data name="DownloadingUpdater" xml:space="preserve">
+        <value>Downloading updater</value>
+    </data>
+    <data name="ErrorDownloadingUpdater" xml:space="preserve">
+        <value>Error downloading updater</value>
+    </data>
+    <data name="CheckingForUpdates" xml:space="preserve">
+        <value>Checking for updates</value>
+    </data>
 </root>

@@ -192,6 +192,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to App update is available!.
+        /// </summary>
+        public static string AppUpdateAvailable {
+            get {
+                return ResourceManager.GetString("AppUpdateAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Available Games.
         /// </summary>
         public static string AvailableGamesHeader {
@@ -359,6 +368,15 @@ namespace QSideloader.Properties {
         public static string Cancelled {
             get {
                 return ResourceManager.GetString("Cancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Checking for updates.
+        /// </summary>
+        public static string CheckingForUpdates {
+            get {
+                return ResourceManager.GetString("CheckingForUpdates", resourceCulture);
             }
         }
         
@@ -823,6 +841,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Downloading updater.
+        /// </summary>
+        public static string DownloadingUpdater {
+            get {
+                return ResourceManager.GetString("DownloadingUpdater", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Download queued.
         /// </summary>
         public static string DownloadQueued {
@@ -1035,6 +1062,15 @@ namespace QSideloader.Properties {
         public static string ErrorCleaningUpLeftoverApks {
             get {
                 return ResourceManager.GetString("ErrorCleaningUpLeftoverApks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error downloading updater.
+        /// </summary>
+        public static string ErrorDownloadingUpdater {
+            get {
+                return ResourceManager.GetString("ErrorDownloadingUpdater", resourceCulture);
             }
         }
         
@@ -2065,6 +2101,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Show.
+        /// </summary>
+        public static string Show {
+            get {
+                return ResourceManager.GetString("Show", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Show debug console.
         /// </summary>
         public static string ShowDebugConsole {
@@ -2506,6 +2551,15 @@ namespace QSideloader.Properties {
         public static string UpdateAvailableStatus {
             get {
                 return ResourceManager.GetString("UpdateAvailableStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to App update.
+        /// </summary>
+        public static string UpdateDialogTitle {
+            get {
+                return ResourceManager.GetString("UpdateDialogTitle", resourceCulture);
             }
         }
         

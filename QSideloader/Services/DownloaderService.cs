@@ -1019,6 +1019,28 @@ public partial class DownloaderService
         }
     }
 
+    public static async Task DownloadUpdaterAsync(string downloadUrl, string expectedSha256, string outFileName)
+    {
+        using var op = Operation.At(LogEventLevel.Information, LogEventLevel.Error).Begin("Downloading updater");
+        try
+        {
+            using var response = await HttpClient.GetAsync(downloadUrl);
+            response.EnsureSuccessStatusCode();
+            var bytes = await response.Content.ReadAsByteArrayAsync();
+            using var stream = new MemoryStream(bytes);
+            var hash = BitConverter.ToString(await SHA256.HashDataAsync(stream)).Replace("-", "").ToLower();
+            if (!string.Equals(hash, expectedSha256, StringComparison.OrdinalIgnoreCase))
+                throw new DownloaderServiceException("SHA256 checksum mismatch, updater download corrupted");
+            await File.WriteAllBytesAsync(outFileName, bytes);
+            op.Complete();
+        }
+        catch (Exception e)
+        {
+            op.SetException(e);
+            throw;
+        }
+    }
+
     /// <summary>
     /// Prunes downloaded versions of the release according to the pruning policy.
     /// </summary>

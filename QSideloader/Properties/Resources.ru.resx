@@ -869,4 +869,22 @@
     <data name="DownloadTooltip" xml:space="preserve">
         <value>Загрузить игру</value>
     </data>
+    <data name="AppUpdateAvailable" xml:space="preserve">
+        <value>Доступно обновление приложения!</value>
+    </data>
+    <data name="Show" xml:space="preserve">
+        <value>Показать</value>
+    </data>
+    <data name="UpdateDialogTitle" xml:space="preserve">
+        <value>Обновление приложения</value>
+    </data>
+    <data name="DownloadingUpdater" xml:space="preserve">
+        <value>Загрузка утилиты обновления</value>
+    </data>
+    <data name="ErrorDownloadingUpdater" xml:space="preserve">
+        <value>Ошибка загрузки утилиты обновления</value>
+    </data>
+    <data name="CheckingForUpdates" xml:space="preserve">
+        <value>Проверка наличия обновлений</value>
+    </data>
 </root>

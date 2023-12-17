@@ -80,6 +80,8 @@ public partial class MainWindowViewModel : ViewModelBase
         DonateAllGames = ReactiveCommand.CreateFromObservable(DonateAllGamesImpl);
         ShowSharingDialog = ReactiveCommand.CreateFromObservable(ShowSharingOptionsImpl);
         Task.Run(async () => { DonationsAvailable = await _downloaderService.GetDonationsAvailableAsync(); });
+        if (_sideloaderSettings.CheckUpdatesAutomatically)
+            CheckForAppUpdates();
         _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged);
         _adbService.WhenPackageListChanged.Subscribe(_ =>
         {
@@ -101,7 +103,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public ObservableCollection<TaskViewModel> TaskList { get; } = [];
 
     [Reactive] public int DonatableAppsCount { get; private set; }
-    [Reactive] public bool DonationBarShown { get; private set; }
+    [Reactive] public bool DonationBarIsOpen { get; set; }
+    [Reactive] public bool AppUpdateBarIsOpen { get; set; }
     [Reactive] public bool DonationsAvailable { get; private set; }
 
     // Navigation menu width: 245 for Russian locale, 210 for others
@@ -117,6 +120,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> ShowAuthHelpDialog { get; }
     private ReactiveCommand<Unit, Unit> DonateAllGames { get; }
     public ReactiveCommand<Unit, Unit> ShowSharingDialog { get; }
+    public ReactiveCommand<Unit, Unit> ShowAppUpdateDialog => ReactiveCommand.CreateFromObservable(ShowAppUpdateDialogImpl);
 
     public void AddTask(TaskOptions taskOptions)
     {
@@ -283,7 +287,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (!_adbService.IsDeviceConnected || !DonationsAvailable)
         {
             DonatableAppsCount = 0;
-            DonationBarShown = false;
+            DonationBarIsOpen = false;
             return;
         }
 
@@ -322,7 +326,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (!newDonatableApp) return;
         _sideloaderSettings.DonationBarLastShown = DateTime.Now;
         _sideloaderSettings.LastDonatableApps = donatableApps.ToDictionary(x => x.PackageName, x => x.VersionCode);
-        DonationBarShown = true;
+        DonationBarIsOpen = true;
     }
 
     public async Task OnGameDonatedAsync(string packageName, int versionCode)
@@ -369,7 +373,7 @@ public partial class MainWindowViewModel : ViewModelBase
                         Dispatcher.UIThread.InvokeAsync(() =>
                         {
                             _mainWindow.NavigateToGameDonationView();
-                            DonationBarShown = false;
+                            DonationBarIsOpen = false;
                         });
                     }),
                     SecondaryButtonText = Resources.DonateAllButton,
@@ -384,7 +388,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         return Observable.Start(() =>
         {
-            DonationBarShown = false;
+            DonationBarIsOpen = false;
             if (!_adbService.IsDeviceConnected)
             {
                 Log.Warning("MainWindowViewModel.DonateAllGamesImpl: no device connection!");
@@ -589,6 +593,63 @@ public partial class MainWindowViewModel : ViewModelBase
             };
             dialog.ShowAsync();
         });
+    }
+
+    private IObservable<Unit> ShowAppUpdateDialogImpl()
+    {
+        return Observable.Start(() =>
+        {
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var updateVersion = Globals.Updater.UpdateVersion;
+                if (updateVersion is null)
+                {
+                    Log.Error("Update version is null");
+                    ShowNotification(Resources.Error, "Update version is null", NotificationType.Error,
+                        TimeSpan.FromSeconds(5));
+                }
+
+                var versionString = updateVersion!.VersionString;
+                var releaseNotes = updateVersion.ReleaseNotes;
+                var dialog = new ContentDialog
+                {
+                    Title = Resources.UpdateDialogTitle,
+                    Content = new ScrollViewer
+                    {
+                        Content = new TextBlock
+                        {
+                            Text = $"Version: {versionString}\n\nRelease Notes:\n{releaseNotes}"
+                        }
+                    },
+                    CloseButtonText = Resources.CloseButton,
+                    PrimaryButtonText = Resources.DownloadButton,
+                    PrimaryButtonCommand = ReactiveCommand.Create(() =>
+                    {
+                        Log.Information("Downloading update");
+                        ShowNotification(Resources.Info, Resources.DownloadingUpdater,
+                            NotificationType.Information, TimeSpan.FromSeconds(2));
+                        Task.Run(async () =>
+                        {
+                            try
+                            {
+                                await Globals.Updater.DownloadAndExecuteUpdaterAsync();
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(ex, "Error downloading updater");
+                                ShowErrorNotification(ex, Resources.ErrorDownloadingUpdater);
+                            }
+                        });
+                    })
+                };
+                dialog.ShowAsync();
+            });
+        });
+    }
+
+    public void CheckForAppUpdates()
+    {
+        Task.Run(async () => { AppUpdateBarIsOpen = await Globals.Updater.CheckForUpdatesAsync(); });
     }
 
     private void TryInstallTrailersAddon()

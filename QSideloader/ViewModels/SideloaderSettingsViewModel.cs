@@ -548,14 +548,10 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
     {
         return Observable.Start(() =>
         {
-            throw new NotImplementedException();
-            /*if (Globals.Updater is null)
-            {
-                Log.Error("Requested to check for updates, but updater is not initialized");
-                throw new InvalidOperationException("Updater is not initialized");
-            }*/
-
-            //Dispatcher.UIThread.InvokeAsync(() => Globals.Updater.CheckForUpdatesAtUserRequest());
+            Log.Information("Manual check for updates requested");
+            Globals.ShowNotification(Resources.Info, Resources.CheckingForUpdates, NotificationType.Information,
+                TimeSpan.FromSeconds(2));
+            Globals.MainWindowViewModel?.CheckForAppUpdates();
         });
     }
 
