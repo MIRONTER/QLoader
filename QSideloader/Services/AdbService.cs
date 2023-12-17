@@ -982,6 +982,16 @@ public partial class AdbService
             return _adbService.RunShellCommandAsync(this, command, logCommand);
         }
 
+        private async Task WaitForBootCompletedAsync()
+        {
+            var bootCompleted = await RunShellCommandAsync("getprop sys.boot_completed");
+            while (!bootCompleted.Contains('1'))
+            {
+                await Task.Delay(200);
+                bootCompleted = await RunShellCommandAsync("getprop sys.boot_completed");
+            }
+        }
+
         /// <summary>
         ///     Wakes up the device by sending a power button key event.
         /// </summary>
@@ -1027,6 +1037,7 @@ public partial class AdbService
             using var op = Operation.At(LogEventLevel.Debug).Begin("Refreshing installed packages on {Device}", this);
             var skip = _packagesSemaphoreSlim.CurrentCount == 0;
             await _packagesSemaphoreSlim.WaitAsync();
+            await WaitForBootCompletedAsync();
             try
             {
                 if (skip)
@@ -1098,16 +1109,7 @@ public partial class AdbService
             // Check whether refresh is already running
             var alreadyRefreshing = _deviceInfoSemaphoreSlim.CurrentCount < 1;
             await _deviceInfoSemaphoreSlim.WaitAsync();
-            var bootCompleted = await _adbService.RunShellCommandAsync(this, "getprop sys.boot_completed") == "1";
-            if (!bootCompleted)
-            {
-                Log.Warning("Device {Device} has not finished booting yet, waiting before refreshing info", this);
-            }
-            while (!bootCompleted)
-            {
-                bootCompleted = await _adbService.RunShellCommandAsync(this, "getprop sys.boot_completed") == "1";
-                await Task.Delay(200);
-            }
+            await WaitForBootCompletedAsync();
             string? dumpsysOutput = null;
             try
             {
