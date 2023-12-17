@@ -17,10 +17,10 @@ public class UpdateInfo
     [JsonPropertyName("versions")] public List<VersionItem> VersionList { get; set; } = [];
     [JsonPropertyName("updater")] public List<UpdateAsset> Updater { get; set; } = [];
     
-    public static async Task<UpdateInfo> GetInfoAsync()
+    public static async Task<UpdateInfo> GetInfoAsync(string? url = null)
     {
         using var client = new HttpClient();
-        var response = await client.GetAsync(UpdateInfoUrl);
+        var response = await client.GetAsync(url ?? UpdateInfoUrl);
         response.EnsureSuccessStatusCode();
         var json = await response.Content.ReadAsStringAsync();
         var updateInfo = JsonSerializer.Deserialize(json, CommonJsonSerializerContext.Default.UpdateInfo);

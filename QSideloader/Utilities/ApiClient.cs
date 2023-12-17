@@ -192,7 +192,12 @@ public static class ApiClient
         if (packageName is null)
             return null;
         using var op = Operation.Begin("Getting game store info for {PackageName}", packageName);
-        var uri = $"oculusgames/{packageName}";
+        if (Globals.Overrides.TryGetValue("GameStoreMetaUrl", out var gameStoreMetaUrl)  &&
+            !string.IsNullOrWhiteSpace(gameStoreMetaUrl))
+            Log.Debug("Using game store info url override: {Url}", gameStoreMetaUrl);
+        else
+            gameStoreMetaUrl = $"{DefaultApiUrl}oculusgames";
+        var uri = $"{gameStoreMetaUrl}/{packageName}";
         var response = await ApiHttpClient.GetAsync(uri);
         if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.NotFound)
         {

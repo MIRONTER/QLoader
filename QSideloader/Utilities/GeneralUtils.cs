@@ -147,7 +147,9 @@ public static partial class GeneralUtils
         {
             {"ConfigUpdateUrl", null},
             {"DisableSelfUpdate", "0"},
-            {"ApiUrl", null}
+            {"ApiUrl", null},
+            {"GameStoreMetaUrl", null},
+            {"UpdateInfoUrl", null}
         };
         if (!File.Exists(PathHelper.OverridesPath))
             return overrides;

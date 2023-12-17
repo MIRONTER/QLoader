@@ -30,7 +30,9 @@ public class Updater
         Log.Debug("Checking for updates");
         var executingAssembly = System.Reflection.Assembly.GetExecutingAssembly();
         var version = executingAssembly.GetName().Version;
-        UpdateInfo = await UpdateInfo.GetInfoAsync();
+        if (Globals.Overrides.TryGetValue("UpdateInfoUrl", out var updateInfoUrl) && !string.IsNullOrWhiteSpace(updateInfoUrl))
+            Log.Debug("Using update info url override: {Url}", updateInfoUrl);
+        UpdateInfo = await UpdateInfo.GetInfoAsync(updateInfoUrl);
         UpdateVersion = UpdateInfo.GetLatestVersion(version);
         IsUpdateAvailable = UpdateVersion is not null;
         if (UpdateVersion is null)
