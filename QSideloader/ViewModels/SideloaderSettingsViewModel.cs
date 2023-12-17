@@ -384,7 +384,9 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
     public bool IsConsoleToggleable { get; } = OperatingSystem.IsWindows();
 #endif*/
     public bool IsConsoleToggleable { get; } = OperatingSystem.IsWindows();
-    public bool IsUpdaterAvailable => true;
+    // ReSharper disable once MemberCanBeMadeStatic.Global
+    public bool IsUpdaterAvailable => Globals.Overrides.TryGetValue("DisableSelfUpdate", out var value) &&
+                                      value != "1";
     [Reactive] public List<string> MirrorList { get; private set; } = [];
     [Reactive] public string? SelectedMirror { get; set; }
     public bool IsSwitchingMirror => _isSwitchingMirror.Value;
