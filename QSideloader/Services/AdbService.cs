@@ -918,7 +918,7 @@ public partial class AdbService
 
             HashedId = GetHashedId(TrueSerial ?? Serial);
 
-            PackageManager = new PackageManager(_adb.AdbClient, this);
+            PackageManager = new PackageManager(_adb.AdbClient, this, arguments: ["-3"]);
 
             var bootCompleted = _adbService.RunShellCommand(deviceData, "getprop sys.boot_completed");
             if (!bootCompleted.Contains('1'))
