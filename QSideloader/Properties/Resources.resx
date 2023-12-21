@@ -895,4 +895,7 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="CheckingForUpdates" xml:space="preserve">
         <value>Checking for updates</value>
     </data>
+    <data name="DownloadAndRelaunchButton" xml:space="preserve">
+        <value>Download &amp; relaunch</value>
+    </data>
 </root>

@@ -805,6 +805,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Download &amp; relaunch.
+        /// </summary>
+        public static string DownloadAndRelaunchButton {
+            get {
+                return ResourceManager.GetString("DownloadAndRelaunchButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Download.
         /// </summary>
         public static string DownloadButton {

@@ -887,4 +887,7 @@
     <data name="CheckingForUpdates" xml:space="preserve">
         <value>Проверка наличия обновлений</value>
     </data>
+    <data name="DownloadAndRelaunchButton" xml:space="preserve">
+        <value>Загрузить и перезапустить</value>
+    </data>
 </root>

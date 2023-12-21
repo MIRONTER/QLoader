@@ -45,7 +45,7 @@ public class UpdateInfo
             versionItem.Channel == channel && versionItem.Version > currentVersion);
     }
     
-    private static string? GetOsName()
+    public static string? GetOsName()
     {
         return RuntimeInformation.ProcessArchitecture switch
         {
@@ -66,6 +66,12 @@ public class VersionItem
     [JsonPropertyName("version")] public Version Version { get; set; } = new();
     [JsonPropertyName("assets")] public List<UpdateAsset> Assets { get; set; } = [];
     [JsonPropertyName("releaseNotes")] public string ReleaseNotes { get; set; } = "";
+    
+    public UpdateAsset? GetAsset()
+    {
+        var osName = UpdateInfo.GetOsName();
+        return osName is null ? null : Assets.FirstOrDefault(asset => asset.Os == osName);
+    }
 }
 
 

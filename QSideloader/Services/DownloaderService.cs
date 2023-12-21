@@ -1024,6 +1024,8 @@ public partial class DownloaderService
         using var op = Operation.At(LogEventLevel.Information, LogEventLevel.Error).Begin("Downloading updater");
         try
         {
+            if (File.Exists(outFileName))
+                File.Delete(outFileName);
             using var response = await HttpClient.GetAsync(downloadUrl);
             response.EnsureSuccessStatusCode();
             var bytes = await response.Content.ReadAsByteArrayAsync();

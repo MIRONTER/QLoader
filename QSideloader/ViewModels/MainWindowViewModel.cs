@@ -622,7 +622,7 @@ public partial class MainWindowViewModel : ViewModelBase
                         }
                     },
                     CloseButtonText = Resources.CloseButton,
-                    PrimaryButtonText = Resources.DownloadButton,
+                    PrimaryButtonText = Resources.DownloadAndRelaunchButton,
                     PrimaryButtonCommand = ReactiveCommand.Create(() =>
                     {
                         Log.Information("Downloading update");
