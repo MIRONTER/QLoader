@@ -105,7 +105,10 @@ public partial class DownloaderService
             var rcloneSize = File.Exists(rclonePath) ? new FileInfo(rclonePath).Length : 0;
 
             if (await ApiClient.DownloadRcloneBinaryAsync(rcloneModTime, rcloneSize, rclonePath))
+            {
                 Log.Information("Rclone binary updated from server");
+                GeneralUtils.TrySetExecutableBit(rclonePath);
+            }
             else
             {
                 Log.Information("Rclone binary is up to date");

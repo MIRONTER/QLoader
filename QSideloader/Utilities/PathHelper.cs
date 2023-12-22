@@ -113,18 +113,7 @@ public static class PathHelper
         if (OperatingSystem.IsWindows())
             return path;
         // make sure the executable bit is set
-        try
-        {
-            var mode = File.GetUnixFileMode(path);
-            if (mode.HasFlag(UnixFileMode.UserExecute))
-                return path;
-            mode |= UnixFileMode.UserExecute;
-            File.SetUnixFileMode(path, mode);
-        }
-        catch
-        {
-            // ignored
-        }
+        GeneralUtils.TrySetExecutableBit(path);
         return path;
     }
 }

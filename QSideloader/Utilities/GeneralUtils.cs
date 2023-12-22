@@ -191,6 +191,26 @@ public static partial class GeneralUtils
         throw new TimeZoneNotFoundException($"No IANA time zone found for \"{tzi.Id}\".");
     }
 
+    public static void TrySetExecutableBit(string filePath)
+    {
+        if (!File.Exists(filePath))
+            throw new FileNotFoundException(filePath);
+        if (OperatingSystem.IsWindows())
+            return;
+        try
+        {
+            var mode = File.GetUnixFileMode(filePath);
+            if (mode.HasFlag(UnixFileMode.UserExecute))
+                return;
+            mode |= UnixFileMode.UserExecute;
+            File.SetUnixFileMode(filePath, mode);
+        }
+        catch
+        {
+            // ignored
+        }
+    }
+
     [GeneratedRegex("application-label:'(.*)'")]
     private static partial Regex ApplicationLabelRegex();
 
