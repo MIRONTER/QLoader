@@ -55,8 +55,8 @@ public static partial class LoggerHelper
 
         SetExceptionLoggers();
 
-        if (OperatingSystem.IsWindows() && sideloaderSettings.EnableDebugConsole ||
-            Debugger.IsAttached)
+        if (OperatingSystem.IsWindows() && (sideloaderSettings.EnableDebugConsole ||
+            Debugger.IsAttached))
             if (!AllocConsole())
                 Log.Error("AllocConsole failed: {Error}", Marshal.GetLastPInvokeError());
 
