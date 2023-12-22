@@ -1672,7 +1672,6 @@ public partial class AdbService
                             }
                             case "shell":
                             {
-                                adbArgs = adbArgs.Select(x => x.Contains(' ') ? $"\"{x}\"" : x).ToList();
                                 if (adbArgs is ["pm", "uninstall", ..])
                                 {
                                     if (adbArgs.Count != 3)
