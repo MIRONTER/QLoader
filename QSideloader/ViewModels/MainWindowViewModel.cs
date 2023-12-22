@@ -207,8 +207,16 @@ public partial class MainWindowViewModel : ViewModelBase
                 if (Directory.EnumerateFiles(fileName, ".backup", SearchOption.TopDirectoryOnly).Any())
                 {
                     Log.Debug("Dropped folder {FileName} contains backup", fileName);
-                    var backup = new Backup(fileName);
-                    backup.Restore();
+                    try
+                    {
+                        var backup = new Backup(fileName);
+                        backup.Restore();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Failed to restore dropped backup {FileName}", fileName);
+                    }
+
                     continue;
                 }
 
