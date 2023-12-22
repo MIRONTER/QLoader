@@ -234,7 +234,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 _sideloaderSettings.DownloadsPruningPolicy == DownloadsPruningPolicy.DeleteAfterInstall;
             return InstallAsync(_path ?? throw new InvalidOperationException("path is null"),
                 deleteAfterInstall);
-        }, TaskResult.InstallFailed); // successResult isn't needed here
+        }, TaskResult.InstallFailed); // successResult isn't needed here (InstallAsync will call OnFinished)
     }
 
     private Task RunDownloadOnlyAsync()
@@ -246,7 +246,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
     private async Task RunInstallOnlyAsync()
     {
         await EnsureDeviceConnectedAsync(false);
-        // successResult isn't needed here
+        
         await DoCancellableAsync(() =>
         {
             _ = _path ?? throw new InvalidOperationException("path is null");
@@ -254,7 +254,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                                      _sideloaderSettings.DownloadsPruningPolicy ==
                                      DownloadsPruningPolicy.DeleteAfterInstall;
             return InstallAsync(_path, deleteAfterInstall);
-        }, TaskResult.InstallFailed);
+        }, TaskResult.InstallFailed); // successResult isn't needed here (InstallAsync will call OnFinished)
     }
 
     private async Task RunUninstallAsync()
