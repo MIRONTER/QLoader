@@ -118,6 +118,7 @@ try
     zipFile.Dispose();
     File.Delete(outFileName);
     Console.WriteLine($"Extract complete! Launching {exeName}...");
+    TrySetExecutableBit(exeName);
     Process.Start(exeName);
     await Task.Delay(5000);
 }
@@ -143,4 +144,24 @@ void PrintPadded(string text = "")
 {
     var lineLength = Console.WindowWidth;
     Console.WriteLine(text.PadLeft(lineLength / 2 + text.Length / 2, '-').PadRight(lineLength, '-'));
+}
+
+static void TrySetExecutableBit(string filePath)
+{
+    if (!File.Exists(filePath))
+        throw new FileNotFoundException(filePath);
+    if (OperatingSystem.IsWindows())
+        return;
+    try
+    {
+        var mode = File.GetUnixFileMode(filePath);
+        if (mode.HasFlag(UnixFileMode.UserExecute))
+            return;
+        mode |= UnixFileMode.UserExecute;
+        File.SetUnixFileMode(filePath, mode);
+    }
+    catch
+    {
+        // ignored
+    }
 }
