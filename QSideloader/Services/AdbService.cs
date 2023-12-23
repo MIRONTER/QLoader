@@ -200,7 +200,7 @@ public partial class AdbService
                 if (DeviceList.Count == 0)
                 {
                     if (_unauthorizedDeviceList.Count > 0)
-                        OnDeviceUnauthorized(_unauthorizedDeviceList[0]);
+                        await OnDeviceUnauthorizedAsync(_unauthorizedDeviceList[0]);
                     else if (_firstDeviceSearch)
                         OnDeviceOffline(null);
                 }
@@ -575,9 +575,9 @@ public partial class AdbService
     /// </summary>
     /// <param name="device">Device in <see cref="DeviceState.Unauthorized"/> state.</param>
     /// <remarks>This method should be called only when there are no other usable devices.</remarks>
-    private void OnDeviceUnauthorized(DeviceData device)
+    private async Task OnDeviceUnauthorizedAsync(DeviceData device)
     {
-        Log.Warning("Not authorized for debugging of device {Device}", GetHashedId(device.Serial));
+        Log.Warning("Not authorized for debugging of device {Device}", await GetHashedIdAsync(device.Serial));
         device.State = DeviceState.Unauthorized;
         NotifyDeviceStateChange(DeviceState.Unauthorized);
     }
@@ -604,10 +604,10 @@ public partial class AdbService
     /// </summary>
     /// <param name="deviceSerial">Device serial to convert.</param>
     /// <returns>Hashed ID as <see cref="string" />.</returns>
-    /// <remarks><see cref="Hwid.GetHwid"/> is used as salt.</remarks>
-    private static string GetHashedId(string deviceSerial)
+    /// <remarks><see cref="Hwid.GetHwidAsync"/> is used as salt.</remarks>
+    private static async Task<string> GetHashedIdAsync(string deviceSerial)
     {
-        var hwid = Hwid.GetHwid(false);
+        var hwid = await Hwid.GetHwidAsync(false);
         var saltedSerial = hwid + deviceSerial;
         var hashedId = Convert.ToHexString(SHA256.HashData(Encoding.ASCII.GetBytes(saltedSerial)))[..16];
         return hashedId;
@@ -631,7 +631,7 @@ public partial class AdbService
 
         foreach (var device in deviceList)
         {
-            var hashedDeviceId = GetHashedId(device.Serial);
+            var hashedDeviceId = await GetHashedIdAsync(device.Serial);
             if (OculusProductsInfo.IsKnownProduct(device.Product))
             {
                 try
@@ -915,8 +915,11 @@ public partial class AdbService
             ProductType = modelProps.Type;
             SupportedRefreshRates = modelProps.SupportedRefreshRates;
 
-
-            HashedId = GetHashedId(TrueSerial ?? Serial);
+            HashedId = TrueSerial ?? Serial;
+            Task.Run(async () =>
+            {
+                HashedId = await GetHashedIdAsync(TrueSerial ?? Serial);
+            }).Wait();
 
             PackageManager = new PackageManager(_adb.AdbClient, this, arguments: ["-3"]);
 
@@ -943,7 +946,7 @@ public partial class AdbService
         /// <summary>
         /// Stores hashed id derived from serial.
         /// </summary>
-        private string HashedId { get; }
+        private string HashedId { get; set; }
 
         /// <summary>
         /// Stores true device serial even if it's a wireless connection.

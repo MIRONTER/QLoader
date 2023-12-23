@@ -167,7 +167,7 @@ public static class ApiClient
         try
         {
             var dict = new Dictionary<string, string>
-                {{"hwid", Hwid.GetHwid(true)}, {"package_name", packageName}};
+                {{"hwid", await Hwid.GetHwidAsync(true)}, {"package_name", packageName}};
             var json = JsonSerializer.Serialize(dict, JsonSerializerContext.Default.DictionaryStringString);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await ApiHttpClient.PostAsync("reportdownload", content);

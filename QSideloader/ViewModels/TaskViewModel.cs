@@ -305,7 +305,7 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 GeneralUtils.SanitizeFileName(
                     $"{apkInfo.ApplicationLabel} v{apkInfo.VersionCode} {apkInfo.PackageName}.zip");
             await File.WriteAllTextAsync(Path.Combine(path, "HWID.txt"),
-                Hwid.GetHwid(false));
+                await Hwid.GetHwidAsync(false));
             var archivePath = await ZipUtil.CreateArchiveAsync(path, "donations",
                 archiveName, _cancellationTokenSource.Token);
             Directory.Delete(path, true);

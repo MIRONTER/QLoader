@@ -4,6 +4,7 @@ using System.Management;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using CliWrap;
 using CliWrap.Buffered;
 using Microsoft.Win32;
@@ -18,7 +19,7 @@ public static partial class Hwid
     /// </summary>
     /// <param name="useCompatOnWindows">Use <see cref="GetHwidCompat"/> if on Windows.</param>
     /// <returns>HWID as <see cref="string" />.</returns>
-    public static string GetHwid(bool useCompatOnWindows)
+    public static async Task<string> GetHwidAsync(bool useCompatOnWindows)
     {
         string? hwid = null;
         try
@@ -45,9 +46,9 @@ public static partial class Hwid
 
             if (OperatingSystem.IsMacOS())
             {
-                var ioregOutput = Cli.Wrap("ioreg")
+                var ioregOutput = await Cli.Wrap("ioreg")
                     .WithArguments("-rd1 -c IOPlatformExpertDevice")
-                    .ExecuteBufferedAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                    .ExecuteBufferedAsync();
                 var match = IoPlatformUuidRegex().Match(ioregOutput.StandardOutput);
                 if (match.Success)
                     hwid = match.Groups[1].Value;

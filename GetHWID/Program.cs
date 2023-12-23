@@ -1,6 +1,6 @@
 ﻿using QSideloader.Common;
 
-var hwid = Hwid.GetHwid(true);
+var hwid = await Hwid.GetHwidAsync(true);
 if (args.Length > 0 && args[0] == "--just-hwid")
 {
     Console.WriteLine(hwid);
