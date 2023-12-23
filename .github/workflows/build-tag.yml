@@ -177,6 +177,7 @@ jobs:
       run: |
         echo Packing osx-x64
         mkdir -p builds_tag/$TAG_NAME/
+        chmod +x osx-x64/*.dylib
         chmod +x osx-x64/Loader
         zip -r builds_tag/$TAG_NAME/osx-x64.zip osx-x64/*
     

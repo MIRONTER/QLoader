@@ -81,6 +81,13 @@ public partial class App : Application
                 Log.Warning("Couldn't delete old {Dir} directory", dir);
             }
         }
+
+        // don't delete library files on macOS
+        // IncludeNativeLibrariesForSelfExtract doesn't seem to work properly for osx builds
+        if (OperatingSystem.IsMacOS())
+        {
+            return;
+        }
         
         // delete unpacked library files
         foreach (var file in Directory.GetFiles(Environment.CurrentDirectory, "*.*", SearchOption.TopDirectoryOnly)
