@@ -74,10 +74,6 @@ public partial class MainWindowViewModel : ViewModelBase
             Log.Error(ex, "Error while opening game details dialog");
             ShowErrorNotification(ex, Resources.ErrorGameDetailsDialog);
         });
-        ShowConnectionHelpDialog = ReactiveCommand.CreateFromObservable(ShowConnectionHelpDialogImpl);
-        ShowAuthHelpDialog = ReactiveCommand.CreateFromObservable(ShowAuthHelpDialogImpl);
-        DonateAllGames = ReactiveCommand.CreateFromObservable(DonateAllGamesImpl);
-        ShowSharingDialog = ReactiveCommand.CreateFromObservable(ShowSharingOptionsImpl);
         Task.Run(async () => { DonationsAvailable = await _downloaderService.GetDonationsAvailableAsync(); });
         if (_sideloaderSettings.CheckUpdatesAutomatically)
             CheckForAppUpdates();
@@ -115,10 +111,10 @@ public partial class MainWindowViewModel : ViewModelBase
     public IObservable<Unit> WhenGameDonated => _gameDonateSubject.AsObservable();
 
     public ReactiveCommand<Game, Unit> ShowGameDetails { get; }
-    public ReactiveCommand<Unit, Unit> ShowConnectionHelpDialog { get; }
-    public ReactiveCommand<Unit, Unit> ShowAuthHelpDialog { get; }
-    private ReactiveCommand<Unit, Unit> DonateAllGames { get; }
-    public ReactiveCommand<Unit, Unit> ShowSharingDialog { get; }
+    public ReactiveCommand<Unit, Unit> ShowConnectionHelpDialog => ReactiveCommand.CreateFromObservable(ShowConnectionHelpDialogImpl);
+    public ReactiveCommand<Unit, Unit> ShowAuthHelpDialog => ReactiveCommand.CreateFromObservable(ShowAuthHelpDialogImpl);
+    private ReactiveCommand<Unit, Unit> DonateAllGames => ReactiveCommand.CreateFromObservable(DonateAllGamesImpl);
+    public ReactiveCommand<Unit, Unit> ShowSharingDialog => ReactiveCommand.CreateFromObservable(ShowSharingOptionsImpl);
     public ReactiveCommand<Unit, Unit> ShowAppUpdateDialog => ReactiveCommand.CreateFromObservable(ShowAppUpdateDialogImpl);
 
     public void AddTask(TaskOptions taskOptions)

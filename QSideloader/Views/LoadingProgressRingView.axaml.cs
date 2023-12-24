@@ -15,7 +15,7 @@ public partial class LoadingProgressRingView : UserControl
     
     private void OnIsVisibleChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        // HACK: This is needed because the progress ring refuses to disable sometimes and causes constant rendering
+        // This hacky thing is needed because the progress ring refuses to disable sometimes and causes constant rendering
         if (e.NewValue is not bool isVisible)
             return;
         if (isVisible)

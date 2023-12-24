@@ -1337,18 +1337,19 @@ public partial class AdbService
             if (!remotePath.EndsWith('/'))
                 remotePath += "/";
             var localDir = new DirectoryInfo(localPath).Name;
+            var fullRemotePath = (remotePath + localDir).Replace(@"\", "/");
             Log.Debug("Pushing directory: \"{LocalPath}\" -> \"{RemotePath}\", overwrite: {Overwrite}",
-                localPath, remotePath + localPath.Replace("\\", "/"), overwrite);
-            var dirList = Directory.GetDirectories(localPath, "*", SearchOption.AllDirectories).ToList();
-            var relativeDirList = dirList.Select(dirPath => Path.GetRelativePath(localPath, dirPath));
-
-            var fullPath = (remotePath + localDir).Replace(@"\", "/");
-            if (overwrite && await RemoteDirectoryExistsAsync(fullPath))
-                await RunShellCommandAsync($"rm -rf \"{fullPath}\"", true);
-            await RunShellCommandAsync($"mkdir -p \"{fullPath}/\"", true);
-            foreach (var dirPath in relativeDirList)
+                localPath, fullRemotePath, overwrite);
+            var sourceDirList = Directory.GetDirectories(localPath, "*", SearchOption.AllDirectories).ToList();
+            var relativeSourceDirList =
+                sourceDirList.Select(dirPath => Path.GetRelativePath(localPath, dirPath).Replace("./", ""));
+            
+            if (overwrite && await RemoteDirectoryExistsAsync(fullRemotePath))
+                await RunShellCommandAsync($"rm -rf \"{fullRemotePath}\"", true);
+            await RunShellCommandAsync($"mkdir -p \"{fullRemotePath}/\"", true);
+            foreach (var relativeSourceDirPath in relativeSourceDirList)
                 await RunShellCommandAsync(
-                    $"mkdir -p \"{fullPath + "/" + dirPath.Replace("./", "")}\"".Replace(@"\", "/"), true);
+                    $"mkdir -p \"{fullRemotePath + "/" + relativeSourceDirPath}\"".Replace(@"\", "/"), true);
 
             var fileList = Directory.EnumerateFiles(localPath, "*.*", SearchOption.AllDirectories).ToList();
             var relativeFileList = fileList.Select(filePath => Path.GetRelativePath(localPath, filePath)).ToList();
@@ -1358,8 +1359,8 @@ public partial class AdbService
                 var file = relativeFileList[i];
                 var i1 = i;
                 var fileProgress = new Progress<int>(p => progress?.Report((fileCount, i1 + 1, p)));
-                await PushFileAsync(localPath + Path.DirectorySeparatorChar + file,
-                    fullPath + "/" + file.Replace(@"\", "/"), fileProgress, ct);
+                await PushFileAsync(Path.Combine(localPath, file),
+                    fullRemotePath + "/" + file.Replace(@"\", "/"), fileProgress, ct);
             }
         }
 
@@ -1743,7 +1744,7 @@ public partial class AdbService
         }
 
         /// <summary>
-        /// Wrapper around <see cref="InstallPackageInternalAsync"/> that handles some common installation errors.
+        ///     Installs the package from the given path.
         /// </summary>
         /// <param name="apkPath">Path to APK file.</param>
         /// <param name="reinstall">Set reinstall flag for pm.</param>
@@ -1751,6 +1752,7 @@ public partial class AdbService
         /// <param name="observer">An optional parameter for install status notifications.</param>
         /// <param name="progress">An optional parameter which, when specified, returns progress notifications. The progress is reported as a value between 0 and 100.</param>
         /// <param name="ct">Cancellation token.</param>
+        /// <remarks>This method is a wrapper around <see cref="InstallPackageInternalAsync"/> that handles some common installation errors.</remarks>
         private async Task InstallPackageAsync(string apkPath, bool reinstall, bool grantRuntimePermissions,
             IObserver<(string status, string? progress)>? observer = default,
             Progress<int>? progress = default,

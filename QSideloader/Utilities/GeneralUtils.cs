@@ -219,7 +219,4 @@ public static partial class GeneralUtils
 
     [GeneratedRegex("versionCode='(.*?)'")]
     private static partial Regex VersionCodeRegex();
-
-    [GeneratedRegex("versionName='(.*?)'")]
-    private static partial Regex VersionNameRegex();
 }
