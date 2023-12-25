@@ -34,7 +34,6 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Serilog;
 using Serilog.Context;
-using JsonSerializerContext = QSideloader.Models.JsonSerializerContext;
 
 namespace QSideloader.ViewModels;
 
@@ -222,7 +221,7 @@ public partial class MainWindowViewModel : ViewModelBase
                     {
                         var game = JsonSerializer.Deserialize(
                             await File.ReadAllTextAsync(Path.Combine(fileName,
-                                "release.json")), JsonSerializerContext.Default.Game);
+                                "release.json")), QSideloaderJsonSerializerContext.Default.Game);
                         game!.InstallFromPath(fileName);
                         continue;
                     }

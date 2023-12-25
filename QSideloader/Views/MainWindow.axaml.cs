@@ -19,6 +19,7 @@ using FluentAvalonia.UI.Controls;
 using FluentAvalonia.UI.Navigation;
 using QSideloader.Utilities;
 using QSideloader.ViewModels;
+using QSideloader.Views.Pages;
 using ReactiveUI;
 using Serilog;
 
@@ -67,10 +68,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IMainWind
     {
         if (e.IsSettingsSelected)
         {
-            const string pageName = "QSideloader.Views.Pages.SettingsView";
-            var pageType = Type.GetType(pageName);
-            if (pageType is null) return;
-            Log.Debug("Navigating to {View}", "SettingsView");
+            var pageType = typeof(SettingsView);
+            Log.Debug("Navigating to {View}", pageType);
             ContentFrame.BackStack.Clear();
             ContentFrame.Navigate(pageType);
         }

@@ -816,7 +816,7 @@ public partial class DownloaderService
                     if (!Directory.Exists(dstPath))
                         throw new DirectoryNotFoundException(
                             $"Didn't find directory with downloaded files on path \"{dstPath}\"");
-                    var json = JsonSerializer.Serialize(game, Globals.DefaultJsonSerializerOptions);
+                    var json = JsonSerializer.Serialize(game, typeof(Game), QSideloaderJsonSerializerContext.Indented);
                     await File.WriteAllTextAsync(Path.Combine(dstPath, "release.json"), json, ct);
                     Task.Run(() => ApiClient.ReportGameDownloadAsync(game.OriginalPackageName!), ct).SafeFireAndForget();
                     break;
@@ -903,7 +903,7 @@ public partial class DownloaderService
             var response = await HttpClient.PostAsync($"http://127.0.0.1:{statsPort}/core/stats", null);
             var responseContent = await response.Content.ReadAsStringAsync();
             var results =
-                JsonSerializer.Deserialize(responseContent, JsonSerializerContext.Default.DictionaryStringObject);
+                JsonSerializer.Deserialize(responseContent, QSideloaderJsonSerializerContext.Default.DictionaryStringObject);
             if (results is null || !results.ContainsKey("transferring")) return null;
             if (!((JsonElement) results["speed"]).TryGetDouble(out var downloadSpeedBytes)) return null;
             if (!((JsonElement) results["bytes"]).TryGetDouble(out var downloadedBytes)) return null;
@@ -1124,7 +1124,7 @@ public partial class DownloaderService
             await EnsureMirrorSelectedAsync();
             var remotePath = $"{MirrorName}:Quest Games/{game.ReleaseName}";
             var sizeJson = await RcloneGetRemoteSizeJson(remotePath, ct);
-            var dict = JsonSerializer.Deserialize(sizeJson, JsonSerializerContext.Default.DictionaryStringInt64);
+            var dict = JsonSerializer.Deserialize(sizeJson, QSideloaderJsonSerializerContext.Default.DictionaryStringInt64);
             if (dict is null)
                 return null;
             if (!dict.TryGetValue("bytes", out var sizeBytes)) return null;

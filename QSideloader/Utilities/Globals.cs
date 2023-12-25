@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text.Json;
 using Avalonia.Controls.Notifications;
-using QSideloader.Models;
 using QSideloader.ViewModels;
 
 namespace QSideloader.Utilities;
@@ -19,11 +17,6 @@ public static class Globals
 
     public static Updater Updater { get; } = new();
     
-    public static JsonSerializerOptions DefaultJsonSerializerOptions { get; } = new()
-    {
-        WriteIndented = true,
-        TypeInfoResolver = JsonSerializerContext.Default
-    };
 
     public static void ShowNotification(string title, string message, NotificationType type,
         TimeSpan? expiration = null)

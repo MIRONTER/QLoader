@@ -128,7 +128,8 @@ public static class ApiClient
 
     public static Task<List<Dictionary<string, JsonElement>>?> GetDeadMirrorsAsync()
     {
-        return ApiHttpClient.GetFromJsonAsync<List<Dictionary<string, JsonElement>>>("mirrors?status=DOWN");
+        return ApiHttpClient.GetFromJsonAsync("mirrors?status=DOWN",
+            QSideloaderJsonSerializerContext.Default.ListDictionaryStringJsonElement);
     }
 
     /// <summary>
@@ -141,7 +142,8 @@ public static class ApiClient
         using (var _ = Operation.Time("Requesting popularity from API"))
         {
             return
-                await ApiHttpClient.GetFromJsonAsync<List<Dictionary<string, JsonElement>>>("popularity");
+                await ApiHttpClient.GetFromJsonAsync("popularity",
+                    QSideloaderJsonSerializerContext.Default.ListDictionaryStringJsonElement);
         }
     }
 
@@ -168,7 +170,7 @@ public static class ApiClient
         {
             var dict = new Dictionary<string, string>
                 {{"hwid", await Hwid.GetHwidAsync(true)}, {"package_name", packageName}};
-            var json = JsonSerializer.Serialize(dict, JsonSerializerContext.Default.DictionaryStringString);
+            var json = JsonSerializer.Serialize(dict, QSideloaderJsonSerializerContext.Default.DictionaryStringString);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await ApiHttpClient.PostAsync("reportdownload", content);
             response.EnsureSuccessStatusCode();
@@ -214,7 +216,7 @@ public static class ApiClient
             return null;
         }
 
-        var game = JsonSerializer.Deserialize(responseContent, JsonSerializerContext.Default.OculusGame);
+        var game = JsonSerializer.Deserialize(responseContent, QSideloaderJsonSerializerContext.Default.OculusGame);
         op.Complete();
         return game;
     }

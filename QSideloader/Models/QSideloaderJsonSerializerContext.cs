@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using QSideloader.ViewModels;
 
@@ -14,4 +15,12 @@ namespace QSideloader.Models;
 [JsonSerializable(typeof(double))]
 [JsonSerializable(typeof(bool))]
 [JsonSerializable(typeof(string))]
-public partial class JsonSerializerContext : System.Text.Json.Serialization.JsonSerializerContext;
+[JsonSerializable(typeof(List<Dictionary<string, JsonElement>>))]
+public partial class QSideloaderJsonSerializerContext : JsonSerializerContext
+{
+    public static JsonSerializerContext Indented { get; } = new QSideloaderJsonSerializerContext(new JsonSerializerOptions
+    {
+        WriteIndented = true
+    });
+}
+

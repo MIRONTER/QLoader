@@ -26,7 +26,6 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using ReactiveUI.Validation.Extensions;
 using Serilog;
-using JsonSerializerContext = QSideloader.Models.JsonSerializerContext;
 using Timer = System.Timers.Timer;
 
 namespace QSideloader.ViewModels;
@@ -124,7 +123,7 @@ public class SettingsData : ReactiveObject
 
     private static SettingsData FromJson(string json)
     {
-        return JsonSerializer.Deserialize(json, JsonSerializerContext.Default.SettingsData)!;
+        return JsonSerializer.Deserialize(json, QSideloaderJsonSerializerContext.Default.SettingsData)!;
     }
 
     public static SettingsData FromFileOrDefaults(string filePath)
@@ -221,7 +220,7 @@ public class SettingsData : ReactiveObject
         SettingsFileSemaphoreSlim.Wait();
         try
         {
-            var json = JsonSerializer.Serialize(this, Globals.DefaultJsonSerializerOptions);
+            var json = JsonSerializer.Serialize(this, typeof(SettingsData), QSideloaderJsonSerializerContext.Indented);
             if (OperatingSystem.IsWindows())
             {
                 using FileStream stream = AtomicFileStream.Open(PathHelper.SettingsPath, FileMode.Create,
