@@ -48,14 +48,14 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
             .Throttle(TimeSpan.FromMilliseconds(250))
             .DistinctUntilChanged()
             .Select(GameFilter);
-        var cacheListBind = _availableGamesSourceCache.Connect()
+        _availableGamesSourceCache.Connect()
             .RefCount()
             .ObserveOn(RxApp.TaskpoolScheduler)
             .Filter(filterPredicate)
             .SortBy(x => x.ReleaseName!)
             .ObserveOn(RxApp.MainThreadScheduler)
             .Bind(out _availableGames)
-            .DisposeMany();
+            .DisposeMany().Subscribe();
         Refresh = ReactiveCommand.CreateFromObservable<bool, Unit>(RefreshImpl);
         Refresh.ThrownExceptions.Subscribe(ex =>
         {
@@ -69,7 +69,6 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         DownloadSingle = ReactiveCommand.CreateFromObservable<Game, Unit>(DownloadSingleImpl);
         this.WhenActivated(disposables =>
         {
-            cacheListBind.Subscribe().DisposeWith(disposables);
             _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged).DisposeWith(disposables);
             _adbService.WhenPackageListChanged.Subscribe(_ => Task.Run(RefreshInstalledAsync)).DisposeWith(disposables);
             ShowPopularity30Days = _sideloaderSettings.PopularityRange == "30 days";

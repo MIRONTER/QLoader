@@ -40,15 +40,14 @@ public class InstalledGamesViewModel : ViewModelBase, IActivatableViewModel
         UpdateSingle = ReactiveCommand.CreateFromObservable<Game, Unit>(UpdateSingleImpl);
         Uninstall = ReactiveCommand.CreateFromObservable(UninstallImpl);
         Backup = ReactiveCommand.CreateFromObservable(BackupImpl);
-        var cacheListBind = _installedGamesSourceCache.Connect()
+        _installedGamesSourceCache.Connect()
             .RefCount()
             .SortBy(x => x.ReleaseName!)
             .ObserveOn(RxApp.MainThreadScheduler)
             .Bind(out _installedGames)
-            .DisposeMany();
+            .DisposeMany().Subscribe();
         this.WhenActivated(disposables =>
         {
-            cacheListBind.Subscribe().DisposeWith(disposables);
             _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged).DisposeWith(disposables);
             _adbService.WhenPackageListChanged.Subscribe(_ => Refresh.Execute().Subscribe()).DisposeWith(disposables);
             Refresh.Execute().Subscribe();
