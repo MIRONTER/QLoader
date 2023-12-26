@@ -40,7 +40,6 @@
                 <ui:NavigationViewItem IconSource="Cloud" Content="{x:Static p:Resources.AvailableGamesHeader}"
                                        Tag="AvailableGamesView" />
                 <ui:NavigationViewItem IconSource="Upload" Content="{x:Static p:Resources.DonateGamesHeader}"
-                                       IsVisible="{Binding DonationsAvailable}"
                                        Tag="GameDonationView">
                     <ui:NavigationViewItem.InfoBadge>
                         <ui:InfoBadge Value="{Binding DonatableAppsCount}" IsVisible="{Binding DonatableAppsCount}" />

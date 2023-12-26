@@ -286,6 +286,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public void RefreshGameDonationBadge()
     {
+        Task.Run(async () => { DonationsAvailable = await _downloaderService.GetDonationsAvailableAsync(); }).Wait();
         if (!_adbService.IsDeviceConnected || !DonationsAvailable)
         {
             DonatableAppsCount = 0;

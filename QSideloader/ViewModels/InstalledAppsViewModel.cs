@@ -65,7 +65,7 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
             .RefCount()
             .ObserveOn(RxApp.MainThreadScheduler);
         var cacheListBindPart2 = filterForDonations
-            ? cacheListBindPart.Filter(donationFilterPredicate)
+            ? cacheListBindPart.Filter(donationFilterPredicate).Filter(_ => DonationsAvailable)
             : cacheListBindPart.Filter(x => !x.IsKnown);
         var cacheListBind = cacheListBindPart2
             .SortBy(x => x.Name)
@@ -78,6 +78,7 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
             _adbService.WhenPackageListChanged.Subscribe(_ => Refresh.Execute().Subscribe()).DisposeWith(disposables);
             Globals.MainWindowViewModel!.WhenGameDonated.Subscribe(_ => Refresh.Execute().Subscribe())
                 .DisposeWith(disposables);
+            DonationsAvailable = Globals.MainWindowViewModel.DonationsAvailable;
             Refresh.Execute().Subscribe();
             IsShowHiddenFromDonation = false;
         });
@@ -93,6 +94,7 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
     public bool IsBusy => _isBusy.Value;
     [Reactive] public bool IsDeviceConnected { get; private set; }
     [Reactive] public bool IsShowHiddenFromDonation { get; set; }
+    [Reactive] public bool DonationsAvailable { get; set; }
 
     public ViewModelActivator Activator { get; }
 

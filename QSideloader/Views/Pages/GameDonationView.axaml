@@ -16,6 +16,7 @@
     <Grid RowDefinitions="Auto,*" IsEnabled="{Binding IsDeviceConnected}">
         <StackPanel x:Name="ButtonPanel"
                     Grid.Row="0"
+                    IsEnabled="{Binding DonationsAvailable}"
                     Orientation="Horizontal"
                     Spacing="12" Margin="8"
                     HorizontalAlignment="Right">
@@ -39,6 +40,7 @@
             </Button>
         </StackPanel>
         <DataGrid Grid.Row="1" x:Name="InstalledAppsDataGrid" x:DataType="models:InstalledApp"
+                  IsEnabled="{Binding (vm:InstalledAppsViewModel).DonationsAvailable}"
                   ItemsSource="{Binding (vm:InstalledAppsViewModel).InstalledApps}"
                   AutoGenerateColumns="False" CanUserResizeColumns="True">
             <DataGrid.Columns>
@@ -64,10 +66,17 @@
                 <!-- ReSharper disable Xaml.RedundantResource -->
                 <SolidColorBrush x:Key="DataGridCellFocusVisualPrimaryBrush">Transparent</SolidColorBrush>
                 <SolidColorBrush x:Key="DataGridCellFocusVisualSecondaryBrush">Transparent</SolidColorBrush>
+                <SolidColorBrush x:Key="DataGridDisabledVisualElementBackground">#10FFFFFF</SolidColorBrush>
                 <!-- ReSharper restore Xaml.RedundantResource -->
             </DataGrid.Resources>
         </DataGrid>
-        <views:LoadingProgressRingView Grid.Row="0" Grid.RowSpan="2"
-                                       IsVisible="{Binding IsBusy}" />
+        <views:LoadingProgressRingView Grid.Row="0" Grid.RowSpan="2">
+            <views:LoadingProgressRingView.IsVisible>
+                <MultiBinding Mode="OneWay" Converter="{x:Static BoolConverters.And}">
+                    <Binding Path="IsBusy" />
+                    <Binding Path="DonationsAvailable" />
+                </MultiBinding>
+            </views:LoadingProgressRingView.IsVisible>
+        </views:LoadingProgressRingView>
     </Grid>
 </UserControl>
