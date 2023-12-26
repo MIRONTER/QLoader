@@ -76,7 +76,7 @@ public class SettingsData : ReactiveObject
         }
     }
 
-    [JsonIgnore] public static string[] ConnectionTypes { get; } = {"USB", "Wireless"};
+    [JsonIgnore] public static string[] ConnectionTypes { get; } = ["USB", "Wireless"];
     [Reactive] public string? PreferredConnectionType { get; set; } = ConnectionTypes[0];
     [Reactive] public string DownloadsLocation { get; set; } = DefaultDownloadsLocation;
     [Reactive] public string BackupsLocation { get; set; } = DefaultBackupsLocation;
@@ -88,7 +88,7 @@ public class SettingsData : ReactiveObject
 
 
     [Reactive] public string LastWirelessAdbHost { get; set; } = "";
-    [JsonIgnore] public static string[] PopularityRanges { get; } = {"30 days", "7 days", "1 day", "None"};
+    [JsonIgnore] public static string[] PopularityRanges { get; } = ["30 days", "7 days", "1 day", "None"];
     [Reactive] public string? PopularityRange { get; set; } = PopularityRanges[0];
     public Guid InstallationId { get; set; } = Guid.NewGuid();
     public ObservableCollection<(string packageName, int versionCode)> DonatedPackages { get; set; } = [];
@@ -98,6 +98,7 @@ public class SettingsData : ReactiveObject
     [Reactive] public bool EnableRemoteLogging { get; set; }
     [Reactive] public bool EnableAutoDonation { get; set; }
     [Reactive] public bool DisableDonationNotification { get; set; }
+    [Reactive] public bool TokenNotificationShown { get; set; }
 
     [Reactive] public bool EnableTaskAutoDismiss { get; set; } = true;
 
@@ -377,12 +378,13 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
     public string VersionString { get; } = Assembly.GetExecutingAssembly()
         .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "";
 
-/*#if DEBUG
+#if DEBUG
+    // ReSharper disable once UnassignedGetOnlyAutoProperty
     public bool IsConsoleToggleable { get; }
 #else
     public bool IsConsoleToggleable { get; } = OperatingSystem.IsWindows();
-#endif*/
-    public bool IsConsoleToggleable { get; } = OperatingSystem.IsWindows();
+#endif
+    //public bool IsConsoleToggleable { get; } = OperatingSystem.IsWindows();
     // ReSharper disable once MemberCanBeMadeStatic.Global
     public bool IsUpdaterAvailable => Globals.Overrides.TryGetValue("DisableSelfUpdate", out var value) &&
                                       value != "1";
