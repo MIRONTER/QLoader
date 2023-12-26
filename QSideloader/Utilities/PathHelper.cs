@@ -119,25 +119,36 @@ public static class PathHelper
 
     private static string? FindLibVlc()
     {
-        string archName;
-        if (OperatingSystem.IsWindows() && Environment.Is64BitProcess)
-            archName = "win-x64";
-        else if (OperatingSystem.IsWindows() && !Environment.Is64BitProcess)
-            archName = "win-x86";
+        if (OperatingSystem.IsWindows())
+        {
+            var archName = Environment.Is64BitProcess ? "win-x64" : "win-x86";
+            if (Directory.Exists("libvlc"))
+                return Path.GetFullPath(Path.Combine("libvlc", archName));
+
+            if (AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES") is not string nativeDllSearchDirectories)
+                throw new InvalidOperationException("NATIVE_DLL_SEARCH_DIRECTORIES not set");
+            var directories = nativeDllSearchDirectories.Split(Path.PathSeparator);
+            var dir = directories.Select(directory => Path.Combine(directory, "libvlc"))
+                .FirstOrDefault(Directory.Exists);
+
+            if (dir is not null) return Path.Combine(dir, archName);
+        }
         else if (OperatingSystem.IsMacOS())
-            archName = "osx-x64";
+        {
+            if (AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES") is not string nativeDllSearchDirectories)
+                throw new InvalidOperationException("NATIVE_DLL_SEARCH_DIRECTORIES not set");
+            var directories = nativeDllSearchDirectories.Split(Path.PathSeparator);
+            var dir = directories.FirstOrDefault(x => File.Exists(Path.Combine(x, "libvlc.dylib")));
+
+            if (dir is not null) return dir;
+        }
         else
+        {
             return null;
-        // find "libvlc" directory
-        // try current directory first
-        if (Directory.Exists("libvlc"))
-            return Path.GetFullPath(Path.Combine("libvlc", archName));
+        }
+
+        Console.WriteLine("Couldn't find libvlc");
         
-        // search in NATIVE_DLL_SEARCH_DIRECTORIES
-        if (AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES") is not string nativeDllSearchDirectories)
-            throw new InvalidOperationException("NATIVE_DLL_SEARCH_DIRECTORIES not set");
-        var directories = nativeDllSearchDirectories.Split(Path.PathSeparator);
-        var dir = directories.Select(directory => Path.Combine(directory, "libvlc")).FirstOrDefault(Directory.Exists);
-        return dir is not null ? Path.Combine(dir, archName) : null;
+        return null;
     }
 }
