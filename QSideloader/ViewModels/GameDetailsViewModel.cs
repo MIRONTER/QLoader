@@ -27,21 +27,6 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel
         Activator = new ViewModelActivator();
         var adbService = AdbService.Instance;
 
-        // Initialize LibVLC only if trailers are installed
-        if (Directory.Exists(PathHelper.TrailersPath))
-            try
-            {
-                // Repeat videos maximum allowed number of times. No loop functionality in libVLC 3
-                _libVlc ??= new LibVLC("--input-repeat=65535");
-                MediaPlayer = new MediaPlayer(_libVlc);
-            }
-            catch (Exception e)
-            {
-                Log.Warning(e, "Failed to initialize LibVLC");
-                Globals.ShowErrorNotification(e, Resources.FailedToInitVideoPlayer, NotificationType.Warning,
-                    TimeSpan.FromSeconds(5));
-            }
-
         if (Design.IsDesignMode) return;
 
         Task.Run(TryLoadStoreInfo);
@@ -50,6 +35,9 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel
         {
             adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged).DisposeWith(disposables);
             Task.Run(async () => IsDeviceConnected = await adbService.CheckDeviceConnectionAsync()).DisposeWith(disposables);
+            // Initialize LibVLC only if trailers are installed
+            if (Directory.Exists(PathHelper.TrailersPath))
+                InitLibVlc();
             Observable.Timer(TimeSpan.FromSeconds(2)).Subscribe(_ => PlayTrailer()).DisposeWith(disposables);
             Disposable.Create(StopMediaPlayer).DisposeWith(disposables);
         });
@@ -90,16 +78,34 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel
             _ => IsDeviceConnected
         };
     }
+    
+    private void InitLibVlc()
+    {
+        if (_libVlc is not null) return;
+        try
+        {
+            // Repeat videos maximum allowed number of times. No loop functionality in libVLC 3
+            _libVlc = new LibVLC("--input-repeat=65535");
+            MediaPlayer = new MediaPlayer(_libVlc);
+        }
+        catch (Exception e)
+        {
+            Log.Warning(e, "Failed to initialize LibVLC");
+            Globals.ShowErrorNotification(e, Resources.FailedToInitVideoPlayer, NotificationType.Warning,
+                TimeSpan.FromSeconds(5));
+        }
+    }
 
     private void PlayTrailer()
     {
         if (Game is null || _libVlc is null || MediaPlayer is null ||
             !Directory.Exists(PathHelper.TrailersPath)) return;
         var trailerFilePath = Path.Combine(PathHelper.TrailersPath, $"{Game.OriginalPackageName}.mp4");
-        // Try finding a trailer using case-insensitive enumeration
+        var actualTrailerFilePath = File.Exists(trailerFilePath) ? trailerFilePath : null;
         try
         {
-            var actualTrailerFilePath = PathHelper.GetActualCaseForFileName(trailerFilePath);
+            // Try finding a trailer using case-insensitive enumeration if needed
+            actualTrailerFilePath ??= PathHelper.GetActualCaseForFileName(trailerFilePath);
             using var media = new Media(_libVlc, actualTrailerFilePath);
             MediaPlayer?.Play(media);
             ShowTrailerPlayer = true;

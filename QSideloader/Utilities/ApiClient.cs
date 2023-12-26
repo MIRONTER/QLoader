@@ -204,7 +204,7 @@ public static class ApiClient
         if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.NotFound)
         {
             op.Abandon();
-            throw new HttpRequestException($"Failed to get game store info for {packageName}");
+            throw new HttpRequestException($"Failed to get game store info for {packageName} ({(int)response.StatusCode} - {response.ReasonPhrase})");
         }
 
         var responseContent = await response.Content.ReadAsStringAsync();
