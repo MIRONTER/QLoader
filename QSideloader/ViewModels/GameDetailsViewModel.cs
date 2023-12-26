@@ -63,6 +63,10 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel
             if (value == _game) return;
             _game = value;
             DisplayName = value?.GameName ?? "GameName";
+            Description = "";
+            StoreRating = "";
+            ShowOculusStoreLink = false;
+            OculusStoreUrl = "";
             Task.Run(TryLoadStoreInfo);
         }
     }
