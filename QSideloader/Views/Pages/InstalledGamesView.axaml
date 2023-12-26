@@ -96,7 +96,6 @@
                 </Button.CommandParameter>
             </Button>
         </StackPanel>
-        <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
         <controls:CustomDataGrid Grid.Row="1" x:Name="InstalledGamesDataGrid" x:DataType="models:InstalledGame"
                                  ItemsSource="{Binding (vm:InstalledGamesViewModel).InstalledGames}"
                                  AutoGenerateColumns="False" CanUserResizeColumns="True"

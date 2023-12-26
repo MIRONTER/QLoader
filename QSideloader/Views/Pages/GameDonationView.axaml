@@ -38,7 +38,6 @@
                 </Button.CommandParameter>
             </Button>
         </StackPanel>
-        <!-- ReSharper disable Xaml.BindingWithContextNotResolved -->
         <DataGrid Grid.Row="1" x:Name="InstalledAppsDataGrid" x:DataType="models:InstalledApp"
                   ItemsSource="{Binding (vm:InstalledAppsViewModel).InstalledApps}"
                   AutoGenerateColumns="False" CanUserResizeColumns="True">
