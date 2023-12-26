@@ -32,7 +32,7 @@ public static class PathHelper
     public static string AdbPath { get; } = FindExecutable("adb");
     public static string RclonePath { get; }
     public static string AaptPath { get; } = FindExecutable("aapt2");
-
+    public static string? LibVlcPath { get; } = FindLibVlc();
     public static string SevenZipPath { get; } =
         OperatingSystem.IsWindows() ? FindExecutable("7za") : FindExecutable("7zz");
     public static string SettingsPath => "settings.json";
@@ -115,5 +115,29 @@ public static class PathHelper
         // make sure the executable bit is set
         GeneralUtils.TrySetExecutableBit(path);
         return path;
+    }
+
+    private static string? FindLibVlc()
+    {
+        string archName;
+        if (OperatingSystem.IsWindows() && Environment.Is64BitProcess)
+            archName = "win-x64";
+        else if (OperatingSystem.IsWindows() && !Environment.Is64BitProcess)
+            archName = "win-x86";
+        else if (OperatingSystem.IsMacOS())
+            archName = "osx-x64";
+        else
+            return null;
+        // find "libvlc" directory
+        // try current directory first
+        if (Directory.Exists("libvlc"))
+            return Path.GetFullPath(Path.Combine("libvlc", archName));
+        
+        // search in NATIVE_DLL_SEARCH_DIRECTORIES
+        if (AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES") is not string nativeDllSearchDirectories)
+            throw new InvalidOperationException("NATIVE_DLL_SEARCH_DIRECTORIES not set");
+        var directories = nativeDllSearchDirectories.Split(Path.PathSeparator);
+        var dir = directories.Select(directory => Path.Combine(directory, "libvlc")).FirstOrDefault(Directory.Exists);
+        return dir is not null ? Path.Combine(dir, archName) : null;
     }
 }

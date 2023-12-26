@@ -84,6 +84,8 @@ public class GameDetailsViewModel : ViewModelBase, IActivatableViewModel
         if (_libVlc is not null) return;
         try
         {
+            // LibVLCSharp needs help finding the native libraries
+            Core.Initialize(PathHelper.LibVlcPath);
             // Repeat videos maximum allowed number of times. No loop functionality in libVLC 3
             _libVlc = new LibVLC("--input-repeat=65535");
             MediaPlayer = new MediaPlayer(_libVlc);
