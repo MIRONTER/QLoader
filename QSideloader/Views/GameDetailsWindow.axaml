@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModels="clr-namespace:QSideloader.ViewModels"
         xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
-        xmlns:controls="clr-namespace:HyperText.Avalonia.Controls;assembly=HyperText.Avalonia"
+        xmlns:controls="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
         xmlns:p="clr-namespace:QSideloader.Properties"
         xmlns:utilities="clr-namespace:QSideloader.Utilities"
         mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="400"
@@ -74,10 +74,9 @@
                     <Button Grid.Row="0" Grid.Column="1" Margin="12,0,0,6"
                             Command="{Binding Game.Download}"
                             Content="{x:Static p:Resources.DownloadButton}" ToolTip.Tip="{x:Static p:Resources.DownloadTooltip}" />
-                    <controls:Hyperlink Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" Alias="Oculus Store"
-                                        Url="{Binding OculusStoreUrl}"
-                                        FontWeight="Bold"
-                                        FontSize="16"
+                    <controls:HyperlinkButton Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" Content="Oculus Store"
+                                        NavigateUri="{Binding OculusStoreUrl}"
+                                        
                                         ToolTip.Tip="{x:Static p:Resources.OculusStoreLinkTooltip}"
                                         IsVisible="{Binding ShowOculusStoreLink}" />
                     <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Margin="1,4,0,0" FontWeight="Light">
