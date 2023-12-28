@@ -363,6 +363,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cancel.
+        /// </summary>
+        public static string CancelButton {
+            get {
+                return ResourceManager.GetString("CancelButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancelled.
         /// </summary>
         public static string Cancelled {
@@ -769,6 +778,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to How you want to be credited (optional):.
+        /// </summary>
+        public static string DonorNameLabel {
+            get {
+                return ResourceManager.GetString("DonorNameLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Install.
         /// </summary>
         public static string DownloadAndInstallButton {
@@ -1080,6 +1098,15 @@ namespace QSideloader.Properties {
         public static string ErrorDownloadingUpdater {
             get {
                 return ResourceManager.GetString("ErrorDownloadingUpdater", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error extracting and uploading token.
+        /// </summary>
+        public static string ErrorExtractingAndUploadingToken {
+            get {
+                return ResourceManager.GetString("ErrorExtractingAndUploadingToken", resourceCulture);
             }
         }
         
@@ -2092,6 +2119,15 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Send.
+        /// </summary>
+        public static string SendButton {
+            get {
+                return ResourceManager.GetString("SendButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Set.
         /// </summary>
         public static string SetButton {
@@ -2106,6 +2142,24 @@ namespace QSideloader.Properties {
         public static string Settings {
             get {
                 return ResourceManager.GetString("Settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Share account token.
+        /// </summary>
+        public static string ShareAccountTokenButton {
+            get {
+                return ResourceManager.GetString("ShareAccountTokenButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Share your entire library in two clicks.
+        /// </summary>
+        public static string ShareAccountTokenButtonTooltip {
+            get {
+                return ResourceManager.GetString("ShareAccountTokenButtonTooltip", resourceCulture);
             }
         }
         
@@ -2421,6 +2475,50 @@ namespace QSideloader.Properties {
         public static string TasksHeader {
             get {
                 return ResourceManager.GetString("TasksHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sharing your Oculus token lets you share your entire game library without having to upload each game individually.
+        ///
+        ///Your token will be uploaded to a secure server and will only be used to download game files using your account.
+        ///If you change your mind, you can revoke your token by changing your password.
+        ///
+        ///You need to have the Oculus PC app installed and logged in for this to work.
+        ///
+        ///Please be sure you got this program directly from NIF or VRGamesRUS.
+        /// </summary>
+        public static string TokenUploadDialogText {
+            get {
+                return ResourceManager.GetString("TokenUploadDialogText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Share Oculus Token.
+        /// </summary>
+        public static string TokenUploadDialogTitle {
+            get {
+                return ResourceManager.GetString("TokenUploadDialogTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Token uploaded.
+        ///Thank you!.
+        /// </summary>
+        public static string TokenUploadedNotification {
+            get {
+                return ResourceManager.GetString("TokenUploadedNotification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You can share your games to help expand our library.
+        /// </summary>
+        public static string TokenUploadInfoBarText {
+            get {
+                return ResourceManager.GetString("TokenUploadInfoBarText", resourceCulture);
             }
         }
         

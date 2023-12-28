@@ -69,6 +69,7 @@
         <PackageReference Include="FileHelpers" Version="3.5.2" />
         <PackageReference Include="FluentAvalonia.ProgressRing" Version="1.69.2" />
         <PackageReference Include="FluentAvaloniaUI" Version="2.0.4" />
+        <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
         <PackageReference Include="ReactiveUI.Fody" Version="19.5.31" />
         <PackageReference Include="ReactiveUI.Validation" Version="3.1.7" />
         <PackageReference Include="Serilog" Version="3.1.1" />
@@ -105,11 +106,9 @@
         <VlcWindowsX86IncludeFiles Include="@(VlcWindowsX64IncludeFiles)" />
     </ItemGroup>
     <!-- For some reason LibVLC package doesn't auto-detect the architecture -->
-    <PropertyGroup Condition="$(RuntimeIdentifier.Contains('x64'))">
-        <VlcWindowsX86Enabled>false</VlcWindowsX86Enabled>
-    </PropertyGroup>
-    <PropertyGroup Condition="$(RuntimeIdentifier.Contains('x86'))">
-        <VlcWindowsX64Enabled>false</VlcWindowsX64Enabled>
+    <PropertyGroup>
+        <VlcWindowsX86Enabled Condition="$(RuntimeIdentifier.Contains('x64'))">false</VlcWindowsX86Enabled>
+        <VlcWindowsX64Enabled Condition="$(RuntimeIdentifier.Contains('x86'))">false</VlcWindowsX64Enabled>
     </PropertyGroup>
     <ItemGroup>
         <Compile Update="Views\Pages\GameDonationView.axaml.cs">

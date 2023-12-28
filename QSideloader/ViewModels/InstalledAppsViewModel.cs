@@ -302,6 +302,11 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
         }
     }
 
+    public void ShowTokenUploadDialog()
+    {
+        Globals.MainWindowViewModel?.ShowTokenUploadDialog.Execute();
+    }
+
     private void OnDeviceStateChanged(DeviceState state)
     {
         // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault

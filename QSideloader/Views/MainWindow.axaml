@@ -90,6 +90,21 @@
                                     Command="{Binding ShowSharingDialog}" />
                         </ui:InfoBar.ActionButton>
                     </ui:InfoBar>
+                    <ui:InfoBar x:Name="TokenUploadInfoBar"
+                                IsOpen="{Binding TokenUploadBarIsOpen}"
+                                Severity="Informational"
+                                VerticalAlignment="Bottom"
+                                HorizontalAlignment="Center"
+                                IsIconVisible="True"
+                                IsClosable="True"
+                                Background="#1F1F1F"
+                                Title=""
+                                Message="{x:Static p:Resources.TokenUploadInfoBarText}">
+                        <ui:InfoBar.ActionButton>
+                            <Button Content="{x:Static p:Resources.Show}"
+                                    Command="{Binding ShowTokenUploadDialog}" />
+                        </ui:InfoBar.ActionButton>
+                    </ui:InfoBar>
                     <ui:InfoBar x:Name="NoDeviceConnectionInfoBar"
                                 Severity="Warning"
                                 VerticalAlignment="Bottom"

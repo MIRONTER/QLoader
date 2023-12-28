@@ -898,4 +898,42 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="DownloadAndRelaunchButton" xml:space="preserve">
         <value>Download &amp; relaunch</value>
     </data>
+    <data name="TokenUploadInfoBarText" xml:space="preserve">
+        <value>You can share your games to help expand our library</value>
+    </data>
+    <data name="ShareAccountTokenButton" xml:space="preserve">
+        <value>Share account token</value>
+    </data>
+    <data name="ShareAccountTokenButtonTooltip" xml:space="preserve">
+        <value>Share your entire library in two clicks</value>
+    </data>
+    <data name="TokenUploadDialogTitle" xml:space="preserve">
+        <value>Share Oculus Token</value>
+    </data>
+    <data name="TokenUploadDialogText" xml:space="preserve">
+        <value>Sharing your Oculus token lets you share your entire game library without having to upload each game individually.
+
+Your token will be uploaded to a secure server and will only be used to download game files using your account.
+If you change your mind, you can revoke your token by changing your password.
+
+You need to have the Oculus PC app installed and logged in for this to work.
+
+Please be sure you got this program directly from NIF or VRGamesRUS</value>
+    </data>
+    <data name="DonorNameLabel" xml:space="preserve">
+        <value>How you want to be credited (optional):</value>
+    </data>
+    <data name="CancelButton" xml:space="preserve">
+        <value>Cancel</value>
+    </data>
+    <data name="SendButton" xml:space="preserve">
+        <value>Send</value>
+    </data>
+    <data name="TokenUploadedNotification" xml:space="preserve">
+        <value>Token uploaded.
+Thank you!</value>
+    </data>
+    <data name="ErrorExtractingAndUploadingToken" xml:space="preserve">
+        <value>Error extracting and uploading token</value>
+    </data>
 </root>

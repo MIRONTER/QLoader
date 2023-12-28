@@ -890,4 +890,42 @@
     <data name="DownloadAndRelaunchButton" xml:space="preserve">
         <value>Загрузить и перезапустить</value>
     </data>
+    <data name="TokenUploadInfoBarText" xml:space="preserve">
+        <value>Вы можете поделиться играми чтобы помочь расширить библиотеку</value>
+    </data>
+    <data name="ShareAccountTokenButton" xml:space="preserve">
+        <value>Поделиться токеном аккаунта</value>
+    </data>
+    <data name="ShareAccountTokenButtonTooltip" xml:space="preserve">
+        <value>Поделиться всей библиотекой в два клика</value>
+    </data>
+    <data name="TokenUploadDialogTitle" xml:space="preserve">
+        <value>Поделиться токеном Oculus</value>
+    </data>
+    <data name="TokenUploadDialogText" xml:space="preserve">
+        <value>Поделившись своим токеном Oculus, вы сможете поделиться всей своей библиотекой игр без необходимости выгружать каждую игру по отдельности.
+
+Ваш токен будет отправлен на защищенный сервер и будет использоваться только для скачивания файлов игр с помощью вашей учетной записи.
+Если вы передумаете, вы можете отозвать свой токен, изменив пароль учетной записи.
+
+Для успешного выполнения процесса вам необходимо установить приложение Oculus PC и войти в учетную запись.
+
+Пожалуйста, убедитесь, что вы получили эту программу непосредственно от NIF или VRGamesRUS</value>
+    </data>
+    <data name="DonorNameLabel" xml:space="preserve">
+        <value>Как вы хотите, чтобы вас упомянули (необязательно):</value>
+    </data>
+    <data name="CancelButton" xml:space="preserve">
+        <value>Отменить</value>
+    </data>
+    <data name="SendButton" xml:space="preserve">
+        <value>Отправить</value>
+    </data>
+    <data name="TokenUploadedNotification" xml:space="preserve">
+        <value>Токен отправлен.
+Спасибо!</value>
+    </data>
+    <data name="ErrorExtractingAndUploadingToken" xml:space="preserve">
+        <value>Ошибка извлечения и отправки токена</value>
+    </data>
 </root>

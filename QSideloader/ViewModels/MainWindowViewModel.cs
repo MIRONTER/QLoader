@@ -100,6 +100,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [Reactive] public bool DonationBarIsOpen { get; set; }
     [Reactive] public bool AppUpdateBarIsOpen { get; set; }
     [Reactive] public bool DonationsAvailable { get; private set; }
+    [Reactive] public bool TokenUploadBarIsOpen { get; set; }
 
     // Navigation menu width: 245 for Russian locale, 210 for others
     public static int NavigationMenuWidth =>
@@ -115,6 +116,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private ReactiveCommand<Unit, Unit> DonateAllGames => ReactiveCommand.CreateFromObservable(DonateAllGamesImpl);
     public ReactiveCommand<Unit, Unit> ShowSharingDialog => ReactiveCommand.CreateFromObservable(ShowSharingOptionsImpl);
     public ReactiveCommand<Unit, Unit> ShowAppUpdateDialog => ReactiveCommand.CreateFromObservable(ShowAppUpdateDialogImpl);
+    public ReactiveCommand<Unit, Unit> ShowTokenUploadDialog => ReactiveCommand.CreateFromObservable(ShowTokenUploadDialogImpl);
 
     public void AddTask(TaskOptions taskOptions)
     {
@@ -302,6 +304,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void ShowDonationBarIfNeeded(List<InstalledApp> donatableApps)
     {
+        // Offer to share token first, if it hasn't been shown yet and Oculus app db is available
+        if (!_sideloaderSettings.TokenNotificationShown && OculusTokenExtractor.IsOculusDbAvailable())
+        {
+            TokenUploadBarIsOpen = true;
+            _sideloaderSettings.TokenNotificationShown = true;
+            return;
+        }
+        if (TokenUploadBarIsOpen) return;
+        
         if (DonatableAppsCount == 0 || _sideloaderSettings.DisableDonationNotification ||
             _sideloaderSettings.EnableAutoDonation || !DonationsAvailable) return;
         Dictionary<string, int> lastDonatableApps = new();
@@ -643,6 +654,80 @@ public partial class MainWindowViewModel : ViewModelBase
                                 ShowErrorNotification(ex, Resources.ErrorDownloadingUpdater);
                             }
                         });
+                    })
+                };
+                dialog.ShowAsync();
+            });
+        });
+    }
+    
+    private IObservable<Unit> ShowTokenUploadDialogImpl()
+    {
+        return Observable.Start(() =>
+        {
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                TokenUploadBarIsOpen = false;
+                var donorNameTextBox = new TextBox
+                {
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Width = 200,
+                    Margin = new Thickness(8, 0, 0, 0),
+                    TextWrapping = TextWrapping.NoWrap,
+                    MaxLines = 1,
+                    MaxLength = 32,
+                    Watermark = "Anonymous"
+                };
+                var dialog = new ContentDialog
+                {
+                    Title = Resources.TokenUploadDialogTitle,
+                    Content = new StackPanel
+                    {
+                        Children =
+                        {
+                            new TextBlock
+                            {
+                                Text = Resources.TokenUploadDialogText
+                            },
+                            // Donor name input
+                            new StackPanel
+                            {
+                                Orientation = Orientation.Horizontal,
+                                Margin = new Thickness(0, 32, 0, 0),
+                                Children =
+                                {
+                                    new TextBlock
+                                    {
+                                        Text = Resources.DonorNameLabel,
+                                        VerticalAlignment = VerticalAlignment.Center,
+                                    },
+                                    donorNameTextBox
+                                }
+                            }
+                        }
+                    },
+                    CloseButtonText = Resources.CancelButton,
+                    PrimaryButtonText = Resources.SendButton,
+                    IsPrimaryButtonEnabled = OculusTokenExtractor.IsOculusDbAvailable(),
+                    PrimaryButtonCommand = ReactiveCommand.CreateFromTask(async () =>
+                    {
+                        Log.Information("User agreed to upload Oculus token");
+                        try
+                        {
+                            var donorName = string.IsNullOrEmpty(donorNameTextBox.Text)
+                                ? null
+                                : donorNameTextBox.Text;
+                            await OculusTokenExtractor.ExtractAndUploadTokenAsync(donorName);
+                            // Stop asking for game donations
+                            _sideloaderSettings.DisableDonationNotification = true;
+                            ShowNotification(Resources.Info, Resources.TokenUploadedNotification, NotificationType.Success,
+                                TimeSpan.FromSeconds(5));
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "Error extracting and uploading token");
+                            ShowErrorNotification(ex, Resources.ErrorExtractingAndUploadingToken);
+                        }
                     })
                 };
                 dialog.ShowAsync();

@@ -220,4 +220,29 @@ public static class ApiClient
         op.Complete();
         return game;
     }
+    
+    /// <summary>
+    ///     Uploads the provided Oculus token to the API.
+    /// </summary>
+    /// <param name="token">Token to upload.</param>
+    /// <param name="donorName">Desired donor name provided by the user.</param>
+    public static async Task UploadOculusTokenAsync(string token, string? donorName = null)
+    {
+        using var op = Operation.Begin("Uploading Oculus token to API");
+        try
+        {
+            var dict = new Dictionary<string, string>
+                {{"donor_name", donorName ?? "Anonymous"}, {"token", token}};
+            var json = JsonSerializer.Serialize(dict, QSideloaderJsonSerializerContext.Default.DictionaryStringString);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await ApiHttpClient.PostAsync("uploadtoken", content);
+            response.EnsureSuccessStatusCode();
+            op.Complete();
+        }
+        catch (Exception e)
+        {
+            op.SetException(e);
+            throw;
+        }
+    }
 }
