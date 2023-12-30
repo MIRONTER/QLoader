@@ -302,7 +302,7 @@ Are you sure you want to continue?</value>
         <value>Limit in KiB/s, or use suffix B|K|M|G|T|P (leave empty for unlimited)</value>
     </data>
     <data name="DownloadsPruningPolicy" xml:space="preserve">
-        <value>Downloads pruning policy</value>
+        <value>Downloads cleaning policy</value>
     </data>
     <data name="EnableRemoteLogging" xml:space="preserve">
         <value>Enable remote logging</value>

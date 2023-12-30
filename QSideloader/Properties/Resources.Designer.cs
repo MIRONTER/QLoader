@@ -931,7 +931,7 @@ namespace QSideloader.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Downloads pruning policy.
+        ///   Looks up a localized string similar to Downloads cleaning policy.
         /// </summary>
         public static string DownloadsPruningPolicy {
             get {

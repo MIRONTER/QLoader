@@ -932,6 +932,7 @@ public partial class AdbService
         }
 
         private PackageManager PackageManager { get; }
+        private bool BootCompleted { get; set; }
         public float SpaceUsed { get; private set; }
         public float SpaceFree { get; private set; }
         public float BatteryLevel { get; private set; }
@@ -987,12 +988,14 @@ public partial class AdbService
 
         private async Task WaitForBootCompletedAsync()
         {
+            if (BootCompleted) return;
             var bootCompleted = await RunShellCommandAsync("getprop sys.boot_completed");
             while (!bootCompleted.Contains('1'))
             {
                 await Task.Delay(200);
                 bootCompleted = await RunShellCommandAsync("getprop sys.boot_completed");
             }
+            BootCompleted = true;
         }
 
         /// <summary>
