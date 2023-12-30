@@ -67,13 +67,12 @@ public class InstalledAppsViewModel : ViewModelBase, IActivatableViewModel
         var cacheListBindPart2 = filterForDonations
             ? cacheListBindPart.Filter(donationFilterPredicate).Filter(_ => DonationsAvailable)
             : cacheListBindPart.Filter(x => !x.IsKnown);
-        var cacheListBind = cacheListBindPart2
+        cacheListBindPart2
             .SortBy(x => x.Name)
             .Bind(out _installedApps)
-            .DisposeMany();
+            .DisposeMany().Subscribe();
         this.WhenActivated(disposables =>
         {
-            cacheListBind.Subscribe().DisposeWith(disposables);
             _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged).DisposeWith(disposables);
             _adbService.WhenPackageListChanged.Subscribe(_ => Refresh.Execute().Subscribe()).DisposeWith(disposables);
             Globals.MainWindowViewModel!.WhenGameDonated.Subscribe(_ => Refresh.Execute().Subscribe())

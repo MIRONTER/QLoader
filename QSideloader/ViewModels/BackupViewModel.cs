@@ -34,15 +34,14 @@ public class BackupViewModel : ViewModelBase, IActivatableViewModel
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
         Restore = ReactiveCommand.CreateFromObservable(RestoreImpl);
         Delete = ReactiveCommand.CreateFromObservable(DeleteImpl);
-        var cacheListBind = _backupsSourceCache.Connect()
+        _backupsSourceCache.Connect()
             .RefCount()
             .SortBy(x => x.Date)
             .ObserveOn(RxApp.MainThreadScheduler)
             .Bind(out _backups)
-            .DisposeMany();
+            .DisposeMany().Subscribe();
         this.WhenActivated(disposables =>
         {
-            cacheListBind.Subscribe().DisposeWith(disposables);
             _adbService.WhenDeviceStateChanged.Subscribe(OnDeviceStateChanged).DisposeWith(disposables);
             _adbService.WhenBackupListChanged.Subscribe(_ => Refresh.Execute(false).Subscribe())
                 .DisposeWith(disposables);
