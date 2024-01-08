@@ -302,11 +302,16 @@ public partial class AdbService
     {
         try
         {
-            var adbServerStatus = await _adb.AdbServer.GetStatusAsync();
-            if (adbServerStatus.IsRunning)
+            AdbServerStatus? adbServerStatus = null;
+            // AdbServer.GetStatusAsync is not fully async (socket connection is synchronous), so we need to wrap it in Task.Run
+            await Task.Run(async () =>
+            {
+                adbServerStatus = await _adb.AdbServer.GetStatusAsync();
+            }).WaitAsync(TimeSpan.FromSeconds(1));
+            if (adbServerStatus is not null && adbServerStatus.Value.IsRunning)
             {
                 var requiredAdbVersion = new Version("1.0.40");
-                if (adbServerStatus.Version < requiredAdbVersion)
+                if (adbServerStatus.Value.Version < requiredAdbVersion)
                     return (true, true);
                 await StartDeviceMonitorAsync(false);
                 return (true, false);
