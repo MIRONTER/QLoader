@@ -60,7 +60,7 @@ public partial class AvailableGamesView : ReactiveUserControl<AvailableGamesView
                     SearchBox.Text = "";
                     break;
                 // Space - toggle the highlighted game's selected state
-                case Key.Space:
+                case Key.Space when !SearchBox.IsFocused:
                     if (selectedGame is null) return;
                     selectedGame.IsSelected = !selectedGame.IsSelected;
                     break;
