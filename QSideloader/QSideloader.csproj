@@ -12,8 +12,8 @@
         <PublishSingleFile>true</PublishSingleFile>
         <NeutralLanguage>en</NeutralLanguage>
         <AssemblyName>Loader</AssemblyName>
-        <AssemblyVersion>1.0.2.99</AssemblyVersion>
-        <InformationalVersion>v1.1.0-dev</InformationalVersion>
+        <AssemblyVersion>1.1.0.0</AssemblyVersion>
+        <InformationalVersion>v1.1.0</InformationalVersion>
         <IsPackable>false</IsPackable>
         <Company>skrimix</Company>
         <ApplicationManifest>app.manifest</ApplicationManifest>
