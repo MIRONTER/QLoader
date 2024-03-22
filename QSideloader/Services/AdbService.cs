@@ -1026,7 +1026,9 @@ public partial class AdbService
         /// </returns>
         public async Task<bool> PingAsync()
         {
-            await WakeAsync();
+            // this now causes full wakeup, which is undesirable
+            //await WakeAsync();
+            
             if (State != DeviceState.Online) return false;
             try
             {
