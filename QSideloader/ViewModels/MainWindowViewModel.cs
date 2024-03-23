@@ -467,21 +467,22 @@ public partial class MainWindowViewModel : ViewModelBase
                         },
                         CloseButtonText = Resources.CloseButton,
                         PrimaryButtonText = Resources.CopyLinkButton,
-                        PrimaryButtonCommand = ReactiveCommand.Create(() => CopyLinkAsync(text)),
-                        SecondaryButtonText = Resources.CopyToClipboardButton,
+                        PrimaryButtonCommand = ReactiveCommand.Create(() => UploadTextAndCopyLink(text)),
+                        // Users keep using this option and sending hard to read walls of text
+                        /*SecondaryButtonText = Resources.CopyToClipboardButton,
                         SecondaryButtonCommand = ReactiveCommand.Create(async () =>
                         {
                             await ClipboardHelper.SetTextAsync(text);
                             ShowNotification(Resources.CopiedToClipboardHeader, Resources.ExceptionCopiedToClipboard,
                                 NotificationType.Success);
-                        })
+                        })*/
                     };
                     dialog.ShowAsync();
                 }));
         });
     }
 
-    private async Task CopyLinkAsync(string text)
+    private async Task UploadTextAndCopyLink(string text)
     {
         try
         {
