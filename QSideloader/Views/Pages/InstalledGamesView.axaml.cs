@@ -6,7 +6,6 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
-using FluentAvalonia.UI.Controls;
 using QSideloader.Controls;
 using QSideloader.Models;
 using QSideloader.Utilities;

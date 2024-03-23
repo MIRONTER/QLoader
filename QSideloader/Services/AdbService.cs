@@ -26,7 +26,6 @@ using Avalonia.Controls.Notifications;
 using CliWrap;
 using CliWrap.Buffered;
 using CliWrap.Exceptions;
-using QSideloader.Common;
 using QSideloader.Exceptions;
 using QSideloader.Models;
 using QSideloader.Properties;
@@ -51,7 +50,7 @@ public partial class AdbService
     private static readonly SemaphoreSlim AdbServerSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim AdbDeviceMonitorSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim PackageOperationSemaphoreSlim = new(1, 1);
-    private static readonly string[] MdnsServiceTypes = {"_adb-tls-connect._tcp", "_adb_secure_connect._tcp"};
+    private static readonly string[] MdnsServiceTypes = ["_adb-tls-connect._tcp", "_adb_secure_connect._tcp"];
     private readonly AdbServerClient _adb;
     private readonly Subject<Unit> _backupListChangeSubject = new();
     private readonly Subject<DeviceState> _deviceStateChangeSubject = new();
@@ -200,7 +199,7 @@ public partial class AdbService
                 if (DeviceList.Count == 0)
                 {
                     if (_unauthorizedDeviceList.Count > 0)
-                        await OnDeviceUnauthorizedAsync(_unauthorizedDeviceList[0]);
+                        OnDeviceUnauthorized(_unauthorizedDeviceList[0]);
                     else if (_firstDeviceSearch)
                         OnDeviceOffline(null);
                 }
@@ -580,9 +579,9 @@ public partial class AdbService
     /// </summary>
     /// <param name="device">Device in <see cref="DeviceState.Unauthorized"/> state.</param>
     /// <remarks>This method should be called only when there are no other usable devices.</remarks>
-    private async Task OnDeviceUnauthorizedAsync(DeviceData device)
+    private void OnDeviceUnauthorized(DeviceData device)
     {
-        Log.Warning("Not authorized for debugging of device {Device}", await GetHashedIdAsync(device.Serial));
+        Log.Warning("Not authorized for debugging of device {Device}", GetHashedId(device.Serial));
         device.State = DeviceState.Unauthorized;
         NotifyDeviceStateChange(DeviceState.Unauthorized);
     }
@@ -609,11 +608,10 @@ public partial class AdbService
     /// </summary>
     /// <param name="deviceSerial">Device serial to convert.</param>
     /// <returns>Hashed ID as <see cref="string" />.</returns>
-    /// <remarks><see cref="Hwid.GetHwidAsync"/> is used as salt.</remarks>
-    private static async Task<string> GetHashedIdAsync(string deviceSerial)
+    /// <remarks><see cref="SettingsData.InstallationId"/> is used as salt.</remarks>
+    private static string GetHashedId(string deviceSerial)
     {
-        var hwid = await Hwid.GetHwidAsync(false);
-        var saltedSerial = hwid + deviceSerial;
+        var saltedSerial = Globals.SideloaderSettings.InstallationId + deviceSerial;
         var hashedId = Convert.ToHexString(SHA256.HashData(Encoding.ASCII.GetBytes(saltedSerial)))[..16];
         return hashedId;
     }
@@ -636,7 +634,7 @@ public partial class AdbService
 
         foreach (var device in deviceList)
         {
-            var hashedDeviceId = await GetHashedIdAsync(device.Serial);
+            var hashedDeviceId = GetHashedId(device.Serial);
             if (OculusProductsInfo.IsKnownProduct(device.Product))
             {
                 try
@@ -921,10 +919,7 @@ public partial class AdbService
             SupportedRefreshRates = modelProps.SupportedRefreshRates;
 
             HashedId = TrueSerial ?? Serial;
-            Task.Run(async () =>
-            {
-                HashedId = await GetHashedIdAsync(TrueSerial ?? Serial);
-            }).Wait();
+            HashedId = GetHashedId(TrueSerial ?? Serial);
 
             PackageManager = new PackageManager(_adb.AdbClient, this, arguments: ["-3"]);
 
@@ -1003,7 +998,7 @@ public partial class AdbService
             BootCompleted = true;
         }
 
-        /// <summary>
+        /*/// <summary>
         ///     Wakes up the device by sending a power button key event.
         /// </summary>
         private async Task WakeAsync()
@@ -1016,7 +1011,7 @@ public partial class AdbService
             {
                 Log.Warning(e, "Failed to send wake command to device {Device}", this);
             }
-        }
+        }*/
 
         /// <summary>
         ///     Pings the device to check if it is still connected and responding.

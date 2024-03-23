@@ -8,10 +8,10 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using QSideloader.Common;
 using QSideloader.Exceptions;
 using QSideloader.Models;
 using Serilog;
@@ -168,8 +168,9 @@ public static class ApiClient
         using var op = Operation.Begin("Reporting game {PackageName} download to API", packageName);
         try
         {
+            var id = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Globals.SideloaderSettings.InstallationId.ToString())));
             var dict = new Dictionary<string, string>
-                {{"hwid", await Hwid.GetHwidAsync(true)}, {"package_name", packageName}};
+                {{"hwid", id}, {"package_name", packageName}};
             var json = JsonSerializer.Serialize(dict, QSideloaderJsonSerializerContext.Default.DictionaryStringString);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await ApiHttpClient.PostAsync("reportdownload", content);

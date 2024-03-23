@@ -10,7 +10,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CommonJsonSerializerContext.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Hwid.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UpdateInfo.cs" />
   </ItemGroup>
 </Project>

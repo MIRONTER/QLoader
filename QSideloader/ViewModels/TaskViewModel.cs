@@ -4,6 +4,8 @@ using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AdvancedSharpAdbClient.DeviceCommands;
@@ -305,7 +307,8 @@ public class TaskViewModel : ViewModelBase, IActivatableViewModel
                 GeneralUtils.SanitizeFileName(
                     $"{apkInfo.ApplicationLabel} v{apkInfo.VersionCode} {apkInfo.PackageName}.zip");
             await File.WriteAllTextAsync(Path.Combine(path, "HWID.txt"),
-                await Hwid.GetHwidAsync(false));
+                Convert.ToHexString(
+                    SHA256.HashData(Encoding.UTF8.GetBytes(Globals.SideloaderSettings.InstallationId.ToString()))));
             var archivePath = await ZipUtil.CreateArchiveAsync(path, "donations",
                 archiveName, _cancellationTokenSource.Token);
             Directory.Delete(path, true);
