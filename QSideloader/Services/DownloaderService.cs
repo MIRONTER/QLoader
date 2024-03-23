@@ -39,7 +39,8 @@ public partial class DownloaderService
     private static readonly SemaphoreSlim MirrorListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim GameListSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim DownloadSemaphoreSlim = new(1, 1);
-    private static readonly SemaphoreSlim RcloneSemaphoreSlim = new(1, 1);
+    private static readonly SemaphoreSlim RcloneOperationSemaphoreSlim = new(1, 1);
+    private static readonly SemaphoreSlim RcloneReadySemaphoreSlim = new(0, 1);
     private static readonly SemaphoreSlim TrailersAddonSemaphoreSlim = new(1, 1);
     private readonly SettingsData _sideloaderSettings;
     private List<string> _mirrorList = [];
@@ -78,7 +79,7 @@ public partial class DownloaderService
     private static string RcloneConnectionTimeout => "5s";
     private static string RcloneIoIdleTimeout => "30s";
 
-    private static bool CanSwitchMirror => RcloneSemaphoreSlim.CurrentCount > 0 &&
+    private static bool CanSwitchMirror => RcloneOperationSemaphoreSlim.CurrentCount > 0 &&
                                            MirrorListSemaphoreSlim.CurrentCount > 0 &&
                                            GameListSemaphoreSlim.CurrentCount > 0;
 
@@ -90,7 +91,7 @@ public partial class DownloaderService
 
     private static async Task UpdateRcloneBinaryAsync()
     {
-        await RcloneSemaphoreSlim.WaitAsync();
+        await RcloneOperationSemaphoreSlim.WaitAsync();
         try
         {
             var rclonePath = PathHelper.RclonePath;
@@ -120,7 +121,8 @@ public partial class DownloaderService
         }
         finally
         {
-            RcloneSemaphoreSlim.Release();
+            RcloneReadySemaphoreSlim.Release();
+            RcloneOperationSemaphoreSlim.Release();
         }
     }
     
@@ -129,7 +131,7 @@ public partial class DownloaderService
     /// </summary>
     private async Task UpdateRcloneConfigAsync()
     {
-        await RcloneSemaphoreSlim.WaitAsync();
+        await RcloneOperationSemaphoreSlim.WaitAsync();
         try
         {
             var overrideUrl = Globals.Overrides.GetValueOrDefault("ConfigUpdateUrl");
@@ -153,27 +155,7 @@ public partial class DownloaderService
                 return;
             }
 
-            if (usingOverride)
-            {
-                Log.Warning("Failed to update rclone config from override url");
-                return;
-            }
-
-            await EnsureMirrorSelectedAsync();
-            var localMirrorList = _mirrorList.ToList();
-            var excludedMirrorList = new List<(string mirrorName, string? message, Exception? error)>();
-            while (true)
-            {
-                var result = await TryDownloadConfigAsync();
-                if (result.success)
-                {
-                    Log.Information("Rclone config updated from {MirrorName}", MirrorName);
-                    await ReloadMirrorListAsync(true);
-                    return;
-                }
-
-                SwitchMirror(localMirrorList, excludedMirrorList, result.error);
-            }
+            Log.Error("Failed to update rclone config");
         }
         catch (Exception e)
         {
@@ -181,7 +163,7 @@ public partial class DownloaderService
         }
         finally
         {
-            RcloneSemaphoreSlim.Release();
+            RcloneOperationSemaphoreSlim.Release();
         }
 
         return;
@@ -201,31 +183,6 @@ public partial class DownloaderService
             {
                 Log.Warning(e, "Couldn't download rclone config from server");
                 return false;
-            }
-        }
-
-        async Task<(bool success, Exception? error)> TryDownloadConfigAsync()
-        {
-            try
-            {
-                var oldConfigPath = Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, "FFA_config");
-                var newConfigPath = Path.Combine(Path.GetDirectoryName(PathHelper.RclonePath)!, "FFA_config_new");
-                await RcloneTransferInternalAsync($"{MirrorName}:Quest Games/.meta/FFA", newConfigPath,
-                    "copyto");
-                File.Move(newConfigPath, oldConfigPath, true);
-                return (true, null);
-            }
-            catch (DownloadQuotaExceededException e)
-            {
-                Log.Debug("Quota exceeded on rclone config on mirror {MirrorName}",
-                    MirrorName);
-                return (false, e);
-            }
-            catch (RcloneOperationException e)
-            {
-                Log.Warning(e, "Error downloading rclone config from mirror {MirrorName} (is mirror down?)",
-                    MirrorName);
-                return (false, e);
             }
         }
     }
@@ -270,8 +227,8 @@ public partial class DownloaderService
     /// <returns><see cref="List{T}" /> of mirrors.</returns>
     private static async Task<List<string>> GetMirrorListAsync()
     {
-        await RcloneSemaphoreSlim.WaitAsync();
-        RcloneSemaphoreSlim.Release();
+        await RcloneOperationSemaphoreSlim.WaitAsync();
+        RcloneOperationSemaphoreSlim.Release();
         List<string> mirrorList = [];
 
         var result = await ExecuteRcloneCommandAsync("listremotes");
@@ -283,8 +240,8 @@ public partial class DownloaderService
     public async Task<bool> GetDonationsAvailableAsync()
     {
         if (_donationsAvailable is not null) return _donationsAvailable.Value;
-        await RcloneSemaphoreSlim.WaitAsync();
-        RcloneSemaphoreSlim.Release();
+        await RcloneOperationSemaphoreSlim.WaitAsync();
+        RcloneOperationSemaphoreSlim.Release();
         var result = await ExecuteRcloneCommandAsync("listremotes");
         _donationsAvailable = result.StandardOutput.Contains("FFA-DD:");
         return _donationsAvailable.Value;
@@ -485,8 +442,8 @@ public partial class DownloaderService
     private async Task RcloneTransferAsync(string source, string destination, string operation,
         string additionalArgs = "", int retries = 1, CancellationToken ct = default)
     {
-        await RcloneSemaphoreSlim.WaitAsync(ct);
-        RcloneSemaphoreSlim.Release();
+        await RcloneOperationSemaphoreSlim.WaitAsync(ct);
+        RcloneOperationSemaphoreSlim.Release();
         await EnsureMirrorSelectedAsync();
         source = $"{MirrorName}:{source}";
         await RcloneTransferInternalAsync(source, destination, operation, additionalArgs, retries, ct);
@@ -562,6 +519,8 @@ public partial class DownloaderService
     private static async Task<BufferedCommandResult> ExecuteRcloneCommandAsync(string arguments,
         CancellationToken ct = default)
     {
+        await RcloneReadySemaphoreSlim.WaitAsync(ct);
+        RcloneReadySemaphoreSlim.Release();
         var proxy = GeneralUtils.GetDefaultProxyHostPort();
         var command = Cli.Wrap(PathHelper.RclonePath)
             .WithArguments(arguments);
@@ -610,8 +569,8 @@ public partial class DownloaderService
             return;
         }
 
-        await RcloneSemaphoreSlim.WaitAsync();
-        RcloneSemaphoreSlim.Release();
+        await RcloneOperationSemaphoreSlim.WaitAsync();
+        RcloneOperationSemaphoreSlim.Release();
         try
         {
             await EnsureMirrorSelectedAsync();
@@ -628,7 +587,7 @@ public partial class DownloaderService
                 if (result.success)
                     try
                     {
-                        AvailableGames = csvEngine.ReadFile(Path.Combine("metadata", "FFA.txt")).ToList();
+                        AvailableGames = csvEngine.ReadFile(Path.Combine(Program.DataDirectory, "metadata", "FFA.txt")).ToList();
                         if (AvailableGames.Count == 0 && emptyRetries < 3)
                         {
                             Log.Warning("Loaded empty game list from mirror {MirrorName}, retrying", MirrorName);
@@ -741,8 +700,8 @@ public partial class DownloaderService
             try
             {
                 var blacklist = await ApiClient.GetDonationBlacklistAsync();
-                await File.WriteAllTextAsync(Path.Combine("metadata", "blacklist_new.txt"), blacklist);
-                File.Move(Path.Combine("metadata", "blacklist_new.txt"), Path.Combine("metadata", "blacklist.txt"),
+                await File.WriteAllTextAsync(Path.Combine(Program.DataDirectory, "metadata", "blacklist_new.txt"), blacklist);
+                File.Move(Path.Combine(Program.DataDirectory, "metadata", "blacklist_new.txt"), Path.Combine("metadata", "blacklist.txt"),
                     true);
                 Log.Debug("Downloaded donation blacklist from server");
                 return true;
@@ -761,7 +720,7 @@ public partial class DownloaderService
                 {
                     await RcloneTransferAsync("Quest Games/.meta/nouns/blacklist.txt", "./metadata/blacklist_new.txt",
                         "copyto");
-                    File.Move(Path.Combine("metadata", "blacklist_new.txt"), Path.Combine("metadata", "blacklist.txt"),
+                    File.Move(Path.Combine(Program.DataDirectory, "metadata", "blacklist_new.txt"), Path.Combine("metadata", "blacklist.txt"),
                         true);
                     Log.Debug("Downloaded donation blacklist from {MirrorName}", MirrorName);
                 }
@@ -772,9 +731,9 @@ public partial class DownloaderService
 
             try
             {
-                if (File.Exists(Path.Combine("metadata", "blacklist.txt")))
+                if (File.Exists(Path.Combine(Program.DataDirectory, "metadata", "blacklist.txt")))
                     DonationBlacklistedPackages =
-                        (await File.ReadAllLinesAsync(Path.Combine("metadata", "blacklist.txt"))).ToList();
+                        (await File.ReadAllLinesAsync(Path.Combine(Program.DataDirectory, "metadata", "blacklist.txt"))).ToList();
                 Log.Debug("Loaded {BlacklistedPackagesCount} blacklisted packages", DonationBlacklistedPackages.Count);
             }
             catch (Exception e)
@@ -945,8 +904,8 @@ public partial class DownloaderService
         Log.Information("Uploading donation {ArchiveName}", archiveName);
         var md5Sum = GeneralUtils.GetMd5FileChecksum(path).ToLower();
         await File.WriteAllTextAsync(path + ".md5sum", md5Sum, ct);
-        await RcloneSemaphoreSlim.WaitAsync(ct);
-        RcloneSemaphoreSlim.Release();
+        await RcloneOperationSemaphoreSlim.WaitAsync(ct);
+        RcloneOperationSemaphoreSlim.Release();
         await RcloneTransferInternalAsync(path, "FFA-DD:/_donations/", "copy", ct: ct);
         await RcloneTransferInternalAsync(path + ".md5sum", "FFA-DD:/md5sum/", "copy",
             ct: ct);
@@ -1099,8 +1058,8 @@ public partial class DownloaderService
     /// <returns>Output of <c>rclone size</c> command.</returns>
     private static async Task<string> RcloneGetRemoteSizeJson(string remotePath, CancellationToken ct = default)
     {
-        await RcloneSemaphoreSlim.WaitAsync(ct);
-        RcloneSemaphoreSlim.Release();
+        await RcloneOperationSemaphoreSlim.WaitAsync(ct);
+        RcloneOperationSemaphoreSlim.Release();
 
         var result = await ExecuteRcloneCommandAsync($"size \"{remotePath}\" --fast-list --json", ct);
         return result.StandardOutput;
@@ -1119,8 +1078,8 @@ public partial class DownloaderService
         using var op = Operation.Begin("Rclone calculating size of \"{ReleaseName}\"", game.ReleaseName ?? "N/A");
         try
         {
-            await RcloneSemaphoreSlim.WaitAsync(ct);
-            RcloneSemaphoreSlim.Release();
+            await RcloneOperationSemaphoreSlim.WaitAsync(ct);
+            RcloneOperationSemaphoreSlim.Release();
             await EnsureMirrorSelectedAsync();
             var remotePath = $"{MirrorName}:Quest Games/{game.ReleaseName}";
             var sizeJson = await RcloneGetRemoteSizeJson(remotePath, ct);
