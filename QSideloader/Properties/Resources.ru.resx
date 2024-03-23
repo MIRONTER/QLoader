@@ -852,7 +852,7 @@
         <value>Размер</value>
     </data>
     <data name="TaskResultOsVersionTooOld" xml:space="preserve">
-        <value>Слишком старая версия ОС</value>
+        <value>Слишком старая версия прошивки</value>
     </data>
     <data name="TaskResultUnknownError" xml:space="preserve">
         <value>Неизвестная ошибка</value>

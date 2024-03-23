@@ -860,7 +860,7 @@ You may use {0} for downloads without connecting to a device.</value>
         <value>Size</value>
     </data>
     <data name="TaskResultOsVersionTooOld" xml:space="preserve">
-        <value>OS version too old</value>
+        <value>Firmware version too old</value>
     </data>
     <data name="TaskResultUnknownError" xml:space="preserve">
         <value>Unknown error</value>
