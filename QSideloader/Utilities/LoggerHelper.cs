@@ -16,19 +16,15 @@ public static partial class LoggerHelper
 {
     public static void InitializeLogging(SettingsData sideloaderSettings)
     {
-        const string humanReadableLogPath = "debug_log.txt";
-        const string clefLogPath = "debug_log.clef";
-        const string exceptionsLogPath = "debug_exceptions.txt";
+        var humanReadableLogPath = Path.Combine(Program.DataDirectory, "debug_log.txt");
+        var clefLogPath = Path.Combine(Program.DataDirectory, "debug_log.clef");
+        var exceptionsLogPath = Path.Combine(Program.DataDirectory, "debug_exceptions.txt");
         if (File.Exists(humanReadableLogPath) && new FileInfo(humanReadableLogPath).Length > 5000000)
             File.Delete(humanReadableLogPath);
         if (File.Exists(clefLogPath) && new FileInfo(clefLogPath).Length > 10000000)
             File.Delete(clefLogPath);
         if (File.Exists(exceptionsLogPath)) // && new FileInfo(exceptionsLogPath).Length > 10000000)
             File.Delete(exceptionsLogPath);
-
-        // Delete old log file with invalid format
-        if (File.Exists("debug_log.json"))
-            File.Delete("debug_log.json");
 
         var executingAssembly = Assembly.GetExecutingAssembly();
         var programName = Program.Name;

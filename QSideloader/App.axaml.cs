@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -42,6 +43,8 @@ public partial class App : Application
 
         AvaloniaXamlLoader.Load(this);
         
+        Task.Run(MoveResourcesToData);
+        
         // Clean up leftovers from old versions
         Cleanup();
     }
@@ -58,6 +61,24 @@ public partial class App : Application
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private static void MoveResourcesToData()
+    {
+        var includedResourcesPath = Path.Combine(AppContext.BaseDirectory, "Resources");
+        if (!Directory.Exists(includedResourcesPath))
+            return;
+        var dataResourcesPath = PathHelper.ResourcesPath;
+        Directory.CreateDirectory(dataResourcesPath);
+        GeneralUtils.CopyDirectory(includedResourcesPath, dataResourcesPath, true);
+        try
+        {
+            Directory.Delete(includedResourcesPath, true);
+        }
+        catch
+        {
+            Log.Warning("Failed to delete included resources directory");
+        }
     }
 
     private static void Cleanup()

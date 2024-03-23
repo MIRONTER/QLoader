@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Serilog;
 
 namespace QSideloader.Utilities;
 
@@ -21,10 +23,10 @@ public static class PathHelper
             catch
             {
                 // DownloaderService will download rclone
-                Directory.CreateDirectory("rclone");
+                Directory.CreateDirectory(Path.Combine(Program.DataDirectory, "rclone"));
                 RclonePath = OperatingSystem.IsWindows()
-                    ? Path.Combine("rclone", "FFA.exe")
-                    : Path.Combine("rclone", "FFA");
+                    ? Path.Combine(Program.DataDirectory, "rclone", "FFA.exe")
+                    : Path.Combine(Program.DataDirectory, "rclone", "FFA");
             }
         }
     }
@@ -35,12 +37,13 @@ public static class PathHelper
     public static string? LibVlcPath { get; } = FindLibVlc();
     public static string SevenZipPath { get; } =
         OperatingSystem.IsWindows() ? FindExecutable("7za") : FindExecutable("7zz");
-    public static string SettingsPath => "settings.json";
+    public static string SettingsPath => Path.Combine(Program.DataDirectory, "settings.json");
     public static string OverridesPath => "overrides.conf";
-    public static string ThumbnailsPath => Path.Combine("Resources", "thumbnails");
-    public static string TrailersPath => Path.Combine("Resources", "videos");
-    public static string DefaultDownloadsPath => Path.Combine(Environment.CurrentDirectory, "downloads");
-    public static string DefaultBackupsPath => Path.Combine(Environment.CurrentDirectory, "backups");
+    public static string ResourcesPath => Path.Combine(Program.DataDirectory, "Resources");
+    public static string ThumbnailsPath => Path.Combine(ResourcesPath, "thumbnails");
+    public static string TrailersPath => Path.Combine(ResourcesPath, "videos");
+    public static string DefaultDownloadsPath => Path.Combine(Program.DataDirectory, "downloads");
+    public static string DefaultBackupsPath => Path.Combine(Program.DataDirectory, "backups");
 
     // Source: https://stackoverflow.com/a/55480402
     public static string GetActualCaseForFileName(string pathAndFileName)
@@ -77,78 +80,79 @@ public static class PathHelper
 
     private static string FindExecutable(string name, string? extraDir = null)
     {
-        string? path = null;
-        // try current directory first
-        if (File.Exists(name))
-            path = Path.GetFullPath(name);
-        
-        
-        // try extra dir if provided
-        if (!string.IsNullOrEmpty(extraDir) && File.Exists(Path.Combine(extraDir, name)))
-            path = Path.GetFullPath(Path.Combine(extraDir, name));
+        // Build a list of all the possible paths to check
+        var possiblePaths = new List<string>
+        {
+            name, // Current directory
+            Path.Combine(Program.DataDirectory, name)
+        };
 
-        // search in NATIVE_DLL_SEARCH_DIRECTORIES
+        if (!string.IsNullOrEmpty(extraDir))
+        {
+            possiblePaths.Add(Path.Combine(extraDir, name));
+            possiblePaths.Add(Path.Combine(Program.DataDirectory, extraDir, name));
+        }
+
+        // Search NATIVE_DLL_SEARCH_DIRECTORIES if available
         name = OperatingSystem.IsWindows() ? name + ".exe" : name;
         if (AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES") is string nativeDllSearchDirectories)
         {
             var directories = nativeDllSearchDirectories.Split(Path.PathSeparator);
-            foreach (var directory in directories)
-            {
-                var exePath = Path.Combine(directory, name);
-                if (!File.Exists(exePath))
-                    continue;
-                path = exePath;
-                break;
-            }
+            possiblePaths.AddRange(directories.Select(dir => Path.Combine(dir, name)));
         }
         else
         {
             throw new InvalidOperationException("NATIVE_DLL_SEARCH_DIRECTORIES not set");
         }
 
-        if (path == null)
-            // something went wrong (packaging error?)
-            throw new FileNotFoundException($"Could not find {name} in NATIVE_DLL_SEARCH_DIRECTORIES");
-        
-        if (OperatingSystem.IsWindows())
+        // Find the first valid executable within the list
+        foreach (var path in possiblePaths.Where(File.Exists))
+        {
+            Log.Debug("Found {BinaryName} binary at {BinaryPath}", name, path);
+            if (OperatingSystem.IsWindows()) 
+                return path;
+
+            GeneralUtils.TrySetExecutableBit(path);
             return path;
-        // make sure the executable bit is set
-        GeneralUtils.TrySetExecutableBit(path);
-        return path;
+        }
+
+        // If nothing found, throw the error
+        throw new FileNotFoundException($"Could not find {name} in any possible path"); 
     }
 
+    
     private static string? FindLibVlc()
     {
+        var archName = Environment.Is64BitProcess ? "win-x64" : "win-x86";
+
+        // Windows
         if (OperatingSystem.IsWindows())
         {
-            var archName = Environment.Is64BitProcess ? "win-x64" : "win-x86";
-            if (Directory.Exists("libvlc"))
+            if (Directory.Exists("libvlc")) 
                 return Path.GetFullPath(Path.Combine("libvlc", archName));
 
-            if (AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES") is not string nativeDllSearchDirectories)
-                throw new InvalidOperationException("NATIVE_DLL_SEARCH_DIRECTORIES not set");
-            var directories = nativeDllSearchDirectories.Split(Path.PathSeparator);
-            var dir = directories.Select(directory => Path.Combine(directory, "libvlc"))
-                .FirstOrDefault(Directory.Exists);
-
-            if (dir is not null) return Path.Combine(dir, archName);
+            if (AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES") is string nativeDllSearchDirectories)
+                return FindInDirectories("libvlc.dll", nativeDllSearchDirectories.Split(Path.PathSeparator)); 
         }
+
+        // macOS
         else if (OperatingSystem.IsMacOS())
         {
-            if (AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES") is not string nativeDllSearchDirectories)
-                throw new InvalidOperationException("NATIVE_DLL_SEARCH_DIRECTORIES not set");
-            var directories = nativeDllSearchDirectories.Split(Path.PathSeparator);
-            var dir = directories.FirstOrDefault(x => File.Exists(Path.Combine(x, "libvlc.dylib")));
-
-            if (dir is not null) return dir;
-        }
-        else
-        {
-            return null;
+            if (AppContext.GetData("NATIVE_DLL_SEARCH_DIRECTORIES") is string nativeDllSearchDirectories)
+                return FindInDirectories("libvlc.dylib", nativeDllSearchDirectories.Split(Path.PathSeparator)); 
         }
 
-        Console.WriteLine("Couldn't find libvlc");
-        
+        // Other (or failure)
+        Log.Warning("Couldn't find libvlc");
         return null;
+
+        string? FindInDirectories(string libName, string[] directories)
+        {
+            return directories
+                       .Select(directory => Path.Combine(directory, "libvlc", archName)) // Prioritize pre-structured layout
+                       .FirstOrDefault(File.Exists) ?? // Search win-x64/win-x86 within libvlc folder 
+                   directories
+                       .FirstOrDefault(x => File.Exists(Path.Combine(x, libName))); // Fallback
+        }
     }
 }

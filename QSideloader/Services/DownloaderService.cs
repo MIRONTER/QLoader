@@ -634,8 +634,10 @@ public partial class DownloaderService
             foreach (var gameListName in gameListNames)
                 try
                 {
-                    await RcloneTransferAsync($"Quest Games/{gameListName}", "./metadata/FFA_new.txt", "copyto");
-                    File.Move("./metadata/FFA_new.txt", "./metadata/FFA.txt", true);
+                    var newPath = Path.Combine(Program.DataDirectory, "metadata", "FFA_new.txt");
+                    var finalPath = Path.Combine(Program.DataDirectory, "metadata", "FFA.txt");
+                    await RcloneTransferAsync($"Quest Games/{gameListName}", newPath, "copyto");
+                    File.Move(newPath, finalPath, true);
                     return (true, null);
                 }
                 catch (DownloadQuotaExceededException e)
@@ -700,9 +702,10 @@ public partial class DownloaderService
             try
             {
                 var blacklist = await ApiClient.GetDonationBlacklistAsync();
-                await File.WriteAllTextAsync(Path.Combine(Program.DataDirectory, "metadata", "blacklist_new.txt"), blacklist);
-                File.Move(Path.Combine(Program.DataDirectory, "metadata", "blacklist_new.txt"), Path.Combine("metadata", "blacklist.txt"),
-                    true);
+                var newPath = Path.Combine(Program.DataDirectory, "metadata", "blacklist_new.txt");
+                var finalPath = Path.Combine(Program.DataDirectory, "metadata", "blacklist.txt");
+                await File.WriteAllTextAsync(newPath, blacklist);
+                File.Move(newPath, finalPath, true);
                 Log.Debug("Downloaded donation blacklist from server");
                 return true;
             }
@@ -718,10 +721,10 @@ public partial class DownloaderService
             if (!await TryLoadDonationBlacklistFromServerAsync())
                 try
                 {
-                    await RcloneTransferAsync("Quest Games/.meta/nouns/blacklist.txt", "./metadata/blacklist_new.txt",
-                        "copyto");
-                    File.Move(Path.Combine(Program.DataDirectory, "metadata", "blacklist_new.txt"), Path.Combine("metadata", "blacklist.txt"),
-                        true);
+                    var newPath = Path.Combine(Program.DataDirectory, "metadata", "blacklist_new.txt");
+                    var finalPath = Path.Combine(Program.DataDirectory, "metadata", "blacklist.txt");
+                    await RcloneTransferAsync("Quest Games/.meta/nouns/blacklist.txt", newPath, "copyto");
+                    File.Move(newPath, finalPath, true);
                     Log.Debug("Downloaded donation blacklist from {MirrorName}", MirrorName);
                 }
                 catch (Exception e)

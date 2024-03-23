@@ -87,7 +87,7 @@ public partial class Game : INotifyPropertyChanged
         {
             //_thumbnailPath = Path.Combine("Resources", "NoThumbnailImage.png");
             if (_thumbnailPath is not null) return _thumbnailPath;
-            if (OriginalPackageName is null) return Path.Combine("Resources", "NoThumbnailImage.png");
+            if (OriginalPackageName is null) return Path.Combine(PathHelper.ResourcesPath, "NoThumbnailImage.png");
             var jpgPath = Path.Combine(PathHelper.ThumbnailsPath, $"{OriginalPackageName}.jpg");
             var pngPath = Path.Combine(PathHelper.ThumbnailsPath, $"{OriginalPackageName}.png");
             if (File.Exists(jpgPath))
@@ -109,7 +109,7 @@ public partial class Game : INotifyPropertyChanged
                     catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
                     {
                         //Log.Debug("No thumbnail found for {OriginalPackageName}", OriginalPackageName);
-                        _thumbnailPath = Path.Combine("Resources", "NoThumbnailImage.png");
+                        _thumbnailPath = Path.Combine(PathHelper.ResourcesPath, "NoThumbnailImage.png");
                     }
                 }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using Avalonia;
 using Avalonia.ReactiveUI;
@@ -10,6 +11,7 @@ internal static class Program
     private static bool _disableGpuRendering;
 
     public static string Name => "QLoader";
+    public static string DataDirectory { get; private set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Name);
 
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
@@ -18,6 +20,12 @@ internal static class Program
     public static void Main(string[] args)
     {
         _disableGpuRendering = args.Contains("--disable-gpu");
+        if (args.Contains("--portable"))
+        {
+            DataDirectory = AppContext.BaseDirectory;
+        }
+        Directory.CreateDirectory(DataDirectory);
+        
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
     }
