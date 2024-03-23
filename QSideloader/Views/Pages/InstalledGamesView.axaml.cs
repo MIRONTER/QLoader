@@ -28,7 +28,12 @@ public partial class InstalledGamesView : ReactiveUserControl<InstalledGamesView
     private void InstalledGamesDataGrid_OnDoubleTapped(object? sender, TappedEventArgs e)
     {
         var dataGrid = (DataGrid?) sender;
-        if (dataGrid is null || e.Source is FontIcon) return;
+        var styledElementSource = e.Source as StyledElement;
+        var parentStyledElement = styledElementSource?.Parent;
+        if (dataGrid is null || styledElementSource?.TemplatedParent is CheckBox 
+                             || styledElementSource?.TemplatedParent is DataGridColumnHeader 
+                             || parentStyledElement?.TemplatedParent is DataGridColumnHeader)
+            return;
         var selectedGame = (InstalledGame?) dataGrid.SelectedItem;
         if (selectedGame is null) return;
         // TODO: let user set action in settings?
