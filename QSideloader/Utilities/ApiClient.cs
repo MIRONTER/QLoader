@@ -160,7 +160,7 @@ public static class ApiClient
     }
 
     /// <summary>
-    ///     Reports the download of the provided package name.
+    ///     Reports the download of the provided package name (for popularity stats).
     /// </summary>
     /// <param name="packageName">Package name of the downloaded game.</param>
     public static async Task ReportGameDownloadAsync(string packageName)
@@ -168,9 +168,14 @@ public static class ApiClient
         using var op = Operation.Begin("Reporting game {PackageName} download to API", packageName);
         try
         {
-            var id = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Globals.SideloaderSettings.InstallationId.ToString())));
             var dict = new Dictionary<string, string>
-                {{"hwid", id}, {"package_name", packageName}};
+            {
+                // for compatibility with old API
+                {"hwid", Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Globals.SideloaderSettings.InstallationId.ToString())))},
+                // new
+                {"installation_id", Globals.SideloaderSettings.InstallationId.ToString()},
+                {"package_name", packageName}
+            };
             var json = JsonSerializer.Serialize(dict, QSideloaderJsonSerializerContext.Default.DictionaryStringString);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await ApiHttpClient.PostAsync("reportdownload", content);
