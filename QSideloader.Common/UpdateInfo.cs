@@ -36,14 +36,16 @@ public class UpdateInfo
     
     public VersionItem? GetLatestVersion(Version? currentVersion, string channel = "stable")
     {
-        if (GetOsName() is null)
+        var osName = GetOsName();
+        if (osName is null)
         {
             Log.Warning("Unsupported OS, cannot get latest version");
             return null;
         }
         currentVersion ??= new Version(0, 0, 0, 0);
         return VersionList.FirstOrDefault(versionItem =>
-            versionItem.Channel == channel && versionItem.Version > currentVersion);
+            versionItem.Channel == channel && versionItem.Version > currentVersion &&
+            versionItem.Assets.Any(x => x.Os == osName));
     }
     
     public static string? GetOsName()
