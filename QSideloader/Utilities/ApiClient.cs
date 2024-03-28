@@ -8,7 +8,6 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -22,7 +21,7 @@ namespace QSideloader.Utilities;
 public static class ApiClient
 {
     private const string StaticFilesUrl = "https://qloader.5698452.xyz/files/";
-    private const string DefaultApiUrl = "https://qloader.5698452.xyz/api/v1/";
+    private const string DefaultApiUrl = "https://qloader.5698452.xyz/api/";
 
     static ApiClient()
     {
@@ -128,7 +127,7 @@ public static class ApiClient
 
     public static Task<List<Dictionary<string, JsonElement>>?> GetDeadMirrorsAsync()
     {
-        return ApiHttpClient.GetFromJsonAsync("mirrors?status=DOWN",
+        return ApiHttpClient.GetFromJsonAsync("/v1/mirrors?status=DOWN",
             QSideloaderJsonSerializerContext.Default.ListDictionaryStringJsonElement);
     }
 
@@ -142,7 +141,7 @@ public static class ApiClient
         using (var _ = Operation.Time("Requesting popularity from API"))
         {
             return
-                await ApiHttpClient.GetFromJsonAsync("popularity",
+                await ApiHttpClient.GetFromJsonAsync("/v1/popularity",
                     QSideloaderJsonSerializerContext.Default.ListDictionaryStringJsonElement);
         }
     }
@@ -170,15 +169,12 @@ public static class ApiClient
         {
             var dict = new Dictionary<string, string>
             {
-                // for compatibility with old API
-                {"hwid", Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Globals.SideloaderSettings.InstallationId.ToString())))},
-                // new
                 {"installation_id", Globals.SideloaderSettings.InstallationId.ToString()},
                 {"package_name", packageName}
             };
             var json = JsonSerializer.Serialize(dict, QSideloaderJsonSerializerContext.Default.DictionaryStringString);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await ApiHttpClient.PostAsync("reportdownload", content);
+            var response = await ApiHttpClient.PostAsync("/v2/reportdownload", content);
             response.EnsureSuccessStatusCode();
             op.Complete();
         }
@@ -204,7 +200,7 @@ public static class ApiClient
             !string.IsNullOrWhiteSpace(gameStoreMetaUrl))
             Log.Debug("Using game store info url override: {Url}", gameStoreMetaUrl);
         else
-            gameStoreMetaUrl = $"{DefaultApiUrl}oculusgames";
+            gameStoreMetaUrl = $"{DefaultApiUrl}/v1/oculusgames";
         var uri = $"{gameStoreMetaUrl}/{packageName}";
         var response = await ApiHttpClient.GetAsync(uri);
         if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.NotFound)
@@ -241,7 +237,7 @@ public static class ApiClient
                 {{"donor_name", donorName ?? "Anonymous"}, {"token", token}};
             var json = JsonSerializer.Serialize(dict, QSideloaderJsonSerializerContext.Default.DictionaryStringString);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await ApiHttpClient.PostAsync("uploadtoken", content);
+            var response = await ApiHttpClient.PostAsync("/v1/uploadtoken", content);
             response.EnsureSuccessStatusCode();
             op.Complete();
         }
