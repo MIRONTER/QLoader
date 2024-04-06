@@ -20,7 +20,7 @@ internal static class Program
     public static void Main(string[] args)
     {
         _disableGpuRendering = args.Contains("--disable-gpu");
-        if (args.Contains("--portable"))
+        if (args.Contains("--portable") || File.Exists(Path.Combine(DataDirectory, "settings.json")))
         {
             DataDirectory = AppContext.BaseDirectory;
         }
