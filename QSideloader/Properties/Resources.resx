@@ -581,7 +581,7 @@ You may use {0} for downloads without connecting to a device.</value>
         <value>Failed to load popularity data</value>
     </data>
     <data name="ErrorRefreshingAvailableGames" xml:space="preserve">
-        <value>Error refreshing available games</value>
+        <value>Error loading available games</value>
     </data>
     <data name="NoGamesSelected" xml:space="preserve">
         <value>No games selected</value>
@@ -662,7 +662,7 @@ You may use {0} for downloads without connecting to a device.</value>
         <value>Failed to enable Wireless ADB</value>
     </data>
     <data name="ErrorRefreshingInstalledGames" xml:space="preserve">
-        <value>Error refreshing installed games</value>
+        <value>Error loading installed games</value>
     </data>
     <data name="ErrorApplyingDeviceSettings" xml:space="preserve">
         <value>Error applying device settings</value>
@@ -740,7 +740,7 @@ You may use {0} for downloads without connecting to a device.</value>
         <value>Error rescanning devices</value>
     </data>
     <data name="ErrorRefreshingDeviceInfo" xml:space="preserve">
-        <value>Error refreshing device info</value>
+        <value>Error loading device info</value>
     </data>
     <data name="FailedToResetAdbKeys" xml:space="preserve">
         <value>Failed to reset ADB keys</value>
