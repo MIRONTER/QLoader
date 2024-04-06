@@ -65,6 +65,8 @@ public partial class App : Application
 
     private static void MoveResourcesToData()
     {
+        if (NormalizePath(AppContext.BaseDirectory) == NormalizePath(Program.DataDirectory))
+            return;
         var includedResourcesPath = Path.Combine(AppContext.BaseDirectory, "Resources");
         if (!Directory.Exists(includedResourcesPath))
             return;
@@ -78,6 +80,14 @@ public partial class App : Application
         catch
         {
             Log.Warning("Failed to delete included resources directory");
+        }
+
+        return;
+
+        string NormalizePath(string path)
+        {
+            return Path.GetFullPath(new Uri(path).LocalPath)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         }
     }
 
