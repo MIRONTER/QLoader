@@ -127,7 +127,7 @@ public static class ApiClient
 
     public static Task<List<Dictionary<string, JsonElement>>?> GetDeadMirrorsAsync()
     {
-        return ApiHttpClient.GetFromJsonAsync("/v1/mirrors?status=DOWN",
+        return ApiHttpClient.GetFromJsonAsync("v1/mirrors?status=DOWN",
             QSideloaderJsonSerializerContext.Default.ListDictionaryStringJsonElement);
     }
 
@@ -141,7 +141,7 @@ public static class ApiClient
         using (var _ = Operation.Time("Requesting popularity from API"))
         {
             return
-                await ApiHttpClient.GetFromJsonAsync("/v1/popularity",
+                await ApiHttpClient.GetFromJsonAsync("v1/popularity",
                     QSideloaderJsonSerializerContext.Default.ListDictionaryStringJsonElement);
         }
     }
@@ -174,7 +174,7 @@ public static class ApiClient
             };
             var json = JsonSerializer.Serialize(dict, QSideloaderJsonSerializerContext.Default.DictionaryStringString);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await ApiHttpClient.PostAsync("/v2/reportdownload", content);
+            var response = await ApiHttpClient.PostAsync("v2/reportdownload", content);
             response.EnsureSuccessStatusCode();
             op.Complete();
         }
@@ -200,7 +200,7 @@ public static class ApiClient
             !string.IsNullOrWhiteSpace(gameStoreMetaUrl))
             Log.Debug("Using game store info url override: {Url}", gameStoreMetaUrl);
         else
-            gameStoreMetaUrl = $"{DefaultApiUrl}/v1/oculusgames";
+            gameStoreMetaUrl = $"{DefaultApiUrl}v1/oculusgames";
         var uri = $"{gameStoreMetaUrl}/{packageName}";
         var response = await ApiHttpClient.GetAsync(uri);
         if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.NotFound)
@@ -237,7 +237,7 @@ public static class ApiClient
                 {{"donor_name", donorName ?? "Anonymous"}, {"token", token}};
             var json = JsonSerializer.Serialize(dict, QSideloaderJsonSerializerContext.Default.DictionaryStringString);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await ApiHttpClient.PostAsync("/v1/uploadtoken", content);
+            var response = await ApiHttpClient.PostAsync("v1/uploadtoken", content);
             response.EnsureSuccessStatusCode();
             op.Complete();
         }
