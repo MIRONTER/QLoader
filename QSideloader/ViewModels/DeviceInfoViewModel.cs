@@ -162,8 +162,8 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         SpaceFree = device.SpaceFree;
         BatteryLevel = device.BatteryLevel;
         FriendlyName = device.FriendlyName;
-        IsQuest1 = device.ProductType == OculusProductType.Quest1;
-        IsQuest2 = device.ProductType == OculusProductType.Quest2;
+        IsQuest1 = device.HeadsetEnum == OculusHeadsetEnum.Quest1;
+        IsQuest2 = device.HeadsetEnum == OculusHeadsetEnum.Quest2;
     }
 
     private void OnDeviceListChanged(IReadOnlyList<AdbService.AdbDevice> deviceList)

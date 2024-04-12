@@ -635,7 +635,7 @@ public partial class AdbService
         foreach (var device in deviceList)
         {
             var hashedDeviceId = GetHashedId(device.Serial);
-            if (OculusProductsInfo.IsKnownProduct(device.Product))
+            if (OculusHeadsetsInfo.IsKnownProduct(device.Product))
             {
                 try
                 {
@@ -913,9 +913,9 @@ public partial class AdbService
             TransportId = deviceData.TransportId;
             Message = deviceData.Message;
 
-            var modelProps = OculusProductsInfo.GetProductInfo(deviceData.Product);
+            var modelProps = OculusHeadsetsInfo.GetProductInfo(deviceData.Product);
             FriendlyName = modelProps.Name;
-            ProductType = modelProps.Type;
+            HeadsetEnum = modelProps.Type;
             SupportedRefreshRates = modelProps.SupportedRefreshRates;
 
             HashedId = TrueSerial ?? Serial;
@@ -941,7 +941,7 @@ public partial class AdbService
         public List<InstalledApp> InstalledApps { get; private set; } = [];
         public bool IsRefreshingInstalledGames => _packagesSemaphoreSlim.CurrentCount == 0 || InstalledPackages.Count == 0;
         public string FriendlyName { get; }
-        public OculusProductType ProductType { get; }
+        public OculusHeadsetEnum HeadsetEnum { get; }
         public IEnumerable<int> SupportedRefreshRates { get; private set; }
 
         /// <summary>

@@ -3,17 +3,17 @@ using System.Collections.Generic;
 
 namespace QSideloader.Models;
 
-public static class OculusProductsInfo
+public static class OculusHeadsetsInfo
 {
-    private static readonly List<OculusProduct> Products =
+    private static readonly List<OculusHeadset> Products =
     [
-        new OculusProduct(OculusProductType.Quest1, "Quest 1", "vr_monterey", new[] {60, 72}),
-        new OculusProduct(OculusProductType.Quest2, "Quest 2", "hollywood", new[] {72, 90, 120}),
-        new OculusProduct(OculusProductType.Quest3, "Quest 3", "eureka", Array.Empty<int>()),
-        new OculusProduct(OculusProductType.QuestPro, "Quest Pro", "seacliff", new[] {72, 90})
+        new OculusHeadset(OculusHeadsetEnum.Quest1, "Quest 1", "vr_monterey", new[] {60, 72}),
+        new OculusHeadset(OculusHeadsetEnum.Quest2, "Quest 2", "hollywood", new[] {72, 90, 120}),
+        new OculusHeadset(OculusHeadsetEnum.Quest3, "Quest 3", "eureka", Array.Empty<int>()),
+        new OculusHeadset(OculusHeadsetEnum.QuestPro, "Quest Pro", "seacliff", new[] {72, 90})
     ];
 
-    public static OculusProduct GetProductInfo(string productName)
+    public static OculusHeadset GetProductInfo(string productName)
     {
         return Products.Find(x => x.ProductName == productName) ??
                throw new KeyNotFoundException("Unknown device productName");
@@ -25,19 +25,19 @@ public static class OculusProductsInfo
     }
 }
 
-public class OculusProduct(
-    OculusProductType type,
+public class OculusHeadset(
+    OculusHeadsetEnum type,
     string name,
     string productName,
     IEnumerable<int> supportedRefreshRates)
 {
-    public OculusProductType Type { get; } = type;
+    public OculusHeadsetEnum Type { get; } = type;
     public string Name { get; } = name;
     public string ProductName { get; } = productName;
     public IEnumerable<int> SupportedRefreshRates { get; } = supportedRefreshRates;
 }
 
-public enum OculusProductType
+public enum OculusHeadsetEnum
 {
     Quest1,
     Quest2,
