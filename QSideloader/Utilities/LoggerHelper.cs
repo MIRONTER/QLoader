@@ -143,6 +143,10 @@ public static partial class LoggerHelper
         logger.Information("----------------------------------------");
         logger.Information("Starting {ProgramName} {VersionString}...",
             programName, versionString);
+        logger.Information("Command line arguments: {Arguments}", 
+            string.Join(" ", Environment.GetCommandLineArgs()));
+        logger.Information("Data directory: {DataDirectory}", 
+            Path.GetFullPath(Path.Combine(Program.DataDirectory)));
     }
 
     [LibraryImport("kernel32.dll", SetLastError = true)]

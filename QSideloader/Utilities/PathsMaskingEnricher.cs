@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using QSideloader.ViewModels;
 using Serilog.Core;
@@ -15,6 +16,7 @@ public class PathsMaskingEnricher : ILogEventEnricher
         _sideloaderSettings ??= Globals.SideloaderSettings;
         var downloadsPathRegex = new Regex(Regex.Escape(_sideloaderSettings.DownloadsLocation));
         var backupsPathRegex = new Regex(Regex.Escape(_sideloaderSettings.BackupsLocation));
+        var userDirectoryRegex = new Regex(Regex.Escape(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)));
         foreach (var property in logEvent.Properties.ToList())
             if (property.Value is ScalarValue {Value: string stringValue})
                 switch (stringValue)
@@ -26,6 +28,10 @@ public class PathsMaskingEnricher : ILogEventEnricher
                     case not null when backupsPathRegex.IsMatch(stringValue):
                         logEvent.AddOrUpdateProperty(new LogEventProperty(property.Key,
                             new ScalarValue(backupsPathRegex.Replace(stringValue, "_BackupsLocation_", 1))));
+                        break;
+                    case not null when userDirectoryRegex.IsMatch(stringValue):
+                        logEvent.AddOrUpdateProperty(new LogEventProperty(property.Key,
+                            new ScalarValue(userDirectoryRegex.Replace(stringValue, "_UserDirectory_", 1))));
                         break;
                 }
     }
