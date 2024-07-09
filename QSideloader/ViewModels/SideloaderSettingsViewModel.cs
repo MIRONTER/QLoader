@@ -335,6 +335,7 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
             Log.Error(ex, "Error fixing date and time");
             Globals.ShowErrorNotification(ex, Resources.ErrorFixingDateTime);
         });
+        CopyVersionString = ReactiveCommand.CreateFromObservable(CopyVersionStringImpl);
 
         this.ValidationRule(viewModel => viewModel.DownloadsLocationTextBoxText,
             Directory.Exists,
@@ -416,6 +417,7 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> ForceCleanupPackage { get; }
     public ReactiveCommand<Unit, Unit> CleanLeftoverApks { get; }
     public ReactiveCommand<Unit, Unit> FixDateTime { get; }
+    public ReactiveCommand<Unit, Unit> CopyVersionString { get; }
 
     private void SyncTextBoxes()
     {
@@ -793,6 +795,16 @@ public partial class SideloaderSettingsViewModel : ViewModelBase
                 Globals.ShowNotification(Resources.Error, Resources.NoDeviceConnection, NotificationType.Error,
                     TimeSpan.FromSeconds(2));
             }
+        });
+    }
+
+    private IObservable<Unit> CopyVersionStringImpl()
+    {
+        return Observable.Start(() =>
+        {
+            ClipboardHelper.SetTextAsync(VersionString);
+            Globals.ShowNotification(Resources.Info, Resources.CopiedToClipboardHeader, NotificationType.Success,
+                TimeSpan.FromSeconds(2));
         });
     }
 

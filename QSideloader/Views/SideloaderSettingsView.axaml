@@ -166,13 +166,20 @@
                 <Button Grid.Column="0" IsEnabled="{Binding !IsTrailersAddonInstalled}"
                         Command="{Binding InstallTrailersAddon}"
                         Content="{x:Static p:Resources.InstallTrailersAddonButton}" />
-                <TextBlock Grid.Column="2" VerticalAlignment="Bottom">
+                <TextBlock Grid.Column="2" VerticalAlignment="Bottom" 
+                           PointerEntered="VersionString_OnPointerEntered" 
+                           PointerExited="VersionString_OnPointerExited">
                     <TextBlock.Text>
                         <MultiBinding StringFormat="{}{0} {1}">
                             <Binding Source="{x:Static p:Resources.Version}" />
                             <Binding Path="VersionString" />
                         </MultiBinding>
                     </TextBlock.Text>
+                    <Interaction.Behaviors>
+                        <EventTriggerBehavior EventName="Tapped">
+                            <InvokeCommandAction Command="{Binding CopyVersionString}" />
+                        </EventTriggerBehavior>
+                    </Interaction.Behaviors>
                 </TextBlock>
             </Grid>
         </StackPanel>
