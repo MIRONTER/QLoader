@@ -38,7 +38,7 @@ public partial class Game : INotifyPropertyChanged
         ReleaseName = releaseName;
     }
 
-    public Game(string gameName, string releaseName, string packageName)
+    public Game(string? gameName, string? releaseName, string? packageName)
     {
         GameName = gameName;
         ReleaseName = releaseName;
@@ -154,7 +154,7 @@ public partial class Game : INotifyPropertyChanged
         Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadOnly, Game = this});
     }
 
-    public void Install()
+    public virtual void Install()
     {
         Globals.MainWindowViewModel!.AddTask(new TaskOptions {Type = TaskType.DownloadAndInstall, Game = this});
     }

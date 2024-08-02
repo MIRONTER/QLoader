@@ -933,4 +933,16 @@ Thank you!</value>
     <data name="ErrorExtractingAndUploadingToken" xml:space="preserve">
         <value>Error extracting and uploading token</value>
     </data>
+    <data name="InstallNoun" xml:space="preserve">
+        <value>Install</value>
+    </data>
+    <data name="DownloadedGamesHeader" xml:space="preserve">
+        <value>Downloaded Games</value>
+    </data>
+    <data name="NA" xml:space="preserve">
+        <value>N/A</value>
+    </data>
+    <data name="ErrorListingDownloadedGames" xml:space="preserve">
+        <value>Error listing downloaded games</value>
+    </data>
 </root>

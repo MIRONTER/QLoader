@@ -1,0 +1,69 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:QSideloader.ViewModels"
+             xmlns:p="clr-namespace:QSideloader.Properties"
+             xmlns:models="clr-namespace:QSideloader.Models"
+             xmlns:views="clr-namespace:QSideloader.Views"
+             xmlns:converters="clr-namespace:QSideloader.Converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="QSideloader.Views.Pages.DownloadedGamesView"
+             x:DataType="viewModels:DownloadedGamesViewModel">
+    <UserControl.Resources>
+        <converters:UpdateStatusStringValueConverter x:Key="UpdateStatusStringFromDownloadedGame" />
+        <converters:GameSizeValueConverter x:Key="GameSizeFromMBytesInt" />
+    </UserControl.Resources>
+    <Design.DataContext>
+        <viewModels:DownloadedGamesViewModel />
+    </Design.DataContext>
+    <Grid RowDefinitions="Auto,*">
+        <StackPanel x:Name="ButtonPanel"
+                    Grid.Row="0"
+                    Orientation="Horizontal"
+                    Spacing="12" Margin="8"
+                    HorizontalAlignment="Right">
+            <Button x:Name="InstallButton"
+                    Command="{Binding Install}"
+                    IsEnabled="{Binding IsDeviceConnected}"
+                    ToolTip.Tip="Install selected games"
+                    Content="Install selected" />
+            <Button x:Name="DeleteButton"
+                    Command="{Binding Delete}"
+                    ToolTip.Tip="Delete selected games"
+                    Content="{x:Static p:Resources.DeleteSelectedButton}" />
+            <Button x:Name="RefreshButton"
+                    Command="{Binding Refresh}"
+                    ToolTip.Tip="Rescan downloaded games"
+                    Content="{x:Static p:Resources.RefreshListButton}" />
+        </StackPanel>
+        <DataGrid Grid.Row="1" x:Name="DownloadedGamesDataGrid" x:DataType="models:DownloadedGame"
+                  ItemsSource="{Binding (viewModels:DownloadedGamesViewModel).DownloadedGames}"
+                  AutoGenerateColumns="False" CanUserResizeColumns="True">
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Width="52"
+                                        IsReadOnly="False"
+                                        CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="models:DownloadedGame">
+                            <CheckBox IsChecked="{Binding IsSelected}" Margin="16,0,0,0" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Binding="{Binding ReleaseName}" Header="{x:Static p:Resources.ReleaseNameHeader}"
+                                    Width="auto" IsReadOnly="True" />
+                <DataGridTextColumn Binding="{Binding ., Converter={StaticResource UpdateStatusStringFromDownloadedGame}}"
+                                    Header="{x:Static p:Resources.UpdateStatusHeader}" Width="auto" IsReadOnly="True"
+                                    SortMemberPath="IsUpdateAvailable" />
+            </DataGrid.Columns>
+            <DataGrid.Resources>
+                <!-- ReSharper disable Xaml.RedundantResource -->
+                <SolidColorBrush x:Key="DataGridCellFocusVisualPrimaryBrush">Transparent</SolidColorBrush>
+                <SolidColorBrush x:Key="DataGridCellFocusVisualSecondaryBrush">Transparent</SolidColorBrush>
+                <!-- ReSharper restore Xaml.RedundantResource -->
+            </DataGrid.Resources>
+        </DataGrid>
+        <views:LoadingProgressRingView Grid.Row="0" Grid.RowSpan="2"
+                                       IsVisible="{Binding IsBusy}" />
+    </Grid>
+</UserControl>

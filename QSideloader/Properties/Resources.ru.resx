@@ -925,4 +925,16 @@
     <data name="ErrorExtractingAndUploadingToken" xml:space="preserve">
         <value>Ошибка извлечения и отправки токена</value>
     </data>
+    <data name="InstallNoun" xml:space="preserve">
+        <value>Установка</value>
+    </data>
+    <data name="DownloadedGamesHeader" xml:space="preserve">
+        <value>Скачанные игры</value>
+    </data>
+    <data name="NA" xml:space="preserve">
+        <value>N/A</value>
+    </data>
+    <data name="ErrorListingDownloadedGames" xml:space="preserve">
+        <value>Ошибка перечисления загруженных игр</value>
+    </data>
 </root>

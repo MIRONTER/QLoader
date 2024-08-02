@@ -5,8 +5,10 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.NetworkInformation;
+using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -42,6 +44,7 @@ public partial class DownloaderService
     private static readonly SemaphoreSlim RcloneOperationSemaphoreSlim = new(1, 1);
     private static readonly SemaphoreSlim RcloneReadySemaphoreSlim = new(0, 1);
     private static readonly SemaphoreSlim TrailersAddonSemaphoreSlim = new(1, 1);
+    private readonly Subject<Unit> _downloadedGamesListChangeSubject = new();
     private readonly SettingsData _sideloaderSettings;
     private List<string> _mirrorList = [];
     private bool? _donationsAvailable;
@@ -65,13 +68,16 @@ public partial class DownloaderService
             await UpdateRcloneBinaryAsync();
             await TryLoadMetadataAsync();
             await UpdateResourcesAsync();
+            OnDownloadedGamesListChanged();
         });
     }
 
     public static DownloaderService Instance { get; } = new();
     public List<Game>? AvailableGames { get; private set; }
+    public List<DownloadedGame> DownloadedGames { get; private set; } = [];
     public List<string> DonationBlacklistedPackages { get; private set; } = [];
     public string MirrorName { get; private set; } = "";
+    public IObservable<Unit> WhenDownloadedGamesListChanged => _downloadedGamesListChangeSubject.AsObservable();
 
     private List<(string mirrorName, string? message, Exception? error)> ExcludedMirrorList { get; set; } = [];
     public IEnumerable<string> MirrorList => _mirrorList.AsReadOnly();
@@ -340,7 +346,7 @@ public partial class DownloaderService
         Log.Information("Switched to mirror: {MirrorName} (user request)", MirrorName);
         try
         {
-            await EnsureMetadataAvailableAsync(true);
+            await TryLoadMetadataAsync(true);
         }
         catch
         {
@@ -746,6 +752,11 @@ public partial class DownloaderService
         }
     }
 
+    private void OnDownloadedGamesListChanged()
+    {
+        Task.Run(async () => await RefreshDownloadedGamesAsync()).SafeFireAndForget();
+    }
+
     /// <summary>
     ///     Downloads the provided game.
     /// </summary>
@@ -780,7 +791,8 @@ public partial class DownloaderService
                             $"Didn't find directory with downloaded files on path \"{dstPath}\"");
                     var json = JsonSerializer.Serialize(game, typeof(Game), QSideloaderJsonSerializerContext.Indented);
                     await File.WriteAllTextAsync(Path.Combine(dstPath, "release.json"), json, ct);
-                    Task.Run(() => ApiClient.ReportGameDownloadAsync(game.OriginalPackageName!), ct).SafeFireAndForget();
+                    Task.Run(() => ApiClient.ReportGameDownloadAsync(game.OriginalPackageName!), ct)
+                        .SafeFireAndForget();
                     break;
                 }
                 catch (DownloadQuotaExceededException e)
@@ -814,6 +826,10 @@ public partial class DownloaderService
             var message =
                 $"Failed to download release\nThe following errors occured (in reverse order):\n{string.Join("\n", errorMessages)}\n";
             throw new DownloaderServiceException(message, new AggregateException(downloadExceptions));
+        }
+        finally
+        {
+            OnDownloadedGamesListChanged();
         }
     }
 
@@ -1120,6 +1136,90 @@ public partial class DownloaderService
             throw new DownloaderServiceException("Error executing rclone size", e);
         }
     }
+
+    /// <summary>
+    ///     Refreshes the list of downloaded games.
+    /// </summary>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>List of downloaded games.</returns>
+    public async Task RefreshDownloadedGamesAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            // iterate over all directories in downloads, load all release.json files
+            Log.Debug("Listing downloaded games");
+            var downloadedGames = new List<DownloadedGame>();
+            foreach (var directory in Directory.EnumerateDirectories(_sideloaderSettings.DownloadsLocation))
+            {
+                if (!File.Exists(Path.Combine(directory, "release.json")))
+                {
+                    Log.Debug("Skipping {Directory}: no release.json", directory);
+                    continue;
+                }
+
+                try
+                {
+                    var directorySize = new DirectoryInfo(directory).EnumerateFiles("*", SearchOption.AllDirectories)
+                        .Sum(f => f.Length);
+                    var game = JsonSerializer.Deserialize(
+                        await File.ReadAllTextAsync(Path.Combine(directory, "release.json"), ct),
+                        QSideloaderJsonSerializerContext.Default.Game);
+                    if (game is not null)
+                    {
+                        var versionCodes = AvailableGames?.Where(x => x.PackageName == game.PackageName)
+                            .Select(x => x.VersionCode).ToList();
+                        var latestVersionCode = versionCodes is null ? null :
+                            versionCodes.Count != 0 ? versionCodes.Max() : (int?) null;
+                        var downloadedGame = new DownloadedGame(game, directory, directorySize, latestVersionCode);
+                        downloadedGames.Add(downloadedGame);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.Warning(e, "Failed to read release.json from {Directory}", directory);
+                }
+            }
+
+            Log.Debug("Found {Count} downloaded games", downloadedGames.Count);
+            DownloadedGames = downloadedGames;
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Error listing downloaded games");
+            Globals.ShowErrorNotification(e, Resources.ErrorListingDownloadedGames);
+        }
+        finally
+        {
+            _downloadedGamesListChangeSubject.OnNext(Unit.Default);
+        }
+    }
+    
+    /// <summary>
+    ///     Deletes the provided downloaded game.
+    /// </summary>
+    /// <param name="game">Game to delete.</param>
+    public void DeleteDownloadedGameAsync(DownloadedGame game)
+    {
+        try
+        {
+            Log.Information("Deleting downloaded game {Game}", game);
+            if (Directory.Exists(game.Path))
+            {
+                Directory.Delete(game.Path, true);
+                Log.Information("Deleted downloaded release \"{ReleaseName}\"", game.ReleaseName);
+            }
+            else
+            {
+                Log.Error("Did not find downloaded release \"{ReleaseName}\" at \"{Path}\"", game.ReleaseName,
+                    game.Path);
+            }
+        }
+        finally
+        {
+            OnDownloadedGamesListChanged();
+        }
+    }
+
 
     /// <summary>
     /// Regex pattern to parse mirror names from rclone output.

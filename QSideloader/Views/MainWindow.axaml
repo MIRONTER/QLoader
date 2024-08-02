@@ -39,6 +39,8 @@
                                        Tag="InstalledGamesView" />
                 <ui:NavigationViewItem IconSource="Cloud" Content="{x:Static p:Resources.AvailableGamesHeader}"
                                        Tag="AvailableGamesView" />
+                <ui:NavigationViewItem IconSource="Download" Content="{x:Static p:Resources.DownloadedGamesHeader}"
+                                       Tag="DownloadedGamesView" />
                 <ui:NavigationViewItem IconSource="Upload" Content="{x:Static p:Resources.DonateGamesHeader}"
                                        Tag="GameDonationView">
                     <ui:NavigationViewItem.InfoBadge>

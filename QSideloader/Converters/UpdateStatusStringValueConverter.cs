@@ -16,6 +16,12 @@ public class UpdateStatusStringValueConverter : IValueConverter
             InstalledGame game => game.IsUpdateAvailable
                 ? string.Format(Resources.UpdateAvailableStatus, game.InstalledVersionCode, game.AvailableVersionCode)
                 : Resources.UpToDate,
+            DownloadedGame game => game.IsUpdateAvailable switch
+            {
+                true => string.Format(Resources.UpdateAvailableStatus, game.InstalledVersionCode, game.AvailableVersionCode),
+                false => Resources.UpToDate,
+                null => Resources.NA
+            },
             _ => throw new NotSupportedException()
         };
     }

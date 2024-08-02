@@ -1826,5 +1826,29 @@ namespace QSideloader.Properties {
                 return ResourceManager.GetString("ErrorExtractingAndUploadingToken", resourceCulture);
             }
         }
+        
+        public static string InstallNoun {
+            get {
+                return ResourceManager.GetString("InstallNoun", resourceCulture);
+            }
+        }
+        
+        public static string DownloadedGamesHeader {
+            get {
+                return ResourceManager.GetString("DownloadedGamesHeader", resourceCulture);
+            }
+        }
+        
+        public static string NA {
+            get {
+                return ResourceManager.GetString("NA", resourceCulture);
+            }
+        }
+        
+        public static string ErrorListingDownloadedGames {
+            get {
+                return ResourceManager.GetString("ErrorListingDownloadedGames", resourceCulture);
+            }
+        }
     }
 }
