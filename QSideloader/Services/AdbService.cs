@@ -1787,7 +1787,7 @@ public partial class AdbService
                     {
                         observer?.OnNext((Resources.IncompatibleUpdateReinstalling, args + "%"));
                     };
-                    await InstallPackageInternalAsync(apkPath, false, true, progress, ct);
+                    await InstallPackageInternalAsync(apkPath, reinstall, grantRuntimePermissions, progress, ct);
                     if (backup is not null)
                         await RestoreBackupAsync(backup);
                 }
