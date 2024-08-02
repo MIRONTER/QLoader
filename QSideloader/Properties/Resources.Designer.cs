@@ -1137,9 +1137,9 @@ namespace QSideloader.Properties {
             }
         }
         
-        public static string ErrorRefreshingAvailableGames {
+        public static string ErrorLoadingAvailableGames {
             get {
-                return ResourceManager.GetString("ErrorRefreshingAvailableGames", resourceCulture);
+                return ResourceManager.GetString("ErrorLoadingAvailableGames", resourceCulture);
             }
         }
         
@@ -1299,9 +1299,9 @@ namespace QSideloader.Properties {
             }
         }
         
-        public static string ErrorRefreshingInstalledGames {
+        public static string ErrorLoadingInstalledGames {
             get {
-                return ResourceManager.GetString("ErrorRefreshingInstalledGames", resourceCulture);
+                return ResourceManager.GetString("ErrorLoadingInstalledGames", resourceCulture);
             }
         }
         
@@ -1452,12 +1452,6 @@ namespace QSideloader.Properties {
         public static string ErrorRescanningDevices {
             get {
                 return ResourceManager.GetString("ErrorRescanningDevices", resourceCulture);
-            }
-        }
-        
-        public static string ErrorRefreshingDeviceInfo {
-            get {
-                return ResourceManager.GetString("ErrorRefreshingDeviceInfo", resourceCulture);
             }
         }
         

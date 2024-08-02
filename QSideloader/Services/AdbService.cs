@@ -720,6 +720,7 @@ public partial class AdbService
 
         try
         {
+            // In the next few seconds, prefer wireless over USB regardless of user preference
             _forcePreferWireless = true;
             Observable.Timer(TimeSpan.FromSeconds(10)).Subscribe(_ => _forcePreferWireless = false);
             var host = await device.EnableWirelessAdbAsync();
@@ -1200,7 +1201,7 @@ public partial class AdbService
                 }
 
                 Log.Information("Refreshing list of installed games on {Device}", this);
-                await _downloaderService.EnsureMetadataAvailableAsync();
+                await _downloaderService.TryLoadMetadataAsync();
                 var query = from package in InstalledPackages.ToList()
                     where package.versionInfo is not null
                     // We can't determine which particular release is installed, so we list all releases with appropriate package name
@@ -1217,7 +1218,7 @@ public partial class AdbService
             catch (Exception e)
             {
                 Log.Error(e, "Error refreshing installed games");
-                Globals.ShowErrorNotification(e, Resources.ErrorRefreshingInstalledGames);
+                Globals.ShowErrorNotification(e, Resources.ErrorLoadingInstalledGames);
                 InstalledGames = [];
             }
             finally
@@ -1239,7 +1240,7 @@ public partial class AdbService
             {
                 await Task.Run(async () =>
                 {
-                    await _downloaderService.EnsureMetadataAvailableAsync();
+                    await _downloaderService.TryLoadMetadataAsync();
                     donationsAvailable = await _downloaderService.GetDonationsAvailableAsync();
                 });
                 metadataAvailable = true;

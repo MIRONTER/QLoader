@@ -63,7 +63,7 @@ public partial class DownloaderService
         {
             await UpdateRcloneConfigAsync();
             await UpdateRcloneBinaryAsync();
-            await EnsureMetadataAvailableAsync();
+            await TryLoadMetadataAsync();
             await UpdateResourcesAsync();
         });
     }
@@ -75,7 +75,7 @@ public partial class DownloaderService
 
     private List<(string mirrorName, string? message, Exception? error)> ExcludedMirrorList { get; set; } = [];
     public IEnumerable<string> MirrorList => _mirrorList.AsReadOnly();
-    private const int DefaultRcloneStatsPort = 48040;
+    private const int StartingRcloneStatsPort = 48040;
     private static string RcloneConnectionTimeout => "5s";
     private static string RcloneIoIdleTimeout => "30s";
 
@@ -555,10 +555,10 @@ public partial class DownloaderService
     }
 
     /// <summary>
-    ///     Ensures that the metadata is available.
+    ///     Tries to load releases metadata.
     /// </summary>
     /// <param name="refresh">Should force a refresh even if data is already loaded.</param>
-    public async Task EnsureMetadataAvailableAsync(bool refresh = false)
+    public async Task TryLoadMetadataAsync(bool refresh = false)
     {
         var skip = AvailableGames is not null && AvailableGames.Count > 0 && !refresh || Design.IsDesignMode;
 
@@ -885,7 +885,7 @@ public partial class DownloaderService
             .Concat(ipProperties.GetActiveTcpListeners().Select(l => l.Port))
             .Concat(ipProperties.GetActiveUdpListeners().Select(l => l.Port))
             .ToHashSet();
-        var port = Enumerable.Range(DefaultRcloneStatsPort, 1000).FirstOrDefault(p => !usedPorts.Contains(p));
+        var port = Enumerable.Range(StartingRcloneStatsPort, 1000).FirstOrDefault(p => !usedPorts.Contains(p));
         return port == 0 ? null : port;
     }
 
@@ -984,6 +984,13 @@ public partial class DownloaderService
         }
     }
 
+    /// <summary>
+    ///     Downloads the provided updater.
+    /// </summary>
+    /// <param name="downloadUrl">URL to download the updater from.</param>
+    /// <param name="expectedSha256">Expected SHA256 hash of the downloaded updater.</param>
+    /// <param name="outFileName">Path to download the updater to.</param>
+    /// <exception cref="DownloaderServiceException">Thrown if SHA256 hash doesn't match.</exception>
     public static async Task DownloadUpdaterAsync(string downloadUrl, string expectedSha256, string outFileName)
     {
         using var op = Operation.At(LogEventLevel.Information, LogEventLevel.Error).Begin("Downloading updater");

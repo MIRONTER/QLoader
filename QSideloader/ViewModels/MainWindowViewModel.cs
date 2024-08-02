@@ -770,7 +770,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task RunAutoDonation()
     {
         if (!_sideloaderSettings.EnableAutoDonation || !_adbService.IsDeviceConnected) return;
-        await _downloaderService.EnsureMetadataAvailableAsync();
+        await _downloaderService.TryLoadMetadataAsync();
         Log.Debug("Running auto donation");
         await Dispatcher.UIThread.InvokeAsync(() =>
         {

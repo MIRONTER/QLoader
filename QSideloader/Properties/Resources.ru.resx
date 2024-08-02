@@ -572,7 +572,7 @@
     <data name="FailedToLoadPopularity" xml:space="preserve">
         <value>Не удалось загрузить данные популярности</value>
     </data>
-    <data name="ErrorRefreshingAvailableGames" xml:space="preserve">
+    <data name="ErrorLoadingAvailableGames" xml:space="preserve">
         <value>Ошибка загрузки доступных игр</value>
     </data>
     <data name="NoGamesSelected" xml:space="preserve">
@@ -662,7 +662,7 @@
     <data name="FailedToLoadDeviceSettings" xml:space="preserve">
         <value>Не удалось загрузить текущие настройки устройства</value>
     </data>
-    <data name="ErrorRefreshingInstalledGames" xml:space="preserve">
+    <data name="ErrorLoadingInstalledGames" xml:space="preserve">
         <value>Ошибка загрузки установленных игр</value>
     </data>
     <data name="FailedToReloadMirrorList" xml:space="preserve">
@@ -730,9 +730,6 @@
     </data>
     <data name="ErrorRescanningDevices" xml:space="preserve">
         <value>Ошибка при сканировании устройств</value>
-    </data>
-    <data name="ErrorRefreshingDeviceInfo" xml:space="preserve">
-        <value>Ошибка загрузки информации об устройстве</value>
     </data>
     <data name="FailedToResetAdbKeys" xml:space="preserve">
         <value>Не удалось сбросить ключи ADB</value>

@@ -20,6 +20,7 @@ internal static class Program
     public static void Main(string[] args)
     {
         _disableGpuRendering = args.Contains("--disable-gpu");
+        // Use portable mode if requested or settings.json exists (backward compatibility)
         if (args.Contains("--portable") || File.Exists(Path.Combine(DataDirectory, "settings.json")))
         {
             DataDirectory = AppContext.BaseDirectory;

@@ -59,8 +59,8 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
         Refresh = ReactiveCommand.CreateFromObservable<bool, Unit>(RefreshImpl);
         Refresh.ThrownExceptions.Subscribe(ex =>
         {
-            Log.Error(ex, "Error refreshing available games");
-            Globals.ShowErrorNotification(ex, Resources.ErrorRefreshingAvailableGames);
+            Log.Error(ex, "Error loading available games list");
+            Globals.ShowErrorNotification(ex, Resources.ErrorLoadingAvailableGames);
         });
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
         Install = ReactiveCommand.CreateFromObservable(InstallImpl);
@@ -106,7 +106,7 @@ public class AvailableGamesViewModel : ViewModelBase, IActivatableViewModel
     {
         return Observable.StartAsync(async () =>
         {
-            await _downloaderService.EnsureMetadataAvailableAsync(force);
+            await _downloaderService.TryLoadMetadataAsync(force);
             IsDeviceConnected = await  _adbService.CheckDeviceConnectionAsync();
             PopulateAvailableGames();
             await RefreshInstalledAsync();
