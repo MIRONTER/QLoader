@@ -10,6 +10,7 @@ public static class OculusHeadsetsInfo
         new OculusHeadset(OculusHeadsetEnum.Quest1, "Quest 1", "vr_monterey", new[] {60, 72}),
         new OculusHeadset(OculusHeadsetEnum.Quest2, "Quest 2", "hollywood", new[] {72, 90, 120}),
         new OculusHeadset(OculusHeadsetEnum.Quest3, "Quest 3", "eureka", Array.Empty<int>()),
+        new OculusHeadset(OculusHeadsetEnum.Quest3S, "Quest 3S", "panther", Array.Empty<int>()),
         new OculusHeadset(OculusHeadsetEnum.QuestPro, "Quest Pro", "seacliff", new[] {72, 90})
     ];
 
@@ -42,5 +43,6 @@ public enum OculusHeadsetEnum
     Quest1,
     Quest2,
     Quest3,
+    Quest3S,
     QuestPro
 }
