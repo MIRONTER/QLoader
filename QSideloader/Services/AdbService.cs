@@ -310,11 +310,7 @@ public partial class AdbService
             if (adbServerStatus is not null && adbServerStatus.Value.IsRunning)
             {
                 var requiredAdbVersion = new Version("1.0.40");
-                if (adbServerStatus.Value.Version < requiredAdbVersion)
-                    return (true, true);
-                await StartDeviceMonitorAsync(false);
-                return (true, false);
-
+                return adbServerStatus.Value.Version < requiredAdbVersion ? (true, true) : (true, false);
             }
         }
         catch
@@ -335,7 +331,11 @@ public partial class AdbService
         {
             await AdbServerSemaphoreSlim.WaitAsync();
             var (running, outdatedVersion) = await CheckADBRunningAsync();
-            if (running) return;
+            if (running)
+            {
+                await StartDeviceMonitorAsync(false);
+                return;
+            }
 
             Log.Information("Starting ADB server");
 
@@ -367,12 +367,12 @@ public partial class AdbService
                 throw new AdbServiceException("Failed to start ADB server", e);
             }
 
-            if (!(await _adb.AdbServer.GetStatusAsync()).IsRunning)
+            if (!(await CheckADBRunningAsync()).running)
             {
-                Log.Error("Failed to start ADB server");
+                Log.Error("ADB server failed to start");
                 Globals.ShowNotification("ADB", Resources.FailedToStartAdbServer, NotificationType.Error,
                     TimeSpan.Zero);
-                throw new AdbServiceException("Failed to start ADB server");
+                throw new AdbServiceException("ADB server failed to start");
             }
 
             await _adb.AdbClient.ConnectAsync("127.0.0.1:62001");
