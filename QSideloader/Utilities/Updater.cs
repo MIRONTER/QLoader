@@ -73,6 +73,7 @@ public class Updater
             return;
         }
 
+        CommonUtils.TrySetExecutableBit(updaterFileName);
         var process = new Process
         {
             StartInfo =
