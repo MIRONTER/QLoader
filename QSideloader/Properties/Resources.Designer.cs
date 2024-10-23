@@ -729,12 +729,6 @@ namespace QSideloader.Properties {
             }
         }
         
-        public static string ExceptionCopiedToClipboard {
-            get {
-                return ResourceManager.GetString("ExceptionCopiedToClipboard", resourceCulture);
-            }
-        }
-        
         public static string AdbAuthorizationDialogTitle {
             get {
                 return ResourceManager.GetString("AdbAuthorizationDialogTitle", resourceCulture);
@@ -804,12 +798,6 @@ namespace QSideloader.Properties {
         public static string ClickToCancel {
             get {
                 return ResourceManager.GetString("ClickToCancel", resourceCulture);
-            }
-        }
-        
-        public static string TaskFailed {
-            get {
-                return ResourceManager.GetString("TaskFailed", resourceCulture);
             }
         }
         
@@ -1683,12 +1671,6 @@ namespace QSideloader.Properties {
             }
         }
         
-        public static string Size {
-            get {
-                return ResourceManager.GetString("Size", resourceCulture);
-            }
-        }
-        
         public static string TaskResultOsVersionTooOld {
             get {
                 return ResourceManager.GetString("TaskResultOsVersionTooOld", resourceCulture);
@@ -1848,6 +1830,12 @@ namespace QSideloader.Properties {
         public static string ErrorListingDownloadedGames {
             get {
                 return ResourceManager.GetString("ErrorListingDownloadedGames", resourceCulture);
+            }
+        }
+        
+        public static string ErrorGettingDeviceInfo {
+            get {
+                return ResourceManager.GetString("ErrorGettingDeviceInfo", resourceCulture);
             }
         }
     }

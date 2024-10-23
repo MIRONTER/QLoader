@@ -370,9 +370,6 @@ Are you sure you want to continue?</value>
     <data name="CopiedToClipboardHeader" xml:space="preserve">
         <value>Copied to clipboard</value>
     </data>
-    <data name="ExceptionCopiedToClipboard" xml:space="preserve">
-        <value>The exception has been copied to clipboard</value>
-    </data>
     <data name="AdbAuthorizationDialogTitle" xml:space="preserve">
         <value>ADB authorization</value>
     </data>
@@ -414,9 +411,6 @@ You may use {0} for downloads without connecting to a device.</value>
     </data>
     <data name="ClickToCancel" xml:space="preserve">
         <value>Click to cancel</value>
-    </data>
-    <data name="TaskFailed" xml:space="preserve">
-        <value>Task failed</value>
     </data>
     <data name="TaskResultDownloadFailed" xml:space="preserve">
         <value>Download failed</value>
@@ -853,9 +847,6 @@ You may use {0} for downloads without connecting to a device.</value>
     <data name="InstallButton" xml:space="preserve">
         <value>Install</value>
     </data>
-    <data name="Size" xml:space="preserve">
-        <value>Size</value>
-    </data>
     <data name="TaskResultOsVersionTooOld" xml:space="preserve">
         <value>Firmware version too old</value>
     </data>
@@ -944,5 +935,8 @@ Thank you!</value>
     </data>
     <data name="ErrorListingDownloadedGames" xml:space="preserve">
         <value>Error listing downloaded games</value>
+    </data>
+    <data name="ErrorGettingDeviceInfo" xml:space="preserve">
+        <value>Error getting device info</value>
     </data>
 </root>

@@ -9,7 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using AdvancedSharpAdbClient.Models;
 using QSideloader.Models;
+using QSideloader.Properties;
 using QSideloader.Services;
+using QSideloader.Utilities;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Serilog;
@@ -32,6 +34,11 @@ public class DeviceInfoViewModel : ViewModelBase, IActivatableViewModel
         Refresh = ReactiveCommand.CreateFromObservable(RefreshImpl);
         Refresh.IsExecuting.ToProperty(this, x => x.IsBusy, out _isBusy, false, RxApp.MainThreadScheduler);
         EnableWirelessAdb = ReactiveCommand.CreateFromTask(EnableWirelessAdbImpl);
+        Refresh.ThrownExceptions.Subscribe(ex =>
+        {
+            Log.Error(ex, "Error refreshing device info");
+            Globals.ShowErrorNotification(ex, Resources.ErrorGettingDeviceInfo);
+        });
         Refresh.Execute().Subscribe();
         this.WhenActivated(disposables =>
         {
