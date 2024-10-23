@@ -12,7 +12,7 @@ Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 
 try
 {
-    var updateInfo = await UpdateInfo.GetInfoAsync();
+    var updateInfo = await UpdateInfo.GetInfoAsync(GetUpdateUrlOverride());
 
     var exeName = OperatingSystem.IsWindows() ? "Loader.exe" : "Loader";
 
@@ -43,7 +43,7 @@ try
     if (latestVersion == null)
     {
         Console.WriteLine("Latest version not found!");
-        Quit();
+        Finish();
     }
     Console.WriteLine($"Downloading Loader {latestVersion!.VersionString}...");
 
@@ -51,7 +51,7 @@ try
     if (asset is null)
     {
         Console.WriteLine("Download asset not found!");
-        Quit();
+        Finish();
     }
 
     using var httpClientHandler = new HttpClientHandler();
@@ -74,18 +74,18 @@ try
         Console.WriteLine("Hash mismatch, download corrupted!");
         Console.WriteLine($"Expected: {expectedHash}");
         Console.WriteLine($"Actual: {hashString}");
-        File.Delete(outFileName);
-        Quit();
+        // Should we delete the file?
+        //File.Delete(outFileName);
+        Finish();
     }
     Console.WriteLine("Download complete!");
 
     Console.WriteLine("Extracting...");
-    // check if the archive contains a single directory, if so, extract it's contents to the current directory
+    // check if the archive contains a single directory, if so, extract its contents to the current directory
     var zipFile = ZipFile.OpenRead(outFileName);
-    var singleDirectory = zipFile.Entries.All(entry =>
-        !entry.FullName.EndsWith(Path.DirectorySeparatorChar) &&
-        !entry.FullName.EndsWith(Path.AltDirectorySeparatorChar) ||
-        entry.FullName.Count(c => c == Path.DirectorySeparatorChar || c == Path.AltDirectorySeparatorChar) != 1);
+    var singleDirectory = zipFile.Entries.Count(entry => entry.FullName.Count(c => c == Path.DirectorySeparatorChar || c == Path.AltDirectorySeparatorChar) == 1) == 1 &&
+                          zipFile.Entries.All(entry => entry.FullName.Any(c => c == Path.DirectorySeparatorChar || c == Path.AltDirectorySeparatorChar));
+    Console.WriteLine($"Single directory: {singleDirectory}");
 
     if (singleDirectory)
     {
@@ -114,10 +114,11 @@ try
         // extract to current directory
         zipFile.ExtractToDirectory(AppContext.BaseDirectory, true);
     }
+    // We need to dispose the ZipFile manually to close the file before we delete it
     zipFile.Dispose();
     File.Delete(outFileName);
     Console.WriteLine($"Extract complete! Launching {exeName}...");
-    TrySetExecutableBit(exeName);
+    CommonUtils.TrySetExecutableBit(exeName);
     Process.Start(exeName);
     await Task.Delay(5000);
 }
@@ -126,41 +127,34 @@ catch (Exception e)
     PrintPadded("ERROR!");
     Console.WriteLine(e);
     PrintPadded();
-    Quit();
+    Finish();
 }
 
 return;
 
 
-void Quit()
+string? GetUpdateUrlOverride()
+{
+    var overridesPath = Path.Combine(AppContext.BaseDirectory, "overrides.conf");
+    if (!File.Exists(overridesPath))
+        return null;
+    var overrides = File.ReadAllLines(overridesPath);
+    var updateUrlOverride = overrides.FirstOrDefault(x => x.StartsWith("UpdateInfoUrl="))?.Split('=')[1];
+    if (string.IsNullOrWhiteSpace(updateUrlOverride))
+        return null;
+    Console.WriteLine($"Using update info url: {updateUrlOverride}");
+    return updateUrlOverride;
+}
+
+void Finish()
 {
     Console.WriteLine("\nPress any key to exit...");
     Console.ReadKey();
-    Environment.Exit(0);
+    Environment.Exit(1);
 }
 
 void PrintPadded(string text = "")
 {
     var lineLength = Console.WindowWidth;
     Console.WriteLine(text.PadLeft(lineLength / 2 + text.Length / 2, '-').PadRight(lineLength, '-'));
-}
-
-static void TrySetExecutableBit(string filePath)
-{
-    if (!File.Exists(filePath))
-        throw new FileNotFoundException(filePath);
-    if (OperatingSystem.IsWindows())
-        return;
-    try
-    {
-        var mode = File.GetUnixFileMode(filePath);
-        if (mode.HasFlag(UnixFileMode.UserExecute))
-            return;
-        mode |= UnixFileMode.UserExecute;
-        File.SetUnixFileMode(filePath, mode);
-    }
-    catch
-    {
-        // ignored
-    }
 }
