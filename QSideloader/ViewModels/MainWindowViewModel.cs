@@ -644,7 +644,8 @@ public partial class MainWindowViewModel : ViewModelBase
                     {
                         Content = new TextBlock
                         {
-                            Text = $"Version: {versionString}\n\nRelease Notes:\n{releaseNotes}"
+                            Text = $"Version: {versionString}\n\nRelease Notes:\n{releaseNotes}",
+                            TextWrapping = TextWrapping.Wrap
                         }
                     },
                     CloseButtonText = Resources.CloseButton,
