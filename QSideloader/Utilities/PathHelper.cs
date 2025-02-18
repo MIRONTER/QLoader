@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -150,7 +150,7 @@ public static class PathHelper
         {
             return directories
                        .Select(directory => Path.Combine(directory, "libvlc", archName)) // Prioritize pre-structured layout
-                       .FirstOrDefault(File.Exists) ?? // Search win-x64/win-x86 within libvlc folder 
+                       .FirstOrDefault(Directory.Exists) ?? // Search win-x64/win-x86 within libvlc folder 
                    directories
                        .FirstOrDefault(x => File.Exists(Path.Combine(x, libName))); // Fallback
         }
