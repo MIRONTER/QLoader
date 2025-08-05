@@ -635,33 +635,33 @@ public partial class AdbService
         foreach (var device in deviceList)
         {
             var hashedDeviceId = GetHashedId(device.Serial);
-            if (OculusHeadsetsInfo.IsKnownProduct(device.Product))
-            {
-                try
-                {
-                    var adbDevice = new AdbDevice(device, this);
-                    oculusDeviceList.Add(adbDevice);
-                    Log.Information("Found Oculus Quest device: {Device}", adbDevice);
-                }
-                catch
-                {
-                    // ignored
-                }
-
-                continue;
-            }
-
-            // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
             switch (device.State)
             {
                 case DeviceState.Online:
-                    Log.Information("Not an Oculus Quest device! ({HashedDeviceId} - {Product})", hashedDeviceId,
-                        device.Product);
+                    try
+                    {
+                        var adbDevice = new AdbDevice(device, this);
+                        oculusDeviceList.Add(adbDevice);
+                        Log.Information("Found device: {Device}", adbDevice);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Warning(e, "Failed to initialize device {HashedDeviceId}", hashedDeviceId);
+                    }
+
                     break;
                 case DeviceState.Unauthorized:
                     unauthorizedDevices.Add(device);
                     Log.Information("Found device in {State} state! ({HashedDeviceId})", device.State, hashedDeviceId);
                     break;
+                case DeviceState.Offline:
+                case DeviceState.BootLoader:
+                case DeviceState.Host:
+                case DeviceState.Recovery:
+                case DeviceState.NoPermissions:
+                case DeviceState.Sideload:
+                case DeviceState.Authorizing:
+                case DeviceState.Unknown:
                 default:
                     Log.Information("Found device in {State} state! ({HashedDeviceId})", device.State, hashedDeviceId);
                     break;

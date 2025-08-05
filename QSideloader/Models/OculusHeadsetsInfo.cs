@@ -11,13 +11,14 @@ public static class OculusHeadsetsInfo
         new OculusHeadset(OculusHeadsetEnum.Quest2, "Quest 2", "hollywood", new[] {72, 90, 120}),
         new OculusHeadset(OculusHeadsetEnum.Quest3, "Quest 3", "eureka", Array.Empty<int>()),
         new OculusHeadset(OculusHeadsetEnum.Quest3S, "Quest 3S", "panther", Array.Empty<int>()),
-        new OculusHeadset(OculusHeadsetEnum.QuestPro, "Quest Pro", "seacliff", new[] {72, 90})
+        new OculusHeadset(OculusHeadsetEnum.QuestPro, "Quest Pro", "seacliff", new[] {72, 90}),
+        new OculusHeadset(OculusHeadsetEnum.Quest3SXbox, "Quest 3S Xbox Edition", "xse_panther", Array.Empty<int>())
     ];
 
     public static OculusHeadset GetProductInfo(string productName)
     {
         return Products.Find(x => x.ProductName == productName) ??
-               throw new KeyNotFoundException("Unknown device productName");
+               new OculusHeadset(OculusHeadsetEnum.Unknown, "Unknown", productName, Array.Empty<int>());
     }
 
     public static bool IsKnownProduct(string productName)
@@ -44,5 +45,7 @@ public enum OculusHeadsetEnum
     Quest2,
     Quest3,
     Quest3S,
-    QuestPro
+    QuestPro,
+    Quest3SXbox,
+    Unknown
 }
