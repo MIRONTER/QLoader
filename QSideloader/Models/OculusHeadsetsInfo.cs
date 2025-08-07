@@ -18,7 +18,7 @@ public static class OculusHeadsetsInfo
     public static OculusHeadset GetProductInfo(string productName)
     {
         return Products.Find(x => x.ProductName == productName) ??
-               new OculusHeadset(OculusHeadsetEnum.Unknown, "Unknown", productName, Array.Empty<int>());
+               new OculusHeadset(OculusHeadsetEnum.Unknown, $"Unknown ({productName})", productName, Array.Empty<int>());
     }
 
     public static bool IsKnownProduct(string productName)
